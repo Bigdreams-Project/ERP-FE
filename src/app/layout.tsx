@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// src/app/layout.tsx
+import './globals.css'
+import { Inter, Archivo,Bokor } from 'next/font/google'
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-inter',
+  display: 'swap', // optional
+})
+
+// Load Archivo
+const archivo = Archivo({
+  subsets: ['latin'],
+  variable: '--font-archivo',
+  display: 'swap',
+})
+
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${archivo.variable}  antialiased`}
       >
         {children}
       </body>

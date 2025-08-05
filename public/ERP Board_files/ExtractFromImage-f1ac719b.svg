@@ -1,0 +1,36 @@
+<svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#ExtractFromImage_svg__a)">
+    <rect x="2" y="1.53711" width="20.0006" height="16.9239" rx="2.75174" fill="white"/>
+    <path d="M12.4438 16.5073C14.565 14.2628 18.1368 14.2628 20.258 16.5073L23.1744 19.5934H9.52734L12.4438 16.5073Z" fill="url(#ExtractFromImage_svg__b)"/>
+    <path d="M12.4438 16.5073C14.565 14.2628 18.1368 14.2628 20.258 16.5073L23.1744 19.5934H9.52734L12.4438 16.5073Z" fill="url(#ExtractFromImage_svg__c)" fill-opacity="0.5"/>
+    <ellipse cx="15.0845" cy="8.7565" rx="2.02196" ry="2.06314" fill="url(#ExtractFromImage_svg__d)"/>
+    <ellipse cx="15.0845" cy="8.7565" rx="2.02196" ry="2.06314" fill="url(#ExtractFromImage_svg__e)" fill-opacity="0.5"/>
+    <path d="M3.84106 15.0953C5.94883 12.9446 9.41195 12.9446 11.5197 15.0953L15.9506 19.6164H3.67527C2.08754 19.6164 1.28418 17.7042 2.39549 16.5703L3.84106 15.0953Z" fill="url(#ExtractFromImage_svg__f)"/>
+  </g>
+  <rect x="1.4" y="0.937109" width="21.2006" height="18.1239" rx="3.35174" stroke="#B9B7CD" stroke-width="1.2"/>
+  <defs>
+    <linearGradient id="ExtractFromImage_svg__b" x1="9.52734" y1="15.9832" x2="23.1744" y2="15.9832" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#45BEF1"/>
+      <stop offset="1" stop-color="#66F3A3"/>
+    </linearGradient>
+    <radialGradient id="ExtractFromImage_svg__c" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(20.6527 19.5934) rotate(-121.508) scale(3.40602 4.01006)">
+      <stop stop-color="#17E44F"/>
+      <stop offset="1" stop-color="#17E44F" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ExtractFromImage_svg__d" x1="13.0625" y1="8.75649" x2="17.1064" y2="8.75649" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF7037"/>
+      <stop offset="1" stop-color="#FF5BBA"/>
+    </linearGradient>
+    <radialGradient id="ExtractFromImage_svg__e" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(16.3592 10.8196) rotate(-107.633) scale(1.74129 1.32827)">
+      <stop stop-color="#F605B8"/>
+      <stop offset="1" stop-color="#F605B8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ExtractFromImage_svg__f" x1="-0.589844" y1="15.3971" x2="15.9506" y2="15.3971" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5937FF"/>
+      <stop offset="1" stop-color="#149CFF"/>
+    </linearGradient>
+    <clipPath id="ExtractFromImage_svg__a">
+      <rect x="2" y="1.53711" width="20.0006" height="16.9239" rx="2.75174" fill="white"/>
+    </clipPath>
+  </defs>
+</svg>
