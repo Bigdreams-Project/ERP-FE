@@ -1,0 +1,24 @@
+<svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#ExtractFromUrl_svg__a)">
+    <rect x="2" y="1.53711" width="20.0006" height="16.9239" rx="2.75174" fill="white"/>
+    <ellipse cx="3.43585" cy="2.97593" rx="0.61554" ry="0.61851" fill="#65E498"/>
+    <ellipse cx="5.48663" cy="2.97593" rx="0.61554" ry="0.61851" fill="#FFCC33"/>
+    <ellipse cx="7.54132" cy="2.97593" rx="0.61554" ry="0.61851" fill="#F28888"/>
+    <rect x="3.05078" y="8.94336" width="17.8953" height="8.46194" rx="2" fill="#F4F3F6"/>
+    <rect x="3.55078" y="4.67773" width="16.8953" height="2.7021" rx="0.5" fill="white" stroke="#D9D7E5"/>
+    <rect x="14.6602" y="14.7871" width="6.78965" height="3.11548" rx="1.5" fill="url(#ExtractFromUrl_svg__b)" stroke="white"/>
+    <path d="M10.3101 5.45898L9.97558 6.66219H9.69252L9.46779 5.80547L9.23277 6.66219L8.95142 6.66391L8.62891 5.45898H8.88623L9.09724 6.39328L9.34084 5.45898H9.60846L9.83834 6.38811L10.0511 5.45898H10.3101Z" fill="#9C99B2"/>
+    <path d="M8.38042 5.45898L8.0459 6.66219H7.76284L7.5381 5.80547L7.30308 6.66219L7.02173 6.66391L6.69922 5.45898H6.95655L7.16755 6.39328L7.41116 5.45898H7.67878L7.90865 6.38811L8.12138 5.45898H8.38042Z" fill="#9C99B2"/>
+    <path d="M6.45073 5.45898L6.11621 6.66219H5.83315L5.60842 5.80547L5.37339 6.66219L5.09205 6.66391L4.76953 5.45898H5.02686L5.23787 6.39328L5.48147 5.45898H5.74909L5.97897 6.38811L6.19169 5.45898H6.45073Z" fill="#9C99B2"/>
+  </g>
+  <rect x="1.4" y="0.937109" width="21.2006" height="18.1239" rx="3.35174" stroke="#B9B7CD" stroke-width="1.2"/>
+  <defs>
+    <linearGradient id="ExtractFromUrl_svg__b" x1="15.1602" y1="16.3449" x2="20.9498" y2="16.3449" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5937FF"/>
+      <stop offset="1" stop-color="#149CFF"/>
+    </linearGradient>
+    <clipPath id="ExtractFromUrl_svg__a">
+      <rect x="2" y="1.53711" width="20.0006" height="16.9239" rx="2.75174" fill="white"/>
+    </clipPath>
+  </defs>
+</svg>

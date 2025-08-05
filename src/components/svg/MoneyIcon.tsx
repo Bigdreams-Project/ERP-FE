@@ -1,0 +1,31 @@
+import React from "react";
+
+const MoneyIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    viewBox="0 0 18 18"
+    {...props}
+  >
+    <title>vault-3</title>
+    <g
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.5"
+    >
+      <rect x="2.75" y="2.75" width="12.5" height="12.5" rx="2" ry="2" />
+      <line x1="4.75" y1="15.25" x2="4.75" y2="16.75" />
+      <line x1="13.25" y1="15.25" x2="13.25" y2="16.75" />
+      <line x1="1.75" y1="9" x2="3.75" y2="9" />
+      <line x1="1.75" y1="5.75" x2="3.75" y2="5.75" />
+      <line x1="1.75" y1="12.25" x2="3.75" y2="12.25" />
+      <circle cx="9" cy="8.25" r="1.75" />
+      <line x1="9" y1="11.75" x2="9" y2="10" />
+    </g>
+  </svg>
+);
+
+export default MoneyIcon;

@@ -1,0 +1,30 @@
+<svg width="28" height="16" viewBox="0 0 28 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g filter="url(#GenerateThemeFromText_svg__a)">
+    <rect x="2" y="2" width="24" height="12" rx="6" fill="white"/>
+    <rect x="1.4" y="1.4" width="25.2" height="13.2" rx="6.6" stroke="white" stroke-width="1.2"/>
+    <rect x="1.4" y="1.4" width="25.2" height="13.2" rx="6.6" stroke="url(#GenerateThemeFromText_svg__b)" stroke-opacity="0.8" stroke-width="1.2"/>
+    <rect x="13.7227" y="4.42969" width="0.77512" height="7.7512" fill="#3F3C59"/>
+    <rect x="15.3984" y="4" width="0.77512" height="2.58373" transform="rotate(90 15.3984 4)" fill="#3F3C59"/>
+    <rect x="15.3984" y="11.8809" width="0.77512" height="2.58373" transform="rotate(90 15.3984 11.8809)" fill="#3F3C59"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.42323 5.67898C8.39344 5.63641 8.37764 5.58561 8.37802 5.53365C8.37764 5.48168 8.39344 5.43089 8.42323 5.38832C8.45302 5.34575 8.49533 5.31351 8.54426 5.29608L9.37073 4.99198L9.67471 4.16523C9.69271 4.11673 9.72511 4.0749 9.76756 4.04537C9.81002 4.01583 9.86049 4 9.9122 4C9.96392 4 10.0144 4.01583 10.0568 4.04537C10.0993 4.0749 10.1317 4.11673 10.1497 4.16523L10.4537 4.99198L11.2801 5.29608C11.3286 5.31408 11.3704 5.34649 11.4 5.38896C11.4295 5.43143 11.4453 5.48192 11.4453 5.53365C11.4453 5.58538 11.4295 5.63587 11.4 5.67834C11.3704 5.72081 11.3286 5.75322 11.2801 5.77122L10.4537 6.07532L10.1497 6.90207C10.1317 6.95057 10.0993 6.99239 10.0568 7.02193C10.0144 7.05147 9.96392 7.0673 9.9122 7.0673C9.86049 7.0673 9.81002 7.05147 9.76756 7.02193C9.72511 6.99239 9.69271 6.95057 9.67471 6.90207L9.37073 6.07532L8.54426 5.77122C8.49533 5.75379 8.45302 5.72155 8.42323 5.67898ZM4.08439 8.70118C4.02977 8.62313 4.0008 8.53001 4.0015 8.43474C4.0008 8.33947 4.02977 8.24635 4.08439 8.1683C4.139 8.09025 4.21655 8.03114 4.30628 7.99919L5.82146 7.44168L6.37877 5.92596C6.41176 5.83705 6.47116 5.76037 6.54899 5.70622C6.62682 5.65207 6.71936 5.62305 6.81416 5.62305C6.90897 5.62305 7.0015 5.65207 7.07934 5.70622C7.15717 5.76037 7.21657 5.83705 7.24956 5.92596L7.80687 7.44168L9.32205 7.99919C9.41093 8.03219 9.48759 8.09161 9.54172 8.16947C9.59585 8.24733 9.62487 8.3399 9.62487 8.43474C9.62487 8.52958 9.59585 8.62214 9.54172 8.7C9.48759 8.77786 9.41093 8.83729 9.32205 8.87029L7.80687 9.42779L7.24956 10.9435C7.21657 11.0324 7.15717 11.1091 7.07934 11.1633C7.0015 11.2174 6.90897 11.2464 6.81416 11.2464C6.71936 11.2464 6.62682 11.2174 6.54899 11.1633C6.47116 11.1091 6.41176 11.0324 6.37877 10.9435L5.82146 9.42779L4.30628 8.87029C4.21655 8.83833 4.139 8.77923 4.08439 8.70118Z" fill="url(#GenerateThemeFromText_svg__c)"/>
+    <rect x="16" y="6" width="7.63636" height="3.27273" rx="1.63636" fill="#E7E6EF"/>
+  </g>
+  <defs>
+    <filter id="GenerateThemeFromText_svg__a" x="-18.4911" y="-18.4911" width="64.9822" height="52.9822" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feGaussianBlur in="BackgroundImageFix" stdDeviation="9.64593"/>
+      <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur_16231_76136"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_backgroundBlur_16231_76136" result="shape"/>
+    </filter>
+    <linearGradient id="GenerateThemeFromText_svg__b" x1="2" y1="8.99999" x2="25.8895" y2="10.2001" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#55BEFF"/>
+      <stop offset="0.565" stop-color="#6246FF"/>
+      <stop offset="1" stop-color="#F784FF"/>
+    </linearGradient>
+    <linearGradient id="GenerateThemeFromText_svg__c" x1="11.4453" y1="3.16998" x2="2.71289" y2="4.64768" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#55BEFF"/>
+      <stop offset="0.565" stop-color="#806AFA"/>
+      <stop offset="1" stop-color="#C766F7"/>
+    </linearGradient>
+  </defs>
+</svg>
