@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 
 // icons
 import { FiChevronRight } from "react-icons/fi";
-
 import { PiSignInFill } from "react-icons/pi";
 
 
@@ -13,13 +12,19 @@ import SettingsIcon from "./svg/SettingsIcon";
 import ChartBarAxisXIcon from "./svg/ChartBarAxisXIcon";
 import StaffIcon from "./svg/StaffIcon";
 import MoneyIcon from "./svg/MoneyIcon";
+
+
 import Link from "next/link";
+import { usePathname } from 'next/navigation';
 
 const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; isMobile: boolean }) => {
 
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const hoverRef = useRef<HTMLDivElement | null>(null);
+
+    // geting the active path to trake the 
+    const pathname = usePathname();
 
 
     //  Close hover menu on outside click
@@ -50,18 +55,19 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
         return () => clearTimeout(timeoutId);
     }, [sidebarExpanded, isMobile]);
 
-    const iconCondition = sidebarExpanded ? "20" : "25"
+
+
     // nexted items
     const sidebarMenu = [
         {
             label: "Academic",
             icon: <GraduationCapIcon className="w-5 h-5 text-[rgba(0,0,0,0.6)]" />,
             links: [
-                { label: "Leads", href: "/dashboard/dynamic/leads" },
-                { label: "Centers", href: "/dashboard/dynamic/centers" },
-                { label: "Students", href: "/dashboard/dynamic/students" },
-                { label: "Courses", href: "/dashboard/dynamic/courses-batches" },
-                { label: "Batches", href: "/dashboard/dynamic/courses-batches" },
+                { label: "Leads", href: "/dashboard/academic/leads" },
+                { label: "Centers", href: "/dashboard/academic/centers" },
+                { label: "Students", href: "/dashboard/academic/students" },
+                { label: "Courses", href: "/dashboard/academic/courses" },
+                { label: "Batches", href: "/dashboard/academic/batches" },
             ],
         },
         {
@@ -75,7 +81,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
 
         {
             label: "HR & Staffs",
-            icon: <StaffIcon  className="w-5 h-5 text-[rgba(0,0,0,0.6)]"/>,
+            icon: <StaffIcon className="w-5 h-5 text-[rgba(0,0,0,0.6)]" />,
             links: [
                 { label: "Invoices", href: "/dashboard/invoices" },
                 { label: "Payments", href: "/dashboard/payments" },
@@ -91,7 +97,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
         },
         {
             label: "Settings",
-            icon: <SettingsIcon className="w-5 h-5 text-[rgb(0,0,0)]"/>,
+            icon: <SettingsIcon className="w-5 h-5 text-[rgb(0,0,0)]" />,
             links: [
                 { label: "Invoices", href: "/dashboard/invoices" },
                 { label: "Payments", href: "/dashboard/payments" },
@@ -106,7 +112,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
 
             <div className="flex-1 ">
                 <Link href={"/dashboard"} className={`flex text-center items-center    text-indigo-500 px-[1.5rem] py-[0.4rem] ${sidebarExpanded ? " bg-indigo-50" : "items-start !px-[2rem]"} transition-all duration-500 font-inter`}>
-                   <HouseIcon className="w-5 h-5 text-indigo-500 fill-current" />
+                    <HouseIcon className="w-5 h-5 text-indigo-500 fill-current" />
                     <div
                         className={`font-bold text-[16px] text-indigo-500 transition-all duration-500  origin-left whitespace-nowrap overflow-hidden ${sidebarExpanded ? "md:opacity-100 md:visible  md:ml-2 md:w-auto opacity-0 invisible ml-0 w-0" : "opacity-0 invisible ml-0 w-0"}`} >
 
@@ -175,14 +181,15 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                             <div className={`overflow-hidden transition-all duration-500  ${expandedIndex === index ? "max-h-[400px]" : "max-h-0"
                                                 }`} >
 
-
-
-                                                {menu.links.map((link, i) => (
-                                                    <Link key={i} href={link.href} className="block  hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter focus:bg-bghover text-[rgba(0,0,0,0.7)] text-[16px]">
-                                                        <span>{link.label}</span>
-                                                    </Link>
-                                                ))}
-
+                                                {menu.links.map((link, i) => {
+                                                    const isActive = pathname === link.href;
+                                                    return (
+                                                        <Link key={i} href={link.href} className={`block  hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter ${isActive && "bg-bghover"} text-[rgba(0,0,0,0.7)] text-[16px]`}>
+                                                            <span>{link.label}</span>
+                                                        </Link>
+                                                    )
+                                                })
+                                            }
                                             </div>
                                             :
                                             hoveredIndex === index &&
@@ -225,7 +232,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                 {
                     sidebarExpanded ?
                         <div className="flex pr-[6rem]">
-                             <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]"/>
+                            <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />
                             <h1
                                 className={`transition-all duration-500 whitespace-nowrap font-inter text-[rgba(0,0,0,0.7)] ${sidebarExpanded ? "opacity-100 visible ml-1" : "opacity-0 invisible ml-0 none"
                                     }`}>
@@ -233,7 +240,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                             </h1>
                         </div>
                         :
-                        <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]"/>
+                        <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />
                 }
 
             </div>
