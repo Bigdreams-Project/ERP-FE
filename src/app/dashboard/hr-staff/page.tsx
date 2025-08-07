@@ -1,7 +1,7 @@
 export default function Hrstaff(){
     return(
         <div>
-            <h1>staffs</h1>
+            <h1>centers</h1>
         </div>
     )
 }

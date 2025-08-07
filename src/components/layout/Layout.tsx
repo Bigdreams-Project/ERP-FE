@@ -13,11 +13,13 @@ const Layout = ({ children }: LayoutProps) => {
   
   return (
     
-      <div className="flex justify-between  gap-[1.5rem] h-screen w-full bg-black ">
+      <div className="flex justify-between  gap-[1.5rem] h-screen w-full bg-white ">
+        
         <AppSidebar />
         <div className="flex flex-col flex-1 mt-[0.9rem]">
           <Navbar />
-          <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto">
+            {children}</main>
         </div>
       </div>
     
