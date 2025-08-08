@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Inter:wght@400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Inter:wght@400;600&display=swap");
 /* 🥇 ALL @import FIRST */
 @import "tw-animate-css";
 
@@ -6,8 +6,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
 
 /* Tailwind Base Layer */
 @layer base {
@@ -29,7 +27,10 @@
   }
 }
 
+.overview-gradient {
+  background: linear-gradient(180deg, #22ccb2ff 0%, #235bcdff 100%);
+}
 
-
-
-
+.text-grey-dark {
+  color: #242524ff;
+}
