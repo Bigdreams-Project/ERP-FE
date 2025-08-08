@@ -22,7 +22,7 @@ const Navbar = () => {
 
             <div className="w-[40%] flex items-center  text-center justify-around">
                 <div className="">
-                    <Centerdropdown />
+                    <Centerdropdown/>
                 </div>
                 <IoIosNotificationsOutline size={30} />
                 <Profile />

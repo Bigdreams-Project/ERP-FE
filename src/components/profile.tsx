@@ -19,14 +19,14 @@ const Profile = () => {
     const [isChecked, setIsChecked] = useState(false)
     return (
         <div className="">
-            <DropdownMenu>
+            <DropdownMenu >
                 <DropdownMenuTrigger>
                     <Avatar>
                         <AvatarImage src="https://github.com/shadcn.png" />
                         <AvatarFallback>CN</AvatarFallback>
                     </Avatar>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="z-[9999]">
                     <DropdownMenuLabel>
                         <div className="flex gap-[1rem]">
                             <Avatar aria-setsize={10} className="w-[50px] h-[50px]">
