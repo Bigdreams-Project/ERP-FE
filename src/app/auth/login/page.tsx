@@ -12,6 +12,7 @@ import { ImSpinner2 } from "react-icons/im";
 import { IoMdEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
 import { PiLockKeyThin } from "react-icons/pi";
+import axios from "axios"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -71,24 +72,16 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+        const res = await axios.post(`${BASE_URL}/auth/login`, {
+            email,
+            password
+        })
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (res.status === 200 || res.status === 201) {
         setShowTransition(true);
         // setTimeout(() => router.push("/dashboard"), 1000);
       } else {
-        throw new Error(data.message || "401");
+        throw new Error("401");
       }
     } catch (error: any) {
       if (
@@ -115,7 +108,7 @@ export default function Login() {
       >
         <img src="/Logo.png" alt="" />
       </div>
- 
+
       {/* Form */}
       <div className="w-full md:w-[45%] md:px-[1rem] ">
         <div
@@ -141,8 +134,8 @@ export default function Login() {
                   ${
                     email
                       ? emailValid
-                        ? "border-2 border-[#636AE8] shadow-[0_0_6px_rgba(34,197,94,0.6)]"
-                        : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]"
+                        ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
+                        : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
                       : ""
                   }
                 `}
@@ -185,8 +178,8 @@ export default function Login() {
                   ${
                     password
                       ? passwordValid
-                        ? "border-2 border-[#636AE8] shadow-[0_0_6px_rgba(34,197,94,0.6)]"
-                        : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]"
+                        ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
+                        : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
                       : ""
                   }
                 `}
@@ -251,9 +244,8 @@ export default function Login() {
                 <a href="/forgot-password" className="text-[#636AE8]">
                   Forgot password?
                 </a>
-              </div>
-
-              {/* Submit button */}
+                              </div>
+                              
               <button
                 type="submit"
                 disabled={!isFormValid || loading}
