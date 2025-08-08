@@ -86,7 +86,7 @@ export default function Login() {
 
       if (res.ok) {
         setShowTransition(true);
-        setTimeout(() => router.push("/dashboard"), 1000);
+        // setTimeout(() => router.push("/dashboard"), 1000);
       } else {
         throw new Error(data.message || "401");
       }
@@ -115,7 +115,7 @@ export default function Login() {
       >
         <img src="/Logo.png" alt="" />
       </div>
-
+ 
       {/* Form */}
       <div className="w-full md:w-[45%] md:px-[1rem] ">
         <div
