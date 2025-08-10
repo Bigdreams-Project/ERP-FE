@@ -42,7 +42,7 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 rounded-md border bg-white p-1 text-popover-foreground shadow-lg",
+          "z-50 rounded-md border bg-[rgb(255,255,255)] p-1 text-popover-foreground shadow-lg",
           "min-w-[8rem] transition-all duration-200 ease-in-out will-change-[opacity,transform]",
 
           // 👇 Animate open

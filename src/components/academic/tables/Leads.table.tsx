@@ -56,7 +56,7 @@ export default function LeadTable() {
               <th className="p-4"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-[13px]">
             {paginatedData.map((lead, index) => (
               <tr key={lead.id} className="border-t border-gray-200">
                 <td className="p-4 flex items-center">

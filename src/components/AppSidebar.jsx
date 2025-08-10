@@ -73,13 +73,13 @@ const AppSidebar = () => {
         {!isMobile &&
           (sidebarExpanded ? (
             <TfiShiftLeft
-              size={20}
+              size={15}
               className="text-black transition-all duration-500 cursor-pointer"
               onClick={() => setSidebarExpanded(false)}
             />
           ) : (
             <TfiShiftRight
-              size={20}
+              size={15}
               className=" text-black transition-all duration-500 cursor-pointer"
               onClick={() => setSidebarExpanded(true)}
             />
