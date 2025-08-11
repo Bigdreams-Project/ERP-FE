@@ -12,7 +12,7 @@ export default function Centers() {
     const [error, setError] = useState("")
     const [isTyping, setIsTyping] = useState(false);
 
-    // Debounce effect (500ms delay)
+    
     useEffect(() => {
         if (!isTyping && searchInput.length > 0) {
             setIsTyping(true);
@@ -41,8 +41,8 @@ export default function Centers() {
                     <AcademicTabs />
                 </div>
                 <div className="w-full flex  justify-end gap-7 p-2">
-                    <div>
-                        <div className="w-[220px] h-[20px] flex items-center py-3 gap-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
+                    <div className="w-[220px] h-[20px] ">
+                        <div className="flex items-center  gap-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
                             <BiSearchAlt size={17} />
                             <input type="text" placeholder="Search"  onChange={(e) => {
                                 setSearchInput(e.target.value);

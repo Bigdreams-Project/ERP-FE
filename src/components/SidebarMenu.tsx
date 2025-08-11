@@ -1,21 +1,16 @@
 'use client'
 import React from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
-
-
-
 import { FiChevronRight } from "react-icons/fi";
 import { PiSignInFill } from "react-icons/pi";
-
-
 import HouseIcon from "./svg/HouseIcon";
 import GraduationCapIcon from "./svg/GraduationCapIcon";
 import SettingsIcon from "./svg/SettingsIcon";
 import ChartBarAxisXIcon from "./svg/ChartBarAxisXIcon";
 import StaffIcon from "./svg/StaffIcon";
 import MoneyIcon from "./svg/MoneyIcon";
-
-
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
 
@@ -24,12 +19,23 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const hoverRef = useRef<HTMLDivElement | null>(null);
-
-    // geting the active path to trake the 
+    const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
     const pathname = usePathname();
 
+    useLayoutEffect(() => {
+        if (hoveredIndex !== null && hoverRef.current) {
+            const rect = hoverRef.current.getBoundingClientRect();
+            setDropdownPosition({
+                top: rect.top,
+                left: rect.right, // position to the right of the item
+            });
+        } else {
+            setDropdownPosition(null);
+        }
+    }, [hoveredIndex]);
 
-    //  Close hover menu on outside click
+
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (hoverRef.current && !hoverRef.current.contains(event.target as Node)) {
@@ -108,7 +114,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
     ];
 
     const isActiveDashboard = pathname === "/dashboard";
-    const itemRefs = useRef([]);
+    
 
 
     return (
@@ -129,6 +135,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                 <div className="w-full flex flex-col justify-between">
                     {sidebarMenu.map((menu, index) => {
                         const isMenuActive = menu.links?.some(child => pathname.startsWith(child.href));
+                    
                         return (
                             <div key={index}>
                                 {/* Parent menu label and icon */}
@@ -182,6 +189,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                 {/* Nested links */}
                                 <div className="full relative">
                                     {sidebarExpanded && !isMobile ? (
+                                        
                                         <div
                                             className={`overflow-hidden transition-all duration-500 flex flex-col gap-1 mt-1 ${expandedIndex === index ? 'max-h-[400px]' : 'max-h-0'
                                                 }`}
@@ -191,7 +199,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                                     <Link
                                                         key={i}
                                                         href={link.href}
-                                                        className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px]`}
+                                                        className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${pathname === link.href ? "font-bold text-[rgba(0,0,0,0.8)]" : ""}`}
 
                                                     >
                                                         {link.label}
@@ -200,34 +208,30 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                             })}
                                         </div>
                                     ) : (
-                                        hoveredIndex === index && (
+                                        hoveredIndex === index && dropdownPosition &&
+                                        createPortal(
                                             <div
-                                                className={`absolute z-50 left-16 bg-white top-[-25px] w-[170px] rounded-lg py-2 px-2 ${hoveredIndex === index
-                                                        ? 'animate-dropdown-in'
-                                                        : 'animate-dropdown-out'
-                                                    }`}
+                                                className="fixed z-[9999] bg-white rounded-lg py-2 px-2 shadow-lg"
                                                 style={{
-                                                    boxShadow: '0rem 0rem 0.1rem 0rem rgba(65,64,64,0.5)',
+                                                    top: dropdownPosition.top,
+                                                    left: dropdownPosition.left,
                                                 }}
                                             >
-                                                <div
-                                                    className={`text-[16px] font-inter ${hoveredIndex === index
-                                                            ? 'animate-dropdown-in visible'
-                                                            : 'animate-dropdown-out invisible'
-                                                        }`}
-                                                >
+                                                <div className="text-[16px] font-inter">
                                                     {menu.links.map((link, i) => (
                                                         <Link
                                                             key={i}
                                                             href={link.href}
-                                                            className="block text-[rgba(0,0,0,0.7)] hover:bg-indigo-50 transition-all duration-300 px-[0.6rem] py-1 focus:bg-bghover font-inter"
+                                                            className="block text-[rgba(0,0,0,0.7)] hover:bg-indigo-50 px-[0.6rem] py-1"
                                                         >
                                                             {link.label}
                                                         </Link>
                                                     ))}
                                                 </div>
-                                            </div>
+                                            </div>,
+                                            document.body
                                         )
+
 
                                     )}
                                 </div>

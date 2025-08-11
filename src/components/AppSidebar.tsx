@@ -1,6 +1,8 @@
 "use client";
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, } from "react";
+
+
 
 import { TfiShiftRight } from "react-icons/tfi";
 import { TfiShiftLeft } from "react-icons/tfi";
@@ -12,6 +14,7 @@ const AppSidebar = () => {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   
   const [isMobile, setIsMobile] = useState(false);
+
 
   useEffect(() => {
     const handleResize = () => {
