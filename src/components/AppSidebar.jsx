@@ -7,22 +7,6 @@ import { TfiShiftLeft } from "react-icons/tfi";
 import SidebarMenu from "./SidebarMenu";
 
 
-import { Inter, Archivo,Bokor } from 'next/font/google'
-
-// const bokor = Bokor({
-//   subsets: ['latin'],
-//   variable: '--font-inter',
-//   display: 'swap', // optional
-//   weight: "400"
-// })
-
-// Load Archivo
-const archivo = Archivo({
-  subsets: ['latin'],
-  variable: '--font-archivo',
-  display: 'swap',
-})
-
 
 const AppSidebar = () => {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -53,7 +37,7 @@ const AppSidebar = () => {
   const sidebarWidthClass = isMobile
     ? "w-[18%]" // mobile: force to 20%
     : sidebarExpanded
-    ? "md:w-[18%] w-[18%]"
+    ? "md:w-[17%] w-[17%]"
     : "w-[8%]";
   return (
     // Detect screen size and update sidebar accordingly
@@ -103,7 +87,7 @@ const AppSidebar = () => {
       </div>
 
       {/* Scrollable menu content */}
-      <div className="flex-1  h-screen mt-2">
+      <div className="flex-1  h-screen  overflow-y-auto">
         <SidebarMenu sidebarExpanded={sidebarExpanded} isMobile={isMobile} />
       </div>
     </div>
