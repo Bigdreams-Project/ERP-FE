@@ -2,7 +2,8 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
 
-// icons
+
+
 import { FiChevronRight } from "react-icons/fi";
 import { PiSignInFill } from "react-icons/pi";
 
@@ -107,6 +108,8 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
     ];
 
     const isActiveDashboard = pathname === "/dashboard";
+    const itemRefs = useRef([]);
+
 
     return (
 
@@ -116,7 +119,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                 <Link href={"/dashboard"} className={` flex text-center items-center  px-[1.5rem] py-[0.4rem] ${sidebarExpanded ? "" : "items-start !px-[2rem]"} transition-all duration-500 font-inter ${isActiveDashboard ? "bg-indigo-50 text-indigo-500 font-bold" : ""}`}>
                     <HouseIcon className="w-5 h-5  fill-current" />
                     <div
-                        className={`pt-1 text-[16px]  transition-all duration-500  origin-left whitespace-nowrap overflow-hidden ${sidebarExpanded ? "md:opacity-100 md:visible  md:ml-2 md:w-auto opacity-0 invisible ml-0 w-0" : "opacity-0 invisible ml-0 w-0"} ${ !isActiveDashboard && "text-[rgba(0,0,0,0.7)]"}`} >
+                        className={`pt-1 text-[16px]  transition-all duration-500  origin-left whitespace-nowrap overflow-hidden ${sidebarExpanded ? "md:opacity-100 md:visible  md:ml-2 md:w-auto opacity-0 invisible ml-0 w-0" : "opacity-0 invisible ml-0 w-0"} ${!isActiveDashboard && "text-[rgba(0,0,0,0.7)]"}`} >
 
                         Dashboard
                     </div>
@@ -141,7 +144,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                         } else {
                                             setHoveredIndex(index); // toggle on
                                         }
-                                    }} >
+                                    }}>
                                     {/* Left Side: Icon and Label */}
                                     <div
                                         className={`flex items-center transition-all text-center justify-center font-inter duration-300 ease-in-out ${sidebarExpanded ? '' : 'items-start !px-[0.5rem]'
@@ -189,7 +192,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                                         key={i}
                                                         href={link.href}
                                                         className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px]`}
-                                                        
+
                                                     >
                                                         {link.label}
                                                     </Link>
@@ -200,8 +203,8 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                         hoveredIndex === index && (
                                             <div
                                                 className={`absolute z-50 left-16 bg-white top-[-25px] w-[170px] rounded-lg py-2 px-2 ${hoveredIndex === index
-                                                    ? 'animate-dropdown-in'
-                                                    : 'animate-dropdown-out'
+                                                        ? 'animate-dropdown-in'
+                                                        : 'animate-dropdown-out'
                                                     }`}
                                                 style={{
                                                     boxShadow: '0rem 0rem 0.1rem 0rem rgba(65,64,64,0.5)',
@@ -209,8 +212,8 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                             >
                                                 <div
                                                     className={`text-[16px] font-inter ${hoveredIndex === index
-                                                        ? 'animate-dropdown-in visible'
-                                                        : 'animate-dropdown-out invisible'
+                                                            ? 'animate-dropdown-in visible'
+                                                            : 'animate-dropdown-out invisible'
                                                         }`}
                                                 >
                                                     {menu.links.map((link, i) => (
@@ -225,6 +228,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                                 </div>
                                             </div>
                                         )
+
                                     )}
                                 </div>
                             </div>
