@@ -53,7 +53,7 @@ export default function Courses() {
 
   return (
     <div className="w-full">
-      <BreadCrumb paths={[{ name: "Centers" }]} />
+      <BreadCrumb paths={[{ name: "Courses" }]} />
 
       <div className="w-full  flex items-center justify-between">
         <div className="flex items-center mt-4">
