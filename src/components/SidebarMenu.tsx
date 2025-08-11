@@ -121,7 +121,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
     ];
 
     const isActiveDashboard = pathname === "/dashboard";
-    const itemRefs = useRef([]);
+    
 
 
     return (
@@ -142,6 +142,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                 <div className="w-full flex flex-col justify-between">
                     {sidebarMenu.map((menu, index) => {
                         const isMenuActive = menu.links?.some(child => pathname.startsWith(child.href));
+                    
                         return (
                             <div key={index}>
                                 {/* Parent menu label and icon */}
@@ -195,6 +196,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                 {/* Nested links */}
                                 <div className="full relative">
                                     {sidebarExpanded && !isMobile ? (
+                                        
                                         <div
                                             className={`overflow-hidden transition-all duration-500 flex flex-col gap-1 mt-1 ${expandedIndex === index ? 'max-h-[400px]' : 'max-h-0'
                                                 }`}
@@ -204,7 +206,7 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                                     <Link
                                                         key={i}
                                                         href={link.href}
-                                                        className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px]`}
+                                                        className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${pathname === link.href ? "font-bold text-[rgba(0,0,0,0.8)]" : ""}`}
 
                                                     >
                                                         {link.label}

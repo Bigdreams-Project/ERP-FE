@@ -1,13 +1,13 @@
 "use client";
-import { courses} from "@/data/mock/academic.data";
+import { courses } from "@/data/mock/academic.data";
 import { ChevronDown, Eye, Mail, Trash, User } from "lucide-react";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Pagination from "../common/Pagination";
 type CoursesTableProps = {
   searchQuery: string;
 };
 
-export default function  CoursesTable({ searchQuery }: CoursesTableProps)  {
+export default function CoursesTable({ searchQuery }: CoursesTableProps) {
   const [data] = useState(courses);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -18,22 +18,22 @@ export default function  CoursesTable({ searchQuery }: CoursesTableProps)  {
     const query = searchQuery.toLowerCase();
     return (
       course.title.toLowerCase().includes(query) ||
-      course.code.toLowerCase().includes(query) 
+      course.code.toLowerCase().includes(query)
     );
   });
 
   // Reset to first page when search changes
-    useEffect(() => {
-      setCurrentPage(1);
-    }, [searchQuery]);
-  
-    // Apply pagination to filtered results
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
-    const paginatedData = filteredData.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
+  // Apply pagination to filtered results
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
@@ -142,7 +142,18 @@ export default function  CoursesTable({ searchQuery }: CoursesTableProps)  {
                 <td className="p-4">{couse.amount}</td>
                 <td className="p-4">{couse.enrolledStudents}</td>
                 <td className="p-4">{couse.Inquires}</td>
-                <td className="p-4">{couse.status}</td>
+                <td
+                  className={`p-4 font-semibold ${couse.status.toLowerCase() === 'active'
+                      ? 'text-green-600'
+                      : couse.status.toLowerCase() === 'inactive'
+                        ? 'text-red-600'
+                        : couse.status.toLowerCase() === 'draft'
+                          ? 'text-gray-600'
+                          : ''
+                    }`}
+                >
+                  {couse.status}
+                </td>
                 <td className="p-4 relative text-right">
                   <button
                     onClick={() => toggleDropdown(couse.id)}
@@ -155,9 +166,9 @@ export default function  CoursesTable({ searchQuery }: CoursesTableProps)  {
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                       <button
                         onClick={() => handleEnroll(couse.id)}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center w-full px-4 py-2 text-sm text-green-500 hover:bg-gray-100"
                       >
-                        Enroll
+                        Activate
                       </button>
                       <button
                         onClick={() => handleView(couse.id)}
@@ -169,7 +180,13 @@ export default function  CoursesTable({ searchQuery }: CoursesTableProps)  {
                         onClick={() => handleEmail(couse.id)}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Send an Email
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleEmail(couse.id)}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Explore
                       </button>
                       <button
                         onClick={() => handleDelete(couse.id)}
