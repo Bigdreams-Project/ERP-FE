@@ -14,7 +14,7 @@ export default function Courses() {
   const [error, setError] = useState("")
   const [isTyping, setIsTyping] = useState(false);
 
-  // Debounce effect (500ms delay)
+  
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
       setIsTyping(true);
@@ -38,7 +38,7 @@ export default function Courses() {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  //  Close hover menu on outside click
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {

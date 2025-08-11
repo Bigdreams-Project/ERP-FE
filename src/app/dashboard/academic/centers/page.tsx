@@ -12,7 +12,7 @@ export default function Centers() {
     const [error, setError] = useState("")
     const [isTyping, setIsTyping] = useState(false);
 
-    // Debounce effect (500ms delay)
+    
     useEffect(() => {
         if (!isTyping && searchInput.length > 0) {
             setIsTyping(true);

@@ -66,14 +66,11 @@ export default function  CoursesTable({ searchQuery }: CoursesTableProps)  {
   const handleSelectAll = () => {
     const currentPageIds = paginatedData.map(center => center.id);
     const allSelected = currentPageIds.every(id => selectedCenters.includes(id));
-
     if (allSelected) {
-      // Deselect all visible
       setSelectedCenters(prev =>
         prev.filter(id => !currentPageIds.includes(id))
       );
     } else {
-      // Add all visible
       setSelectedCenters(prev => [
         ...prev,
         ...currentPageIds.filter(id => !prev.includes(id))

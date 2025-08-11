@@ -26,9 +26,6 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const hoverRef = useRef<HTMLDivElement | null>(null);
     const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
-
-
-    // geting the active path to trake the 
     const pathname = usePathname();
 
     useLayoutEffect(() => {
