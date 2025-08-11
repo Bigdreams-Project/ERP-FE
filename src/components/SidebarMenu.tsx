@@ -2,21 +2,15 @@
 import React from "react";
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-
-
-// icons
+import { useState, useEffect, useRef } from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { PiSignInFill } from "react-icons/pi";
-
-
 import HouseIcon from "./svg/HouseIcon";
 import GraduationCapIcon from "./svg/GraduationCapIcon";
 import SettingsIcon from "./svg/SettingsIcon";
 import ChartBarAxisXIcon from "./svg/ChartBarAxisXIcon";
 import StaffIcon from "./svg/StaffIcon";
 import MoneyIcon from "./svg/MoneyIcon";
-
-
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
 
@@ -42,7 +36,6 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
 
 
 
-    //  Close hover menu on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (hoverRef.current && !hoverRef.current.contains(event.target as Node)) {

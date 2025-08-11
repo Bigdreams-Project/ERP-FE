@@ -15,7 +15,7 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  // Filter across all pages before paginating
+ 
   const filteredData = data.filter(center => {
     const query = searchQuery.toLowerCase();
     return (
@@ -27,12 +27,12 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     );
   });
 
-  // Reset to first page when search changes
+ 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // Apply pagination to filtered results
+  
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
@@ -77,7 +77,7 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     setOpenDropdown(null);
   };
 
-  // handling sellected rows
+  
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const handleCheckboxChange = (id: string) => {
     setSelectedCenters(prev =>
@@ -90,12 +90,12 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     const allSelected = currentPageIds.every(id => selectedCenters.includes(id));
 
     if (allSelected) {
-      // Deselect all visible
+      
       setSelectedCenters(prev =>
         prev.filter(id => !currentPageIds.includes(id))
       );
     } else {
-      // Add all visible
+      
       setSelectedCenters(prev => [
         ...prev,
         ...currentPageIds.filter(id => !prev.includes(id))
