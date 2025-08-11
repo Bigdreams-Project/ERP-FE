@@ -2,7 +2,6 @@
 import React from "react";
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { useState, useEffect, useRef } from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { PiSignInFill } from "react-icons/pi";
 import HouseIcon from "./svg/HouseIcon";
