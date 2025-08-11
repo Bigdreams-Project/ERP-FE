@@ -1,7 +1,8 @@
 'use client'
 import React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
+
 
 // icons
 import { FiChevronRight } from "react-icons/fi";
@@ -24,9 +25,24 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const hoverRef = useRef<HTMLDivElement | null>(null);
+    const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
+
 
     // geting the active path to trake the 
     const pathname = usePathname();
+
+    useLayoutEffect(() => {
+        if (hoveredIndex !== null && hoverRef.current) {
+            const rect = hoverRef.current.getBoundingClientRect();
+            setDropdownPosition({
+                top: rect.top,
+                left: rect.right, // position to the right of the item
+            });
+        } else {
+            setDropdownPosition(null);
+        }
+    }, [hoveredIndex]);
+
 
 
     //  Close hover menu on outside click
@@ -200,34 +216,30 @@ const SidebarMenu = ({ sidebarExpanded, isMobile }: { sidebarExpanded: boolean; 
                                             })}
                                         </div>
                                     ) : (
-                                        hoveredIndex === index && (
+                                        hoveredIndex === index && dropdownPosition &&
+                                        createPortal(
                                             <div
-                                                className={`absolute z-50 left-16 bg-white top-[-25px] w-[170px] rounded-lg py-2 px-2 ${hoveredIndex === index
-                                                        ? 'animate-dropdown-in'
-                                                        : 'animate-dropdown-out'
-                                                    }`}
+                                                className="fixed z-[9999] bg-white rounded-lg py-2 px-2 shadow-lg"
                                                 style={{
-                                                    boxShadow: '0rem 0rem 0.1rem 0rem rgba(65,64,64,0.5)',
+                                                    top: dropdownPosition.top,
+                                                    left: dropdownPosition.left,
                                                 }}
                                             >
-                                                <div
-                                                    className={`text-[16px] font-inter ${hoveredIndex === index
-                                                            ? 'animate-dropdown-in visible'
-                                                            : 'animate-dropdown-out invisible'
-                                                        }`}
-                                                >
+                                                <div className="text-[16px] font-inter">
                                                     {menu.links.map((link, i) => (
                                                         <Link
                                                             key={i}
                                                             href={link.href}
-                                                            className="block text-[rgba(0,0,0,0.7)] hover:bg-indigo-50 transition-all duration-300 px-[0.6rem] py-1 focus:bg-bghover font-inter"
+                                                            className="block text-[rgba(0,0,0,0.7)] hover:bg-indigo-50 px-[0.6rem] py-1"
                                                         >
                                                             {link.label}
                                                         </Link>
                                                     ))}
                                                 </div>
-                                            </div>
+                                            </div>,
+                                            document.body
                                         )
+
 
                                     )}
                                 </div>
