@@ -1,7 +1,7 @@
 "use client";
 import { centers } from "@/data/mock/academic.data";
-import { ChevronDown, Eye, Mail, Trash, User } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 
 type CenterTableProps = {
@@ -9,14 +9,12 @@ type CenterTableProps = {
 };
 
 export default function CenterTable({ searchQuery }: CenterTableProps) {
-
   const [data] = useState(centers);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
 
- 
-  const filteredData = data.filter(center => {
+  const filteredData = data.filter((center) => {
     const query = searchQuery.toLowerCase();
     return (
       center.name.toLowerCase().includes(query) ||
@@ -27,12 +25,10 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     );
   });
 
- 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
@@ -56,7 +52,6 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     );
   }
 
-
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
@@ -77,28 +72,27 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     setOpenDropdown(null);
   };
 
-  
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const handleCheckboxChange = (id: string) => {
-    setSelectedCenters(prev =>
-      prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
+    setSelectedCenters((prev) =>
+      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
     );
   };
 
   const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map(center => center.id);
-    const allSelected = currentPageIds.every(id => selectedCenters.includes(id));
+    const currentPageIds = paginatedData.map((center) => center.id);
+    const allSelected = currentPageIds.every((id) =>
+      selectedCenters.includes(id)
+    );
 
     if (allSelected) {
-      
-      setSelectedCenters(prev =>
-        prev.filter(id => !currentPageIds.includes(id))
+      setSelectedCenters((prev) =>
+        prev.filter((id) => !currentPageIds.includes(id))
       );
     } else {
-      
-      setSelectedCenters(prev => [
+      setSelectedCenters((prev) => [
         ...prev,
-        ...currentPageIds.filter(id => !prev.includes(id))
+        ...currentPageIds.filter((id) => !prev.includes(id)),
       ]);
     }
   };
@@ -114,7 +108,7 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
                   type="checkbox"
                   checked={
                     paginatedData.length > 0 &&
-                    paginatedData.every(center =>
+                    paginatedData.every((center) =>
                       selectedCenters.includes(center.id)
                     )
                   }
@@ -147,12 +141,18 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
                   {(currentPage - 1) * itemsPerPage + index + 1}
                 </td>
                 <td className="p-3">{center.code}</td>
-                <td className="p-3">{highlightMatch(center.name, searchQuery)}</td>
+                <td className="p-3">
+                  {highlightMatch(center.name, searchQuery)}
+                </td>
                 <td className="p-3 font-bold">
                   {highlightMatch(center.manager, searchQuery)}
                 </td>
-                <td className="p-3">{highlightMatch(center.email, searchQuery)}</td>
-                <td className="p-3">{highlightMatch(center.phone, searchQuery)}</td>
+                <td className="p-3">
+                  {highlightMatch(center.email, searchQuery)}
+                </td>
+                <td className="p-3">
+                  {highlightMatch(center.phone, searchQuery)}
+                </td>
                 <td className="p-3">
                   {highlightMatch(center.address, searchQuery)}
                 </td>
@@ -194,7 +194,7 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
           </tbody>
         </table>
 
-        <div className="p-4">
+        <div className="w-full p-4">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
