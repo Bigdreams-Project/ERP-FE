@@ -40,7 +40,7 @@ export default function LeadTable() {
   return (
     <div className="min-h-screen font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg shadow-xl overflow-hidden">
-        <table className="min-w-full border-collapse text-[14px] text-gray-700 pb-8">
+        <table className="min-w-full border-collapse text-[14px] text-gray-700 pb-2">
           <thead>
             <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
               <th className="p-4 flex items-center">

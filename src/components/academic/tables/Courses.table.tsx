@@ -13,8 +13,7 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  // Filter across all pages before paginating
-  const filteredData = data.filter(course => {
+  const filteredData = data.filter((course) => {
     const query = searchQuery.toLowerCase();
     return (
       course.title.toLowerCase().includes(query) ||
@@ -22,12 +21,10 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
     );
   });
 
-  // Reset to first page when search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // Apply pagination to filtered results
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const paginatedData = filteredData.slice(
@@ -54,26 +51,26 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
     setOpenDropdown(null);
   };
 
-
-  // handling sellected rows
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const handleCheckboxChange = (id: string) => {
-    setSelectedCenters(prev =>
-      prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
+    setSelectedCenters((prev) =>
+      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
     );
   };
 
   const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map(center => center.id);
-    const allSelected = currentPageIds.every(id => selectedCenters.includes(id));
+    const currentPageIds = paginatedData.map((center) => center.id);
+    const allSelected = currentPageIds.every((id) =>
+      selectedCenters.includes(id)
+    );
     if (allSelected) {
-      setSelectedCenters(prev =>
-        prev.filter(id => !currentPageIds.includes(id))
+      setSelectedCenters((prev) =>
+        prev.filter((id) => !currentPageIds.includes(id))
       );
     } else {
-      setSelectedCenters(prev => [
+      setSelectedCenters((prev) => [
         ...prev,
-        ...currentPageIds.filter(id => !prev.includes(id))
+        ...currentPageIds.filter((id) => !prev.includes(id)),
       ]);
     }
   };
@@ -98,7 +95,7 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
   return (
     <div className="min-h-screen font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg shadow-xl overflow-hidden">
-        <table className="min-w-full border-collapse text-[13px] text-gray-700 pb-8">
+        <table className="min-w-full border-collapse text-[13px] text-gray-700 pb-2">
           <thead className="">
             <tr className=" w-full font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
               <th className="p-4 flex items-center">
@@ -106,13 +103,14 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
                   type="checkbox"
                   checked={
                     paginatedData.length > 0 &&
-                    paginatedData.every(center =>
+                    paginatedData.every((center) =>
                       selectedCenters.includes(center.id)
                     )
                   }
                   onChange={handleSelectAll}
                   className="mr-2 accent-primary"
-                /> #
+                />{" "}
+                #
               </th>
               <th className="p-4">Code</th>
               <th className="p-4">Title</th>
@@ -136,21 +134,26 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
                   />
                   {(currentPage - 1) * itemsPerPage + index + 1}
                 </td>
-                <td className="p-4">{highlightMatch(couse.code, searchQuery)}</td>
-                <td className="p-4 font-bold ">{highlightMatch(couse.title, searchQuery)}</td>
+                <td className="p-4">
+                  {highlightMatch(couse.code, searchQuery)}
+                </td>
+                <td className="p-4 font-bold ">
+                  {highlightMatch(couse.title, searchQuery)}
+                </td>
                 <td className="p-4">{couse.duration}</td>
                 <td className="p-4">{couse.amount}</td>
                 <td className="p-4">{couse.enrolledStudents}</td>
                 <td className="p-4">{couse.Inquires}</td>
                 <td
-                  className={`p-4 font-semibold ${couse.status.toLowerCase() === 'active'
-                      ? 'text-green-600'
-                      : couse.status.toLowerCase() === 'inactive'
-                        ? 'text-red-600'
-                        : couse.status.toLowerCase() === 'draft'
-                          ? 'text-gray-600'
-                          : ''
-                    }`}
+                  className={`p-4 font-semibold ${
+                    couse.status.toLowerCase() === "active"
+                      ? "text-green-600"
+                      : couse.status.toLowerCase() === "inactive"
+                      ? "text-red-600"
+                      : couse.status.toLowerCase() === "draft"
+                      ? "text-gray-600"
+                      : ""
+                  }`}
                 >
                   {couse.status}
                 </td>
@@ -201,7 +204,8 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
             ))}
           </tbody>
         </table>
-        <div className="p-4">
+        
+        <div className="sticky bottom-0 z-10 bg-white">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

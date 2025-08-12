@@ -34,3 +34,19 @@
 .text-grey-dark {
   color: #242524ff;
 }
+
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.table-scroll table {
+  width: 100%;
+  min-width: 1200px;
+  margin: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table-wrap {
+  position: relative;
+}

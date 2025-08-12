@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import AppSidebar from "../AppSidebar";
 import Navbar from "../Navbar";
+import SideNav from "../SideNav";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,13 +8,21 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="flex justify-between  gap-[1.5rem] h-screen w-full bg-white ">
-      <AppSidebar />
-      <div className="flex flex-col flex-1 mt-[0.9rem]">
+    <main className="flex flex-row max-w-[2000px] mx-auto px-0 lg:px-0 relative">
+      <SideNav />
+      <section className="w-full lg:w-full lg:px-0 relative">
         <Navbar />
-        <main className="flex-1 overflow-auto">{children}</main>
-      </div>
-    </div>
+        {children}
+      </section>
+    </main>
+
+    // <div className="w-full h-screen relative flex bg-white ">
+    //   <SideNav />
+    //   <div className="w-[63%] bg-black relative flex flex-col flex-1 mt-[0.9rem]">
+    //     <Navbar />
+    //     <main className="flex-1 overflow-auto">{children}</main>
+    //   </div>
+    // </div>
   );
 };
 
