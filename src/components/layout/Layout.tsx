@@ -10,19 +10,20 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
 
-  
+
   return (
-    
-      <div className="flex justify-between  gap-[1.5rem] h-screen w-full bg-white ">
-        
-        <AppSidebar />
-        <div className="flex flex-col flex-1 mt-[0.9rem]">
+
+    <div className="flex justify-between  gap-[1.5rem] h-screen w-full bg-white ">
+      <AppSidebar />
+      <div className="w-full flex flex-col flex-1 mt-[0.9rem]">
+        <div className="w-full h-[60px]">
           <Navbar />
-          <main className="flex-1 overflow-auto">
-            {children}</main>
         </div>
+        <main className="flex-1 overflow-auto">
+          {children}</main>
       </div>
-    
+    </div>
+
   );
 };
 

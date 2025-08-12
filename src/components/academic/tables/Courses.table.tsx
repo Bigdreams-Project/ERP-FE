@@ -5,9 +5,10 @@ import { useState, useEffect } from "react";
 import Pagination from "../common/Pagination";
 type CoursesTableProps = {
   searchQuery: string;
+  appliedFilters: string[];
 };
 
-export default function CoursesTable({ searchQuery }: CoursesTableProps) {
+export default function CoursesTable({ searchQuery, appliedFilters }: CoursesTableProps) {
   const [data] = useState(courses);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -16,16 +17,15 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
   // Filter across all pages before paginating
   const filteredData = data.filter(course => {
     const query = searchQuery.toLowerCase();
-    return (
-      course.title.toLowerCase().includes(query) ||
-      course.code.toLowerCase().includes(query)
-    );
+    const matchesSearch = course.title.toLowerCase().includes(query) || course.code.toLowerCase().includes(query);
+    const matchesStatus = appliedFilters.length === 0 || appliedFilters.includes(course.status.toLowerCase());
+    return matchesSearch && matchesStatus;
   });
 
   // Reset to first page when search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, appliedFilters]);
 
   // Apply pagination to filtered results
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -144,12 +144,12 @@ export default function CoursesTable({ searchQuery }: CoursesTableProps) {
                 <td className="p-4">{couse.Inquires}</td>
                 <td
                   className={`p-4 font-semibold ${couse.status.toLowerCase() === 'active'
-                      ? 'text-green-600'
-                      : couse.status.toLowerCase() === 'inactive'
-                        ? 'text-red-600'
-                        : couse.status.toLowerCase() === 'draft'
-                          ? 'text-gray-600'
-                          : ''
+                    ? 'text-green-600'
+                    : couse.status.toLowerCase() === 'inactive'
+                      ? 'text-red-600'
+                      : couse.status.toLowerCase() === 'draft'
+                        ? 'text-gray-600'
+                        : ''
                     }`}
                 >
                   {couse.status}

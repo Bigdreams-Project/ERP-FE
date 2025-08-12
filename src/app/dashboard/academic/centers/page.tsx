@@ -12,7 +12,7 @@ export default function Centers() {
     const [error, setError] = useState("")
     const [isTyping, setIsTyping] = useState(false);
 
-    
+
     useEffect(() => {
         if (!isTyping && searchInput.length > 0) {
             setIsTyping(true);
@@ -44,7 +44,7 @@ export default function Centers() {
                     <div className="w-[220px] h-[20px] ">
                         <div className="flex items-center  gap-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
                             <BiSearchAlt size={17} />
-                            <input type="text" placeholder="Search"  onChange={(e) => {
+                            <input type="text" placeholder="Search" onChange={(e) => {
                                 setSearchInput(e.target.value);
                                 if (!isTyping) setIsTyping(true);
                             }} />
