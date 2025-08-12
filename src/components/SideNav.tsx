@@ -1,20 +1,15 @@
 "use client";
 import React from "react";
-import { useState, useEffect, useRef, } from "react";
-
-
+import { useState, useEffect, useRef } from "react";
 
 import { TfiShiftRight } from "react-icons/tfi";
 import { TfiShiftLeft } from "react-icons/tfi";
 import SidebarMenu from "./SidebarMenu";
 
-
-
-const AppSidebar = () => {
+const SideNav = () => {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  
-  const [isMobile, setIsMobile] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -32,24 +27,20 @@ const AppSidebar = () => {
 
   useEffect(() => {
     setHasMounted(true);
-    // screen size logic
   }, []);
 
-  if (!hasMounted) return null; // Prevent mismatch
-  // Manual width control
+  if (!hasMounted) return null;
   const sidebarWidthClass = isMobile
-    ? "w-[18%]" // mobile: force to 20%
+    ? "w-[18%]"
     : sidebarExpanded
     ? "md:w-[17%] w-[17%]"
     : "w-[8%]";
-  return (
-    // Detect screen size and update sidebar accordingly
 
+  return (
     <div
-      className={`${sidebarWidthClass}    transition-all duration-500  flex flex-col  h-screen shadow`}
+      className={`${sidebarWidthClass} sticky h-screen transition-all duration-500 flex flex-col shadow overflow-y-auto`}
     >
-      <div className="flex md:flex-row flex-col  md:items-center justify-around px-[1rem] py-[0.7rem] transition-all duration-500 mt-[0.6rem] font-inter">
-        {/* Full Logo */}
+      <div className="sticky flex md:flex-row flex-col md:items-center justify-around px-[1rem] py-[0.7rem] transition-all duration-500 mt-[0.6rem] font-inter">
         <img
           src="/Logo.png"
           alt="logo"
@@ -60,7 +51,6 @@ const AppSidebar = () => {
           }`}
         />
 
-        {/* Mini Logo */}
         <img
           src="/logoIcon.png"
           alt="icon"
@@ -71,7 +61,6 @@ const AppSidebar = () => {
           }`}
         />
 
-        {/* Toggle Icon */}
         {/* Toggle (hide on mobile) */}
         {!isMobile &&
           (sidebarExpanded ? (
@@ -89,12 +78,9 @@ const AppSidebar = () => {
           ))}
       </div>
 
-      {/* Scrollable menu content */}
-      <div className="flex-1  h-screen  overflow-y-auto">
-        <SidebarMenu sidebarExpanded={sidebarExpanded} isMobile={isMobile} />
-      </div>
+      <SidebarMenu sidebarExpanded={sidebarExpanded} isMobile={isMobile} />
     </div>
   );
 };
 
-export default AppSidebar;
+export default SideNav;
