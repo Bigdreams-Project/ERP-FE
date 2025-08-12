@@ -48,6 +48,24 @@ export default function StudentTable({ searchQuery }: Props) {
     );
   };
 
+  const handleSelectAll = () => {
+    const currentPageIds = paginatedData.map((center) => center.id);
+    const allSelected = currentPageIds.every((id) =>
+      selectedStudents.includes(id)
+    );
+
+    if (allSelected) {
+      setSelectedStudents((prev) =>
+        prev.filter((id) => !currentPageIds.includes(id))
+      );
+    } else {
+      setSelectedStudents((prev) => [
+        ...prev,
+        ...currentPageIds.filter((id) => !prev.includes(id)),
+      ]);
+    }
+  };
+
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
@@ -81,29 +99,11 @@ export default function StudentTable({ searchQuery }: Props) {
     );
   };
 
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedStudents.includes(id)
-    );
-
-    if (allSelected) {
-      setSelectedStudents((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedStudents((prev) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
-
   return (
-    <div className="min-h-screen font-inter text-gray-200">
-      <div className="bg-white rounded-lg shadow-xl relative overflow-hidden">
-        <div className="w-full">
-          <table className="w-full relative border-collapse text-[14px] text-gray-700 pb-2">
+    <div className="font-inter text-gray-200">
+      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+        <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
+          <table className="w-full relative border-collapse text-[14px] text-gray-700">
             <thead className="">
               <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                 <th className="p-4 flex items-center">
@@ -189,13 +189,14 @@ export default function StudentTable({ searchQuery }: Props) {
             </tbody>
           </table>
         </div>
-        <div className="sticky bottom-0 z-10 bg-white">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+      </div>
+
+      <div className="sticky w-full bottom-0 z-10 bg-wite">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

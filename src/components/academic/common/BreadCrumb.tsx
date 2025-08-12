@@ -14,7 +14,7 @@ export default function BreadCrumb({ paths }: BreadcrumbProps) {
   const isOverview = pathname === "/dashboard/academic/overview";
 
   return (
-    <div className="flex space-x-1 font-medium mt-6 items-center">
+    <div className="flex sticky top-0 space-x-1 font-medium mt-6 items-center">
       <button
         onClick={() => {
           if (!isOverview) {

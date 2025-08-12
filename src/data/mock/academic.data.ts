@@ -49,7 +49,7 @@ export const mockData = {
     },
   ],
   funnel: [
-    { name: "Inquiry", value: 1200 },
+    { name: "Lead", value: 1200 },
     { name: "Counseling", value: 900 },
     { name: "Payment", value: 550 },
     { name: "Enrolled", value: 350 },

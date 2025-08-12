@@ -31,16 +31,16 @@ const SideNav = () => {
 
   if (!hasMounted) return null;
   const sidebarWidthClass = isMobile
-    ? "w-[18%]" // mobile: force to 20%
+    ? "w-[18%]"
     : sidebarExpanded
     ? "md:w-[17%] w-[17%]"
     : "w-[8%]";
 
   return (
     <div
-      className={`${sidebarWidthClass} sticky h-screen left-0 bg-white transition-all duration-500 flex flex-col  z-50 shadow`}
+      className={`${sidebarWidthClass} sticky h-screen transition-all duration-500 flex flex-col shadow overflow-y-auto`}
     >
-      <div className="fixed flex md:flex-row flex-col  md:items-center justify-around px-[1rem] py-[0.7rem] transition-all duration-500 mt-[0.6rem] font-inter">
+      <div className="sticky flex md:flex-row flex-col md:items-center justify-around px-[1rem] py-[0.7rem] transition-all duration-500 mt-[0.6rem] font-inter">
         <img
           src="/Logo.png"
           alt="logo"
@@ -61,7 +61,6 @@ const SideNav = () => {
           }`}
         />
 
-        {/* Toggle Icon */}
         {/* Toggle (hide on mobile) */}
         {!isMobile &&
           (sidebarExpanded ? (
@@ -79,10 +78,7 @@ const SideNav = () => {
           ))}
       </div>
 
-      {/* Scrollable menu content */}
-      <div className="flex-1  h-screen  overflow-y-auto">
-        <SidebarMenu sidebarExpanded={sidebarExpanded} isMobile={isMobile} />
-      </div>
+      <SidebarMenu sidebarExpanded={sidebarExpanded} isMobile={isMobile} />
     </div>
   );
 };

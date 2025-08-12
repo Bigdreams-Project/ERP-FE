@@ -10,7 +10,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: Props) => {
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    <div className="w-full bg-white pt-6 pb-3 flex justify-between items-center mt-10 text-sm text-gray-700">
+    <div className="w-full pt-3 pl-2 pr-4 flex justify-between items-center text-sm text-gray-700">
       <div className="flex justify-start items-center space-x-2">
         <button
           onClick={() => onPageChange(currentPage - 1)}

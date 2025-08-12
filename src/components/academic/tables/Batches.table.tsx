@@ -54,9 +54,9 @@ export default function BatchTable({ searchQuery }: Props) {
   };
 
   return (
-    <div className="min-h-screen font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg shadow-xl relative">
-        <div className="">
+    <div className="font-inter text-gray-200">
+      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+        <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           <table className="min-w-full relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
             <thead>
               <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
@@ -89,9 +89,7 @@ export default function BatchTable({ searchQuery }: Props) {
                   <td className="p-3">{batch.duration}</td>
                   <td className="p-3">{batch.faculty}</td>
                   <td className="p-3">{batch.schedule}</td>
-                  <td className="p-3">
-                    {batch.enrolledStudents}
-                  </td>
+                  <td className="p-3">{batch.enrolledStudents}</td>
                   <td className="p-3">{batch.startDate}</td>
                   <td className="p-3">{batch.endDate}</td>
                   <td className="p-3">

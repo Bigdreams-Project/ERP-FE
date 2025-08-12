@@ -129,7 +129,7 @@ const SidebarMenu = ({
   const isActiveDashboard = pathname === "/dashboard";
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col flex-1 mt-8">
       <div className="flex-1 ">
         <Link
           href={"/dashboard"}

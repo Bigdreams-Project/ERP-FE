@@ -36,13 +36,13 @@ export default function Centers() {
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Centers" }]} />
 
-      <div className="w-full  flex items-center">
+      <div className="w-full flex items-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
-        <div className="w-full flex  justify-end gap-7 p-2">
-          <div className="w-[220px] h-[20px] ">
-            <div className="flex items-center  gap-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
+        <div className="w-full flex items-center justify-end gap-7 p-2">
+          <div className="w-[220px]">
+            <div className="flex items-center gap-1 py-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
               <BiSearchAlt size={17} />
               <input
                 type="text"
@@ -58,12 +58,10 @@ export default function Centers() {
             )}
           </div>
 
-          <div className="">
-            <button className="flex items-center gap-2">
-              <FaPlus className="text-indigo-500" />
-              <span className="text-[#9095A0FF] ">Add Center</span>
-            </button>
-          </div>
+          <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            <FaPlus className="text-white" size={16} />
+            <span className="text-white text-sm">Add Center</span>
+          </button>
         </div>
       </div>
 

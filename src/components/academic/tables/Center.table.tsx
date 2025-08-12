@@ -51,7 +51,7 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
         part
       )
     );
-  }
+  };
 
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -98,10 +98,10 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
   };
 
   return (
-    <div className="min-h-screen font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg shadow-xl relative overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full relative border-collapse text-[14px] text-gray-700 pb-2">
+    <div className="font-inter text-gray-200">
+      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+        <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
+          <table className="w-full relative border-collapse text-[14px] text-gray-700">
             <thead>
               <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                 <th className="p-4 flex items-center">
@@ -195,14 +195,14 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
             </tbody>
           </table>
         </div>
+      </div>
 
-        <div className="sticky bottom-0 z-10 bg-white">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+      <div className="sticky w-full bottom-0 z-10 bg-white">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );
