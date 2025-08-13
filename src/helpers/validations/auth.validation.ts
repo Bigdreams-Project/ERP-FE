@@ -1,10 +1,8 @@
-// Validate email
 export const isValidEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-// Validate password
 export const isValidPassword = (password: string) => {
   const minLength = /.{8,}/;
   const upper = /[A-Z]/;
@@ -21,7 +19,6 @@ export const isValidPassword = (password: string) => {
   );
 };
 
-// function to confirm password
 export const isPasswordSame = (password: string, confirmPassword: string) => {
     if (!password || !confirmPassword) {
         return false

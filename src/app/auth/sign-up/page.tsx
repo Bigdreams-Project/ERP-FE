@@ -52,7 +52,6 @@ export default function Login() {
   const isFormValid =
     emailValid && passwordValid && confirmPassValid && fullname && job;
 
-  // Handling resl time validation
   useEffect(() => {
     if (!fullname && !nameTouched) {
       setNameError("");
@@ -150,13 +149,13 @@ export default function Login() {
       className="w-full md:flex  md:justify-center md:items-center  min-h-screen md:gap-[2rem] md:px-[3rem]  md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem]"
       style={{}}
     >
-      {/* Logo */}
+      
       <div
         className={`w-full md:w-[60%] flex  justify-between items-center md:flex-row`}
       >
         <img src="/Logo.png" alt="" />
       </div>
-      {/* Form */}
+
       <div className="w-full md:w-[45%] md:px-[1rem] ">
         <div
           className="w-[100%] flex flex-col gap-[1rem]  p-[2rem] rounded-[1rem]  md:shadow-lg"
@@ -247,7 +246,6 @@ export default function Login() {
                   disabled={loading}
                 />
 
-                {/* adds a check icon if email is valid */}
                 {isValidEmail(email) && (
                   <GiCheckMark
                     className="font-semibold text-[#636AE8]"
@@ -291,7 +289,6 @@ export default function Login() {
                   disabled={loading}
                 />
 
-                {/* check if  */}
                 {isValidPassword(password) ? (
                   <GiCheckMark
                     className="font-semibold text-[#636AE8]"
@@ -347,7 +344,6 @@ export default function Login() {
                   disabled={loading}
                 />
 
-                {/* check if  */}
                 {isPasswordSame(password, confirmPassword) ? (
                   <GiCheckMark
                     className="font-semibold text-[#636AE8]"
