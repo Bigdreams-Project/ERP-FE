@@ -6,15 +6,19 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilterSharp } from "react-icons/io5";
 import { useState, useEffect, useRef } from "react";
 import CoursesTable from "@/components/academic/tables/Courses.table";
+import CoursesFiltersDropdown from "@/components/academic/common/CoursesFiltersDropdown";
 
 export default function Courses() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [appliedFilters, setAppliedFilters] = useState<string[]>([]);
+  const [selectedCourseTypes, setSelectedCourseTypes] = useState<string[]>([]);
+  const [appliedCourseTypes, setAppliedCourseTypes] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -36,41 +40,49 @@ export default function Courses() {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        event.target instanceof Node &&
-        !dropdownRef.current.contains(event.target)
-      ) {
-        setIsFilterDropdown(false);
-      }
-    };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     if (
+  //       dropdownRef.current &&
+  //       event.target instanceof Node &&
+  //       !dropdownRef.current.contains(event.target)
+  //     ) {
+  //       setIsFilterDropdown(false);
+  //     }
+  //   };
 
-  const handleCheckboxChange = (status: string) => {
-    setSelectedStatuses((prev) => {
-      if (prev.includes(status)) {
-        return prev.filter((s) => s !== status);
-      } else {
-        return [...prev, status];
-      }
-    });
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
+
+
+  const handleStatusCheckbox = (status: string) => {
+    setSelectedStatuses(prev =>
+      prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
+    );
   };
+
+  const handleCourseTypeCheckbox = (type: string) => {
+    console.log(type)
+    setSelectedCourseTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
   const handleApplyFilters = () => {
     setAppliedFilters(selectedStatuses);
+    setAppliedCourseTypes(selectedCourseTypes);
     setIsFilterDropdown(false);
   };
 
   const handleClearAllFilters = () => {
     setSelectedStatuses([]);
+    setSelectedCourseTypes([]);
     setAppliedFilters([]);
-    setIsFilterDropdown(false); // Optional: close the dropdown after clearing
+    setAppliedCourseTypes([]);
+    setIsFilterDropdown(false);
   };
 
   return (
@@ -86,82 +98,27 @@ export default function Courses() {
           <div ref={dropdownRef}>
             <div
               className="flex items-center gap-2 font-inters text-gray-900 font-medium cursor-pointer relative text-[16px] font-inter"
-              onClick={() => setIsFilterDropdown(!isFilterDropdown)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsFilterDropdown(!isFilterDropdown);
+              }}
             >
               <IoFilterSharp size={18} />
               <p>filter</p>
             </div>
-            {isFilterDropdown && (
-              <div
-                className={`absolute bg-white rounded top-44 p-2 w-[200px] z-50 gap-1 flex flex-col  ${isFilterDropdown
-                  ? "animate-dropdown-in"
-                  : "animate-dropdown-out"
-                  }`}
-                style={{ boxShadow: "0rem 0rem 0.2rem 0rem rgba(0,0,0,0.3) " }}
-              >
-                <p className="font-semibold">Status</p>
-
-                <ul className="flex flex-col justify-start gap-1">
-                  <li className="flex items-center gap-1">
-                    <input
-                      id="active"
-                      type="checkbox"
-                      className="w-4 accent-primary"
-                      checked={selectedStatuses.includes("active")}
-                      onChange={() => handleCheckboxChange("active")}
-                    />
-                    <label
-                      htmlFor="active"
-                      className="text-gray-800 font-medium cursor-pointer"
-                    >
-                      Active
-                    </label>
-                  </li>
-
-                  <li className="flex items-center gap-1">
-                    <input
-                      id="inactive"
-                      type="checkbox"
-                      className="w-4 accent-primary"
-                      checked={selectedStatuses.includes("inactive")}
-                      onChange={() => handleCheckboxChange("inactive")}
-                    />
-                    <label
-                      htmlFor="inactive"
-                      className="text-gray-800 font-medium cursor-pointer"
-                    >
-                      Inactive
-                    </label>
-                  </li>
-
-                  <li className="flex items-center gap-1">
-                    <input
-                      id="draft"
-                      type="checkbox"
-                      className="w-4 accent-primary"
-                      checked={selectedStatuses.includes("draft")}
-
-                      onChange={() => handleCheckboxChange("draft")}
-                    />
-                    <label
-                      htmlFor="draft"
-                      className="text-gray-800 font-medium cursor-pointer"
-                    >
-                      Draft
-                    </label>
-                  </li>
-                </ul>
-
-                <div className="flex items-end justify-around gap-1 text-[14px]">
-                  <button className="bg-red-600 text-white text-center w-[100px] rounded p-1" onClick={handleClearAllFilters}>
-                    Clear All
-                  </button>
-                  <button className="bg-primary text-white w-[100px] rounded p-1" onClick={handleApplyFilters}>
-                    Apply
-                  </button>
-                </div>
-              </div>
-            )}
+            {
+              isFilterDropdown &&
+              <CoursesFiltersDropdown
+                isFilterDropdown={isFilterDropdown}
+                selectedStatuses={selectedStatuses}
+                selectedCourseTypes={selectedCourseTypes}
+                handleStatusCheckbox={handleStatusCheckbox}
+                handleCourseTypeCheckbox={handleCourseTypeCheckbox}
+                handleApplyFilters={handleApplyFilters}
+                handleClearAllFilters={handleClearAllFilters}
+                dropdownRef={dropdownRef}
+              />
+            }
           </div>
 
           <div className="w-[220px] h-1 ">
@@ -181,16 +138,19 @@ export default function Courses() {
             )}
           </div>
 
-          <div className="">
-            <button className="flex items-center gap-2">
-              <FaPlus className="text-indigo-500" />
-              <span className="text-[#9095A0FF] ">Add Course</span>
-            </button>
-          </div>
+          <button className="flex items-center gap-2">
+            <FaPlus className="text-indigo-500" />
+            <span className="text-[#9095A0FF] ">Add Course</span>
+          </button>
         </div>
       </div>
 
-      <CoursesTable searchQuery={searchQuery} appliedFilters={appliedFilters} />
+      <CoursesTable
+        searchQuery={searchQuery}
+        appliedFilters={appliedFilters}
+        appliedCourseTypes={appliedCourseTypes}
+      />
+
     </div>
   );
 }

@@ -5,21 +5,27 @@ import { useState, useEffect } from "react";
 import Pagination from "../common/Pagination";
 type CoursesTableProps = {
   searchQuery: string;
-  appliedFilters: string[];
+  appliedFilters: string[];      // Add this
+  appliedCourseTypes: string[];   // Add this
 };
 
-export default function CoursesTable({ searchQuery, appliedFilters }: CoursesTableProps) {
+export default function CoursesTable({ searchQuery, appliedFilters, appliedCourseTypes }: CoursesTableProps) {
   const [data] = useState(courses);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  // Filter across all pages before paginating
   const filteredData = data.filter(course => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = course.title.toLowerCase().includes(query) || course.code.toLowerCase().includes(query);
-    const matchesStatus = appliedFilters.length === 0 || appliedFilters.includes(course.status.toLowerCase());
-    return matchesSearch && matchesStatus;
+    const matchesStatus =
+      appliedFilters.length === 0 ||
+      appliedFilters.some(status => status.toLowerCase() === course.status.toLowerCase());
+
+    const matchesCourseType =
+      appliedCourseTypes.length === 0 ||
+      appliedCourseTypes.includes(
+        course.coursetype.toLowerCase().replace(/-/g, "")
+      );
+    return matchesStatus && matchesCourseType;
   });
 
   // Reset to first page when search changes
@@ -115,11 +121,12 @@ export default function CoursesTable({ searchQuery, appliedFilters }: CoursesTab
                 /> #
               </th>
               <th className="p-4">Code</th>
-              <th className="p-4">Title</th>
+              <th className="p-4">Course Title</th>
               <th className="p-4">Duration</th>
               <th className="p-4">Amount</th>
               <th className="p-4">Enrolled Students</th>
-              <th className="p-4"> Inquires</th>
+              <th className="p-4"> Leads</th>
+              <th className="p-4">Course Type</th>
               <th className="p-4">Status</th>
               <th className="p-4"></th>
             </tr>
@@ -142,8 +149,11 @@ export default function CoursesTable({ searchQuery, appliedFilters }: CoursesTab
                 <td className="p-4">{couse.amount}</td>
                 <td className="p-4">{couse.enrolledStudents}</td>
                 <td className="p-4">{couse.Inquires}</td>
+                <td className="p-4">
+                  {couse.coursetype}
+                </td>
                 <td
-                  className={`p-4 font-semibold ${couse.status.toLowerCase() === 'active'
+                  className={`p-4 font-semibold capitalize  ${couse.status.toLowerCase() === 'active'
                     ? 'text-green-600'
                     : couse.status.toLowerCase() === 'inactive'
                       ? 'text-red-600'
@@ -157,7 +167,7 @@ export default function CoursesTable({ searchQuery, appliedFilters }: CoursesTab
                 <td className="p-4 relative text-right">
                   <button
                     onClick={() => toggleDropdown(couse.id)}
-                    className="flex items-center justify-between px-3 py-2 text-white bg-primary rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
+                    className="flex items-center justify-between px-3 py-2 text-white bg-[#636ae8] rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
                   >
                     Action
                     <ChevronDown size={16} className="ml-2" />
