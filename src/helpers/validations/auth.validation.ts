@@ -20,3 +20,13 @@ export const isValidPassword = (password: string) => {
     special.test(password)
   );
 };
+
+// function to confirm password
+export const isPasswordSame = (password: string, confirmPassword: string) => {
+    if (!password || !confirmPassword) {
+        return false
+    } else {
+        return password === confirmPassword
+    }
+    
+}
