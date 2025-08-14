@@ -5,6 +5,7 @@ import ActivityItem from "@/components/academic/cards/ActivityItem.card";
 import StatCard from "@/components/academic/cards/StatCard.card";
 import { mockData } from "@/data/mock/academic.data";
 import { ArrowRight } from "lucide-react";
+import { FiPieChart } from "react-icons/fi";
 import {
   Area,
   AreaChart,
@@ -84,13 +85,10 @@ export default function Overview() {
               {mockData.insights.map((insight, index) => (
                 <li
                   key={index}
-                  className="flex items-start text-sm text-[#8C8D8BFF]"
+                  className="flex items-center gap-2 text-sm text-[#8C8D8BFF]"
                 >
-                  <ArrowRight
-                    size={16}
-                    className="text-indigo-400 flex-shrink-0 mr-3 mt-1"
-                  />
-                  <span>{insight}</span>
+                  {insight.icon}
+                  <span>{insight.text}</span>
                 </li>
               ))}
             </ul>

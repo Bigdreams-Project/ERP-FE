@@ -72,7 +72,7 @@ export default function LeadTable({ searchQuery }: Props) {
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          <table className="min-w-full relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
+          <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
             <thead>
               <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                 <th className="p-4 flex items-center">
@@ -116,7 +116,7 @@ export default function LeadTable({ searchQuery }: Props) {
                   <td className="p-4 relative text-right">
                     <button
                       onClick={() => toggleDropdown(lead.id)}
-                      className="flex items-center justify-between px-3 py-2 text-white bg-primary rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
+                      className="flex items-center justify-between px-3 py-2 text-white bg-action-button rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
                     >
                       Action
                       <ChevronDown size={16} className="ml-2" />

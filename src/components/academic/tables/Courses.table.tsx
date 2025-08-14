@@ -97,7 +97,7 @@ export default function CoursesTable({ searchQuery }: Props) {
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          <table className="min-w-full relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
+          <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
             <thead>
               <tr className=" w-full font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                 <th className="p-4 flex items-center">
@@ -119,82 +119,84 @@ export default function CoursesTable({ searchQuery }: Props) {
                 <th className="p-4">Duration</th>
                 <th className="p-4">Amount</th>
                 <th className="p-4">Enrolled Students</th>
-                <th className="p-4"> Inquires</th>
+                <th className="p-4">Leads</th>
+                <th className="p-4">Course Type</th>
                 <th className="p-4">Status</th>
                 <th className="p-4"></th>
               </tr>
             </thead>
             <tbody className="text-[13px]">
-              {paginatedData.map((couse, index) => (
-                <tr key={couse.id} className="border-t border-gray-200">
+              {paginatedData.map((course, index) => (
+                <tr key={course.id} className="border-t border-gray-200">
                   <td className="p-4 flex items-center">
                     <input
                       type="checkbox"
-                      checked={selectedCenters.includes(couse.id)}
-                      onChange={() => handleCheckboxChange(couse.id)}
+                      checked={selectedCenters.includes(course.id)}
+                      onChange={() => handleCheckboxChange(course.id)}
                       className="mr-2 accent-primary"
                     />
                     {(currentPage - 1) * itemsPerPage + index + 1}
                   </td>
                   <td className="p-4">
-                    {highlightMatch(couse.code, searchQuery)}
+                    {highlightMatch(course.code, searchQuery)}
                   </td>
                   <td className="p-4 font-bold ">
-                    {highlightMatch(couse.title, searchQuery)}
+                    {highlightMatch(course.title, searchQuery)}
                   </td>
-                  <td className="p-4">{couse.duration}</td>
-                  <td className="p-4">{couse.amount}</td>
-                  <td className="p-4">{couse.enrolledStudents}</td>
-                  <td className="p-4">{couse.Inquires}</td>
+                  <td className="p-4">{course.duration}</td>
+                  <td className="p-4">{course.amount}</td>
+                  <td className="p-4">{course.enrolledStudents}</td>
+                  <td className="p-4">{course.leads}</td>
+                  <td className="p-4">{course.courseType}</td>
                   <td
                     className={`p-4 font-semibold ${
-                      couse.status.toLowerCase() === "active"
+                      course.status.toLowerCase() === "active"
                         ? "text-green-600"
-                        : couse.status.toLowerCase() === "inactive"
+                        : course.status.toLowerCase() === "inactive"
                         ? "text-red-600"
-                        : couse.status.toLowerCase() === "draft"
+                        : course.status.toLowerCase() === "draft"
                         ? "text-gray-600"
                         : ""
                     }`}
                   >
-                    {couse.status}
+                    {course.status}
                   </td>
                   <td className="p-4 relative text-right">
                     <button
-                      onClick={() => toggleDropdown(couse.id)}
-                      className="flex items-center justify-between px-3 py-2 text-white bg-primary rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
+                      onClick={() => toggleDropdown(course.id)}
+                      className="flex items-center justify-between px-3 py-2 text-white bg-action-button rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
                     >
                       Action
                       <ChevronDown size={16} className="ml-2" />
                     </button>
-                    {openDropdown === couse.id && (
+                    {openDropdown === course.id && (
                       <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                         <button
-                          onClick={() => handleEnroll(couse.id)}
+                          onClick={() => handleEnroll(course.id)}
                           className="flex items-center w-full px-4 py-2 text-sm text-green-500 hover:bg-gray-100"
                         >
                           Activate
                         </button>
                         <button
-                          onClick={() => handleView(couse.id)}
+                          onClick={() => handleView(course.id)}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           View
                         </button>
                         <button
-                          onClick={() => handleEmail(couse.id)}
+                          onClick={() => handleEmail(course.id)}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => handleEmail(couse.id)}
+                          onClick={() => handleEmail(course.id)}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           Explore
                         </button>
                         <button
-                          onClick={() => handleDelete(couse.id)}
+                          onClick={() => handleDelete(course.id)}
                           className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                         >
                           Delete
