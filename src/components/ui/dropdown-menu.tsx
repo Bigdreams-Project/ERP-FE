@@ -42,10 +42,8 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg",
+          "z-50 rounded-md border bg-[rgb(255,255,255)] p-1 text-popover-foreground shadow-lg",
           "min-w-[8rem] transition-all duration-200 ease-in-out will-change-[opacity,transform]",
-
-          // 👇 Animate open
           "animate-dropdown-in data-[state=closed]:animate-dropdown-out",
 
           className
@@ -79,7 +77,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "cursor-pointer p-3 px-3 transition-colors duration-200 ease-in-out rounded-sm select-none flex items-center text-center gap-1 text-sm text-foreground font-inter",
+        "cursor-pointer p-0 py-2 px-3 transition-colors duration-200 ease-in-out rounded-sm select-none flex items-center text-center gap-1 text-sm text-foreground font-inter",
         "hover:bg-bghover focus:bg-bghover",
         "data-[variant=destructive]:text-destructive data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "data-[inset]:pl-8",

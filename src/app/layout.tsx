@@ -1,23 +1,19 @@
 import type { Metadata } from "next";
-
-// src/app/layout.tsx
-import './globals.css'
-import { Inter, Archivo,Bokor } from 'next/font/google'
+import "./globals.css";
+import { Inter, Archivo, Bokor } from "next/font/google";
 
 const inter = Inter({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-inter',
-  display: 'swap', // optional
-})
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-inter",
+  display: "swap",
+});
 
-// Load Archivo
 const archivo = Archivo({
-  subsets: ['latin'],
-  variable: '--font-archivo',
-  display: 'swap',
-})
-
+  subsets: ["latin"],
+  variable: "--font-archivo",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -31,9 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} ${archivo.variable}  antialiased`}
-      >
+      <body className={`${inter.variable} ${archivo.variable} antialiased`}>
         {children}
       </body>
     </html>

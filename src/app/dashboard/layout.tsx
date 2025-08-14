@@ -1,8 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import {
-  SidebarProvider,
-  SidebarTrigger,
-  Sidebar,
+  SidebarProvider
 } from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
@@ -16,3 +14,4 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
+ 
