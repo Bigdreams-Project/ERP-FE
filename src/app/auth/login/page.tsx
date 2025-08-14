@@ -12,7 +12,7 @@ import { ImSpinner2 } from "react-icons/im";
 import { IoMdEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
 import { PiLockKeyThin } from "react-icons/pi";
-import axios from "axios"
+import axios from "axios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -63,6 +63,9 @@ export default function Login() {
     e.preventDefault();
     setApiError("");
 
+    router.push("/dashboard/academic/overview");
+    return;
+
     if (!emailValid || !passwordValid) {
       setEmailTouched(true);
       setPasswordTouched(true);
@@ -72,14 +75,14 @@ export default function Login() {
     setLoading(true);
 
     try {
-        const res = await axios.post(`${BASE_URL}/auth/login`, {
-            email,
-            password
-        })
+      const res = await axios.post(`${BASE_URL}/auth/login`, {
+        email,
+        password,
+      });
 
       if (res.status === 200 || res.status === 201) {
         setShowTransition(true);
-        // setTimeout(() => router.push("/dashboard"), 1000);
+        setTimeout(() => router.push("/dashboard/academic/overview"), 1000);
       } else {
         throw new Error("401");
       }
@@ -244,8 +247,8 @@ export default function Login() {
                 <a href="/forgot-password" className="text-[#636AE8]">
                   Forgot password?
                 </a>
-                              </div>
-                              
+              </div>
+
               <button
                 type="submit"
                 disabled={!isFormValid || loading}
