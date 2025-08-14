@@ -59,7 +59,7 @@ export default function Leads() {
               )}
             </div>
 
-            <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
               <FaPlus className="text-white" size={16} />
               <span className="text-white text-sm">Add Lead</span>
             </button>

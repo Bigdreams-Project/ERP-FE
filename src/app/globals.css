@@ -33,6 +33,18 @@
   color: #242524ff;
 }
 
+.bg-add-button {
+  background: linear-gradient(180deg, #22CCB2FF 0%, #235BCDFF 100%); 
+}
+
+.bg-action-button {
+  background: #636AE8FF;
+}
+
+.bg-action-button:hover {
+  background: #4850E4FF;
+}
+
 /* Custom scrollbar */
 .custom-scroll::-webkit-scrollbar {
   width: 8px;

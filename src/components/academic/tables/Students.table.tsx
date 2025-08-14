@@ -103,7 +103,7 @@ export default function StudentTable({ searchQuery }: Props) {
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          <table className="w-full relative border-collapse text-[14px] text-gray-700">
+          <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
             <thead className="">
               <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                 <th className="p-4 flex items-center">
@@ -156,7 +156,7 @@ export default function StudentTable({ searchQuery }: Props) {
                   <td className="p-3 relative text-right">
                     <button
                       onClick={() => toggleDropdown(student.id)}
-                      className="flex items-center justify-between px-3 py-2 text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      className="flex items-center justify-between px-3 py-2 text-white bg-action-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
                       Action
                       <ChevronDown size={16} className="ml-2" />
