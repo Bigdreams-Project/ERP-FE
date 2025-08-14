@@ -1,50 +1,34 @@
 "use client";
-import {
-  isValidEmail,
-  isValidPassword,
-} from "@/helpers/validations/auth.validation";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { CiMail } from "react-icons/ci";
-import { FaSpinner } from "react-icons/fa6";
-import { GiCheckMark } from "react-icons/gi";
-import { ImSpinner2 } from "react-icons/im";
+import { PiLockKeyThin } from "react-icons/pi";
 import { IoMdEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
-import { PiLockKeyThin } from "react-icons/pi";
-import axios from "axios"
+import { GiCheckMark } from "react-icons/gi";
+import { ImSpinner2 } from "react-icons/im";
+import { FaSpinner } from "react-icons/fa6";
+import axios from "axios";
+import { isPasswordSame, isValidPassword } from "@/helpers/validations/auth.validation";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function Login() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordTouched, setPasswordTouched] = useState(false);
-  const [emailValid, setEmailValid] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
+  const [confirmPassValid, setConfirmPassValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState("");
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [apiError, setApiError] = useState("");
+  const [confirmPassError, setConfirmPassError] = useState("");
 
-  const isFormValid = emailValid && passwordValid;
-
-  // Handling real time validation
-  useEffect(() => {
-    setEmailValid(isValidEmail(email));
-    if (!email && emailTouched) {
-      setEmailError("");
-    } else if (emailTouched && !isValidEmail(email)) {
-      setEmailError("Please enter a valid email address.");
-    } else {
-      setEmailError("");
-    }
-  }, [email, emailTouched]);
+  const isFormValid = passwordValid && confirmPassValid;
 
   useEffect(() => {
     setPasswordValid(isValidPassword(password));
@@ -59,12 +43,22 @@ export default function Login() {
     }
   }, [password, passwordTouched]);
 
+  useEffect(() => {
+    setConfirmPassValid(isPasswordSame(password, confirmPassword));
+    if (!confirmPassword && passwordTouched) {
+      setConfirmPassError("");
+    } else if (confirmPassword && !isPasswordSame(password, confirmPassword)) {
+      setConfirmPassError("Passwords do not match");
+    } else {
+      setConfirmPassError("");
+    }
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiError("");
 
-    if (!emailValid || !passwordValid) {
-      setEmailTouched(true);
+    if (!passwordValid || !confirmPassValid) {
       setPasswordTouched(true);
       return;
     }
@@ -72,25 +66,21 @@ export default function Login() {
     setLoading(true);
 
     try {
-        const res = await axios.post(`${BASE_URL}/auth/login`, {
-            email,
-            password
-        })
+      const res = await axios.post(`${BASE_URL}`, {
+        password,
+      });
 
       if (res.status === 200 || res.status === 201) {
         setShowTransition(true);
-        // setTimeout(() => router.push("/dashboard"), 1000);
+        setTimeout(() => router.push("/auth/login"), 1000);
       } else {
         throw new Error("401");
       }
     } catch (error: any) {
-      if (
-        error.message === "401" ||
-        error.message === "Invalid email or password."
-      ) {
-        setApiError("Invalid email or password.");
+      if (error.message === "401") {
+        setApiError("Signup Failed");
       } else {
-        setApiError("Unable to connect. Please try again.");
+        setApiError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -108,18 +98,21 @@ export default function Login() {
       >
         <img src="/Logo.png" alt="" />
       </div>
-
       {/* Form */}
       <div className="w-full md:w-[45%] md:px-[1rem] ">
         <div
-          className="w-[100%] flex flex-col gap-[2rem]  p-[2rem] rounded-[1rem]  md:shadow-lg"
+          className="w-[100%] flex flex-col gap-[1rem]  p-[2rem] rounded-[1rem]  md:shadow-lg"
           style={{ boxShadow: "0rem 0rem 0.7rem rgba(0, 0, 0, 0.1)" }}
         >
           <div className="flex flex-col gap-1">
-            <h2 className="text-[32px] font-bold">Welcome Back 👋</h2>
-            <p className="">Login to your account</p>
-          </div>
-
+            <h2 className={`text-[32px] font-bold`}>
+              {showTransition ? "Success!" : "Reset Password"}
+            </h2>
+            <p className={`text-[20px] font-semibold text-[rgba(0,0,0,0.5)]`}>
+              {" "}
+              {showTransition ? "" : "Update your password"}
+            </p>
+          </div>{" "}
           {showTransition ? (
             <div className="flex flex-col items-center justify-center py-10 gap-4">
               <FaSpinner className="animate-spin text-[#636AE8] text-4xl" />
@@ -131,58 +124,13 @@ export default function Login() {
             <form className={`flex flex-col gap-5`} onSubmit={handleSubmit}>
               <div
                 className={`flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl 
-                  ${
-                    email
-                      ? emailValid
-                        ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
-                        : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
-                      : ""
-                  }
-                `}
-              >
-                <CiMail
-                  className="font-semibold text-[rgba(0,0,0,0.5)]"
-                  size={20}
-                />
-
-                <input
-                  type="email"
-                  placeholder="What is your e-mail?"
-                  className="w-full bg-transparent outline-none text-[16px]"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (emailTouched) setEmailError("");
-                    if (apiError) setApiError("");
-                  }}
-                  onBlur={() => setEmailTouched(true)}
-                  disabled={loading}
-                />
-
-                {isValidEmail(email) && (
-                  <GiCheckMark
-                    className="font-semibold text-[#636AE8]"
-                    size={20}
-                  />
-                )}
-              </div>
-
-              {emailError && (
-                <p className="text-red-500 text-xs font-semibold -mt-3">
-                  {emailError}
-                </p>
-              )}
-
-              <div
-                className={`flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl 
-                  ${
-                    password
-                      ? passwordValid
-                        ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
-                        : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
-                      : ""
-                  }
-                `}
+                    ${
+                      password
+                        ? passwordValid
+                          ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
+                          : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
+                        : ""
+                    }`}
               >
                 <PiLockKeyThin
                   className="font-semibold text-[rgba(0,0,0,0.5)]"
@@ -230,22 +178,63 @@ export default function Login() {
                 </p>
               )}
 
-              <div className="flex items-center justify-between text-[14px] font-inter">
-                <label htmlFor="check" className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    name="remember"
-                    id="check"
-                    className="accent-[#636AE8]"
-                  />
+              <div
+                className={`flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl 
+                    ${
+                      confirmPassword
+                        ? confirmPassValid
+                          ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
+                          : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
+                        : ""
+                    }`}
+              >
+                <PiLockKeyThin
+                  className="font-semibold text-[rgba(0,0,0,0.5)]"
+                  size={20}
+                />
 
-                  <span className="">Remember me</span>
-                </label>
-                <a href="/forgot-password" className="text-[#636AE8]">
-                  Forgot password?
-                </a>
-                              </div>
-                              
+                <input
+                  type={showConfirmPass ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  className="w-full outline-none text-[16px] bg-transparent"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (passwordTouched) setConfirmPassError("");
+                    if (apiError) setApiError("");
+                  }}
+                  onBlur={() => setPasswordTouched(true)}
+                  disabled={loading}
+                />
+
+                {/* check if  */}
+                {isPasswordSame(password, confirmPassword) ? (
+                  <GiCheckMark
+                    className="font-semibold text-[#636AE8]"
+                    size={20}
+                  />
+                ) : showConfirmPass ? (
+                  <IoEye
+                    className="font-semibold text-[rgba(0,0,0,0.5)] cursor-pointer"
+                    size={20}
+                    onClick={() => setShowConfirmPass(false)}
+                  />
+                ) : (
+                  <IoMdEyeOff
+                    className="font-semibold text-[rgba(0,0,0,0.5)] cursor-pointer"
+                    size={20}
+                    onClick={() => setShowConfirmPass(true)}
+                  />
+                )}
+              </div>
+
+              {confirmPassError && (
+                <p className="text-red-500 text-xs font-semibold -mt-3">
+                  {confirmPassError}
+                </p>
+              )}
+
+              {/* Submit button */}
               <button
                 type="submit"
                 disabled={!isFormValid || loading}
@@ -264,6 +253,7 @@ export default function Login() {
                   "Continue"
                 )}
               </button>
+
               {apiError && (
                 <div
                   className="text-red-500 text-sm text-center font-semibold"
@@ -274,18 +264,9 @@ export default function Login() {
                 </div>
               )}
             </form>
-          )}
-
-          <div className={`mt-[2rem]`}>
-            <p className="text-[15px] text-center">
-              Don't have an account?{" "}
-              <a href="/sign-up" className="text-[#636ae8] font-semibold">
-                Sign up
-              </a>
-            </p>
-          </div>
+          )}{" "}
         </div>
-      </div>
+      </div>{" "}
     </div>
   );
 }
