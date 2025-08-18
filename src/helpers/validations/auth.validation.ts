@@ -30,3 +30,8 @@ export const isPasswordSame = (password: string, confirmPassword: string) => {
     }
     
 }
+
+export const isPhoneValid = (phoneNumber: string) => {
+  const phoneRegex = /^[0-9]{10,15}$/;
+  return phoneRegex.test(phoneNumber);
+};
