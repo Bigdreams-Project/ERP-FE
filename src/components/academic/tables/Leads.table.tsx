@@ -3,6 +3,7 @@ import { leads } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
+import StudentModal from "@/components/modals/StudentModal";
 
 type Props = {
   searchQuery: string;
@@ -14,6 +15,7 @@ export default function LeadTable({ searchQuery }: Props) {
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const filteredData = data.filter((lead) => {
     const query = searchQuery.toLowerCase();
@@ -54,6 +56,7 @@ export default function LeadTable({ searchQuery }: Props) {
 
   const handleEnroll = (centerId: string) => {
     setOpenDropdown(null);
+    setIsModalOpen(true)
   };
 
   const handleView = (centerId: string) => {
@@ -67,6 +70,10 @@ export default function LeadTable({ searchQuery }: Props) {
   const handleDelete = (centerId: string) => {
     setOpenDropdown(null);
   };
+
+  const handleStudentSave = () => {
+    console.log("I was called")
+  }
 
   return (
     <div className="font-inter text-gray-200">
@@ -164,6 +171,12 @@ export default function LeadTable({ searchQuery }: Props) {
           />
         </div>
       </div>
+      <StudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleStudentSave}
+        mode="add"
+      />
     </div>
   );
 }
