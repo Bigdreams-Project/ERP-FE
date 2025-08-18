@@ -16,7 +16,6 @@ export default function Leads() {
     if (!isTyping && searchInput.length > 0) {
       setIsTyping(true);
     }
-
     const handler = setTimeout(() => {
       if (searchInput.length === 0) {
         setSearchQuery("");
