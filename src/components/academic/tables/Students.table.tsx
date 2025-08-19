@@ -129,6 +129,7 @@ export default function StudentTable({ searchQuery }: Props) {
                 <th className="p-4">Parent/Guardian Name</th>
                 <th className="p-4">Parent/Guardian Phone Number</th>
                 <th className="p-4">Course Enrolled</th>
+                <th className="p-4">Actions</th>
                 <th className="p-4"></th>
               </tr>
             </thead>

@@ -4,25 +4,60 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 
-type Props = {
-  searchQuery: string;
+type DateRange = {
+  startDate: Date;
+  endDate: Date;
 };
 
-export default function LeadTable({ searchQuery }: Props) {
+type Props = {
+  searchQuery: string;
+  appliedInquiryDate: DateRange | null;
+  appliedFollowupDate: DateRange | null;
+  isApplied: boolean;
+
+};
+
+export default function LeadTable({ searchQuery, appliedFollowupDate, appliedInquiryDate, isApplied }: Props) {
   const [data] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
 
+  // LeadTable.tsx (Simplified Filter Logic)
+  // ...
   const filteredData = data.filter((lead) => {
     const query = searchQuery.toLowerCase();
-    return (
+
+    const matchSearch =
       lead.fullName.toLowerCase().includes(query) ||
       lead.email.toLowerCase().includes(query) ||
-      lead.phone.toLowerCase().includes(query)
-    );
-  }); 
+      lead.phone.toLowerCase().includes(query);
+
+    let matchInquiry = true;
+
+    if (appliedInquiryDate) { // Check if the prop has a value
+      const [day, month, year] = lead.inquiryDate.split('/');
+      const leadDate = new Date(`${year}-${month}-${day}`);
+      const start = appliedInquiryDate.startDate;
+      const end = appliedInquiryDate.endDate;
+      matchInquiry = leadDate >= start && leadDate <= end;
+    }
+
+    let matchFollowup = true;
+
+    if (appliedFollowupDate) { // Check if the prop has a value
+      const [day, month, year] = lead.nextFollowUp.split('/');
+      const leadFollowupDate = new Date(`${year}-${month}-${day}`);
+      const start = appliedFollowupDate.startDate;
+      const end = appliedFollowupDate.endDate;
+      matchFollowup = leadFollowupDate >= start && leadFollowupDate <= end;
+    }
+
+    return matchSearch && matchInquiry && matchFollowup;
+  });
+  // ...
+
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
@@ -96,6 +131,7 @@ export default function LeadTable({ searchQuery }: Props) {
                 <th className="p-4">Inquiry Date</th>
                 <th className="p-4">Course Inquiry</th>
                 <th className="p-4">Next Follow-up</th>
+                <th className="p-4">Actions</th>
                 <th className="p-4"></th>
               </tr>
             </thead>

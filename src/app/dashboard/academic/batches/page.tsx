@@ -53,9 +53,7 @@ export default function Batches() {
                 }}
               />
             </div>
-            {error && (
-              <span className="text-red-500 text-[10px] mt-1">{error}</span>
-            )}
+
           </div>
 
           <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
