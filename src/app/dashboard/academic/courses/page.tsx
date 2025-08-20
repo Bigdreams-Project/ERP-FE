@@ -165,6 +165,7 @@ export default function Courses() {
             </div>
             {isFilterDropdown && (
               <div
+
                 className="absolute right-0 mt-2 bg-white rounded-md shadow-lg w-[200px] z-50 p-4 animate-in fade-in-0 duration-300"
                 style={{
                   boxShadow: "0rem 0.2rem 0.5rem 0.1rem rgba(0,0,0,0.1) ",
@@ -258,9 +259,7 @@ export default function Courses() {
                 }}
               />
             </div>
-            {error && (
-              <span className="text-red-500 text-[10px] mt-1">{error}</span>
-            )}
+
           </div>
 
           <button

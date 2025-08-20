@@ -45,7 +45,6 @@ function DropdownMenuContent({
           "z-50 rounded-md border bg-[rgb(255,255,255)] p-1 text-popover-foreground shadow-lg",
           "min-w-[8rem] transition-all duration-200 ease-in-out will-change-[opacity,transform]",
           "animate-dropdown-in data-[state=closed]:animate-dropdown-out",
-
           className
         )}
         {...props}
@@ -77,8 +76,8 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "cursor-pointer p-0 py-2 px-3 transition-colors duration-200 ease-in-out rounded-sm select-none flex items-center text-center gap-1 text-sm text-foreground font-inter",
-        "hover:bg-bghover focus:bg-bghover",
+        "cursor-pointer   p-0 py-2 px-3 transition-colors duration-200 ease-in-out rounded-sm select-none flex items-center text-center gap-2 text-sm text-foreground font-inter",
+        "hover:bg-gray-100 focus:bg-gray-100",
         "data-[variant=destructive]:text-destructive data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "data-[inset]:pl-8",
         className

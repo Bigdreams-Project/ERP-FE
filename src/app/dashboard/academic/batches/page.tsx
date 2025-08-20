@@ -59,9 +59,7 @@ export default function Batches() {
                 }}
               />
             </div>
-            {error && (
-              <span className="text-red-500 text-[10px] mt-1">{error}</span>
-            )}
+
           </div>
 
           <button

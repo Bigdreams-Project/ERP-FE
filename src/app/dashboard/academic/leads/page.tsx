@@ -1,11 +1,19 @@
 "use client";
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
+import LeadsFilter from "@/components/academic/common/LeadsFilter";
 import LeadTable from "@/components/academic/tables/Leads.table";
 import LeadModal from "@/components/modals/academic/Lead.modal";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
+import { IoFilterSharp } from "react-icons/io5";
+type DateRange = {
+  startDate: Date;
+  endDate: Date;
+
+};
+
 
 export default function Leads() {
   const [searchInput, setSearchInput] = useState("");
@@ -18,7 +26,6 @@ export default function Leads() {
     if (!isTyping && searchInput.length > 0) {
       setIsTyping(true);
     }
-
     const handler = setTimeout(() => {
       if (searchInput.length === 0) {
         setSearchQuery("");
@@ -48,6 +55,28 @@ export default function Leads() {
         </div>
         <div className="flex items-center gap-1">
           <div className="w-full flex items-center justify-end gap-7 p-2">
+            <div className="relative">
+              <div
+                className="flex items-center gap-2 font-inters text-gray-900 font-medium cursor-pointer relative text-[16px] font-inter" onClick={() => setIsFilterDropdown(!isFilterDropdown)}>
+                <IoFilterSharp size={18} />
+                <p>filter</p>
+              </div>
+              {
+                isFilterDropdown &&
+                <div className={`z-50 absolute ${isFilterDropdown ? "animate-dropdown-in" : "animate-dropdown-out"}`}>
+                  <LeadsFilter
+                    inquiryDate={inquiryDate}
+                    followupDate={followupDate}
+                    onInquiryDateChange={setInquiryDate}
+                    onFollowupDateChange={setFollowupDate}
+                    onSubmit={handleFilterSubmit}
+                    getAlldateType={getAlldateType}
+                    setAlldateType={setAlldateType}
+                    onClear={handleClearFilter}
+                  />
+                </div>
+              }
+            </div>
             <div className="w-[220px]">
               <div className="flex items-center gap-1 py-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
                 <BiSearchAlt size={17} />
@@ -60,9 +89,7 @@ export default function Leads() {
                   }}
                 />
               </div>
-              {error && (
-                <span className="text-red-500 text-[10px] mt-1">{error}</span>
-              )}
+
             </div>
 
             <button
@@ -75,6 +102,7 @@ export default function Leads() {
           </div>
         </div>
       </div>
+
 
       <LeadTable searchQuery={searchQuery} />
       <LeadModal
