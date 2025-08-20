@@ -3,6 +3,7 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import LeadsFilter from "@/components/academic/common/LeadsFilter";
 import LeadTable from "@/components/academic/tables/Leads.table";
+import LeadModal from "@/components/modals/academic/Lead.modal";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -19,19 +20,8 @@ export default function Leads() {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [isFilterDropdown, setIsFilterDropdown] = useState(false);
-  const [inquiryDate, setInquiryDate] = useState<DateRange>({
-    startDate: new Date("2025-08-18"),
-    endDate: new Date("2025-08-18"),
-  });
-  const [followupDate, setFollowupDate] = useState<DateRange>({
-    startDate: new Date("2025-08-18"),
-    endDate: new Date("2025-08-18"),
-  });
-  const [appliedInquiryDate, setAppliedInquiryDate] = useState<DateRange | null>(null);
-  const [appliedFollowupDate, setAppliedFollowupDate] = useState<DateRange | null>(null);
-  const [getAlldateType, setAlldateType] = useState("Inquiry");
-  const [isApplied, setIsApplied] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
       setIsTyping(true);
@@ -51,39 +41,8 @@ export default function Leads() {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  // Leads.tsx (Corrected)
-  // ...
-  const handleFilterSubmit = () => {
-    // Clear both applied dates first
-    setAppliedInquiryDate(null);
-    setAppliedFollowupDate(null);
-
-    // Apply the selected filter based on the dropdown type
-    if (getAlldateType === "Inquiry") {
-      setAppliedInquiryDate(inquiryDate);
-    } else {
-      setAppliedFollowupDate(followupDate);
-    }
-
-    setIsApplied(true);
-    setIsFilterDropdown(false);
-  };
-  const handleClearFilter = () => {
-    setAppliedInquiryDate(null);
-    setAppliedFollowupDate(null);
-
-    setInquiryDate({
-      startDate: new Date(),
-      endDate: new Date(),
-    });
-    setFollowupDate({
-      startDate: new Date(),
-      endDate: new Date(),
-    });
-
-
-    setIsApplied(false);
-    setIsFilterDropdown(false);
+  const handleSave = () => {
+    console.log("...");
   };
 
   return (
@@ -133,7 +92,10 @@ export default function Leads() {
 
             </div>
 
-            <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            <button
+              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              onClick={() => setIsModalOpen(true)}
+            >
               <FaPlus className="text-white" size={16} />
               <span className="text-white text-sm">Add Lead</span>
             </button>
@@ -141,8 +103,14 @@ export default function Leads() {
         </div>
       </div>
 
-      <LeadTable searchQuery={searchQuery} appliedInquiryDate={appliedInquiryDate}
-        appliedFollowupDate={appliedFollowupDate} isApplied={!!(appliedInquiryDate || appliedFollowupDate)} />
+
+      <LeadTable searchQuery={searchQuery} />
+      <LeadModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        mode="add"
+      />
     </div>
   );
 }

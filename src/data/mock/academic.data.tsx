@@ -2517,3 +2517,5 @@ export const batches = [
     status: "Draft",
   },
 ];
+
+export const courseTypes = ["TecTerminal", "ApTech", "CPMS"];
