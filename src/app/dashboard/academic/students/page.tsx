@@ -3,6 +3,7 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentsFilter from "@/components/academic/common/StudentsFilter";
 import StudentTable from "@/components/academic/tables/Students.table";
+import StudentModal from "@/components/modals/StudentModal"
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -14,6 +15,7 @@ export default function Students() {
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -34,6 +36,10 @@ export default function Students() {
 
     return () => clearTimeout(handler);
   }, [searchInput]);
+
+  const handleStudentSave = () => {
+    console.log("I was called")
+  }
 
   return (
     <div className="w-full ">
@@ -73,7 +79,9 @@ export default function Students() {
 
           </div>
 
-          <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+          <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            onClick={() => setIsModalOpen(true)}
+          >
             <FaPlus className="text-white" size={16} />
             <span className="text-white text-sm">Enroll Student</span>
           </button>
@@ -81,6 +89,12 @@ export default function Students() {
       </div>
 
       <StudentTable searchQuery={searchQuery} />
+      <StudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleStudentSave}
+        mode="add"
+      />
     </div>
   );
 }

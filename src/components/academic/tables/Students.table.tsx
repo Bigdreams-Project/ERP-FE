@@ -3,6 +3,7 @@ import { students } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
+import StudentModal from "@/components/modals/StudentModal";
 
 type Props = {
   searchQuery: string;
@@ -14,6 +15,7 @@ export default function StudentTable({ searchQuery }: Props) {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const filteredData = data.filter((student) => {
     const query = searchQuery.toLowerCase();
@@ -86,6 +88,7 @@ export default function StudentTable({ searchQuery }: Props) {
       window.location.href = `mailto:${student.email}`;
     }
     setOpenDropdown(null);
+    setIsModalOpen(true)
   };
 
   const handleDelete = (studentId: string) => {
@@ -98,6 +101,10 @@ export default function StudentTable({ searchQuery }: Props) {
       prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
     );
   };
+
+  const handleStudentSave = () => {
+    console.log("I was called")
+  }
 
   return (
     <div className="font-inter text-gray-200">
@@ -199,6 +206,27 @@ export default function StudentTable({ searchQuery }: Props) {
           onPageChange={setCurrentPage}
         />
       </div>
+      <StudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleStudentSave}
+        mode="edit"
+        initialData={{
+          fullname: "James",
+          phone: "08145807088",
+          email: "ex@gm.coom",
+          address: "47 exam str",
+          parentName: "Ogo",
+          parentPhone: "08145807088",
+          parentEmail: "parent@mail.com",
+          course: {
+            name: "ADSE",
+            fee: "3000000",
+            baseFee: "500000",
+          },
+          deposit: "50000",
+        }}
+      />
     </div>
   );
 }

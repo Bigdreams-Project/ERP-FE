@@ -3,6 +3,7 @@ import { leads } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
+import StudentModal from "@/components/modals/StudentModal";
 
 type DateRange = {
   startDate: Date;
@@ -23,6 +24,7 @@ export default function LeadTable({ searchQuery, appliedFollowupDate, appliedInq
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const itemsPerPage = 10;
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // LeadTable.tsx (Simplified Filter Logic)
   // ...
@@ -89,6 +91,7 @@ export default function LeadTable({ searchQuery, appliedFollowupDate, appliedInq
 
   const handleEnroll = (centerId: string) => {
     setOpenDropdown(null);
+    setIsModalOpen(true)
   };
 
   const handleView = (centerId: string) => {
@@ -102,6 +105,10 @@ export default function LeadTable({ searchQuery, appliedFollowupDate, appliedInq
   const handleDelete = (centerId: string) => {
     setOpenDropdown(null);
   };
+
+  const handleStudentSave = () => {
+    console.log("I was called")
+  }
 
   return (
     <div className="font-inter text-gray-200">
@@ -200,6 +207,12 @@ export default function LeadTable({ searchQuery, appliedFollowupDate, appliedInq
           />
         </div>
       </div>
+      <StudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleStudentSave}
+        mode="add"
+      />
     </div>
   );
 }
