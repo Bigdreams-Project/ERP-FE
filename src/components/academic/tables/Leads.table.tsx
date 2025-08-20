@@ -6,34 +6,22 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 
-type DateRange = {
-  startDate: Date;
-  endDate: Date;
-};
-
 type Props = {
   searchQuery: string;
-  appliedInquiryDate: DateRange | null;
-  appliedFollowupDate: DateRange | null;
-  isApplied: boolean;
-
 };
 
-export default function LeadTable({ searchQuery, appliedFollowupDate, appliedInquiryDate, isApplied }: Props) {
+export default function LeadTable({ searchQuery }: Props) {
   const [data] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const itemsPerPage = 10;
 
-  // LeadTable.tsx (Simplified Filter Logic)
-  // ...
   const filteredData = data.filter((lead) => {
     const query = searchQuery.toLowerCase();
-
-    const matchSearch =
+    return (
       lead.fullName.toLowerCase().includes(query) ||
       lead.email.toLowerCase().includes(query) ||
       lead.phone.toLowerCase().includes(query)
