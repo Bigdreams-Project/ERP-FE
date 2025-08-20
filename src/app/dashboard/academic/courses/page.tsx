@@ -6,12 +6,33 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilterSharp } from "react-icons/io5";
 import { useState, useEffect, useRef } from "react";
 import CoursesTable from "@/components/academic/tables/Courses.table";
+import CourseModal from "@/components/modals/academic/Course.modal";
 
 export default function Courses() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [isFilterDropdown, setIsFilterDropdown] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        event.target instanceof Node &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setIsFilterDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -32,24 +53,10 @@ export default function Courses() {
 
     return () => clearTimeout(handler);
   }, [searchInput]);
-  const [isFilterDropdown, setIsFilterDropdown] = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        event.target instanceof Node &&
-        !dropdownRef.current.contains(event.target)
-      ) {
-        setIsFilterDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const handleSave = () => {
+    console.log("I was called");
+  };
 
   return (
     <div className="w-full">
@@ -153,7 +160,10 @@ export default function Courses() {
             )}
           </div>
 
-          <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+          <button
+            className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            onClick={() => setIsModalOpen(true)}
+          >
             <FaPlus className="text-white" size={16} />
             <span className="text-white text-sm">Add Course</span>
           </button>
@@ -161,6 +171,12 @@ export default function Courses() {
       </div>
 
       <CoursesTable searchQuery={searchQuery} />
+      <CourseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        mode="add"
+      />
     </div>
   );
 }

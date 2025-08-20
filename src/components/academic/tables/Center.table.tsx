@@ -1,4 +1,5 @@
 "use client";
+import NotFoundComponent from "@/components/NotFoundComponent";
 import { centers } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -13,6 +14,8 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const itemsPerPage = 10;
 
   const filteredData = data.filter((center) => {
@@ -101,99 +104,103 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
-            <thead>
-              <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                <th className="p-4 flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={
-                      paginatedData.length > 0 &&
-                      paginatedData.every((center) =>
-                        selectedCenters.includes(center.id)
-                      )
-                    }
-                    onChange={handleSelectAll}
-                    className="mr-2 accent-primary"
-                  />
-                  #
-                </th>
-                <th className="p-4">Center Code</th>
-                <th className="p-4">Center Name</th>
-                <th className="p-4">Center Manager</th>
-                <th className="p-4">Email</th>
-                <th className="p-4">Phone</th>
-                <th className="p-4">Center Address</th>
-                <th className="p-4">Enrolled Students</th>
-                <th className="p-4">Leads</th>
-                <th className="p-4"></th>
-              </tr>
-            </thead>
-            <tbody className="text-[13px]">
-              {paginatedData.map((center, index) => (
-                <tr key={center.id} className="border-t border-gray-200">
-                  <td className="p-4 flex items-center">
+          {filteredData.length === 0 ? (
+            <NotFoundComponent setIsModalOpen={setIsModalOpen} />
+          ) : (
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
+              <thead>
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
+                  <th className="p-4 flex items-center">
                     <input
                       type="checkbox"
-                      checked={selectedCenters.includes(center.id)}
-                      onChange={() => handleCheckboxChange(center.id)}
+                      checked={
+                        paginatedData.length > 0 &&
+                        paginatedData.every((center) =>
+                          selectedCenters.includes(center.id)
+                        )
+                      }
+                      onChange={handleSelectAll}
                       className="mr-2 accent-primary"
                     />
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
-                  <td className="p-3">{center.code}</td>
-                  <td className="p-3">
-                    {highlightMatch(center.name, searchQuery)}
-                  </td>
-                  <td className="p-3 font-bold">
-                    {highlightMatch(center.manager, searchQuery)}
-                  </td>
-                  <td className="p-3">
-                    {highlightMatch(center.email, searchQuery)}
-                  </td>
-                  <td className="p-3">
-                    {highlightMatch(center.phone, searchQuery)}
-                  </td>
-                  <td className="p-3">
-                    {highlightMatch(center.address, searchQuery)}
-                  </td>
-                  <td className="p-3">{center.students}</td>
-                  <td className="p-3">{center.leads}</td>
-                  <td className="p-3 relative text-right">
-                    <button
-                      onClick={() => toggleDropdown(center.id)}
-                      className="flex items-center justify-between px-3 py-2 text-white bg-action-button rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
-                    >
-                      Action
-                      <ChevronDown size={16} className="ml-2" />
-                    </button>
-                    {openDropdown === center.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                        <button
-                          onClick={() => handleView(center.id)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleEmail(center.id)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(center.id)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </td>
+                    #
+                  </th>
+                  <th className="p-4">Center Code</th>
+                  <th className="p-4">Center Name</th>
+                  <th className="p-4">Center Manager</th>
+                  <th className="p-4">Email</th>
+                  <th className="p-4">Phone</th>
+                  <th className="p-4">Center Address</th>
+                  <th className="p-4">Enrolled Students</th>
+                  <th className="p-4">Leads</th>
+                  <th className="p-4"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="text-[13px]">
+                {paginatedData.map((center, index) => (
+                  <tr key={center.id} className="border-t border-gray-200">
+                    <td className="p-4 flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedCenters.includes(center.id)}
+                        onChange={() => handleCheckboxChange(center.id)}
+                        className="mr-2 accent-primary"
+                      />
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
+                    <td className="p-3">{center.code}</td>
+                    <td className="p-3">
+                      {highlightMatch(center.name, searchQuery)}
+                    </td>
+                    <td className="p-3 font-bold">
+                      {highlightMatch(center.manager, searchQuery)}
+                    </td>
+                    <td className="p-3">
+                      {highlightMatch(center.email, searchQuery)}
+                    </td>
+                    <td className="p-3">
+                      {highlightMatch(center.phone, searchQuery)}
+                    </td>
+                    <td className="p-3">
+                      {highlightMatch(center.address, searchQuery)}
+                    </td>
+                    <td className="p-3">{center.students}</td>
+                    <td className="p-3">{center.leads}</td>
+                    <td className="p-3 relative text-right">
+                      <button
+                        onClick={() => toggleDropdown(center.id)}
+                        className="flex items-center justify-between px-3 py-2 text-white bg-action-button rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
+                      >
+                        Action
+                        <ChevronDown size={16} className="ml-2" />
+                      </button>
+                      {openDropdown === center.id && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                          <button
+                            onClick={() => handleView(center.id)}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEmail(center.id)}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(center.id)}
+                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

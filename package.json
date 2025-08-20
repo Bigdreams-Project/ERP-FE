@@ -11,6 +11,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.1",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -30,10 +31,12 @@
     "primereact": "^10.9.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.62.0",
     "react-icons": "^5.5.0",
     "recharts": "^3.1.2",
     "tailwind-merge": "^3.3.1",
-    "tailwind-scrollbar": "^3.1.0"
+    "tailwind-scrollbar": "^3.1.0",
+    "yup": "^1.7.0"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",

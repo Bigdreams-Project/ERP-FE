@@ -2,6 +2,7 @@
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import LeadTable from "@/components/academic/tables/Leads.table";
+import LeadModal from "@/components/modals/academic/Lead.modal";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -11,6 +12,7 @@ export default function Leads() {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -31,6 +33,10 @@ export default function Leads() {
 
     return () => clearTimeout(handler);
   }, [searchInput]);
+
+  const handleSave = () => {
+    console.log("I was called");
+  };
 
   return (
     <div className="w-full">
@@ -59,7 +65,10 @@ export default function Leads() {
               )}
             </div>
 
-            <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            <button
+              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              onClick={() => setIsModalOpen(true)}
+            >
               <FaPlus className="text-white" size={16} />
               <span className="text-white text-sm">Add Lead</span>
             </button>
@@ -68,6 +77,12 @@ export default function Leads() {
       </div>
 
       <LeadTable searchQuery={searchQuery} />
+      <LeadModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        mode="add"
+      />
     </div>
   );
 }

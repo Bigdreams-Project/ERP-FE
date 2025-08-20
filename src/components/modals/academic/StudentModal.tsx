@@ -1,0 +1,624 @@
+import { yupResolver } from "@hookform/resolvers/yup";
+import { ChevronDown, Info, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import * as yup from "yup";
+
+export interface IStudentEnrollment {
+  leadId: string | null;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  homeAddress: string;
+  parentName: string;
+  parentPhone: string;
+  parentEmail: string | null;
+  courseOfInterest: string;
+  batch: string;
+  paymentPlan: "Lump Sum" | "Installments";
+  lumpSum: number | null;
+  numberOfInstallments: number | null;
+  comments: string | null;
+}
+
+export interface IStudentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (studentData: IStudentEnrollment) => void;
+  initialData?: Partial<IStudentEnrollment>;
+  mode: "enroll";
+}
+
+export const enrollmentSchema = yup.object().shape({
+  leadId: yup.string().optional().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
+  fullName: yup.string().required("Full name is required"),
+  phoneNumber: yup
+    .string()
+    .required("Phone number is required")
+    .matches(
+      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
+      "Phone number must be in the format +234 815 815-9170"
+    ),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  homeAddress: yup.string().required("Home address is required"),
+  parentName: yup.string().required("Parent/Guardian name is required"),
+  parentPhone: yup
+    .string()
+    .required("Parent/Guardian phone is required")
+    .matches(
+      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
+      "Phone number must be in the format +234 815 815-9170"
+    ),
+  parentEmail: yup
+    .string()
+    .email("Invalid email format")
+    .nullable()
+    .notRequired() as yup.StringSchema<string | null>,
+  courseOfInterest: yup.string().required("Course of interest is required"),
+  batch: yup.string().required("Batch is required"),
+  paymentPlan: yup
+    .string()
+    .oneOf(["Lump Sum", "Installments"])
+    .required("Payment plan is required"),
+  lumpSum: yup
+    .number()
+    .transform((value) =>
+      isNaN(value) || value === null || value === undefined ? null : value
+    )
+    .when("paymentPlan", {
+      is: "Lump Sum",
+      then: (schema) =>
+        schema
+          .required("Lump sum is required")
+          .min(0, "Lump sum must be a positive number"),
+      otherwise: (schema) => schema.nullable().optional(),
+    })
+    .nullable()
+    .notRequired() as yup.NumberSchema<number | null>,
+  numberOfInstallments: yup
+    .number()
+    .transform((value) =>
+      isNaN(value) || value === null || value === undefined ? null : value
+    )
+    .when("paymentPlan", {
+      is: "Installments",
+      then: (schema) =>
+        schema
+          .required("Number of installments is required")
+          .min(1, "Must be at least 1 installment"),
+      otherwise: (schema) => schema.nullable().optional(),
+    })
+    .nullable()
+    .notRequired() as yup.NumberSchema<number | null>,
+  comments: yup
+    .string()
+    .optional()
+    .nullable()
+    .notRequired() as yup.StringSchema<string | null>,
+});
+
+const coursesData = [
+  { name: "ADSE", fee: 3000000, baseFee: 500000 },
+  { name: "Frontend", fee: 300000, baseFee: 100000 },
+  { name: "Cyber Security", fee: 1000000, baseFee: 300000 },
+  { name: "Web Dev", fee: 450000, baseFee: 200000 },
+];
+
+const batches = ["Batch A", "Batch B", "Batch C"];
+const installmentOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const paymentPlans = ["Lump Sum", "Installments"];
+
+const EnrollStudentModal: React.FC<IStudentModalProps> = ({
+  isOpen,
+  onClose,
+  initialData,
+  onSave,
+}) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+    watch,
+    setValue,
+  } = useForm<IStudentEnrollment>({
+    resolver: yupResolver(enrollmentSchema),
+    mode: "onTouched",
+    defaultValues: {
+      leadId: "",
+      fullName: "John Doe Emeka",
+      phoneNumber: "+234 815 815-9170",
+      email: "johndoe@example.com",
+      homeAddress: "123 Main St, Anytown, USA",
+      parentName: "John Doe Emeka",
+      parentPhone: "+234 815 815-9170",
+      courseOfInterest: "Web Dev",
+      batch: "Batch A",
+      paymentPlan: "Lump Sum",
+      lumpSum: 500000,
+      numberOfInstallments: 5,
+      comments: "",
+    },
+  });
+
+  const courseOfInterest = watch("courseOfInterest");
+  const paymentPlan = watch("paymentPlan");
+  const lumpSum = watch("lumpSum");
+  const numberOfInstallments = watch("numberOfInstallments");
+
+  const [selectedCourse, setSelectedCourse] = useState(coursesData[3]);
+  const [showBaseFeeError, setShowBaseFeeError] = useState(false);
+
+  useEffect(() => {
+    const course = coursesData.find((c) => c.name === courseOfInterest);
+    if (course) {
+      setSelectedCourse(course);
+    }
+  }, [courseOfInterest]);
+
+  useEffect(() => {
+    // Check if lump sum meets base fee requirement
+    if (paymentPlan === "Lump Sum") {
+      setShowBaseFeeError(lumpSum! < selectedCourse.baseFee);
+    } else {
+      setShowBaseFeeError(false);
+    }
+  }, [lumpSum, paymentPlan, selectedCourse]);
+
+  const onSubmit: SubmitHandler<IStudentEnrollment> = (data) => {
+    if (showBaseFeeError) return;
+    onSave(data);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
+      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+        {/* Modal Header */}
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">
+            Enroll New Student
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            aria-label="Close modal"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Modal Form */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
+        >
+          {/* Lead ID */}
+          <div className="w-full flex flex-col relative mb-5">
+            <label
+              htmlFor="leadId"
+              className="text-sm font-medium text-gray-700 mb-1"
+            >
+              Lead ID
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="leadId"
+                placeholder="Search lead ID"
+                {...register("leadId")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10" // Added pr-10 for icon padding
+              />
+
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setShowTooltip(!showTooltip)}
+              >
+                <Info size={18} />
+              </button>
+            </div>
+            {errors.leadId && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.leadId.message}
+              </p>
+            )}
+            {/* Tooltip */}
+            {showTooltip && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white">
+                <p className="text-gray-700">
+                  Use a Lead ID to auto-populate fields from an existing record.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            {/* Full Name */}
+            <div className="flex flex-col sm:col-span-1">
+              <label
+                htmlFor="fullName"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="fullName"
+                {...register("fullName")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.fullName && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.fullName.message}
+                </p>
+              )}
+            </div>
+
+            {/* Phone Number */}
+            <div className="flex flex-col sm:col-span-1">
+              <label
+                htmlFor="phoneNumber"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="phoneNumber"
+                {...register("phoneNumber")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.phoneNumber.message}
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="flex flex-col sm:col-span-2">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                {...register("email")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Home Address */}
+            <div className="flex flex-col sm:col-span-2">
+              <label
+                htmlFor="homeAddress"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Home Address
+              </label>
+              <input
+                type="text"
+                id="homeAddress"
+                {...register("homeAddress")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.homeAddress && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.homeAddress.message}
+                </p>
+              )}
+            </div>
+
+            {/* Parent/Guardian Name */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="parentName"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Parent/Guardian Name
+              </label>
+              <input
+                type="text"
+                id="parentName"
+                {...register("parentName")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.parentName && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.parentName.message}
+                </p>
+              )}
+            </div>
+
+            {/* Parent/Guardian Phone Number */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="parentPhone"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Parent/Guardian Phone Number
+              </label>
+              <input
+                type="tel"
+                id="parentPhone"
+                {...register("parentPhone")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.parentPhone && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.parentPhone.message}
+                </p>
+              )}
+            </div>
+
+            {/* Parent/Guardian Email */}
+            <div className="flex flex-col sm:col-span-2">
+              <label
+                htmlFor="parentEmail"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Parent/Guardian Email (Optional)
+              </label>
+              <input
+                type="email"
+                id="parentEmail"
+                {...register("parentEmail")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.parentEmail && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.parentEmail.message}
+                </p>
+              )}
+            </div>
+
+            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200"></div>
+
+            {/* Course of Interest */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="courseOfInterest"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Course of Interest
+              </label>
+              <select
+                id="courseOfInterest"
+                {...register("courseOfInterest")}
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Course</option>
+                {coursesData.map((course) => (
+                  <option key={course.name} value={course.name}>
+                    {course.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.courseOfInterest && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.courseOfInterest.message}
+                </p>
+              )}
+            </div>
+
+            {/* Course Fee */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="courseFee"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Course Fee
+              </label>
+              <input
+                type="text"
+                id="courseFee"
+                value={`₦${selectedCourse?.fee.toLocaleString()}`}
+                readOnly
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
+              />
+            </div>
+
+            {/* Batch */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="batch"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Batch
+              </label>
+              <select
+                id="batch"
+                {...register("batch")}
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Batch</option>
+                {batches.map((batch) => (
+                  <option key={batch} value={batch}>
+                    {batch}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.batch && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.batch.message}
+                </p>
+              )}
+            </div>
+
+            {/* Payment Plan */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="paymentPlan"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Payment Plan
+              </label>
+              <select
+                id="paymentPlan"
+                {...register("paymentPlan")}
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                {paymentPlans.map((plan) => (
+                  <option key={plan} value={plan}>
+                    {plan}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.paymentPlan && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.paymentPlan.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-6">
+            {/* Lump Sum */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="lumpSum"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Lump Sum
+              </label>
+              <input
+                type="number"
+                id="lumpSum"
+                {...register("lumpSum", { valueAsNumber: true })}
+                disabled={paymentPlan !== "Lump Sum"}
+                className={`w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 ${
+                  paymentPlan === "Lump Sum"
+                    ? "border-transparent focus:border-blue-500"
+                    : "bg-gray-200 cursor-not-allowed"
+                } focus:outline-none transition-colors`}
+              />
+              {errors.lumpSum && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.lumpSum.message}
+                </p>
+              )}
+            </div>
+
+            {/* No. of Installments */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="numberOfInstallments"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                No. of Installments
+              </label>
+              <select
+                id="numberOfInstallments"
+                {...register("numberOfInstallments", { valueAsNumber: true })}
+                disabled={paymentPlan !== "Installments"}
+                className={`w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 ${
+                  paymentPlan === "Installments"
+                    ? "border-transparent focus:border-blue-500"
+                    : "bg-gray-200 cursor-not-allowed"
+                } focus:outline-none transition-colors appearance-none`}
+              >
+                {installmentOptions.map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.numberOfInstallments && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.numberOfInstallments.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <p className="text-sm font-medium text-gray-700 mt-6">
+            Required base fee is ₦{selectedCourse?.baseFee.toLocaleString()} for
+            enrollment
+          </p>
+          <p className="text-sm font-medium text-gray-700 mt-1">
+            Total Deposit Record: ₦33,000
+          </p>
+
+          {showBaseFeeError && (
+            <p className="text-red-500 text-sm mt-2 font-semibold">
+              Student does not meet base enrollment fee
+            </p>
+          )}
+
+          {/* Comments */}
+          <div className="flex flex-col sm:col-span-2 mt-4">
+            <label
+              htmlFor="comments"
+              className="text-sm font-medium text-gray-700 mb-1"
+            >
+              Comments
+            </label>
+            <textarea
+              id="comments"
+              {...register("comments")}
+              rows={3}
+              className="w-full p-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+            ></textarea>
+            {errors.comments && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.comments.message}
+              </p>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-auto pt-4 border-t border-gray-200 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
+                isValid && !showBaseFeeError
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-blue-400 cursor-not-allowed opacity-70"
+              }`}
+              disabled={!isValid || showBaseFeeError}
+            >
+              Enroll
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default EnrollStudentModal;

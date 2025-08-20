@@ -70,3 +70,9 @@
   scrollbar-width: thin;
   scrollbar-color: #c2c0c0 #f1f1f1; /* thumb and track color */
 }
+
+/* input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+} */
