@@ -1,22 +1,41 @@
 "use client";
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
+import LeadsFilter from "@/components/academic/common/LeadsFilter";
 import LeadTable from "@/components/academic/tables/Leads.table";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
+import { IoFilterSharp } from "react-icons/io5";
+type DateRange = {
+  startDate: Date;
+  endDate: Date;
+
+};
+
 
 export default function Leads() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-
+  const [isFilterDropdown, setIsFilterDropdown] = useState(false);
+  const [inquiryDate, setInquiryDate] = useState<DateRange>({
+    startDate: new Date("2025-08-18"),
+    endDate: new Date("2025-08-18"),
+  });
+  const [followupDate, setFollowupDate] = useState<DateRange>({
+    startDate: new Date("2025-08-18"),
+    endDate: new Date("2025-08-18"),
+  });
+  const [appliedInquiryDate, setAppliedInquiryDate] = useState<DateRange | null>(null);
+  const [appliedFollowupDate, setAppliedFollowupDate] = useState<DateRange | null>(null);
+  const [getAlldateType, setAlldateType] = useState("Inquiry");
+  const [isApplied, setIsApplied] = useState(false)
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
       setIsTyping(true);
     }
-
     const handler = setTimeout(() => {
       if (searchInput.length === 0) {
         setSearchQuery("");
@@ -32,6 +51,41 @@ export default function Leads() {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
+  // Leads.tsx (Corrected)
+  // ...
+  const handleFilterSubmit = () => {
+    // Clear both applied dates first
+    setAppliedInquiryDate(null);
+    setAppliedFollowupDate(null);
+
+    // Apply the selected filter based on the dropdown type
+    if (getAlldateType === "Inquiry") {
+      setAppliedInquiryDate(inquiryDate);
+    } else {
+      setAppliedFollowupDate(followupDate);
+    }
+
+    setIsApplied(true);
+    setIsFilterDropdown(false);
+  };
+  const handleClearFilter = () => {
+    setAppliedInquiryDate(null);
+    setAppliedFollowupDate(null);
+
+    setInquiryDate({
+      startDate: new Date(),
+      endDate: new Date(),
+    });
+    setFollowupDate({
+      startDate: new Date(),
+      endDate: new Date(),
+    });
+
+
+    setIsApplied(false);
+    setIsFilterDropdown(false);
+  };
+
   return (
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Leads" }]} />
@@ -42,6 +96,28 @@ export default function Leads() {
         </div>
         <div className="flex items-center gap-1">
           <div className="w-full flex items-center justify-end gap-7 p-2">
+            <div className="relative">
+              <div
+                className="flex items-center gap-2 font-inters text-gray-900 font-medium cursor-pointer relative text-[16px] font-inter" onClick={() => setIsFilterDropdown(!isFilterDropdown)}>
+                <IoFilterSharp size={18} />
+                <p>filter</p>
+              </div>
+              {
+                isFilterDropdown &&
+                <div className={`z-50 absolute ${isFilterDropdown ? "animate-dropdown-in" : "animate-dropdown-out"}`}>
+                  <LeadsFilter
+                    inquiryDate={inquiryDate}
+                    followupDate={followupDate}
+                    onInquiryDateChange={setInquiryDate}
+                    onFollowupDateChange={setFollowupDate}
+                    onSubmit={handleFilterSubmit}
+                    getAlldateType={getAlldateType}
+                    setAlldateType={setAlldateType}
+                    onClear={handleClearFilter}
+                  />
+                </div>
+              }
+            </div>
             <div className="w-[220px]">
               <div className="flex items-center gap-1 py-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
                 <BiSearchAlt size={17} />
@@ -54,9 +130,7 @@ export default function Leads() {
                   }}
                 />
               </div>
-              {error && (
-                <span className="text-red-500 text-[10px] mt-1">{error}</span>
-              )}
+
             </div>
 
             <button className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
@@ -67,7 +141,8 @@ export default function Leads() {
         </div>
       </div>
 
-      <LeadTable searchQuery={searchQuery} />
+      <LeadTable searchQuery={searchQuery} appliedInquiryDate={appliedInquiryDate}
+        appliedFollowupDate={appliedFollowupDate} isApplied={!!(appliedInquiryDate || appliedFollowupDate)} />
     </div>
   );
 }

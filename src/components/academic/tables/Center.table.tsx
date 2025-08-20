@@ -126,6 +126,7 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
                 <th className="p-4">Center Address</th>
                 <th className="p-4">Enrolled Students</th>
                 <th className="p-4">Leads</th>
+                <th className="p-4">Actions</th>
                 <th className="p-4"></th>
               </tr>
             </thead>

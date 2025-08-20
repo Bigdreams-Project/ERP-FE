@@ -122,6 +122,7 @@ export default function CoursesTable({ searchQuery }: Props) {
                 <th className="p-4">Leads</th>
                 <th className="p-4">Course Type</th>
                 <th className="p-4">Status</th>
+                <th className="p-4">Actions</th>
                 <th className="p-4"></th>
               </tr>
             </thead>
@@ -149,15 +150,14 @@ export default function CoursesTable({ searchQuery }: Props) {
                   <td className="p-4">{course.leads}</td>
                   <td className="p-4">{course.courseType}</td>
                   <td
-                    className={`p-4 font-semibold ${
-                      course.status.toLowerCase() === "active"
+                    className={`p-4 font-semibold ${course.status.toLowerCase() === "active"
                         ? "text-green-600"
                         : course.status.toLowerCase() === "inactive"
-                        ? "text-red-600"
-                        : course.status.toLowerCase() === "draft"
-                        ? "text-gray-600"
-                        : ""
-                    }`}
+                          ? "text-red-600"
+                          : course.status.toLowerCase() === "draft"
+                            ? "text-gray-600"
+                            : ""
+                      }`}
                   >
                     {course.status}
                   </td>
