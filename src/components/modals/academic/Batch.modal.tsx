@@ -1,71 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { IBatch, IBatchModalProps, IClassSchedule } from "@/types/academic/batch.interface";
+import { batchSchema } from "@/validations/academic/batch.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import {
-  X,
+  BookOpen,
   Calendar,
+  ChevronDown,
   Clock,
   User,
   Users,
-  BookOpen,
-  ChevronDown,
+  X,
 } from "lucide-react";
-
-interface IClassSchedule {
-  dayOfWeek: string;
-  time: string;
-  duration: number;
-}
-
-// Interface for the form data
-export interface IBatch {
-  batchCode: string;
-  course: string;
-  startDate: string;
-  endDate: string;
-  classSchedule: IClassSchedule[];
-  faculty: string;
-  selectedStudents: string[];
-}
-
-export interface IBatchModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (batchData: IBatch, isDraft: boolean) => void;
-  initialData?: Partial<IBatch>;
-  mode: "add" | "edit";
-}
-
-export const batchSchema = yup.object().shape({
-  batchCode: yup.string().required("Batch code is required"),
-  course: yup.string().required("Course is required"),
-  startDate: yup.string().required("Start date is required"),
-  endDate: yup.string().required("End date is required"),
-  classSchedule: yup
-    .array()
-    .of(
-      yup
-        .object()
-        .shape({
-          dayOfWeek: yup.string().required("Day of the week is required"),
-          time: yup.string().required("Time is required"),
-          duration: yup
-            .number()
-            .required("Duration is required")
-            .min(1, "Duration must be at least 1 hour"),
-        })
-        .required()
-    )
-    .required()
-    .min(1, "At least one class schedule is required"),
-  faculty: yup.string().required("Faculty is required"),
-  selectedStudents: yup
-    .array()
-    .of(yup.string().required())
-    .required()
-    .min(1, "At least one student must be selected"),
-});
+import React, { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 const coursesData = ["ADSE", "Frontend", "Cyber Security", "Web Dev"];
 const facultyData = ["Brian Scott", "Jane Smith", "Mathew Adams"];
@@ -115,12 +61,11 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   const classSchedule = watch("classSchedule");
   const selectedStudents = watch("selectedStudents");
 
-  // Reset the form when the modal opens or initialData changes
+  // Reset the form 
   useEffect(() => {
     if (initialData) {
       reset(initialData);
     } else {
-      // Reset to default values for 'add' mode
       reset({
         batchCode: "BDW-WE-001",
         course: "",
@@ -133,16 +78,13 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     }
   }, [initialData, reset]);
 
-  // Handler for both "Create Batch" and "Save as Draft"
   const onSubmit: SubmitHandler<IBatch> = (data) => {
     onSave(data, isDraft);
     if (!isDraft) {
-      // Only close on successful 'Create Batch' submission
       onClose();
     }
   };
 
-  // Helper function to format the class schedule for display
   const formatSchedule = (schedule: IClassSchedule[]) => {
     if (!schedule || schedule.length === 0) return "";
     return schedule
@@ -155,7 +97,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
       <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
-        {/* Modal Header */}
+        {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div className="flex flex-col">
             <h2 className="text-xl font-bold text-gray-800">
@@ -174,7 +116,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
           </button>
         </div>
 
-        {/* Modal Form */}
+        {/* Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"

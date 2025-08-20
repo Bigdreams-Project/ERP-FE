@@ -1,4 +1,5 @@
 "use client";
+import BatchModal from "@/components/modals/academic/Batch.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { batches } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
@@ -36,6 +37,10 @@ export default function BatchTable({ searchQuery }: Props) {
     setOpenDropdown(openDropdown === id ? null : id);
   };
 
+  const handleSave = () => {
+    console.log("...");
+  };
+
   const handleActivate = (batchId: string) => {
     setOpenDropdown(null);
   };
@@ -61,7 +66,7 @@ export default function BatchTable({ searchQuery }: Props) {
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
-            <NotFoundComponent setIsModalOpen={setIsModalOpen} />
+            <NotFoundComponent text="Batch" setIsModalOpen={setIsModalOpen} />
           ) : (
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
@@ -174,6 +179,13 @@ export default function BatchTable({ searchQuery }: Props) {
             onPageChange={setCurrentPage}
           />
         </div>
+
+        <BatchModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSave}
+          mode="add"
+        />
       </div>
     </div>
   );

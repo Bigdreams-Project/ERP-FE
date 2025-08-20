@@ -1,10 +1,10 @@
 "use client";
+import CourseModal from "@/components/modals/academic/Course.modal";
+import NotFoundComponent from "@/components/NotFoundComponent";
 import { courses } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
-import NoResultsFound from "@/components/NotFoundComponent";
-import NotFoundComponent from "@/components/NotFoundComponent";
 
 type Props = {
   searchQuery: string;
@@ -12,10 +12,11 @@ type Props = {
 
 export default function CoursesTable({ searchQuery }: Props) {
   const [data] = useState(courses);
+  const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const itemsPerPage = 10;
 
   const filteredData = data.filter((course) => {
@@ -56,7 +57,6 @@ export default function CoursesTable({ searchQuery }: Props) {
     setOpenDropdown(null);
   };
 
-  const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const handleCheckboxChange = (id: string) => {
     setSelectedCenters((prev) =>
       prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
@@ -80,7 +80,7 @@ export default function CoursesTable({ searchQuery }: Props) {
     }
   };
 
-  function highlightMatch(text: string, query: string) {
+  const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
 
     const regex = new RegExp(`(${query})`, "gi");
@@ -95,14 +95,18 @@ export default function CoursesTable({ searchQuery }: Props) {
         part
       )
     );
-  }
+  };
+
+  const handleSave = () => {
+    console.log("...");
+  };
 
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
-            <NotFoundComponent setIsModalOpen={setIsModalOpen} />
+            <NotFoundComponent text="Courses" setIsModalOpen={setIsModalOpen} />
           ) : (
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
@@ -225,6 +229,13 @@ export default function CoursesTable({ searchQuery }: Props) {
             onPageChange={setCurrentPage}
           />
         </div>
+
+        <CourseModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSave}
+          mode="add"
+        />
       </div>
     </div>
   );

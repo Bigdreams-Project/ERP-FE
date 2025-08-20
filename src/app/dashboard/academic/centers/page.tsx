@@ -35,7 +35,7 @@ export default function Centers() {
   }, [searchInput]);
 
   const handleSave = () => {
-    console.log("I was called");
+    console.log("...");
   };
 
   return (

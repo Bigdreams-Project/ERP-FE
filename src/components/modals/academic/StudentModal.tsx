@@ -1,106 +1,12 @@
+import {
+  IStudentEnrollment,
+  IStudentModalProps,
+} from "@/types/academic/student.interface";
+import { enrollmentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import * as yup from "yup";
-
-export interface IStudentEnrollment {
-  leadId: string | null;
-  fullName: string;
-  phoneNumber: string;
-  email: string;
-  homeAddress: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string | null;
-  courseOfInterest: string;
-  batch: string;
-  paymentPlan: "Lump Sum" | "Installments";
-  lumpSum: number | null;
-  numberOfInstallments: number | null;
-  comments: string | null;
-}
-
-export interface IStudentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (studentData: IStudentEnrollment) => void;
-  initialData?: Partial<IStudentEnrollment>;
-  mode: "enroll";
-}
-
-export const enrollmentSchema = yup.object().shape({
-  leadId: yup.string().optional().nullable().notRequired() as yup.StringSchema<
-    string | null
-  >,
-  fullName: yup.string().required("Full name is required"),
-  phoneNumber: yup
-    .string()
-    .required("Phone number is required")
-    .matches(
-      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
-      "Phone number must be in the format +234 815 815-9170"
-    ),
-  email: yup
-    .string()
-    .email("Invalid email format")
-    .required("Email is required"),
-  homeAddress: yup.string().required("Home address is required"),
-  parentName: yup.string().required("Parent/Guardian name is required"),
-  parentPhone: yup
-    .string()
-    .required("Parent/Guardian phone is required")
-    .matches(
-      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
-      "Phone number must be in the format +234 815 815-9170"
-    ),
-  parentEmail: yup
-    .string()
-    .email("Invalid email format")
-    .nullable()
-    .notRequired() as yup.StringSchema<string | null>,
-  courseOfInterest: yup.string().required("Course of interest is required"),
-  batch: yup.string().required("Batch is required"),
-  paymentPlan: yup
-    .string()
-    .oneOf(["Lump Sum", "Installments"])
-    .required("Payment plan is required"),
-  lumpSum: yup
-    .number()
-    .transform((value) =>
-      isNaN(value) || value === null || value === undefined ? null : value
-    )
-    .when("paymentPlan", {
-      is: "Lump Sum",
-      then: (schema) =>
-        schema
-          .required("Lump sum is required")
-          .min(0, "Lump sum must be a positive number"),
-      otherwise: (schema) => schema.nullable().optional(),
-    })
-    .nullable()
-    .notRequired() as yup.NumberSchema<number | null>,
-  numberOfInstallments: yup
-    .number()
-    .transform((value) =>
-      isNaN(value) || value === null || value === undefined ? null : value
-    )
-    .when("paymentPlan", {
-      is: "Installments",
-      then: (schema) =>
-        schema
-          .required("Number of installments is required")
-          .min(1, "Must be at least 1 installment"),
-      otherwise: (schema) => schema.nullable().optional(),
-    })
-    .nullable()
-    .notRequired() as yup.NumberSchema<number | null>,
-  comments: yup
-    .string()
-    .optional()
-    .nullable()
-    .notRequired() as yup.StringSchema<string | null>,
-});
 
 const coursesData = [
   { name: "ADSE", fee: 3000000, baseFee: 500000 },
@@ -181,7 +87,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
       <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
-        {/* Modal Header */}
+        {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
             Enroll New Student

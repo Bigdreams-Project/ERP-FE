@@ -1,75 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { ICourse, ICourseModalProps } from "@/types/academic/course.interface";
+import { courseSchema } from "@/validations/academic/course.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import {
-  X,
   BookOpen,
-  DollarSign,
-  Clock,
-  MapPin,
   ChevronDown,
-  CheckCircle,
+  Clock,
+  DollarSign,
+  MapPin,
+  X,
 } from "lucide-react";
+import React, { useEffect } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 
-export interface ICourse {
-  courseCode: string;
-  courseName: string;
-  courseType: string;
-  durationMonths: number;
-  lumpSumFee: number;
-  baseEnrollmentFee: number;
-  maxInstallments: number;
-  costPerInstallment: number | null;
-  centers: string[];
-}
-
-// Define the props for the modal component
-export interface ICourseModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (courseData: ICourse, isDraft: boolean) => void;
-  initialData?: Partial<ICourse>;
-  mode: "add" | "edit";
-}
-
-// Validation schema for the course form using yup
-export const courseSchema = yup.object().shape({
-  courseCode: yup.string().required("Course code is required"),
-  courseName: yup.string().required("Course name is required"),
-  courseType: yup.string().required("Course type is required"),
-  durationMonths: yup
-    .number()
-    // Transform empty string and null to undefined, allowing required() to work
-    .transform((value) => (isNaN(value) ? undefined : value))
-    .required("Duration is required")
-    .min(1, "Duration must be at least 1 month"),
-  lumpSumFee: yup
-    .number()
-    .transform((value) => (isNaN(value) ? undefined : value))
-    .required("Lump sum fee is required")
-    .min(0, "Fee must be a positive number"),
-  baseEnrollmentFee: yup
-    .number()
-    .transform((value) => (isNaN(value) ? undefined : value))
-    .required("Base enrollment fee is required")
-    .min(0, "Fee must be a positive number"),
-  maxInstallments: yup
-    .number()
-    .transform((value) => (isNaN(value) ? undefined : value))
-    .required("Max installments is required")
-    .min(1, "Installments must be at least 1"),
-  costPerInstallment: yup.number().nullable().notRequired() as yup.NumberSchema<
-    number | null
-  >,
-  centers: yup
-    .array()
-    .of(yup.string().required())
-    .required()
-    .min(1, "At least one center must be selected"),
-});
-
-// Mock data for dropdowns
 const courseTypes = ["Aptech", "CPMS", "Tecterminal"];
 const installmentOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const durationOptions = [12, 24, 36, 48];

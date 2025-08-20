@@ -14,9 +14,9 @@ import {
   MapPin,
   Notebook,
   Phone,
-  User
+  User,
+  X,
 } from "lucide-react";
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -117,20 +117,21 @@ const LeadModal: React.FC<ILeadModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
       <div className="relative bg-white p-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
-        <div>
+        {/* Header */}
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
             {mode === "add" ? "Add Lead" : "Update Lead"}
           </h2>
-          <Image
-            src="/images/x.svg"
-            alt="close icon"
-            className="bg-white flex items-center justify-center p-[6px] rounded-md shadow-md shadow-slate-400 absolute top-[3px] right-[3px] object-cover cursor-pointer"
+          <button
             onClick={onClose}
-            width={25}
-            height={25}
-          />
+            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            aria-label="Close modal"
+          >
+            <X size={20} />
+          </button>
         </div>
 
+        {/* Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="h-[95%] pb-6 pr-6 custom-scroll overflow-auto"

@@ -1,4 +1,5 @@
 "use client";
+import CenterModal from "@/components/modals/academic/Center.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { centers } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
@@ -100,12 +101,16 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     }
   };
 
+  const handleSave = () => {
+    console.log("I was called");
+  };
+
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
-            <NotFoundComponent setIsModalOpen={setIsModalOpen} />
+            <NotFoundComponent text="Center" setIsModalOpen={setIsModalOpen} />
           ) : (
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
               <thead>
@@ -211,6 +216,13 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
           onPageChange={setCurrentPage}
         />
       </div>
+
+      <CenterModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        mode="add"
+      />
     </div>
   );
 }

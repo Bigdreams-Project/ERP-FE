@@ -1,11 +1,10 @@
 "use client";
+import LeadModal from "@/components/modals/academic/Lead.modal";
+import NotFoundComponent from "@/components/NotFoundComponent";
 import { leads } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
-import StudentModal from "@/components/modals/academic/StudentModal";
-import NoResultsFound from "@/components/NotFoundComponent";
-import NotFoundComponent from "@/components/NotFoundComponent";
 
 type Props = {
   searchQuery: string;
@@ -53,6 +52,10 @@ export default function LeadTable({ searchQuery }: Props) {
     }
   };
 
+  const handleSave = () => {
+    console.log("...");
+  };
+
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
@@ -83,7 +86,7 @@ export default function LeadTable({ searchQuery }: Props) {
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
-            <NotFoundComponent setIsModalOpen={setIsModalOpen} />
+            <NotFoundComponent text="Lead" setIsModalOpen={setIsModalOpen} />
           ) : (
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
@@ -177,6 +180,13 @@ export default function LeadTable({ searchQuery }: Props) {
             onPageChange={setCurrentPage}
           />
         </div>
+
+        <LeadModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSave}
+          mode="add"
+        />
       </div>
     </div>
   );

@@ -1,11 +1,10 @@
 "use client";
 import StudentModal from "@/components/modals/academic/StudentModal";
-import NoResultsFound from "@/components/NotFoundComponent";
+import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
-import NotFoundComponent from "@/components/NotFoundComponent";
 
 type Props = {
   searchQuery: string;
@@ -71,6 +70,10 @@ export default function StudentTable({ searchQuery }: Props) {
     }
   };
 
+  const handleSave = () => {
+    console.log("...");
+  };
+
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
@@ -114,7 +117,7 @@ export default function StudentTable({ searchQuery }: Props) {
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
-            <NotFoundComponent setIsModalOpen={setIsModalOpen} />
+            <NotFoundComponent text="Student" setIsModalOpen={setIsModalOpen} />
           ) : (
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
               <thead className="">
@@ -212,6 +215,13 @@ export default function StudentTable({ searchQuery }: Props) {
           onPageChange={setCurrentPage}
         />
       </div>
+
+      <StudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        mode="enroll"
+      />
     </div>
   );
 }

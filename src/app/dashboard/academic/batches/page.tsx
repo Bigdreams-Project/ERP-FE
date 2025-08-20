@@ -35,7 +35,7 @@ export default function Batches() {
   }, [searchInput]);
 
   const handleSave = () => {
-    console.log("I was called");
+    console.log("...");
   };
 
   return (
