@@ -1,0 +1,43 @@
+export interface ILead {
+  fullname: string;
+  email: string;
+  phone: string;
+  address: string;
+  parentName: string;
+  parentPhone: string;
+  parentEmail: string | null;
+  course: string;
+  enquiryDate: string;
+  source: string;
+  status: string;
+  nextFollowup: string;
+  studyType: string;
+  note: string;
+}
+
+export interface ILeadModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (student: ILead) => void;
+  initialData?: {
+    fullname?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    parentName?: string;
+    parentPhone?: string;
+    parentEmail?: string;
+    course?: {
+      name?: string;
+      fee?: string;
+      baseFee?: string;
+    };
+    enquiryDate?: string;
+    source?: string;
+    status?: string;
+    nextFollowup?: string;
+    studyType?: string;
+    note: string;
+  };
+  mode: "add" | "edit";
+}

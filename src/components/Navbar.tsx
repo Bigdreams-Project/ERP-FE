@@ -6,7 +6,7 @@ import Profile from "./profile";
 const Navbar = () => {
   return (
     <div className="sticky top-0 flex items-center mt-[0.6rem] font-inter">
-      <div className="w-[70%] flex items-center text-center gap-2  bg-[rgb(238,242,255)] py-[0.4rem] px-[0.8rem] rounded-full focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-200">
+      <div className="w-[70%] flex items-center text-center gap-2 bg-[rgb(238,242,255)] py-[0.4rem] px-[0.8rem] ml-2 rounded-full focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-200">
         <BiSearchAlt className="text-[rgb(129,140,248)] " size={19} />
         <input
           type="text"
