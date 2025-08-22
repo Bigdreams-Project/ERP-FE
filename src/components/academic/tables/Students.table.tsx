@@ -2,32 +2,24 @@
 import StudentModal from "@/components/modals/academic/StudentModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
+import { IStudent } from "@/types/academic/student.interface";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 
 type Props = {
   searchQuery: string;
+  filteredData: IStudent[];
 };
 
-export default function StudentTable({ searchQuery }: Props) {
+export default function StudentTable({ searchQuery, filteredData }: Props) {
   const [data] = useState(students);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const itemsPerPage = 10;
 
-  const filteredData = data.filter((student) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      student.fullName.toLowerCase().includes(query) ||
-      student.email.toLowerCase().includes(query) ||
-      student.phone.toLowerCase().includes(query) ||
-      student.address.toLowerCase().includes(query)
-    );
-  });
+  const itemsPerPage = 10;
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
@@ -55,7 +47,7 @@ export default function StudentTable({ searchQuery }: Props) {
   const handleSelectAll = () => {
     const currentPageIds = paginatedData.map((center) => center.id);
     const allSelected = currentPageIds.every((id) =>
-      selectedStudents.includes(id)
+      selectedStudents.includes(id!)
     );
 
     if (allSelected) {
@@ -63,7 +55,7 @@ export default function StudentTable({ searchQuery }: Props) {
         prev.filter((id) => !currentPageIds.includes(id))
       );
     } else {
-      setSelectedStudents((prev) => [
+      setSelectedStudents((prev: any) => [
         ...prev,
         ...currentPageIds.filter((id) => !prev.includes(id)),
       ]);
@@ -127,8 +119,8 @@ export default function StudentTable({ searchQuery }: Props) {
                       type="checkbox"
                       checked={
                         paginatedData.length > 0 &&
-                        paginatedData.every((center) =>
-                          selectedStudents.includes(center.id)
+                        paginatedData.every((student) =>
+                          selectedStudents.includes(student.id!)
                         )
                       }
                       onChange={handleSelectAll}
@@ -154,8 +146,8 @@ export default function StudentTable({ searchQuery }: Props) {
                     <td className="p-4 flex items-center align-middle">
                       <input
                         type="checkbox"
-                        checked={selectedStudents.includes(student.id)}
-                        onChange={() => handleCheckboxChange(student.id)}
+                        checked={selectedStudents.includes(student.id!)}
+                        onChange={() => handleCheckboxChange(student.id!)}
                         className="mr-2 accent-primary"
                       />
                       {(currentPage - 1) * itemsPerPage + index + 1}
@@ -171,7 +163,7 @@ export default function StudentTable({ searchQuery }: Props) {
                     <td className="p-3">{student.courseEnrolled}</td>
                     <td className="p-3 relative text-right">
                       <button
-                        onClick={() => toggleDropdown(student.id)}
+                        onClick={() => toggleDropdown(student.id!)}
                         className="flex items-center justify-between px-3 py-2 text-white bg-action-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                       >
                         Action
@@ -180,19 +172,19 @@ export default function StudentTable({ searchQuery }: Props) {
                       {openDropdown === student.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                           <button
-                            onClick={() => handleView(student.id)}
+                            onClick={() => handleView(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => handleEdit(student.id)}
+                            onClick={() => handleEdit(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(student.id)}
+                            onClick={() => handleDelete(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                           >
                             Delete

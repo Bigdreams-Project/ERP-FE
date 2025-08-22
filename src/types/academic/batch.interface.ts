@@ -1,11 +1,17 @@
+import { IStudent } from "./student.interface";
+
 export interface IBatch {
-  batchCode: string;
+  id?: string;
+  code: string;
   course: string;
   startDate: string;
   endDate: string;
-  classSchedule: IClassSchedule[];
+  createdDate: string;
+  duration: string;
+  status: string;
+  schedule: IClassSchedule[];
   faculty: string;
-  selectedStudents: string[];
+  students: IStudent[];
 }
 
 export interface IBatchModalProps {

@@ -1,31 +1,23 @@
 "use client";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { courses } from "@/data/mock/academic.data";
+import { ICourse } from "@/types/academic/course.interface";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 
 type Props = {
   searchQuery: string;
+  filteredData: ICourse[];
 };
 
-export default function CoursesTable({ searchQuery }: Props) {
-  const [data] = useState(courses);
-  const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
+export default function CoursesTable({ searchQuery, filteredData }: Props) {
+  const [selectedCourses, setSelectedCourses] = useState<any>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const itemsPerPage = 10;
-
-  const filteredData = data.filter((course) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      course.title.toLowerCase().includes(query) ||
-      course.code.toLowerCase().includes(query)
-    );
-  });
 
   useEffect(() => {
     setCurrentPage(1);
@@ -58,22 +50,22 @@ export default function CoursesTable({ searchQuery }: Props) {
   };
 
   const handleCheckboxChange = (id: string) => {
-    setSelectedCenters((prev) =>
-      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
+    setSelectedCourses((prev: any) =>
+      prev.includes(id) ? prev.filter((cid: any) => cid !== id) : [...prev, id]
     );
   };
 
   const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
+    const currentPageIds = paginatedData.map((course) => course.id);
     const allSelected = currentPageIds.every((id) =>
-      selectedCenters.includes(id)
+      selectedCourses.includes(id)
     );
     if (allSelected) {
-      setSelectedCenters((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
+      setSelectedCourses((prev: any) =>
+        prev.filter((id: string) => !currentPageIds.includes(id))
       );
     } else {
-      setSelectedCenters((prev) => [
+      setSelectedCourses((prev: any) => [
         ...prev,
         ...currentPageIds.filter((id) => !prev.includes(id)),
       ]);
@@ -82,13 +74,11 @@ export default function CoursesTable({ searchQuery }: Props) {
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-
     const regex = new RegExp(`(${query})`, "gi");
     const parts = text.split(regex);
-
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
-        <span key={i} className=" text-primary">
+        <span key={i} className="text-blue-500">
           {part}
         </span>
       ) : (
@@ -116,8 +106,8 @@ export default function CoursesTable({ searchQuery }: Props) {
                       type="checkbox"
                       checked={
                         paginatedData.length > 0 &&
-                        paginatedData.every((center) =>
-                          selectedCenters.includes(center.id)
+                        paginatedData.every((course) =>
+                          selectedCourses.includes(course.id!)
                         )
                       }
                       onChange={handleSelectAll}
@@ -142,8 +132,8 @@ export default function CoursesTable({ searchQuery }: Props) {
                     <td className="p-4 flex items-center">
                       <input
                         type="checkbox"
-                        checked={selectedCenters.includes(course.id)}
-                        onChange={() => handleCheckboxChange(course.id)}
+                        checked={selectedCourses.includes(course.id!)}
+                        onChange={() => handleCheckboxChange(course.id!)}
                         className="mr-2 accent-primary"
                       />
                       {(currentPage - 1) * itemsPerPage + index + 1}
@@ -152,13 +142,13 @@ export default function CoursesTable({ searchQuery }: Props) {
                       {highlightMatch(course.code, searchQuery)}
                     </td>
                     <td className="p-4 font-bold ">
-                      {highlightMatch(course.title, searchQuery)}
+                      {highlightMatch(course.name, searchQuery)}
                     </td>
                     <td className="p-4">{course.duration}</td>
-                    <td className="p-4">{course.amount}</td>
-                    <td className="p-4">{course.enrolledStudents}</td>
-                    <td className="p-4">{course.leads}</td>
-                    <td className="p-4">{course.courseType}</td>
+                    <td className="p-4">{course.baseFee}</td>
+                    <td className="p-4">{course.students.length}</td>
+                    <td className="p-4">{course.leads.length}</td>
+                    <td className="p-4">{course.type}</td>
                     <td
                       className={`p-4 font-semibold ${
                         course.status.toLowerCase() === "active"
@@ -174,7 +164,7 @@ export default function CoursesTable({ searchQuery }: Props) {
                     </td>
                     <td className="p-4 relative text-right">
                       <button
-                        onClick={() => toggleDropdown(course.id)}
+                        onClick={() => toggleDropdown(course.id!)}
                         className="flex items-center justify-between px-3 py-2 text-white bg-action-button rounded-md shadow-sm focus:outline-none focus:ring-offset-2"
                       >
                         Action
@@ -183,31 +173,31 @@ export default function CoursesTable({ searchQuery }: Props) {
                       {openDropdown === course.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                           <button
-                            onClick={() => handleEnroll(course.id)}
+                            onClick={() => handleEnroll(course.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-green-500 hover:bg-gray-100"
                           >
                             Activate
                           </button>
                           <button
-                            onClick={() => handleView(course.id)}
+                            onClick={() => handleView(course.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => handleEmail(course.id)}
+                            onClick={() => handleEmail(course.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleEmail(course.id)}
+                            onClick={() => handleEmail(course.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Explore
                           </button>
                           <button
-                            onClick={() => handleDelete(course.id)}
+                            onClick={() => handleDelete(course.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                           >
                             Delete

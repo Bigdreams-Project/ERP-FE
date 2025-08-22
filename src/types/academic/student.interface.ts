@@ -1,15 +1,18 @@
-export interface IStudentEnrollment {
+export interface IStudent {
+  id?: string;
+  studentId: string | null;
   leadId: string | null;
   fullName: string;
-  phoneNumber: string;
+  phone: string;
   email: string;
-  homeAddress: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string | null;
-  courseOfInterest: string;
+  address: string;
+  parentGuardianName: string; 
+  parentGuardianPhone: string; 
+  parentGuardianEmail: string | null;
+  courseEnrolled: string;
+  dateEnrolled: string;
   batch: string;
-  paymentPlan: "Lump Sum" | "Installments";
+  paymentPlan: string;
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
@@ -18,7 +21,7 @@ export interface IStudentEnrollment {
 export interface IStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (studentData: IStudentEnrollment) => void;
-  initialData?: Partial<IStudentEnrollment>;
+  onSave: (studentData: IStudent) => void;
+  initialData?: Partial<IStudent>;
   mode: "enroll";
 }

@@ -1,3 +1,4 @@
+import { courseTypes } from "@/data/mock/academic.data";
 import { ICourse, ICourseModalProps } from "@/types/academic/course.interface";
 import { courseSchema } from "@/validations/academic/course.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,7 +13,6 @@ import {
 import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 
-const courseTypes = ["Aptech", "CPMS", "Tecterminal"];
 const installmentOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const durationOptions = [12, 24, 36, 48];
 const centersData = ["Enugu", "Kubwa", "Onitsha", "Owerri", "Umuahia"];
@@ -36,12 +36,12 @@ const CourseModal: React.FC<ICourseModalProps> = ({
     resolver: yupResolver(courseSchema),
     mode: "onTouched",
     defaultValues: {
-      courseCode: "AP-ADSE-01",
-      courseName: "",
-      courseType: "",
-      durationMonths: 12,
+      code: "AP-ADSE-01",
+      name: "",
+      type: "",
+      duration: 12,
       lumpSumFee: 0,
-      baseEnrollmentFee: 0,
+      baseFee: 0,
       maxInstallments: 5,
       costPerInstallment: 0,
       centers: [],
@@ -55,7 +55,6 @@ const CourseModal: React.FC<ICourseModalProps> = ({
 
   // Recalculate cost per installment whenever lump sum or installments change
   useEffect(() => {
-    // Check if both values are valid numbers and prevent division by zero
     if (
       typeof lumpSumFee === "number" &&
       typeof maxInstallments === "number" &&
@@ -64,23 +63,21 @@ const CourseModal: React.FC<ICourseModalProps> = ({
       const calculatedAmount = lumpSumFee / maxInstallments;
       setValue("costPerInstallment", calculatedAmount);
     } else {
-      // Set to 0 if inputs are not valid numbers or installments is zero
       setValue("costPerInstallment", 0);
     }
   }, [lumpSumFee, maxInstallments, setValue]);
 
-  // Reset form with initial data or to default values on modal open/data change
   useEffect(() => {
     if (initialData) {
       reset(initialData);
     } else {
       reset({
-        courseCode: "AP-ADSE-01",
-        courseName: "",
-        courseType: "",
-        durationMonths: 12,
+        code: "AP-ADSE-01",
+        name: "",
+        type: "",
+        duration: 12,
         lumpSumFee: 0,
-        baseEnrollmentFee: 0,
+        baseFee: 0,
         maxInstallments: 5,
         costPerInstallment: 0,
         centers: [],
@@ -88,17 +85,15 @@ const CourseModal: React.FC<ICourseModalProps> = ({
     }
   }, [initialData, reset]);
 
-  // Handler for saving as a draft. This button has type="button" and bypasses yup validation.
   const handleSaveDraft = () => {
-    const data = getValues(); // Get the current form values without validation
-    onSave(data, true); // Call the onSave prop with isDraft = true
-    onClose(); // Close the modal
+    const data = getValues();
+    onSave(data, true);
+    onClose();
   };
 
-  // Handler for the main "Publish" button. This button has type="submit" and triggers yup validation.
   const handlePublish: SubmitHandler<ICourse> = (data) => {
-    onSave(data, false); // Call the onSave prop with isDraft = false
-    onClose(); // Close the modal
+    onSave(data, false);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -113,7 +108,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
               Create New Course
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Course Code - {getValues("courseCode")}
+              Course Code - {getValues("code")}
             </p>
           </div>
           <button
@@ -125,13 +120,11 @@ const CourseModal: React.FC<ICourseModalProps> = ({
           </button>
         </div>
 
-        {/* Modal Form */}
-        {/* The form's onSubmit now only handles the Publish action */}
+        {/* Form */}
         <form
           onSubmit={handleSubmit(handlePublish)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
-          {/* Section 1: Course Details */}
           <div className="p-4 bg-gray-50 rounded-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Enter Course Name
@@ -139,19 +132,19 @@ const CourseModal: React.FC<ICourseModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               {/* Course Name */}
               <div className="flex flex-col sm:col-span-2">
-                <label htmlFor="courseName" className="sr-only">
+                <label htmlFor="name" className="sr-only">
                   Course Name
                 </label>
                 <input
                   type="text"
-                  id="courseName"
-                  {...register("courseName")}
+                  id="name"
+                  {...register("name")}
                   placeholder="Title of Course Here"
                   className="w-full h-12 px-4 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                 />
-                {errors.courseName && (
+                {errors.name && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.courseName.message}
+                    {errors.name.message}
                   </p>
                 )}
               </div>
@@ -159,14 +152,14 @@ const CourseModal: React.FC<ICourseModalProps> = ({
               {/* Course Type */}
               <div className="flex flex-col relative">
                 <label
-                  htmlFor="courseType"
+                  htmlFor="type"
                   className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
                 >
                   <BookOpen size={14} /> Course Type
                 </label>
                 <select
-                  id="courseType"
-                  {...register("courseType")}
+                  id="type"
+                  {...register("type")}
                   className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Type</option>
@@ -179,9 +172,9 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                 <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                   <ChevronDown size={18} />
                 </span>
-                {errors.courseType && (
+                {errors.type && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.courseType.message}
+                    {errors.type.message}
                   </p>
                 )}
               </div>
@@ -189,14 +182,14 @@ const CourseModal: React.FC<ICourseModalProps> = ({
               {/* Duration */}
               <div className="flex flex-col relative">
                 <label
-                  htmlFor="durationMonths"
+                  htmlFor="duration"
                   className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
                 >
                   <Clock size={14} /> Duration (Month)
                 </label>
                 <select
-                  id="durationMonths"
-                  {...register("durationMonths", { valueAsNumber: true })}
+                  id="duration"
+                  {...register("duration", { valueAsNumber: true })}
                   className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   {durationOptions.map((duration) => (
@@ -208,9 +201,9 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                 <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                   <ChevronDown size={18} />
                 </span>
-                {errors.durationMonths && (
+                {errors.duration && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.durationMonths.message}
+                    {errors.duration.message}
                   </p>
                 )}
               </div>
@@ -223,10 +216,10 @@ const CourseModal: React.FC<ICourseModalProps> = ({
               Course Pricing
             </h3>
             <p className="text-sm text-gray-500 mt-1 mb-4">
-              <span className="font-semibold">Course Name:</span>{" "}
-              {getValues("courseName") || "N/A"}
-              <span className="ml-4 font-semibold">Course Code:</span>{" "}
-              {getValues("courseCode") || "N/A"}
+              <span className="font-semibold">Course Name:</span>
+              {getValues("name") || "N/A"}
+              <span className="ml-4 font-semibold">Course Code:</span>
+              {getValues("code") || "N/A"}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               {/* Lump Sum Fee */}
@@ -254,21 +247,21 @@ const CourseModal: React.FC<ICourseModalProps> = ({
               {/* Base Enrollment Fee */}
               <div className="flex flex-col">
                 <label
-                  htmlFor="baseEnrollmentFee"
+                  htmlFor="baseFee"
                   className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
                 >
                   <DollarSign size={14} /> Base Enrollment Fee
                 </label>
                 <input
                   type="number"
-                  id="baseEnrollmentFee"
-                  {...register("baseEnrollmentFee", { valueAsNumber: true })}
+                  id="baseFee"
+                  {...register("baseFee", { valueAsNumber: true })}
                   className="w-full h-10 px-4 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   placeholder="₦0"
                 />
-                {errors.baseEnrollmentFee && (
+                {errors.baseFee && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.baseEnrollmentFee.message}
+                    {errors.baseFee.message}
                   </p>
                 )}
               </div>

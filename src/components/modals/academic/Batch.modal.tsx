@@ -45,21 +45,21 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     resolver: yupResolver(batchSchema),
     mode: "onTouched",
     defaultValues: {
-      batchCode: "BDW-WE-001",
+      code: "BDW-WE-001",
       course: "",
       startDate: "",
       endDate: "",
-      classSchedule: [{ dayOfWeek: "Monday", time: "02:00 PM", duration: 2 }],
+      schedule: [{ dayOfWeek: "Monday", time: "02:00 PM", duration: 2 }],
       faculty: "",
-      selectedStudents: [],
+      students: [],
     },
   });
 
   const [isDraft, setIsDraft] = useState(false);
 
   // Use watch to dynamically update the display string for class schedule
-  const classSchedule = watch("classSchedule");
-  const selectedStudents = watch("selectedStudents");
+  const classSchedule = watch("schedule");
+  const selectedStudents = watch("students");
 
   // Reset the form 
   useEffect(() => {
@@ -67,13 +67,13 @@ const BatchModal: React.FC<IBatchModalProps> = ({
       reset(initialData);
     } else {
       reset({
-        batchCode: "BDW-WE-001",
+        code: "BDW-WE-001",
         course: "",
         startDate: "",
         endDate: "",
-        classSchedule: [{ dayOfWeek: "Monday", time: "02:00 PM", duration: 2 }],
+        schedule: [{ dayOfWeek: "Monday", time: "02:00 PM", duration: 2 }],
         faculty: "",
-        selectedStudents: [],
+        students: [],
       });
     }
   }, [initialData, reset]);
@@ -104,7 +104,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               Create New Batch
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Batch Code - {getValues("batchCode")}
+              Batch Code - {getValues("code")}
             </p>
           </div>
           <button
@@ -220,7 +220,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       id={`classSchedule.${index}.dayOfWeek`}
-                      {...register(`classSchedule.${index}.dayOfWeek`)}
+                      {...register(`schedule.${index}.dayOfWeek`)}
                       className="w-full h-9 px-3 text-sm rounded-lg bg-gray-100 appearance-none"
                     >
                       <option value="Monday">Monday</option>
@@ -242,7 +242,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       id={`classSchedule.${index}.time`}
-                      {...register(`classSchedule.${index}.time`)}
+                      {...register(`schedule.${index}.time`)}
                       className="w-full h-9 px-3 text-sm rounded-lg bg-gray-100 appearance-none"
                     >
                       <option value="02:00 PM">02:00 PM</option>
@@ -263,7 +263,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     <input
                       type="number"
                       id={`classSchedule.${index}.duration`}
-                      {...register(`classSchedule.${index}.duration`, {
+                      {...register(`schedule.${index}.duration`, {
                         valueAsNumber: true,
                       })}
                       className="w-full h-9 px-3 text-sm rounded-lg bg-gray-100"
@@ -271,9 +271,9 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   </div>
                 </div>
               ))}
-              {errors.classSchedule && (
+              {errors.schedule && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.classSchedule.message}
+                  {errors.schedule.message}
                 </p>
               )}
               {/* This is a simple display of the entered schedule, matching the image. */}
@@ -323,7 +323,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               <select
                 id="students"
                 multiple
-                {...register("selectedStudents")}
+                {...register("students")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 {studentsData.map((student) => (
@@ -332,9 +332,9 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   </option>
                 ))}
               </select>
-              {errors.selectedStudents && (
+              {errors.students && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.selectedStudents.message}
+                  {errors.students.message}
                 </p>
               )}
             </div>

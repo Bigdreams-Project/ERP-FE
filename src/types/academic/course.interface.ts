@@ -1,11 +1,17 @@
+import { ILead } from "./lead.interface";
+import { IStudent } from "./student.interface";
+ 
 export interface ICourse {
   id?: string;
-  courseCode: string;
-  courseName: string;
-  courseType: string;
-  durationMonths: number;
+  code: string;
+  name: string;
+  type: string;
+  status: string;
+  duration: number;
   lumpSumFee: number;
-  baseEnrollmentFee: number;
+  baseFee: number;
+  students: IStudent[];
+  leads: ILead[];
   maxInstallments: number;
   costPerInstallment: number | null;
   centers: string[];

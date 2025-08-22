@@ -1,11 +1,18 @@
 "use client";
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
+import FilterPopover from "@/components/academic/popover/Filter.popover";
 import LeadTable from "@/components/academic/tables/Leads.table";
 import LeadModal from "@/components/modals/academic/Lead.modal";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
+import { IoFilter } from "react-icons/io5";
 
 export default function Leads() {
   const [searchInput, setSearchInput] = useState("");
@@ -13,6 +20,10 @@ export default function Leads() {
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    startDate: "",
+    endDate: "",
+  });
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -38,16 +49,48 @@ export default function Leads() {
     console.log("...");
   };
 
+  const handleFilterChange = (newFilters: any) => {
+    setFilterOptions(newFilters);
+  };
+
+  const filterItems = [
+    {
+      label: "Enquiry Date",
+      name: "enquiryDate",
+      type: "date",
+      placeholder: "Search by date",
+    },
+  ];
+
   return (
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Leads" }]} />
-
       <div className="w-full  flex items-center justify-between  text-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
+
         <div className="flex items-center gap-1">
           <div className="w-full flex items-center justify-end gap-7 p-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="relative">
+                  <div className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <IoFilter size={20} />
+                    <p className="font-medium text-gray-900">Filter</p>
+                  </div>
+                </div>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-fit h-60 p-0">
+                <FilterPopover
+                  filterItems={filterItems}
+                  initialFilters={filterOptions}
+                  onApply={handleFilterChange}
+                />
+              </PopoverContent>
+            </Popover>
+
             <div className="w-[220px]">
               <div className="flex items-center gap-1 py-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
                 <BiSearchAlt size={17} />
@@ -60,9 +103,6 @@ export default function Leads() {
                   }}
                 />
               </div>
-              {error && (
-                <span className="text-red-500 text-[10px] mt-1">{error}</span>
-              )}
             </div>
 
             <button
@@ -76,7 +116,7 @@ export default function Leads() {
         </div>
       </div>
 
-      <LeadTable searchQuery={searchQuery} />
+      <LeadTable searchQuery={searchQuery} filterOptions={filterOptions} />
       <LeadModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

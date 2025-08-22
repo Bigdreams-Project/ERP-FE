@@ -1,5 +1,5 @@
 import {
-  IStudentEnrollment,
+  IStudent,
   IStudentModalProps,
 } from "@/types/academic/student.interface";
 import { enrollmentSchema } from "@/validations/academic/student.validation";
@@ -33,18 +33,18 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     formState: { errors, isValid },
     watch,
     setValue,
-  } = useForm<IStudentEnrollment>({
+  } = useForm<IStudent>({
     resolver: yupResolver(enrollmentSchema),
     mode: "onTouched",
     defaultValues: {
       leadId: "",
       fullName: "John Doe Emeka",
-      phoneNumber: "+234 815 815-9170",
+      phone: "+234 815 815-9170",
       email: "johndoe@example.com",
-      homeAddress: "123 Main St, Anytown, USA",
-      parentName: "John Doe Emeka",
-      parentPhone: "+234 815 815-9170",
-      courseOfInterest: "Web Dev",
+      address: "123 Main St, Anytown, USA",
+      parentGuardianName: "John Doe Emeka",
+      parentGuardianPhone: "+234 815 815-9170",
+      courseEnrolled: "Web Dev",
       batch: "Batch A",
       paymentPlan: "Lump Sum",
       lumpSum: 500000,
@@ -53,7 +53,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     },
   });
 
-  const courseOfInterest = watch("courseOfInterest");
+  const courseOfInterest = watch("courseEnrolled");
   const paymentPlan = watch("paymentPlan");
   const lumpSum = watch("lumpSum");
   const numberOfInstallments = watch("numberOfInstallments");
@@ -77,7 +77,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     }
   }, [lumpSum, paymentPlan, selectedCourse]);
 
-  const onSubmit: SubmitHandler<IStudentEnrollment> = (data) => {
+  const onSubmit: SubmitHandler<IStudent> = (data) => {
     if (showBaseFeeError) return;
     onSave(data);
   };
@@ -171,20 +171,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Phone Number */}
             <div className="flex flex-col sm:col-span-1">
               <label
-                htmlFor="phoneNumber"
+                htmlFor="phone"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Phone Number
               </label>
               <input
                 type="tel"
-                id="phoneNumber"
-                {...register("phoneNumber")}
+                id="phone"
+                {...register("phone")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.phoneNumber && (
+              {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.phoneNumber.message}
+                  {errors.phone.message}
                 </p>
               )}
             </div>
@@ -213,20 +213,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Home Address */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="homeAddress"
+                htmlFor="address"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Home Address
               </label>
               <input
                 type="text"
-                id="homeAddress"
-                {...register("homeAddress")}
+                id="address"
+                {...register("address")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.homeAddress && (
+              {errors.address && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.homeAddress.message}
+                  {errors.address.message}
                 </p>
               )}
             </div>
@@ -234,20 +234,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Parent/Guardian Name */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentName"
+                htmlFor="parentGuardianName"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Parent/Guardian Name
               </label>
               <input
                 type="text"
-                id="parentName"
-                {...register("parentName")}
+                id="parentGuardianName"
+                {...register("parentGuardianName")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentName && (
+              {errors.parentGuardianName && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentName.message}
+                  {errors.parentGuardianName.message}
                 </p>
               )}
             </div>
@@ -255,20 +255,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Parent/Guardian Phone Number */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentPhone"
+                htmlFor="parentGuardianPhone"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Parent/Guardian Phone Number
               </label>
               <input
                 type="tel"
-                id="parentPhone"
-                {...register("parentPhone")}
+                id="parentGuardianPhone"
+                {...register("parentGuardianPhone")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentPhone && (
+              {errors.parentGuardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentPhone.message}
+                  {errors.parentGuardianPhone.message}
                 </p>
               )}
             </div>
@@ -276,20 +276,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Parent/Guardian Email */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="parentEmail"
+                htmlFor="parentGuardianEmail"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Parent/Guardian Email (Optional)
               </label>
               <input
                 type="email"
-                id="parentEmail"
-                {...register("parentEmail")}
+                id="parentGuardianEmail"
+                {...register("parentGuardianEmail")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentEmail && (
+              {errors.parentGuardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentEmail.message}
+                  {errors.parentGuardianEmail.message}
                 </p>
               )}
             </div>
@@ -299,14 +299,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Course of Interest */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="courseOfInterest"
+                htmlFor="courseEnrolled"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Course of Interest
               </label>
               <select
-                id="courseOfInterest"
-                {...register("courseOfInterest")}
+                id="courseEnrolled"
+                {...register("courseEnrolled")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
@@ -319,9 +319,9 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.courseOfInterest && (
+              {errors.courseEnrolled && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.courseOfInterest.message}
+                  {errors.courseEnrolled.message}
                 </p>
               )}
             </div>

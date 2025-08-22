@@ -3,30 +3,53 @@ import LeadModal from "@/components/modals/academic/Lead.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { leads } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 
 type Props = {
   searchQuery: string;
+  filterOptions: {
+    startDate: string;
+    endDate: string;
+  };
 };
 
-export default function LeadTable({ searchQuery }: Props) {
-  const [data] = useState(leads);
+export default function LeadTable({ searchQuery, filterOptions }: Props) {
+  const [data, setData] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filteredData, setFilteredData] = useState(data);
 
   const itemsPerPage = 10;
 
-  const filteredData = data.filter((lead) => {
+  useEffect(() => {
+    let result = data;
     const query = searchQuery.toLowerCase();
-    return (
-      lead.fullName.toLowerCase().includes(query) ||
-      lead.email.toLowerCase().includes(query) ||
-      lead.phone.toLowerCase().includes(query)
-    );
-  });
+    const { startDate, endDate } = filterOptions;
+
+    if (startDate || endDate) {
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+
+      result = result.filter((lead) => {
+        const leadDate = new Date(lead.inquiryDate);
+
+        if (start && end) {
+          return leadDate >= start && leadDate <= end;
+        } else if (start) {
+          return leadDate >= start;
+        } else if (end) {
+          return leadDate <= end;
+        }
+        return false;
+      });
+    }
+
+    setFilteredData(result);
+    setCurrentPage(1);
+  }, [searchQuery, filterOptions, data]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
@@ -78,7 +101,7 @@ export default function LeadTable({ searchQuery }: Props) {
   };
 
   const handleStudentSave = () => {
-    console.log("I was called");
+    console.log("...");
   };
 
   return (
@@ -102,7 +125,7 @@ export default function LeadTable({ searchQuery }: Props) {
                       }
                       onChange={handleSelectAll}
                       className="mr-2"
-                    />{" "}
+                    />
                     #
                   </th>
                   <th className="p-4">Inquiry ID</th>
@@ -115,6 +138,7 @@ export default function LeadTable({ searchQuery }: Props) {
                   <th className="p-4"></th>
                 </tr>
               </thead>
+
               <tbody className="text-[13px]">
                 {paginatedData.map((lead, index) => (
                   <tr key={lead.id} className="border-t border-gray-200">
@@ -122,6 +146,7 @@ export default function LeadTable({ searchQuery }: Props) {
                       <input type="checkbox" className="mr-2" />
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
+
                     <td className="p-4">{lead.inquiryId}</td>
                     <td className="p-4 font-bold">{lead.fullName}</td>
                     <td className="p-4">{lead.email}</td>
@@ -129,6 +154,7 @@ export default function LeadTable({ searchQuery }: Props) {
                     <td className="p-4">{lead.inquiryDate}</td>
                     <td className="p-4">{lead.courseInquiry}</td>
                     <td className="p-4">{lead.nextFollowUp}</td>
+
                     <td className="p-4 relative text-right">
                       <button
                         onClick={() => toggleDropdown(lead.id)}
@@ -137,6 +163,7 @@ export default function LeadTable({ searchQuery }: Props) {
                         Action
                         <ChevronDown size={16} className="ml-2" />
                       </button>
+
                       {openDropdown === lead.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                           <button
@@ -145,18 +172,21 @@ export default function LeadTable({ searchQuery }: Props) {
                           >
                             Enroll
                           </button>
+
                           <button
                             onClick={() => handleView(lead.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View
                           </button>
+
                           <button
                             onClick={() => handleEmail(lead.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Send an Email
                           </button>
+
                           <button
                             onClick={() => handleDelete(lead.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
