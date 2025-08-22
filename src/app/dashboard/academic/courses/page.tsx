@@ -3,14 +3,14 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
-import { courses, courseTypes } from "@/data/mock/academic.data";
-import { ICourse } from "@/types/academic/course.interface";
+import { courses, courseStatus, courseTypes } from "@/data/mock/academic.data";
 import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
-import { IoFilter, IoFilterSharp } from "react-icons/io5";
+import { IoFilter } from "react-icons/io5";
 
 export default function Courses() {
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -21,13 +21,6 @@ export default function Courses() {
     status: [],
     courseType: [],
   });
-
-  const [selectedCourses, setSelectedCourses] = useState<ICourse | any>();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const itemsPerPage = 10;
 
   useEffect(() => {
     const handleClickOutside = (event: any) => {
@@ -57,15 +50,11 @@ export default function Courses() {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, appliedFilters]);
-
   const handleFilterChange = (filterCategory: string, value: string) => {
     setAppliedFilters((prev: any) => {
       const currentValues = prev[filterCategory];
       const newValues = currentValues.includes(value)
-        ? currentValues.filter((item: any) => item !== value)
+        ? currentValues.filter((item: string) => item !== value)
         : [...currentValues, value];
       return { ...prev, [filterCategory]: newValues };
     });
@@ -82,68 +71,18 @@ export default function Courses() {
   const filteredData = courses.filter((course) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
-      course.title.toLowerCase().includes(query) ||
+      course.name.toLowerCase().includes(query) ||
       course.code.toLowerCase().includes(query);
     const matchesStatus =
       appliedFilters.status.length === 0 ||
       appliedFilters.status.includes(course.status);
     const matchesCourseType =
       appliedFilters.courseType.length === 0 ||
-      appliedFilters.courseType.includes(course.courseType);
+      appliedFilters.courseType.includes(course.type);
     return matchesSearch && matchesStatus && matchesCourseType;
   });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   const handleSave = () => {};
-
-  const handleCheckboxChange = (id: string) => {
-    setSelectedCourses((prev: ICourse | any) =>
-      prev.includes(id) ? prev.filter((cid: any) => cid !== id) : [...prev, id]
-    );
-  };
-
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map(
-      (course: ICourse | any) => course.id
-    );
-    const allSelected = currentPageIds.every((id: string) =>
-      selectedCourses!.includes(id)
-    );
-    if (allSelected) {
-      setSelectedCourses((prev: any) =>
-        prev.filter((id: any) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedCourses((prev: any) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
-
-  const highlightMatch = (text: string, query: string) => {
-    if (!query) return text;
-    const regex = new RegExp(`(${query})`, "gi");
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <span key={i} className="text-blue-500">
-          {part}
-        </span>
-      ) : (
-        part
-      )
-    );
-  };
-
-  const toggleDropdown = (id: string) => {
-    setOpenDropdown(openDropdown === id ? null : id);
-  };
 
   return (
     <div className="w-full">
@@ -164,18 +103,12 @@ export default function Courses() {
               <p className="font-medium text-gray-900">Filter</p>
             </div>
             {isFilterDropdown && (
-              <div
-
-                className="absolute right-0 mt-2 bg-white rounded-md shadow-lg w-[200px] z-50 p-4 animate-in fade-in-0 duration-300"
-                style={{
-                  boxShadow: "0rem 0.2rem 0.5rem 0.1rem rgba(0,0,0,0.1) ",
-                }}
-              >
+              <div className="absolute right-0 mt-2 bg-white rounded-md w-[200px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400">
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
                     <p className="font-semibold text-gray-800">Status</p>
                     <ul className="flex flex-col gap-1">
-                      {["Active", "Inactive", "Draft"].map((status) => (
+                      {courseStatus.map((status) => (
                         <li
                           key={status}
                           className="flex items-center gap-2 text-sm text-gray-700"
@@ -259,7 +192,6 @@ export default function Courses() {
                 }}
               />
             </div>
-
           </div>
 
           <button
@@ -272,7 +204,7 @@ export default function Courses() {
         </div>
       </div>
 
-      <CoursesTable searchQuery={searchQuery} />
+      <CoursesTable searchQuery={searchQuery} filteredData={filteredData} />
       <CourseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

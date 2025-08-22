@@ -34,15 +34,15 @@
 }
 
 .bg-add-button {
-  background: linear-gradient(180deg, #22CCB2FF 0%, #235BCDFF 100%); 
+  background: linear-gradient(180deg, #22ccb2ff 0%, #235bcdff 100%);
 }
 
 .bg-action-button {
-  background: #636AE8FF;
+  background: #636ae8ff;
 }
 
 .bg-action-button:hover {
-  background: #4850E4FF;
+  background: #4850e4ff;
 }
 
 /* Custom scrollbar */
@@ -71,8 +71,39 @@
   scrollbar-color: #c2c0c0 #f1f1f1; /* thumb and track color */
 }
 
-/* input[type="date"]::-webkit-inner-spin-button,
-input[type="date"]::-webkit-calendar-picker-indicator {
-    display: none;
-    -webkit-appearance: none;
-} */
+/* Date picker */
+.rdp-small .rdp-day {
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.75rem;
+}
+
+.rdp-small .rdp-caption {
+  font-size: 0.3rem;
+}
+
+.rdp-small .rdp-head_cell {
+  font-size: 1rem;
+  padding: 0.2rem;
+}
+
+.rdp-small {
+  --rdp-cell-size: 2rem;
+  font-size: 0.7rem;
+}
+
+.rdp-day_selected,
+.rdp-day_range_middle,
+.rdp-day_range_start,
+.rdp-day_range_end {
+  background-color: #374151 !important;
+  color: #fff !important;
+}
+
+select::placeholder {
+  color: #999;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: bolder;
+  opacity: 1;
+}
