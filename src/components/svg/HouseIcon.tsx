@@ -6,7 +6,6 @@ const HouseIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 32 32"
     {...props}
   >
-    <title>house-6</title>
     <g
       fill="currentColor"
       stroke="currentColor"

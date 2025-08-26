@@ -5,6 +5,7 @@ import { ICourse } from "@/types/academic/course.interface";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
+import StatusBadge from "../common/StatusBadge";
 
 type Props = {
   searchQuery: string;
@@ -16,7 +17,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -149,18 +149,8 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                     <td className="p-4">{course.students.length}</td>
                     <td className="p-4">{course.leads.length}</td>
                     <td className="p-4">{course.type}</td>
-                    <td
-                      className={`p-4 font-semibold ${
-                        course.status.toLowerCase() === "active"
-                          ? "text-green-600"
-                          : course.status.toLowerCase() === "inactive"
-                          ? "text-red-600"
-                          : course.status.toLowerCase() === "draft"
-                          ? "text-gray-600"
-                          : ""
-                      }`}
-                    >
-                      {course.status}
+                    <td className="p-3">
+                      <StatusBadge step={course.status} label={course.status} />
                     </td>
                     <td className="p-4 relative text-right">
                       <button

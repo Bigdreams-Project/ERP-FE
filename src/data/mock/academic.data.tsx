@@ -147,6 +147,7 @@ export const leads = [
     inquiryDate: "10/06/2025",
     courseInquiry: "Data Science",
     nextFollowUp: "15/06/2025",
+    status: "New",
   },
   {
     id: "2",
@@ -157,6 +158,7 @@ export const leads = [
     inquiryDate: "12/06/2025",
     courseInquiry: "Web Development",
     nextFollowUp: "19/06/2025",
+    status: "Contacted",
   },
   {
     id: "3",
@@ -167,6 +169,7 @@ export const leads = [
     inquiryDate: "05/06/2025",
     courseInquiry: "Digital Marketing",
     nextFollowUp: "10/06/2025",
+    status: "Not Interested",
   },
   {
     id: "4",
@@ -177,6 +180,7 @@ export const leads = [
     inquiryDate: "08/06/2025",
     courseInquiry: "Cybersecurity",
     nextFollowUp: "14/06/2025",
+    status: "Deposited",
   },
   {
     id: "5",
@@ -187,6 +191,7 @@ export const leads = [
     inquiryDate: "11/06/2025",
     courseInquiry: "UI/UX Design",
     nextFollowUp: "18/06/2025",
+    status: "New",
   },
   {
     id: "6",
@@ -197,6 +202,7 @@ export const leads = [
     inquiryDate: "09/06/2025",
     courseInquiry: "Mobile App Development",
     nextFollowUp: "16/06/2025",
+    status: "Contacted",
   },
   {
     id: "7",
@@ -207,6 +213,7 @@ export const leads = [
     inquiryDate: "13/06/2025",
     courseInquiry: "Cloud Computing",
     nextFollowUp: "20/06/2025",
+    status: "Not Interested",
   },
   {
     id: "8",
@@ -217,6 +224,7 @@ export const leads = [
     inquiryDate: "14/06/2025",
     courseInquiry: "Data Analytics",
     nextFollowUp: "21/06/2025",
+    status: "Deposited",
   },
   {
     id: "9",
@@ -227,6 +235,7 @@ export const leads = [
     inquiryDate: "15/06/2025",
     courseInquiry: "Artificial Intelligence",
     nextFollowUp: "22/06/2025",
+    status: "New",
   },
   {
     id: "10",
@@ -237,6 +246,7 @@ export const leads = [
     inquiryDate: "16/06/2025",
     courseInquiry: "Machine Learning",
     nextFollowUp: "23/06/2025",
+    status: "Contacted",
   },
   {
     id: "11",
@@ -247,6 +257,7 @@ export const leads = [
     inquiryDate: "17/06/2025",
     courseInquiry: "Product Management",
     nextFollowUp: "24/06/2025",
+    status: "Not Interested",
   },
   {
     id: "12",
@@ -257,6 +268,7 @@ export const leads = [
     inquiryDate: "18/06/2025",
     courseInquiry: "Project Management",
     nextFollowUp: "25/06/2025",
+    status: "Deposited",
   },
   {
     id: "13",
@@ -267,6 +279,7 @@ export const leads = [
     inquiryDate: "19/06/2025",
     courseInquiry: "DevOps",
     nextFollowUp: "26/06/2025",
+    status: "New",
   },
   {
     id: "14",
@@ -277,6 +290,7 @@ export const leads = [
     inquiryDate: "20/06/2025",
     courseInquiry: "Network Engineering",
     nextFollowUp: "27/06/2025",
+    status: "Contacted",
   },
   {
     id: "15",
@@ -287,6 +301,7 @@ export const leads = [
     inquiryDate: "21/06/2025",
     courseInquiry: "Frontend Development",
     nextFollowUp: "28/06/2025",
+    status: "Not Interested",
   },
   {
     id: "16",
@@ -297,6 +312,7 @@ export const leads = [
     inquiryDate: "22/06/2025",
     courseInquiry: "Backend Development",
     nextFollowUp: "29/06/2025",
+    status: "Deposited",
   },
   {
     id: "17",
@@ -307,6 +323,7 @@ export const leads = [
     inquiryDate: "23/06/2025",
     courseInquiry: "Full-Stack Development",
     nextFollowUp: "30/06/2025",
+    status: "New",
   },
   {
     id: "18",
@@ -317,6 +334,7 @@ export const leads = [
     inquiryDate: "24/06/2025",
     courseInquiry: "Game Development",
     nextFollowUp: "01/07/2025",
+    status: "Contacted",
   },
   {
     id: "19",
@@ -327,6 +345,7 @@ export const leads = [
     inquiryDate: "25/06/2025",
     courseInquiry: "Blockchain",
     nextFollowUp: "02/07/2025",
+    status: "Not Interested",
   },
   {
     id: "20",
@@ -337,6 +356,7 @@ export const leads = [
     inquiryDate: "26/06/2025",
     courseInquiry: "Robotics",
     nextFollowUp: "03/07/2025",
+    status: "Deposited",
   },
   {
     id: "21",
@@ -347,6 +367,7 @@ export const leads = [
     inquiryDate: "27/06/2025",
     courseInquiry: "Data Engineering",
     nextFollowUp: "04/07/2025",
+    status: "New",
   },
   {
     id: "22",
@@ -357,6 +378,7 @@ export const leads = [
     inquiryDate: "28/06/2025",
     courseInquiry: "Information Security",
     nextFollowUp: "05/07/2025",
+    status: "Contacted",
   },
   {
     id: "23",
@@ -367,6 +389,7 @@ export const leads = [
     inquiryDate: "29/06/2025",
     courseInquiry: "Machine Vision",
     nextFollowUp: "06/07/2025",
+    status: "Not Interested",
   },
   {
     id: "24",
@@ -377,6 +400,7 @@ export const leads = [
     inquiryDate: "30/06/2025",
     courseInquiry: "Natural Language Processing",
     nextFollowUp: "07/07/2025",
+    status: "Deposited",
   },
   {
     id: "25",
@@ -387,6 +411,7 @@ export const leads = [
     inquiryDate: "01/07/2025",
     courseInquiry: "Ethical Hacking",
     nextFollowUp: "08/07/2025",
+    status: "New",
   },
   {
     id: "26",
@@ -397,6 +422,7 @@ export const leads = [
     inquiryDate: "02/07/2025",
     courseInquiry: "Penetration Testing",
     nextFollowUp: "09/07/2025",
+    status: "Contacted",
   },
   {
     id: "27",
@@ -407,6 +433,7 @@ export const leads = [
     inquiryDate: "03/07/2025",
     courseInquiry: "Quality Assurance",
     nextFollowUp: "10/07/2025",
+    status: "Not Interested",
   },
   {
     id: "28",
@@ -417,6 +444,7 @@ export const leads = [
     inquiryDate: "04/07/2025",
     courseInquiry: "Mobile UI Design",
     nextFollowUp: "11/07/2025",
+    status: "Deposited",
   },
   {
     id: "29",
@@ -427,6 +455,7 @@ export const leads = [
     inquiryDate: "05/07/2025",
     courseInquiry: "Enterprise Architecture",
     nextFollowUp: "12/07/2025",
+    status: "New",
   },
   {
     id: "30",
@@ -437,6 +466,7 @@ export const leads = [
     inquiryDate: "06/07/2025",
     courseInquiry: "System Analysis",
     nextFollowUp: "13/07/2025",
+    status: "Contacted",
   },
   {
     id: "31",
@@ -447,6 +477,7 @@ export const leads = [
     inquiryDate: "07/07/2025",
     courseInquiry: "Business Intelligence",
     nextFollowUp: "14/07/2025",
+    status: "Not Interested",
   },
   {
     id: "32",
@@ -457,6 +488,7 @@ export const leads = [
     inquiryDate: "08/07/2025",
     courseInquiry: "Data Visualization",
     nextFollowUp: "15/07/2025",
+    status: "Deposited",
   },
   {
     id: "33",
@@ -467,6 +499,7 @@ export const leads = [
     inquiryDate: "09/07/2025",
     courseInquiry: "Big Data",
     nextFollowUp: "16/07/2025",
+    status: "New",
   },
   {
     id: "34",
@@ -477,6 +510,7 @@ export const leads = [
     inquiryDate: "10/07/2025",
     courseInquiry: "IoT",
     nextFollowUp: "17/07/2025",
+    status: "Contacted",
   },
   {
     id: "35",
@@ -487,6 +521,7 @@ export const leads = [
     inquiryDate: "11/07/2025",
     courseInquiry: "Embedded Systems",
     nextFollowUp: "18/07/2025",
+    status: "Not Interested",
   },
   {
     id: "36",
@@ -497,6 +532,7 @@ export const leads = [
     inquiryDate: "12/07/2025",
     courseInquiry: "DevSecOps",
     nextFollowUp: "19/07/2025",
+    status: "Deposited",
   },
   {
     id: "37",
@@ -507,6 +543,7 @@ export const leads = [
     inquiryDate: "13/07/2025",
     courseInquiry: "IT Support",
     nextFollowUp: "20/07/2025",
+    status: "New",
   },
   {
     id: "38",
@@ -517,6 +554,7 @@ export const leads = [
     inquiryDate: "14/07/2025",
     courseInquiry: "Cloud Architecture",
     nextFollowUp: "21/07/2025",
+    status: "Contacted",
   },
   {
     id: "39",
@@ -527,6 +565,7 @@ export const leads = [
     inquiryDate: "15/07/2025",
     courseInquiry: "Site Reliability Engineering",
     nextFollowUp: "22/07/2025",
+    status: "Not Interested",
   },
   {
     id: "40",
@@ -537,6 +576,7 @@ export const leads = [
     inquiryDate: "16/07/2025",
     courseInquiry: "NoSQL Databases",
     nextFollowUp: "23/07/2025",
+    status: "Deposited",
   },
   {
     id: "41",
@@ -547,6 +587,7 @@ export const leads = [
     inquiryDate: "17/07/2025",
     courseInquiry: "SQL Databases",
     nextFollowUp: "24/07/2025",
+    status: "New",
   },
   {
     id: "42",
@@ -557,6 +598,7 @@ export const leads = [
     inquiryDate: "18/07/2025",
     courseInquiry: "Digital Forensics",
     nextFollowUp: "25/07/2025",
+    status: "Contacted",
   },
 ];
 
@@ -3041,3 +3083,10 @@ export const courseStatus = ["Active", "Inactive", "Draft"];
 export const studentStatus = ["Active", "Dropout", "Graduated", "On Hold"];
 
 export const batchStatus = ["Active", "Inactive", "Draft"];
+
+export const conversionSteps = [
+  { id: "new", label: "New" },
+  { id: "contacted", label: "Contacted" },
+  { id: "deposited", label: "Deposited" },
+  { id: "enrolled", label: "Enrolled" },
+];

@@ -34,8 +34,6 @@ export default function Leads() {
       if (searchInput.length === 0) {
         setSearchQuery("");
         setError("");
-      } else if (searchInput.length < 3) {
-        setError("Please enter at least 3 characters");
       } else {
         setError("");
         setSearchQuery(searchInput);
@@ -75,7 +73,7 @@ export default function Leads() {
             <Popover>
               <PopoverTrigger asChild>
                 <div className="relative">
-                  <div className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white border border-gray-200 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors">
                     <IoFilter size={20} />
                     <p className="font-medium text-gray-900">Filter</p>
                   </div>
@@ -91,9 +89,9 @@ export default function Leads() {
               </PopoverContent>
             </Popover>
 
-            <div className="w-[220px]">
-              <div className="flex items-center gap-1 py-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-                <BiSearchAlt size={17} />
+            <div className="w-[250px]">
+              <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
+                <BiSearchAlt size={18} className="ml-2" />
                 <input
                   type="text"
                   placeholder="Search"
@@ -101,6 +99,7 @@ export default function Leads() {
                     setSearchInput(e.target.value);
                     if (!isTyping) setIsTyping(true);
                   }}
+                  className="outline-none"
                 />
               </div>
             </div>

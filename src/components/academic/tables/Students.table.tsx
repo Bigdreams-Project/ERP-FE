@@ -6,6 +6,7 @@ import { IStudent } from "@/types/academic/student.interface";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
+import StatusBadge from "../common/StatusBadge";
 
 type Props = {
   searchQuery: string;
@@ -18,7 +19,6 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const itemsPerPage = 10;
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -161,6 +161,12 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                     <td className="p-3">{student.parentGuardianName}</td>
                     <td className="p-3">{student.parentGuardianPhone}</td>
                     <td className="p-3">{student.courseEnrolled}</td>
+                    <td className="p-3">
+                      <StatusBadge
+                        step={student.status}
+                        label={student.status}
+                      />
+                    </td>
                     <td className="p-3 relative text-right">
                       <button
                         onClick={() => toggleDropdown(student.id!)}

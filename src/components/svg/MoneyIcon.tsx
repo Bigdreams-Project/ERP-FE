@@ -8,7 +8,6 @@ const MoneyIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 18 18"
     {...props}
   >
-    <title>vault-3</title>
     <g
       fill="none"
       stroke="currentColor"

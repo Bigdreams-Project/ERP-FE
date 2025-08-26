@@ -7,10 +7,6 @@
 
 /* Tailwind Base Layer */
 @layer base {
-  * {
-    @apply border-none outline-none;
-  }
-
   body {
     @apply font-sans text-[15px];
   }
@@ -106,4 +102,24 @@ select::placeholder {
   font-style: italic;
   font-weight: bolder;
   opacity: 1;
+}
+
+.border-grey {
+  border-color: #e2e2e2;
+}
+
+.text-step-new {
+  color: #636ae8ff;
+}
+
+.text-step-contacted {
+  color: #ea916eff;
+}
+
+.text-step-deposited {
+  color: #2c35e0ff;
+}
+
+.text-step-enrolled {
+  color: #147567ff;
 }

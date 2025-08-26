@@ -8,7 +8,6 @@ const StaffIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 18 18"
     {...props}
   >
-    <title>users</title>
     <g
       fill="none"
       stroke="currentColor"

@@ -8,7 +8,6 @@ const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 48 48"
     {...props}
   >
-    <title>gear-3</title>
     <g
       fill="none"
       stroke="currentColor"

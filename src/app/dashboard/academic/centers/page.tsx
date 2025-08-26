@@ -47,9 +47,9 @@ export default function Centers() {
           <AcademicTabs />
         </div>
         <div className="w-full flex items-center justify-end gap-7 p-2">
-          <div className="w-[220px]">
-            <div className="flex items-center gap-1 py-1 outline-[rgba(0,0,0,0.2)] rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-              <BiSearchAlt size={17} />
+          <div className="w-[250px]">
+            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
+              <BiSearchAlt size={18} className="ml-2" />
               <input
                 type="text"
                 placeholder="Search"
@@ -57,9 +57,9 @@ export default function Centers() {
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
+                className="outline-none"
               />
             </div>
-
           </div>
 
           <button
