@@ -160,7 +160,7 @@ export default function LeadTable({ searchQuery, filterOptions }: Props) {
                     onClick={() =>
                       router.push(`/dashboard/academic/leads/${lead.id}`)
                     }
-                    className="border-t border-gray-200 hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
                   >
                     <td className="pt-6 flex items-center">
                       <input type="checkbox" className="mr-2" />
@@ -180,7 +180,6 @@ export default function LeadTable({ searchQuery, filterOptions }: Props) {
                     <td className="p-3">
                       <StatusBadge step={lead.status} label={lead.status} />
                     </td>
-
                     <td className="p-4 relative text-right">
                       <button
                         onClick={() => toggleDropdown(lead.id)}

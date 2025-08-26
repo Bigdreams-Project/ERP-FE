@@ -141,7 +141,10 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
               </thead>
               <tbody className="text-[13px]">
                 {paginatedData.map((center, index) => (
-                  <tr key={center.id} className="border-t border-gray-200">
+                  <tr
+                    key={center.id}
+                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                  >
                     <td className="p-4 flex items-center">
                       <input
                         type="checkbox"
