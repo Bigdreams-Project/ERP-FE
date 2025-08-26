@@ -14,7 +14,7 @@ export interface ILead {
   studyType: string;
   note: string;
 }
-
+ 
 export interface ILeadModalProps {
   isOpen: boolean;
   onClose: () => void;

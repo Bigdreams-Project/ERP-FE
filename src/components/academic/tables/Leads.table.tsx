@@ -3,8 +3,10 @@ import LeadModal from "@/components/modals/academic/Lead.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { leads } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
+import StatusBadge from "../common/StatusBadge";
 
 type Props = {
   searchQuery: string;
@@ -15,19 +17,31 @@ type Props = {
 };
 
 export default function LeadTable({ searchQuery, filterOptions }: Props) {
+  const router = useRouter();
   const [data, setData] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filteredData, setFilteredData] = useState(data);
-
   const itemsPerPage = 10;
 
   useEffect(() => {
     let result = data;
-    const query = searchQuery.toLowerCase();
     const { startDate, endDate } = filterOptions;
+    const query = searchQuery.toLowerCase();
+
+    const filtered = result.filter((lead) => {
+      const matchesSearch =
+        lead.inquiryId.toLowerCase().includes(query) ||
+        lead.fullName.toLowerCase().includes(query) ||
+        lead.email.toLowerCase().includes(query) ||
+        lead.phone.toLowerCase().includes(query) ||
+        lead.courseInquiry.toLowerCase().includes(query);
+      return matchesSearch;
+    });
+
+    result = filtered;
 
     if (startDate || endDate) {
       const start = startDate ? new Date(startDate) : null;
@@ -141,19 +155,31 @@ export default function LeadTable({ searchQuery, filterOptions }: Props) {
 
               <tbody className="text-[13px]">
                 {paginatedData.map((lead, index) => (
-                  <tr key={lead.id} className="border-t border-gray-200">
-                    <td className="p-4 flex items-center">
+                  <tr
+                    key={lead.id}
+                    onClick={() =>
+                      router.push(`/dashboard/academic/leads/${lead.id}`)
+                    }
+                    className="border-t border-gray-200 hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                  >
+                    <td className="pt-6 flex items-center">
                       <input type="checkbox" className="mr-2" />
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-
-                    <td className="p-4">{lead.inquiryId}</td>
+                    <td className="p-4">
+                      <p className="font-bold text-blue-700">
+                        {lead.inquiryId}
+                      </p>
+                    </td>
                     <td className="p-4 font-bold">{lead.fullName}</td>
                     <td className="p-4">{lead.email}</td>
                     <td className="p-4">{lead.phone}</td>
                     <td className="p-4">{lead.inquiryDate}</td>
                     <td className="p-4">{lead.courseInquiry}</td>
                     <td className="p-4">{lead.nextFollowUp}</td>
+                    <td className="p-3">
+                      <StatusBadge step={lead.status} label={lead.status} />
+                    </td>
 
                     <td className="p-4 relative text-right">
                       <button

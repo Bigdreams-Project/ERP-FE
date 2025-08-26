@@ -6,17 +6,18 @@ export interface IStudent {
   phone: string;
   email: string;
   address: string;
-  parentGuardianName: string; 
-  parentGuardianPhone: string; 
+  parentGuardianName: string;
+  parentGuardianPhone: string;
   parentGuardianEmail: string | null;
   courseEnrolled: string;
   dateEnrolled: string;
   batch: string;
+  status: string;
   paymentPlan: string;
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
-}
+} 
 
 export interface IStudentModalProps {
   isOpen: boolean;

@@ -71,7 +71,6 @@ const SidebarMenu = ({
     return () => clearTimeout(timeoutId);
   }, [sidebarExpanded, isMobile]);
 
-  // nexted items
   const sidebarMenu = [
     {
       label: "Academic",
@@ -169,9 +168,9 @@ const SidebarMenu = ({
                     setExpandedIndex(expandedIndex === index ? null : index);
                     setHoveredIndex(index);
                     if (hoveredIndex === index) {
-                      setHoveredIndex(null); // toggle off
+                      setHoveredIndex(null);
                     } else {
-                      setHoveredIndex(index); // toggle on
+                      setHoveredIndex(index);
                     }
                   }}
                 >
@@ -222,7 +221,7 @@ const SidebarMenu = ({
 
                 {/* Nested links */}
                 <div className="full relative">
-                  {sidebarExpanded && !isMobile ? (
+                  {sidebarExpanded && !isMobile && (
                     <div
                       className={`overflow-hidden transition-all duration-500 flex flex-col gap-1 mt-1 ${
                         expandedIndex === index ? "max-h-[400px]" : "max-h-0"
@@ -244,31 +243,6 @@ const SidebarMenu = ({
                         );
                       })}
                     </div>
-                  ) : (
-                    hoveredIndex === index &&
-                    dropdownPosition &&
-                    createPortal(
-                      <div
-                        className="fixed z-[9999] bg-white rounded-lg py-2 px-2 shadow-lg"
-                        style={{
-                          top: dropdownPosition.top,
-                          left: dropdownPosition.left,
-                        }}
-                      >
-                        <div className="text-[16px] font-inter">
-                          {menu.links.map((link, i) => (
-                            <Link
-                              key={i}
-                              href={link.href}
-                              className="block text-[rgba(0,0,0,0.7)] hover:bg-indigo-50 px-[0.6rem] py-1"
-                            >
-                              {link.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>,
-                      document.body
-                    )
                   )}
                 </div>
               </div>
@@ -277,7 +251,6 @@ const SidebarMenu = ({
         </div>
       </div>
 
-      {/* Sign out stays after all items */}
       <div
         className={` flex gap-1 border-t justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
           sidebarExpanded ? "" : "px-[0rem] pl-[0.1rem]"

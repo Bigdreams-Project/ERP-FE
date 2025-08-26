@@ -123,6 +123,11 @@ export const courseSchema = yup.object().shape({
           .optional()
           .nullable()
           .notRequired() as yup.StringSchema<string>,
+        status: yup
+          .string()
+          .optional()
+          .nullable()
+          .notRequired() as yup.StringSchema<string>,
         paymentPlan: yup.string().required(),
         lumpSum: yup
           .number()

@@ -18,7 +18,7 @@ export const enrollmentSchema = yup.object().shape({
       "Phone number must be in the format +234 815 815-9170"
     ),
   email: yup
-    .string() 
+    .string()
     .email("Invalid email format")
     .required("Email is required"),
   address: yup.string().required("Home address is required"),
@@ -42,22 +42,27 @@ export const enrollmentSchema = yup.object().shape({
     .optional()
     .nullable()
     .notRequired() as yup.StringSchema<string>,
+  status: yup
+    .string()
+    .optional()
+    .nullable()
+    .notRequired() as yup.StringSchema<string>,
   paymentPlan: yup.string().required(),
   lumpSum: yup
-            .number()
-            .transform((value) =>
-              isNaN(value) || value === null || value === undefined ? null : value
-            )
-            .when("paymentPlan", {
-              is: "Lump Sum",
-              then: (schema) =>
-                schema
-                  .required("Lump sum is required")
-                  .min(0, "Lump sum must be a positive number"),
-              otherwise: (schema) => schema.nullable().optional(),
-            })
-            .nullable()
-            .notRequired() as yup.NumberSchema<number | null>,
+    .number()
+    .transform((value) =>
+      isNaN(value) || value === null || value === undefined ? null : value
+    )
+    .when("paymentPlan", {
+      is: "Lump Sum",
+      then: (schema) =>
+        schema
+          .required("Lump sum is required")
+          .min(0, "Lump sum must be a positive number"),
+      otherwise: (schema) => schema.nullable().optional(),
+    })
+    .nullable()
+    .notRequired() as yup.NumberSchema<number | null>,
   numberOfInstallments: yup
     .number()
     .transform((value) =>

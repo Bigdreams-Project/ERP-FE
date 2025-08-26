@@ -16,7 +16,6 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const itemsPerPage = 10;
 
   const filteredData = data.filter((center) => {

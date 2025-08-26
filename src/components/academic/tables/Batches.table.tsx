@@ -2,10 +2,11 @@
 import BatchModal from "@/components/modals/academic/Batch.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { batches } from "@/data/mock/academic.data";
+import { IBatch } from "@/types/academic/batch.interface";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
-import { IBatch } from "@/types/academic/batch.interface";
+import StatusBadge from "../common/StatusBadge";
 
 type Props = {
   searchQuery: string;
@@ -17,7 +18,6 @@ export default function BatchTable({ searchQuery, filteredData }: Props) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const itemsPerPage = 10;
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -101,20 +101,10 @@ export default function BatchTable({ searchQuery, filteredData }: Props) {
                     <td className="p-3">{batch.startDate}</td>
                     <td className="p-3">{batch.endDate}</td>
                     <td className="p-3">
-                      <span
-                        className={`
-                        py-1 px-2 rounded-full text-xs font-semibold
-                        ${
-                          batch.status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : batch.status === "Inactive"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                        }
-                      `}
-                      >
-                        {batch.status}
-                      </span>
+                      <StatusBadge
+                        step={batch.status}
+                        label={batch.status}
+                      />
                     </td>
                     <td className="p-3 relative text-right">
                       <button

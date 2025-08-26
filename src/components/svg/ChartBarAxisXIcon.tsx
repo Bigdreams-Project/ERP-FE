@@ -8,7 +8,6 @@ const ChartBarAxisXIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 48 48"
     {...props}
   >
-    <title>chart-bar-axis-x</title>
     <g
       fill="none"
       stroke="currentColor"
