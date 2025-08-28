@@ -83,7 +83,10 @@ export default function BatchTable({ searchQuery, filteredData }: Props) {
               </thead>
               <tbody className="text-[13px]">
                 {paginatedData.map((batch, index) => (
-                  <tr key={batch.id} className="border-t border-gray-200">
+                  <tr
+                    key={batch.id}
+                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                  >
                     <td className="p-4 flex items-center">
                       <input
                         type="checkbox"
@@ -101,10 +104,7 @@ export default function BatchTable({ searchQuery, filteredData }: Props) {
                     <td className="p-3">{batch.startDate}</td>
                     <td className="p-3">{batch.endDate}</td>
                     <td className="p-3">
-                      <StatusBadge
-                        step={batch.status}
-                        label={batch.status}
-                      />
+                      <StatusBadge step={batch.status} label={batch.status} />
                     </td>
                     <td className="p-3 relative text-right">
                       <button

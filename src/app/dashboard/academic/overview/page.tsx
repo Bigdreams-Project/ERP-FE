@@ -4,8 +4,6 @@ import AcademicStatCard from "@/components/academic/cards/AcademicStatCard.card"
 import ActivityItem from "@/components/academic/cards/ActivityItem.card";
 import StatCard from "@/components/academic/cards/StatCard.card";
 import { mockData } from "@/data/mock/academic.data";
-import { ArrowRight } from "lucide-react";
-import { FiPieChart } from "react-icons/fi";
 import {
   Area,
   AreaChart,

@@ -101,7 +101,7 @@ export default function FilterPopover({
         ))}
       </div>
 
-      <div className="flex flex-row items-center justify-end gap-2 mt-4 text-[14px] border-t border-gray-500">
+      <div className="flex flex-row items-center justify-end gap-2 mt-4 pt-2 text-[14px] border-t border-gray-300">
         <button
           onClick={handleClear}
           className="bg-red-500 w-36 text-white text-center rounded-md p-2 hover:bg-red-600 transition-colors"

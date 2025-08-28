@@ -90,6 +90,7 @@ const SidebarMenu = ({
       label: "Finance",
       icon: (props: React.SVGProps<SVGSVGElement>) => <MoneyIcon {...props} />,
       links: [
+        { label: "Overview", href: "/dashboard/finance/overview" },
         { label: "Invoices", href: "/dashboard/invoices" },
         { label: "Payments", href: "/dashboard/payments" },
       ],
@@ -99,6 +100,7 @@ const SidebarMenu = ({
       label: "HR & Staffs",
       icon: (props: React.SVGProps<SVGSVGElement>) => <StaffIcon {...props} />,
       links: [
+        { label: "Overview", href: "/dashboard/hr-staff/overview" },
         { label: "Invoices", href: "/dashboard/invoices" },
         { label: "Payments", href: "/dashboard/payments" },
       ],

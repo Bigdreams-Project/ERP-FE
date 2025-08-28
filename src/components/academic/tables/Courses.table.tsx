@@ -128,7 +128,10 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
               </thead>
               <tbody className="text-[13px]">
                 {paginatedData.map((course, index) => (
-                  <tr key={course.id} className="border-t border-gray-200">
+                  <tr
+                    key={course.id}
+                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                  >
                     <td className="p-4 flex items-center">
                       <input
                         type="checkbox"
