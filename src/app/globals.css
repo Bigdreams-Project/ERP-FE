@@ -67,6 +67,32 @@
   scrollbar-color: #c2c0c0 #f1f1f1; /* thumb and track color */
 }
 
+/* Custom scrollbar (colorless) */
+.custom-scroll-white::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scroll-white::-webkit-scrollbar-track {
+  background: #fff;
+  border-radius: 10px;
+}
+
+.custom-scroll-white::-webkit-scrollbar-thumb {
+  background: #fff;
+  border-radius: 10px;
+}
+
+.custom-scroll-white::-webkit-scrollbar-thumb:hover {
+  background: #fff;
+}
+
+/* For Firefox */
+.custom-scroll-white {
+  scrollbar-width: thin;
+  scrollbar-color: #fff #fff; /* thumb and track color */
+}
+
 /* Date picker */
 .rdp-small .rdp-day {
   width: 1rem;

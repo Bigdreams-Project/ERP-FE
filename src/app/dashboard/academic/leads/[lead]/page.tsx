@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/icons";
 import { useState } from "react";
 import { CgAttachment } from "react-icons/cg";
-import { FiChevronLeft } from "react-icons/fi";
 import { IoMdAdd } from "react-icons/io";
 import { RiDeleteBin6Line } from "react-icons/ri";
 
@@ -73,7 +72,8 @@ const Lead = () => {
 
   return (
     <div className="w-full">
-      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-8">
+      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-8 pb-0">
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 relative left-[-7px]">

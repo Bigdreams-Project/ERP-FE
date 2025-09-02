@@ -1,10 +1,14 @@
 "use client";
-import {
-  isValidEmail,
-  isValidPassword,
-} from "@/helpers/validations/auth.validation";
+import { AppAuthRoutes, DashboardAcademicRoutes } from "@/constants/appRoutes.constant";
+import { loginUser } from "@/lib/auth/login";
+import { ILoginUser } from "@/types/auth/login.interface";
+import { loginSchema } from "@/validations/auth/login.validation";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { CiMail } from "react-icons/ci";
 import { FaSpinner } from "react-icons/fa6";
 import { GiCheckMark } from "react-icons/gi";
@@ -12,110 +16,63 @@ import { ImSpinner2 } from "react-icons/im";
 import { IoMdEyeOff } from "react-icons/io";
 import { IoEye } from "react-icons/io5";
 import { PiLockKeyThin } from "react-icons/pi";
-import axios from "axios";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import * as yup from "yup";
 
 export default function Login() {
   const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
-  const [emailValid, setEmailValid] = useState(false);
-  const [passwordValid, setPasswordValid] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showTransition, setShowTransition] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
   const [apiError, setApiError] = useState("");
 
-  const isFormValid = emailValid && passwordValid;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+  } = useForm({
+    resolver: yupResolver(loginSchema),
+    mode: "onTouched",
+  });
 
-  // Handling real time validation
-  useEffect(() => {
-    setEmailValid(isValidEmail(email));
-    if (!email && emailTouched) {
-      setEmailError("");
-    } else if (emailTouched && !isValidEmail(email)) {
-      setEmailError("Please enter a valid email address.");
-    } else {
-      setEmailError("");
-    }
-  }, [email, emailTouched]);
+  const { mutate, isPending, isError, error, isSuccess } = useMutation({
+    mutationFn: loginUser,
+    onSuccess: () => {
+      router.push(DashboardAcademicRoutes.OVERVIEW);
+    },
+    onError: () => {
+      setApiError("Invalid email or password.");
+    },
+  });
 
-  useEffect(() => {
-    setPasswordValid(isValidPassword(password));
-    if (!password && passwordTouched) {
-      setPasswordError("");
-    } else if (passwordTouched && !isValidPassword(password)) {
-      setPasswordError(
-        "Password must have at least 8 characters, including uppercase, lowercase, number, and symbol."
-      );
-    } else {
-      setPasswordError("");
-    }
-  }, [password, passwordTouched]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: ILoginUser) => {
     setApiError("");
-
-    router.push("/dashboard/academic/overview");
-    return;
-
-    if (!emailValid || !passwordValid) {
-      setEmailTouched(true);
-      setPasswordTouched(true);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const res = await axios.post(`${BASE_URL}/auth/login`, {
-        email,
-        password,
-      });
-
-      if (res.status === 200 || res.status === 201) {
-        setShowTransition(true);
-        setTimeout(() => router.push("/dashboard/academic/overview"), 1000);
-      } else {
-        throw new Error("401");
-      }
-    } catch (error: any) {
-      if (
-        error.message === "401" ||
-        error.message === "Invalid email or password."
-      ) {
-        setApiError("Invalid email or password.");
-      } else {
-        setApiError("Unable to connect. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+    mutate(data);
   };
 
+  const emailValue = watch("email");
+  const passwordValue = watch("password");
+
+  const isEmailValid = yup.string().email().isValidSync(emailValue);
+  const isPasswordValid = yup
+    .string()
+    .min(8)
+    .matches(/[a-z]/)
+    .matches(/[A-Z]/)
+    .matches(/\d/)
+    .matches(/[^a-zA-Z0-9]/)
+    .isValidSync(passwordValue);
+
   return (
-    <div
-      className="w-full md:flex  md:justify-center md:items-center  min-h-screen md:gap-[2rem] md:px-[3rem]  md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem]"
-      style={{}}
-    >
-      {/* Logo */}
+    <div className="w-full md:flex md:justify-center md:items-center min-h-screen md:gap-[2rem] md:px-[3rem] md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem]">
       <div
-        className={`w-full md:w-[60%] flex  justify-between items-center md:flex-row`}
+        className={`w-full md:w-[60%] flex justify-between items-center md:flex-row`}
       >
         <img src="/Logo.png" alt="" />
       </div>
 
       {/* Form */}
-      <div className="w-full md:w-[45%] md:px-[1rem] ">
+      <div className="w-full md:w-[45%] md:px-[1rem]">
         <div
-          className="w-[100%] flex flex-col gap-[2rem]  p-[2rem] rounded-[1rem]  md:shadow-lg"
+          className="w-[100%] flex flex-col gap-[2rem] p-[2rem] rounded-[1rem] md:shadow-lg"
           style={{ boxShadow: "0rem 0rem 0.7rem rgba(0, 0, 0, 0.1)" }}
         >
           <div className="flex flex-col gap-1">
@@ -123,7 +80,7 @@ export default function Login() {
             <p className="">Login to your account</p>
           </div>
 
-          {showTransition ? (
+          {isPending ? (
             <div className="flex flex-col items-center justify-center py-10 gap-4">
               <FaSpinner className="animate-spin text-[#636AE8] text-4xl" />
               <p className="text-gray-500 font-medium text-sm">
@@ -131,12 +88,15 @@ export default function Login() {
               </p>
             </div>
           ) : (
-            <form className={`flex flex-col gap-5`} onSubmit={handleSubmit}>
+            <form
+              className={`flex flex-col gap-5`}
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <div
-                className={`flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl 
+                className={`flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl
                   ${
-                    email
-                      ? emailValid
+                    emailValue
+                      ? isEmailValid
                         ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
                         : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
                       : ""
@@ -147,40 +107,30 @@ export default function Login() {
                   className="font-semibold text-[rgba(0,0,0,0.5)]"
                   size={20}
                 />
-
                 <input
                   type="email"
                   placeholder="What is your e-mail?"
                   className="w-full bg-transparent outline-none text-[16px]"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (emailTouched) setEmailError("");
-                    if (apiError) setApiError("");
-                  }}
-                  onBlur={() => setEmailTouched(true)}
-                  disabled={loading}
+                  {...register("email")}
+                  disabled={isPending}
                 />
-
-                {isValidEmail(email) && (
+                {isEmailValid && (
                   <GiCheckMark
                     className="font-semibold text-[#636AE8]"
                     size={20}
                   />
                 )}
               </div>
-
-              {emailError && (
+              {errors.email && (
                 <p className="text-red-500 text-xs font-semibold -mt-3">
-                  {emailError}
+                  {errors.email.message}
                 </p>
               )}
-
               <div
-                className={`flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl 
+                className={`flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl
                   ${
-                    password
-                      ? passwordValid
+                    passwordValue
+                      ? isPasswordValid
                         ? "border-2 border-[#636AE8] shadow-[0_0_6px_#636AE8]"
                         : "border-2 border-red-500 shadow-[0_0_6px_rgba(239,68,68,1)]"
                       : ""
@@ -191,23 +141,14 @@ export default function Login() {
                   className="font-semibold text-[rgba(0,0,0,0.5)]"
                   size={20}
                 />
-
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   className="w-full outline-none text-[16px] bg-transparent"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (passwordTouched) setPasswordError("");
-                    if (apiError) setApiError("");
-                  }}
-                  onBlur={() => setPasswordTouched(true)}
-                  disabled={loading}
+                  {...register("password")}
+                  disabled={isPending}
                 />
-
-                {/* check if  */}
-                {isValidPassword(password) ? (
+                {isPasswordValid ? (
                   <GiCheckMark
                     className="font-semibold text-[#636AE8]"
                     size={20}
@@ -226,13 +167,11 @@ export default function Login() {
                   />
                 )}
               </div>
-
-              {passwordError && (
+              {errors.password && (
                 <p className="text-red-500 text-xs font-semibold -mt-3">
-                  {passwordError}
+                  {errors.password.message}
                 </p>
               )}
-
               <div className="flex items-center justify-between text-[14px] font-inter">
                 <label htmlFor="check" className="flex items-center gap-1">
                   <input
@@ -241,24 +180,22 @@ export default function Login() {
                     id="check"
                     className="accent-[#636AE8]"
                   />
-
                   <span className="">Remember me</span>
                 </label>
                 <a href="/forgot-password" className="text-[#636AE8]">
                   Forgot password?
                 </a>
               </div>
-
               <button
                 type="submit"
-                disabled={!isFormValid || loading}
+                disabled={!isValid || isPending}
                 className={`flex items-center justify-center gap-2 p-3 w-full rounded-2xl text-white font-semibold transition-all duration-300 ${
-                  isFormValid && !loading
+                  isValid && !isPending
                     ? "bg-[#636AE8] hover:bg-[#4f56d6]"
                     : "bg-[#636AE8] opacity-70 cursor-not-allowed"
                 }`}
               >
-                {loading ? (
+                {isPending ? (
                   <>
                     <ImSpinner2 className="animate-spin h-5 w-5" /> Logging
                     in...
@@ -278,13 +215,15 @@ export default function Login() {
               )}
             </form>
           )}
-
           <div className={`mt-[2rem]`}>
             <p className="text-[15px] text-center">
               Don't have an account?{" "}
-              <a href="/sign-up" className="text-[#636ae8] font-semibold">
+              <Link
+                href={AppAuthRoutes.SIGNUP}
+                className="text-[#636ae8] font-semibold"
+              >
                 Sign up
-              </a>
+              </Link>
             </p>
           </div>
         </div>

@@ -10,8 +10,8 @@ export const leadSchema = yup.object().shape({
     .string()
     .required("Phone number is required")
     .matches(
-      /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/,
-      "Phone number format: (XXX) XXX-XXXX"
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
   address: yup.string().required("Address is required"),
   parentName: yup.string().required("Parent's name is required"),
@@ -19,8 +19,8 @@ export const leadSchema = yup.object().shape({
     .string()
     .required("Parent's phone number is required")
     .matches(
-      /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/,
-      "Phone number format: (XXX) XXX-XXXX"
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
   parentEmail: yup
     .string()
@@ -33,5 +33,5 @@ export const leadSchema = yup.object().shape({
   status: yup.string().required("Status is required"),
   nextFollowup: yup.string().required("Next follow-up date is required"),
   studyType: yup.string().required("Study type is required"),
-  note: yup.string().required("Study type is required"),
+  note: yup.string().required("Note is required"),
 });

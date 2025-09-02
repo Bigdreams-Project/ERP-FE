@@ -4,6 +4,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
 import { IStudent } from "@/types/academic/student.interface";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function StudentTable({ searchQuery, filteredData }: Props) {
+  const router = useRouter();
   const [data] = useState(students);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
@@ -144,6 +146,9 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                 {paginatedData.map((student, index) => (
                   <tr
                     key={student.id}
+                    onClick={() =>
+                      router.push(`/dashboard/academic/students/${student.id}`)
+                    }
                     className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
                   >
                     <td className="p-4 flex items-center align-middle">

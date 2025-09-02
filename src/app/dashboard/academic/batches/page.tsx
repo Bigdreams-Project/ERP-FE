@@ -4,15 +4,36 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import BatchTable from "@/components/academic/tables/Batches.table";
 import BatchModal from "@/components/modals/academic/Batch.modal";
 import { batches, batchStatus } from "@/data/mock/academic.data";
+import { IBatch } from "@/types/academic/batch.interface";
 import { useEffect, useRef, useState } from "react";
+import { DateRangePicker } from "react-date-range";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
+import "react-day-picker/dist/style.css";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
-import { format } from "date-fns";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
-import { Item } from "@radix-ui/react-dropdown-menu";
-import { IBatch } from "@/types/academic/batch.interface";
+
+const filterItems = [
+  {
+    label: "Start Date",
+    name: "startDate",
+    type: "date",
+    placeholder: "Search by start date",
+  },
+  {
+    label: "End Date",
+    name: "endDate",
+    type: "date",
+    placeholder: "Search by end date",
+  },
+  {
+    label: "Created Date",
+    name: "createdDate",
+    type: "date",
+    placeholder: "Search by created date",
+  },
+];
 
 export default function Batches() {
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -25,6 +46,15 @@ export default function Batches() {
     startDate: "",
     endDate: "",
   });
+
+  const [range, setRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: "selection",
+    },
+  ]);
+  const [displayRange, setDisplayRange] = useState("");
   const [filters, setFilters] = useState(filterOptions);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -54,20 +84,18 @@ export default function Batches() {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
+  const handleSelect = (ranges: any) => {
+    const { startDate, endDate } = ranges.selection;
+    setRange([ranges.selection]);
+    setDisplayRange(
+      `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
+    );
+    setStartDate(startDate);
+    setEndDate(endDate);
+  };
+
   const handleSave = () => {
     console.log("...");
-  };
-
-  const handleStartDateChange = (date: Date | undefined) => {
-    setStartDate(date);
-    const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-    setFilters((prev) => ({ ...prev, startDate: formattedDate }));
-  };
-
-  const handleEndDateChange = (date: Date | undefined) => {
-    setEndDate(date);
-    const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-    setFilters((prev) => ({ ...prev, endDate: formattedDate }));
   };
 
   const handleFilterChange = (filterCategory: string, value: string) => {
@@ -82,10 +110,12 @@ export default function Batches() {
 
   const handleClearAll = () => {
     setAppliedFilters({ status: [], courseType: [] });
+    setDateFilterName("");
   };
 
   const handleApplyFilter = () => {
     setIsFilterDropdown(false);
+    setDateFilterName("");
   };
 
   const filteredData = batches.filter((batch: IBatch) => {
@@ -99,36 +129,19 @@ export default function Batches() {
       appliedFilters.status.length === 0 ||
       appliedFilters.status.includes(batch.status);
 
-    const batchDate = dateFilterName ? new Date(dateFilterName) : null;
+    // 👇 Date filtering
     const matchesDateRange =
-      !dateFilterName ||
       !startDate ||
       !endDate ||
-      (batchDate! >= startDate && batchDate! <= endDate);
+      filterItems.some((item) => {
+        const fieldValue = (batch as any)[item.name];
+        if (!fieldValue) return false;
+        const fieldDate = new Date(fieldValue);
+        return fieldDate >= startDate && fieldDate <= endDate;
+      });
 
     return matchesSearch && matchesStatus && matchesDateRange;
   });
-
-  const filterItems = [
-    {
-      label: "Start Date",
-      name: "startDate",
-      type: "date",
-      placeholder: "Search by start date",
-    },
-    {
-      label: "End Date",
-      name: "endDate",
-      type: "date",
-      placeholder: "Search by end date",
-    },
-    {
-      label: "Created Date",
-      name: "createdDate",
-      type: "date",
-      placeholder: "Search by created date",
-    },
-  ];
 
   return (
     <div className="w-full overflow-hidden">
@@ -142,33 +155,41 @@ export default function Batches() {
           <div className="relative" ref={dropdownRef}>
             <div
               className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
-              onClick={() => setIsFilterDropdown(!isFilterDropdown)}
+              onClick={() => {
+                setIsFilterDropdown(!isFilterDropdown);
+                setDateFilterName("");
+              }}
             >
               <IoFilter size={20} />
               <p className="font-medium text-gray-900">Filter</p>
             </div>
             {isFilterDropdown && (
-              <div className="absolute right-0 mt-2 bg-white flex flex-row rounded-md z-50 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400">
+              <div
+                className={`absolute ${
+                  dateFilterName ? "-right-60" : "right-0"
+                } mt-2 pt-1 bg-white flex flex-row rounded-md z-50 animate-in fade-in-0 duration-300 border-t border-gray-300 shadow-lg shadow-gray-400`}
+              >
                 {dateFilterName && (
-                  <div className="flex p-4 gap-4">
-                    <DayPicker
-                      mode="range"
-                      selected={{ from: startDate, to: endDate }}
-                      onSelect={(range) => {
-                        setStartDate(range?.from);
-                        setEndDate(range?.to);
-                        setFilters((prev) => ({
-                          ...prev,
-                          startDate: range?.from
-                            ? format(range.from, "yyyy-MM-dd")
-                            : "",
-                          endDate: range?.to
-                            ? format(range.to, "yyyy-MM-dd")
-                            : "",
-                        }));
-                      }}
-                      className="rdp-small"
-                    />
+                  <div className="p-1">
+                    {/* Date range */}
+                    <div className="mb-2 px-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={displayRange || "Select a date range"}
+                        className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Date Picker */}
+                    <div className="bg-white">
+                      <DateRangePicker
+                        ranges={range}
+                        onChange={handleSelect}
+                        moveRangeOnFirstSelection={false}
+                        className="text-black"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -178,15 +199,15 @@ export default function Batches() {
                       <select
                         name="date"
                         id=""
-                        className="w-fit px-0 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-0"
+                        className="w-fit font-bold px-0 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-0"
                         onChange={(e) => setDateFilterName(e.target.value)}
                       >
-                        <option value="">Select</option>
+                        <option value="">Select a date</option>
                         {filterItems.map((item, index) => (
                           <option
                             key={index}
                             value={item.name}
-                            className="font-bold"
+                            className="font-medium"
                           >
                             {item.label}
                           </option>

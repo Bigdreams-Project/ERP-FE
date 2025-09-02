@@ -4,7 +4,7 @@ const ChartLegend = ({ data }: any) => (
       <li key={index} className="flex items-center space-x-2">
         <span className={`w-3 h-3 rounded-full ${item.color}`}></span>
         <span>
-          {item.name} - {item.value}
+          {item.name}
         </span>
       </li>
     ))}

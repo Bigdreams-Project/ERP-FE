@@ -1,7 +1,7 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { leads } from "@/data/mock/academic.data";
+import { Lead } from "@/types/academic/lead.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
 
 type Props = {
+  leads: Lead[];
   searchQuery: string;
   filterOptions: {
     startDate: string;
@@ -16,7 +17,7 @@ type Props = {
   };
 };
 
-export default function LeadTable({ searchQuery, filterOptions }: Props) {
+export default function LeadTable({ leads, searchQuery, filterOptions }: Props) {
   const router = useRouter();
   const [data, setData] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -33,11 +34,11 @@ export default function LeadTable({ searchQuery, filterOptions }: Props) {
 
     const filtered = result.filter((lead) => {
       const matchesSearch =
-        lead.inquiryId.toLowerCase().includes(query) ||
+        lead.code.toLowerCase().includes(query) ||
         lead.fullName.toLowerCase().includes(query) ||
         lead.email.toLowerCase().includes(query) ||
         lead.phone.toLowerCase().includes(query) ||
-        lead.courseInquiry.toLowerCase().includes(query);
+        lead.course.name.toLowerCase().includes(query);
       return matchesSearch;
     });
 
@@ -48,7 +49,7 @@ export default function LeadTable({ searchQuery, filterOptions }: Props) {
       const end = endDate ? new Date(endDate) : null;
 
       result = result.filter((lead) => {
-        const leadDate = new Date(lead.inquiryDate);
+        const leadDate = new Date(lead.enquiryDate);
 
         if (start && end) {
           return leadDate >= start && leadDate <= end;
@@ -167,16 +168,14 @@ export default function LeadTable({ searchQuery, filterOptions }: Props) {
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-4">
-                      <p className="font-bold text-blue-700">
-                        {lead.inquiryId}
-                      </p>
+                      <p className="font-bold text-blue-700">{lead.code}</p>
                     </td>
                     <td className="p-4 font-bold">{lead.fullName}</td>
                     <td className="p-4">{lead.email}</td>
                     <td className="p-4">{lead.phone}</td>
-                    <td className="p-4">{lead.inquiryDate}</td>
-                    <td className="p-4">{lead.courseInquiry}</td>
-                    <td className="p-4">{lead.nextFollowUp}</td>
+                    <td className="p-4">{lead.enquiryDate}</td>
+                    <td className="p-4">{lead.courseId}</td>
+                    <td className="p-4">{lead.nextFollowUpDate}</td>
                     <td className="p-3">
                       <StatusBadge step={lead.status} label={lead.status} />
                     </td>

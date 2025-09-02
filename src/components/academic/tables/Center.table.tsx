@@ -3,6 +3,7 @@ import CenterModal from "@/components/modals/academic/Center.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { centers } from "@/data/mock/academic.data";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 
@@ -11,6 +12,7 @@ type CenterTableProps = {
 };
 
 export default function CenterTable({ searchQuery }: CenterTableProps) {
+  const router = useRouter();
   const [data] = useState(centers);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
@@ -143,6 +145,9 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
                 {paginatedData.map((center, index) => (
                   <tr
                     key={center.id}
+                    onClick={() =>
+                      router.push(`/dashboard/academic/centers/${center.id}`)
+                    }
                     className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
                   >
                     <td className="p-4 flex items-center">

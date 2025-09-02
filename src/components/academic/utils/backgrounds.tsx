@@ -37,6 +37,12 @@ export const getStatusBgColor = (status: string) => {
       return "bg-orange-200 text-orange-800";
     case AcademicStatus.NOT_INTERESTED:
       return "bg-red-200 text-red-900";
+    case AcademicStatus.HIGH:
+      return "bg-red-800 text-white";
+    case AcademicStatus.LOW:
+      return "bg-gray-700 text-white";
+    case AcademicStatus.NORMAL:
+      return "bg-green-800 text-white";
     default:
       return "bg-gray-100 text-gray-800";
   }

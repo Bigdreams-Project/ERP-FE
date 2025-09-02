@@ -4,6 +4,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import { batches } from "@/data/mock/academic.data";
 import { IBatch } from "@/types/academic/batch.interface";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function BatchTable({ searchQuery, filteredData }: Props) {
+  const router = useRouter();
   const [data] = useState(batches);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -85,6 +87,9 @@ export default function BatchTable({ searchQuery, filteredData }: Props) {
                 {paginatedData.map((batch, index) => (
                   <tr
                     key={batch.id}
+                    onClick={() =>
+                      router.push(`/dashboard/academic/batches/${batch.id}`)
+                    }
                     className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
                   >
                     <td className="p-4 flex items-center">

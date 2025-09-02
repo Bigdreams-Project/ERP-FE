@@ -12,7 +12,7 @@ import { isPasswordSame, isValidPassword } from "@/helpers/validations/auth.vali
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-export default function Login() {
+export default function ResetPassword() {
   const router = useRouter();
 
   const [password, setPassword] = useState("");
