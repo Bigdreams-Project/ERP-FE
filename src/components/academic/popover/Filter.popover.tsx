@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import { format } from "date-fns";
-import { DayPicker } from "react-day-picker";
+import { DateRangePicker } from "react-date-range";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
 import "react-day-picker/dist/style.css";
 
 type FilterItem = {
@@ -20,27 +21,30 @@ type Props = {
 export default function FilterPopover({
   filterItems,
   initialFilters,
-  onApply, 
+  onApply,
 }: Props) {
   const [filters, setFilters] = useState(initialFilters);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [range, setRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: "selection",
+    },
+  ]);
+  const [displayRange, setDisplayRange] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleSelect = (ranges: any) => {
+    const { startDate, endDate } = ranges.selection;
+    setRange([ranges.selection]);
+    setDisplayRange(
+      `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
+    );
 
-  const handleStartDateChange = (date: Date | undefined) => {
-    setStartDate(date);
-    const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-    setFilters((prev) => ({ ...prev, startDate: formattedDate }));
-  };
-
-  const handleEndDateChange = (date: Date | undefined) => {
-    setEndDate(date);
-    const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-    setFilters((prev) => ({ ...prev, endDate: formattedDate }));
+    setStartDate(startDate.toLocaleDateString());
+    setEndDate(endDate.toLocaleDateString());
+    setFilters((prev) => ({ startDate, endDate }));
   };
 
   const handleApply = () => {
@@ -66,39 +70,28 @@ export default function FilterPopover({
             <label className="block text-sm font-bold text-gray-700 mb-1">
               {item.label}
             </label>
-
-            {item.type === "date" ? (
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <DayPicker
-                    mode="single"
-                    selected={startDate}
-                    onSelect={handleStartDateChange}
-                    className="rdp-small"
-                  />
-                </div>
-
-                <div className="flex-1">
-                  <DayPicker
-                    mode="single"
-                    selected={endDate}
-                    onSelect={handleEndDateChange}
-                    className="rdp-small"
-                  />
-                </div>
-              </div>
-            ) : (
-              <input
-                type={item.type}
-                name={item.name}
-                value={filters[item.name] || ""}
-                onChange={handleInputChange}
-                placeholder={item.placeholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-              />
-            )}
           </div>
         ))}
+      </div>
+
+      {/* Date range */}
+      <div className="mb-4">
+        <input
+          type="text"
+          readOnly
+          value={displayRange || "Select a date range"}
+          className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {/* Date Picker */}
+      <div className=" bg-white rounded-lg">
+        <DateRangePicker
+          ranges={range}
+          onChange={handleSelect}
+          moveRangeOnFirstSelection={false}
+          className="text-black"
+        />
       </div>
 
       <div className="flex flex-row items-center justify-end gap-2 mt-4 pt-2 text-[14px] border-t border-gray-300">

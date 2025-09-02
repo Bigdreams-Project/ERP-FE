@@ -3,6 +3,7 @@ import CourseModal from "@/components/modals/academic/Course.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { ICourse } from "@/types/academic/course.interface";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export default function CoursesTable({ searchQuery, filteredData }: Props) {
+  const router = useRouter();
   const [selectedCourses, setSelectedCourses] = useState<any>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -130,6 +132,9 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                 {paginatedData.map((course, index) => (
                   <tr
                     key={course.id}
+                    onClick={() =>
+                      router.push(`/dashboard/academic/courses/${course.id}`)
+                    }
                     className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
                   >
                     <td className="p-4 flex items-center">

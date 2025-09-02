@@ -1,17 +1,16 @@
 "use client";
-import React from "react";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { createPortal } from "react-dom";
-import { FiChevronRight } from "react-icons/fi";
-import { PiSignInFill } from "react-icons/pi";
-import HouseIcon from "./svg/HouseIcon";
-import GraduationCapIcon from "./svg/GraduationCapIcon";
-import SettingsIcon from "./svg/SettingsIcon";
-import ChartBarAxisXIcon from "./svg/ChartBarAxisXIcon";
-import StaffIcon from "./svg/StaffIcon";
-import MoneyIcon from "./svg/MoneyIcon";
+import { logoutUser } from "@/lib/auth/login";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { FiChevronRight } from "react-icons/fi";
+import { PiSignInFill } from "react-icons/pi";
+import ChartBarAxisXIcon from "./svg/ChartBarAxisXIcon";
+import GraduationCapIcon from "./svg/GraduationCapIcon";
+import HouseIcon from "./svg/HouseIcon";
+import MoneyIcon from "./svg/MoneyIcon";
+import SettingsIcon from "./svg/SettingsIcon";
+import StaffIcon from "./svg/StaffIcon";
 
 const SidebarMenu = ({
   sidebarExpanded,
@@ -267,6 +266,7 @@ const SidebarMenu = ({
                   ? "opacity-100 visible ml-1"
                   : "opacity-0 invisible ml-0 none"
               }`}
+              onClick={() => logoutUser}
             >
               Sign out
             </h1>
@@ -278,4 +278,5 @@ const SidebarMenu = ({
     </div>
   );
 };
+
 export default SidebarMenu;

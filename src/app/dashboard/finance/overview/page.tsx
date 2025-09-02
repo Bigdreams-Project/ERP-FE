@@ -1,6 +1,7 @@
 "use client";
 import ChartLegend from "@/components/finance/common/ChartLegend";
 import IconButton from "@/components/finance/common/IconButton";
+import TopPerformingCenter from "@/components/finance/TopPerformingCenter";
 import {
   expensesDistribution,
   franchisePayments,
@@ -9,6 +10,7 @@ import {
   overduePayments,
   revenueDistribution,
   topCenters,
+  topPerformingCenters,
 } from "@/data/mock/finance.data";
 import { Plus } from "lucide-react";
 import { BiHomeAlt2 } from "react-icons/bi";
@@ -103,7 +105,8 @@ export default function Overview() {
               <span>18/12/2024 - 18/12/2024</span>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="relative w-28 h-28 rounded-full bg-slate-300">
+              <ChartLegend data={revenueDistribution} />
+              <div className="relative w-48 h-48 rounded-full bg-slate-300">
                 <div
                   className="absolute inset-0 rounded-full bg-conic-gradient from-emerald-500 via-indigo-500 to-teal-500"
                   style={{
@@ -111,9 +114,11 @@ export default function Overview() {
                       "conic-gradient(from 0deg, #34d399 0%, #34d399 20%, #6366f1 20%, #6366f1 40%, #14b8a6 40%, #14b8a6 60%, #e879f9 60%, #e879f9 80%, #64748b 80%, #64748b 100%)",
                   }}
                 ></div>
-                <div className="absolute inset-4 bg-white rounded-full"></div>
+                <div className="absolute inset-10 bg-white rounded-full flex flex-col items-center justify-center p-2">
+                  <span className="text-sm font-bold">Total Revenue</span>
+                  <span className="text-sm text-gray-500">N450,000,000</span>
+                </div>
               </div>
-              <ChartLegend data={revenueDistribution} />
             </div>
           </div>
 
@@ -126,7 +131,8 @@ export default function Overview() {
               <span>18/12/2024 - 18/12/2024</span>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="relative w-28 h-28 rounded-full bg-slate-300">
+              <ChartLegend data={expensesDistribution} />
+              <div className="relative w-48 h-48 rounded-full bg-slate-300">
                 <div
                   className="absolute inset-0 rounded-full bg-conic-gradient from-rose-500 via-orange-500 to-amber-500"
                   style={{
@@ -134,36 +140,28 @@ export default function Overview() {
                       "conic-gradient(from 0deg, #f43f5e 0%, #f43f5e 40%, #f97316 40%, #f97316 55%, #fbbf24 55%, #fbbf24 70%, #a3e635 70%, #a3e635 85%, #d1d5db 85%, #d1d5db 100%)",
                   }}
                 ></div>
-                <div className="absolute inset-4 bg-white rounded-full"></div>
+                <div className="absolute inset-10 bg-white rounded-full flex flex-col items-center justify-center p-2">
+                  <span className="text-sm font-bold">Total Revenue</span>
+                  <span className="text-sm text-gray-500">N450,000,000</span>
+                </div>
               </div>
-              <ChartLegend data={expensesDistribution} />
             </div>
           </div>
 
           {/* Top Performing Centers */}
-          <div className="bg-white p-6 rounded-2xl shadow-md">
-            <h3 className="text-lg font-semibold mb-2">
+          <div className="bg-gray-50 rounded-lg p-6 shadow-md border border-gray-200">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
               Top Performing Centers
-            </h3>
+            </h2>
             <ul className="space-y-4">
-              {topCenters.map((center, index) => (
-                <li key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-semibold">{index + 1}.</span>
-                    <span className="text-sm">{center.name}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-500">
-                      {center.revenue}
-                    </span>
-                    <div className="w-16 h-1 rounded-full bg-gray-200">
-                      <div
-                        className={`h-full rounded-full ${center.progress}`}
-                        style={{ width: center.revenue }}
-                      ></div>
-                    </div>
-                  </div>
-                </li>
+              {topPerformingCenters.map((centerData, index) => (
+                <TopPerformingCenter
+                  key={centerData.id}
+                  number={centerData.id}
+                  name={centerData.centerName}
+                  percentage={centerData.score}
+                  status={centerData.status}
+                />
               ))}
             </ul>
           </div>

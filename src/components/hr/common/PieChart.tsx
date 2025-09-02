@@ -3,13 +3,13 @@ import { useMemo } from "react";
 
 const PieChart = ({ data }: any) => {
   const total = useMemo(
-    () => data.reduce((sum: any, item: any) => sum + item.value, 0),
+    () => data?.reduce((sum: any, item: any) => sum + item.value, 0),
     [data]
   );
   const gradientStops = useMemo(() => {
     let currentPercentage = 0;
     return data
-      .map((item: any, index: any) => {
+      ?.map((item: any, index: any) => {
         const start = currentPercentage;
         currentPercentage += (item.value / total) * 100;
         const end = currentPercentage;
@@ -19,14 +19,14 @@ const PieChart = ({ data }: any) => {
   }, [data, total]);
 
   return (
-    <div className="relative w-40 h-40 rounded-full bg-gray-200">
+    <div className="relative w-60 h-60 rounded-full bg-gray-200">
       <div
         className="absolute inset-0 rounded-full"
         style={{ backgroundImage: `conic-gradient(${gradientStops})` }}
       ></div>
-      <div className="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center p-2">
-        <span className="text-lg font-bold">500</span>
-        <span className="text-sm text-gray-500">Total Staff</span>
+      <div className="absolute inset-14 bg-white rounded-full flex flex-col items-center justify-center p-2">
+        <span className="text-lg font-bold">Total Staff</span>
+        <span className="text-sm text-gray-500">500 persons</span>
       </div>
     </div>
   );

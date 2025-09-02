@@ -1,4 +1,8 @@
-import { IBatch, IBatchModalProps, IClassSchedule } from "@/types/academic/batch.interface";
+import {
+  IBatch,
+  IBatchModalProps,
+  IClassSchedule,
+} from "@/types/academic/batch.interface";
 import { batchSchema } from "@/validations/academic/batch.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -61,7 +65,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   const classSchedule = watch("schedule");
   const selectedStudents = watch("students");
 
-  // Reset the form 
+  // Reset the form
   useEffect(() => {
     if (initialData) {
       reset(initialData);

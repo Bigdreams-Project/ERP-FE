@@ -1,3 +1,25 @@
+import { Course } from "./course.interface";
+
+export interface Lead {
+  id: string;
+  fullName: string;
+  code: string;
+  email: string;
+  phone: string;
+  address: string;
+  parentName: string;
+  parentPhone: string;
+  parentEmail: string | null;
+  courseId: string;
+  course: Course;
+  enquiryDate: string;
+  source: string;
+  status: string;
+  nextFollowUpDate: string;
+  studyType: string;
+  note: string;
+}
+
 export interface ILead {
   fullname: string;
   email: string;

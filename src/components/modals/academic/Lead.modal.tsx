@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const coursesData = [
   {
@@ -50,12 +52,20 @@ const LeadModal: React.FC<ILeadModalProps> = ({
   onSave,
   mode,
 }) => {
+  const [startDate, setStartDate] = useState(new Date());
+  const [selectedCourse, setSelectedCourse] = useState<{
+    name: string;
+    fee: number;
+    baseFee: number;
+  } | null>(null);
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isValid },
     watch,
+    setValue,
   } = useForm<ILead>({
     resolver: yupResolver(leadSchema),
     mode: "onTouched",
@@ -77,11 +87,6 @@ const LeadModal: React.FC<ILeadModalProps> = ({
   });
 
   const selectedCourseName = watch("course");
-  const [selectedCourse, setSelectedCourse] = useState<{
-    name: string;
-    fee: number;
-    baseFee: number;
-  } | null>(null);
 
   useEffect(() => {
     const found = coursesData.find((c) => c.name === selectedCourseName);
@@ -330,10 +335,17 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <Calendar size={14} /> Enquiry Date
               </label>
-              <input
-                type="date"
-                id="enquiryDate"
-                {...register("enquiryDate")}
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => {
+                  if (date) {
+                    setStartDate(date);
+                    setValue("enquiryDate", date.toISOString().split("T")[0], {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                dateFormat="yyyy-MM-dd"
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.enquiryDate && (
@@ -408,10 +420,17 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <Clock size={14} /> Next Follow-up
               </label>
-              <input
-                type="date"
-                id="nextFollowup"
-                {...register("nextFollowup")}
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => {
+                  if (date) {
+                    setStartDate(date);
+                    setValue("nextFollowup", date.toISOString().split("T")[0], {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                dateFormat="yyyy-MM-dd"
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.nextFollowup && (
@@ -461,11 +480,11 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 cols={4}
                 placeholder="Add conversation here"
                 {...register("note")}
-                className="w-full h-24 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-24 px-3 pt-1 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.fullname && (
+              {errors.note && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.fullname.message}
+                  {errors.note.message}
                 </p>
               )}
             </div>

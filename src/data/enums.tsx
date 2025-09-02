@@ -16,4 +16,7 @@ export const AcademicStatus = {
   CONTACTED: "Contacted",
   DEPOSITED: "Deposited",
   NOT_INTERESTED: "Not Interested",
+  HIGH: "High",
+  LOW: "Low",
+  NORMAL: "Normal",
 };

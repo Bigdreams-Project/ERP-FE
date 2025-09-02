@@ -139,3 +139,36 @@ export const franchisePayments = [
     status: "Paid",
   },
 ];
+
+export const topPerformingCenters = [
+  {
+    id: 1,
+    centerName: "TecTerminal HQ",
+    score: 98,
+    status: "good",
+  },
+  {
+    id: 2,
+    centerName: "Aptech Kubwa",
+    score: 95,
+    status: "good",
+  },
+  {
+    id: 3,
+    centerName: "TecTerminal Yaba",
+    score: 92,
+    status: "good",
+  },
+  {
+    id: 4,
+    centerName: "TecTerminal Enugu",
+    score: 88,
+    status: "bad",
+  },
+  {
+    id: 5,
+    centerName: "TecTerminal Lekki",
+    score: 85,
+    status: "bad",
+  },
+];
