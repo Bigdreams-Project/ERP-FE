@@ -8,8 +8,9 @@ import SidebarMenu from "./SidebarMenu";
 
 const SideNav = () => {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-
   const [isMobile, setIsMobile] = useState(false);
+  
+  const toggleSidebar = () => setSidebarExpanded((prev) => !prev);
 
   useEffect(() => {
     const handleResize = () => {
@@ -77,8 +78,11 @@ const SideNav = () => {
             />
           ))}
       </div>
-
-      <SidebarMenu sidebarExpanded={sidebarExpanded} isMobile={isMobile} />
+      <SidebarMenu
+        sidebarExpanded={sidebarExpanded}
+        isMobile={isMobile}
+        toggleSidebar={toggleSidebar}
+      />{" "}
     </div>
   );
 };
