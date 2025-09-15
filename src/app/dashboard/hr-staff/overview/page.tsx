@@ -19,7 +19,7 @@ import Image from "next/image";
 export default function Overview() {
   return (
     <div className="flex bg-white font-sans text-gray-800 min-h-screen">
-      <main className="flex-1 p-8">
+      <main className="flex-1 py-8 px-3">
         {/* Overview Header */}
         <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6">
           <h1 className="text-2xl font-bold text-white">Welcome, John Doe!</h1>

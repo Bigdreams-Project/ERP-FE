@@ -1,4 +1,4 @@
-import { getStatusBgColor, getStepBgColor } from "../utils/backgrounds";
+import { getStatusBgColor } from "../utils/backgrounds";
 
 interface Props {
   status: string;

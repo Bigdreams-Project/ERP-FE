@@ -19,7 +19,7 @@ import { IoDocumentAttachOutline } from "react-icons/io5";
 export default function Overview() {
   return (
     <div className="flex bg-white font-sans text-gray-800">
-      <main className="flex-1 p-8">
+      <main className="flex-1 py-8 px-3">
         {/* Header */}
         <div className="overview-gradient rounded-2xl p-6 text-white mb-6 shadow-md">
           <h1 className="text-xl font-bold">Welcome, John Doe</h1>
@@ -109,24 +109,11 @@ export default function Overview() {
             </div>
             <div className="flex items-center space-x-4">
               <ChartLegend data={revenueDistribution} />
-              <div className="relative w-48 h-48 rounded-full bg-slate-300">
-                <div
-                  className="absolute inset-0 rounded-full bg-conic-gradient from-emerald-500 via-indigo-500 to-teal-500"
-                  style={{
-                    backgroundImage:
-                      "conic-gradient(from 0deg, #34d399 0%, #34d399 20%, #6366f1 20%, #6366f1 40%, #14b8a6 40%, #14b8a6 60%, #e879f9 60%, #e879f9 80%, #64748b 80%, #64748b 100%)",
-                  }}
-                ></div>
-                <div className="absolute inset-10 bg-white rounded-full flex flex-col items-center justify-center p-2">
-                  <span className="text-sm font-bold">Total Revenue</span>
-                  <span className="text-sm text-gray-500">N450,000,000</span>
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Expenses Distribution */}
-          <div className="bg-white p-6 rounded-2xl shadow-md">
+          <div className="bg-white p-6 rounded-2xl shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl">
             <h3 className="text-lg font-semibold mb-2">
               Expenses Distribution by Center
             </h3>
@@ -135,24 +122,11 @@ export default function Overview() {
             </div>
             <div className="flex items-center space-x-4">
               <ChartLegend data={expensesDistribution} />
-              <div className="relative w-48 h-48 rounded-full bg-slate-300">
-                <div
-                  className="absolute inset-0 rounded-full bg-conic-gradient from-rose-500 via-orange-500 to-amber-500"
-                  style={{
-                    backgroundImage:
-                      "conic-gradient(from 0deg, #f43f5e 0%, #f43f5e 40%, #f97316 40%, #f97316 55%, #fbbf24 55%, #fbbf24 70%, #a3e635 70%, #a3e635 85%, #d1d5db 85%, #d1d5db 100%)",
-                  }}
-                ></div>
-                <div className="absolute inset-10 bg-white rounded-full flex flex-col items-center justify-center p-2">
-                  <span className="text-sm font-bold">Total Revenue</span>
-                  <span className="text-sm text-gray-500">N450,000,000</span>
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Top Performing Centers */}
-          <div className="bg-gray-50 rounded-lg p-6 shadow-md border border-gray-200">
+          <div className="bg-gray-50 rounded-lg p-6 shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl border border-gray-200">
             <h2 className="text-lg font-bold text-gray-800 mb-4">
               Top Performing Centers
             </h2>

@@ -47,3 +47,19 @@ export const getStatusBgColor = (status: string) => {
       return "bg-gray-100 text-gray-800";
   }
 };
+
+export const getPieChartBgColor = (colorClass: string): string => {
+  const colors: Record<string, string> = {
+    "bg-emerald-500": "#10B981",
+    "bg-indigo-500": "#6366F1",
+    "bg-teal-500": "#14B8A6",
+    "bg-fuchsia-500": "#D946EF",
+    "bg-slate-400": "#94A3B8",
+    "bg-rose-500": "#F43F5E",
+    "bg-orange-500": "#F97316",
+    "bg-amber-500": "#F59E0B",
+    "bg-yellow-500": "#EAB308",
+    "bg-lime-500": "#84CC16",
+  };
+  return colors[colorClass] || "#000000";
+};
