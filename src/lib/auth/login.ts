@@ -2,14 +2,16 @@
 import { AuthRoutes } from "@/constants/apiRoutes.constant";
 import { AppAuthRoutes } from "@/constants/appRoutes.constant";
 import { ILoginUser } from "@/types/auth/login.interface";
+import axios from "axios";
 import { revalidatePath } from "next/cache";
-import { server } from "../server";
 import { createSession, deleteSession } from "../session";
 
 export const loginUser = async (credentials: ILoginUser) => {
   try {
-    const api = await server();
-    const response = await api.post(AuthRoutes.LOGIN, credentials);
+    const response = await axios.post(
+      `${AuthRoutes.BASE_URL}${AuthRoutes.LOGIN}`,
+      credentials
+    );
 
     if (response.status < 200 || response.status >= 300) {
       console.error("Login error:", response.status, response.data);

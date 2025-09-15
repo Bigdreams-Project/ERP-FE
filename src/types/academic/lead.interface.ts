@@ -1,4 +1,21 @@
 import { Course } from "./course.interface";
+import { Guardian } from "./student.interface";
+
+export interface Document {
+  id: string;
+  name: string;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeadNote {
+  id: string;
+  title: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Lead {
   id: string;
@@ -7,9 +24,6 @@ export interface Lead {
   email: string;
   phone: string;
   address: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string | null;
   courseId: string;
   course: Course;
   enquiryDate: string;
@@ -17,7 +31,10 @@ export interface Lead {
   status: string;
   nextFollowUpDate: string;
   studyType: string;
-  note: string;
+  guardians: Guardian[];
+  notes: LeadNote[];
+  documents: Document[];
+  createdAt?: string;
 }
 
 export interface ILead {
@@ -36,7 +53,7 @@ export interface ILead {
   studyType: string;
   note: string;
 }
- 
+
 export interface ILeadModalProps {
   isOpen: boolean;
   onClose: () => void;

@@ -2,13 +2,13 @@ import { AcademicStatus, ConversionSteps } from "@/data/enums";
 
 export const getStepBgColor = (step: string) => {
   switch (step) {
-    case ConversionSteps.NEW:
+    case ConversionSteps[0].id:
       return "bg-amber-50 text-amber-500 ring-amber-500/10";
-    case ConversionSteps.CONTACTED:
+    case ConversionSteps[1].id:
       return "bg-blue-50 text-blue-500 ring-blue-500/10";
-    case ConversionSteps.DEPOSITED:
+    case ConversionSteps[2].id:
       return "bg-green-50 text-green-500 ring-green-500/10";
-    case ConversionSteps.ENROLLED:
+    case ConversionSteps[3].id:
       return "bg-purple-50 text-purple-500 ring-purple-500/10";
     default:
       return "bg-gray-50 text-gray-500 ring-gray-500/10";

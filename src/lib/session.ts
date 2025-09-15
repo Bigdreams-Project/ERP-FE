@@ -5,7 +5,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const secretKey = process.env.SESSION_SECRET_KEY!;
+const secretKey = process.env.SESSION_SECRET_KEY;
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export const createSession = async (payload: Session) => {

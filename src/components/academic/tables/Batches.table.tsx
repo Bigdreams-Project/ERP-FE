@@ -2,16 +2,17 @@
 import BatchModal from "@/components/modals/academic/Batch.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { batches } from "@/data/mock/academic.data";
-import { IBatch } from "@/types/academic/batch.interface";
+import { Batch } from "@/types/academic/batch.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
+import { formatDate } from "@/lib/utils";
 
 type Props = {
   searchQuery: string;
-  filteredData: IBatch[];
+  filteredData: Batch[];
 };
 
 export default function BatchTable({ searchQuery, filteredData }: Props) {
@@ -99,15 +100,15 @@ export default function BatchTable({ searchQuery, filteredData }: Props) {
                       />
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="p-3">{batch.createdDate}</td>
+                    <td className="p-3">{formatDate(batch.createdAt)}</td>
                     <td className="p-3">{batch.code}</td>
-                    <td className="p-3">{batch.course}</td>
+                    <td className="p-3">{batch.course?.name}</td>
                     <td className="p-3">{batch.duration}</td>
-                    <td className="p-3">{batch.faculty}</td>
-                    <td className="p-3">{batch.schedule.length}</td>
+                    <td className="p-3">{batch.faculty?.fullname}</td>
+                    <td className="p-3">{batch.schedules.length}</td>
                     <td className="p-3">{batch.students.length}</td>
-                    <td className="p-3">{batch.startDate}</td>
-                    <td className="p-3">{batch.endDate}</td>
+                    <td className="p-3">{formatDate(batch.startDate)}</td>
+                    <td className="p-3">{formatDate(batch.endDate)}</td>
                     <td className="p-3">
                       <StatusBadge step={batch.status} label={batch.status} />
                     </td>

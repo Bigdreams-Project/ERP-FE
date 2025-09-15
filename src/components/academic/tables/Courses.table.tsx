@@ -1,7 +1,7 @@
 "use client";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { ICourse } from "@/types/academic/course.interface";
+import { Course } from "@/types/academic/course.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -10,7 +10,7 @@ import StatusBadge from "../common/StatusBadge";
 
 type Props = {
   searchQuery: string;
-  filteredData: ICourse[];
+  filteredData: Course[];
 };
 
 export default function CoursesTable({ searchQuery, filteredData }: Props) {
@@ -154,8 +154,8 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                     </td>
                     <td className="p-4">{course.duration}</td>
                     <td className="p-4">{course.baseFee}</td>
-                    <td className="p-4">{course.students.length}</td>
-                    <td className="p-4">{course.leads.length}</td>
+                    <td className="p-4">{course.students?.length}</td>
+                    <td className="p-4">{course.leads?.length}</td>
                     <td className="p-4">{course.type}</td>
                     <td className="p-3">
                       <StatusBadge step={course.status} label={course.status} />

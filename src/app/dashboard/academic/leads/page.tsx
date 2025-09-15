@@ -1,8 +1,8 @@
 import LeadContent from "@/content/dashboard/academic/leads";
-import { fetchLeads } from "@/lib/network";
+import { getLeads } from "@/lib/network";
 
 export default async function Leads() {
-  const leads = await fetchLeads();
+  const leads = await getLeads();
 
   return <LeadContent leads={leads} />;
 }

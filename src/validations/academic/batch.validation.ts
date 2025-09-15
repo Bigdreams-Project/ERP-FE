@@ -1,5 +1,5 @@
 import * as yup from "yup";
-
+ 
 export const batchSchema = yup.object().shape({
   code: yup.string().required("Batch code is required"),
   course: yup.string().required("Course is required"),
@@ -14,8 +14,9 @@ export const batchSchema = yup.object().shape({
       yup
         .object()
         .shape({
-          dayOfWeek: yup.string().required("Day of the week is required"),
-          time: yup.string().required("Time is required"),
+          day: yup.string().required("Day of the week is required"),
+          startTime: yup.string().required("Start time is required"),
+          endTime: yup.string().required("End time is required"),
           duration: yup
             .number()
             .required("Duration is required")

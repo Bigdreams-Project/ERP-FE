@@ -1,6 +1,7 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { formatDate } from "@/lib/utils";
 import { Lead } from "@/types/academic/lead.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -17,7 +18,11 @@ type Props = {
   };
 };
 
-export default function LeadTable({ leads, searchQuery, filterOptions }: Props) {
+export default function LeadTable({
+  leads,
+  searchQuery,
+  filterOptions,
+}: Props) {
   const router = useRouter();
   const [data, setData] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -150,12 +155,13 @@ export default function LeadTable({ leads, searchQuery, filterOptions }: Props) 
                   <th className="p-4">Inquiry Date</th>
                   <th className="p-4">Course Inquiry</th>
                   <th className="p-4">Next Follow-up</th>
-                  <th className="p-4"></th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4">Actions</th>
                 </tr>
               </thead>
 
               <tbody className="text-[13px]">
-                {paginatedData.map((lead, index) => (
+                {paginatedData.map((lead: Lead, index) => (
                   <tr
                     key={lead.id}
                     onClick={() =>
@@ -173,9 +179,9 @@ export default function LeadTable({ leads, searchQuery, filterOptions }: Props) 
                     <td className="p-4 font-bold">{lead.fullName}</td>
                     <td className="p-4">{lead.email}</td>
                     <td className="p-4">{lead.phone}</td>
-                    <td className="p-4">{lead.enquiryDate}</td>
-                    <td className="p-4">{lead.courseId}</td>
-                    <td className="p-4">{lead.nextFollowUpDate}</td>
+                    <td className="p-4">{formatDate(lead.enquiryDate)}</td>
+                    <td className="p-4">{lead.course?.name}</td>
+                    <td className="p-4">{formatDate(lead.nextFollowUpDate)}</td>
                     <td className="p-3">
                       <StatusBadge step={lead.status} label={lead.status} />
                     </td>

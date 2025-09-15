@@ -1,7 +1,7 @@
 import {
   IBatch,
   IBatchModalProps,
-  IClassSchedule,
+  IBatchSchedule,
 } from "@/types/academic/batch.interface";
 import { batchSchema } from "@/validations/academic/batch.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -53,7 +53,14 @@ const BatchModal: React.FC<IBatchModalProps> = ({
       course: "",
       startDate: "",
       endDate: "",
-      schedule: [{ dayOfWeek: "Monday", time: "02:00 PM", duration: 2 }],
+      schedule: [
+        {
+          day: "Monday",
+          startTime: "02:00 PM",
+          endTime: "02:00 PM",
+          duration: 2,
+        },
+      ],
       faculty: "",
       students: [],
     },
@@ -75,7 +82,14 @@ const BatchModal: React.FC<IBatchModalProps> = ({
         course: "",
         startDate: "",
         endDate: "",
-        schedule: [{ dayOfWeek: "Monday", time: "02:00 PM", duration: 2 }],
+        schedule: [
+          {
+            day: "Monday",
+            startTime: "02:00 PM",
+            endTime: "02:00 PM",
+            duration: 2,
+          },
+        ],
         faculty: "",
         students: [],
       });
@@ -89,10 +103,12 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     }
   };
 
-  const formatSchedule = (schedule: IClassSchedule[]) => {
+  const formatSchedule = (schedule: IBatchSchedule[]) => {
     if (!schedule || schedule.length === 0) return "";
     return schedule
-      .map((s) => `${s.dayOfWeek} ${s.time} - ${s.duration} hours`)
+      .map(
+        (s) => `${s.day} ${s.startTime} ${s.endTime} - ${s.duration} hours`
+      )
       .join(", ");
   };
 
@@ -224,7 +240,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       id={`classSchedule.${index}.dayOfWeek`}
-                      {...register(`schedule.${index}.dayOfWeek`)}
+                      {...register(`schedule.${index}.day`)}
                       className="w-full h-9 px-3 text-sm rounded-lg bg-gray-100 appearance-none"
                     >
                       <option value="Monday">Monday</option>
@@ -245,8 +261,8 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                       Time
                     </label>
                     <select
-                      id={`classSchedule.${index}.time`}
-                      {...register(`schedule.${index}.time`)}
+                      id={`classSchedule.${index}.startTime`}
+                      {...register(`schedule.${index}.startTime`)}
                       className="w-full h-9 px-3 text-sm rounded-lg bg-gray-100 appearance-none"
                     >
                       <option value="02:00 PM">02:00 PM</option>

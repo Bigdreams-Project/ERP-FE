@@ -36,51 +36,20 @@ const CourseModal: React.FC<ICourseModalProps> = ({
     resolver: yupResolver(courseSchema),
     mode: "onTouched",
     defaultValues: {
-      code: "AP-ADSE-01",
       name: "",
       type: "",
       duration: 12,
-      lumpSumFee: 0,
-      baseFee: 0,
-      maxInstallments: 5,
-      costPerInstallment: 0,
-      centers: [],
     },
   });
-
-  // Watch for changes in the fields that affect the calculated fee
-  const lumpSumFee = watch("lumpSumFee");
-  const maxInstallments = watch("maxInstallments");
-  const centers = watch("centers");
-
-  // Recalculate cost per installment whenever lump sum or installments change
-  useEffect(() => {
-    if (
-      typeof lumpSumFee === "number" &&
-      typeof maxInstallments === "number" &&
-      maxInstallments > 0
-    ) {
-      const calculatedAmount = lumpSumFee / maxInstallments;
-      setValue("costPerInstallment", calculatedAmount);
-    } else {
-      setValue("costPerInstallment", 0);
-    }
-  }, [lumpSumFee, maxInstallments, setValue]);
 
   useEffect(() => {
     if (initialData) {
       reset(initialData);
     } else {
       reset({
-        code: "AP-ADSE-01",
         name: "",
         type: "",
         duration: 12,
-        lumpSumFee: 0,
-        baseFee: 0,
-        maxInstallments: 5,
-        costPerInstallment: 0,
-        centers: [],
       });
     }
   }, [initialData, reset]);
@@ -101,15 +70,12 @@ const CourseModal: React.FC<ICourseModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
       <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
-        {/* Modal Header */}
+        {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div className="flex flex-col">
             <h2 className="text-xl font-bold text-gray-800">
               Create New Course
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Course Code - {getValues("code")}
-            </p>
           </div>
           <button
             onClick={onClose}
@@ -125,7 +91,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
           onSubmit={handleSubmit(handlePublish)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-white rounded-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Enter Course Name
             </h3>
@@ -206,143 +172,6 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                     {errors.duration.message}
                   </p>
                 )}
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Course Pricing */}
-          <div className="p-4 bg-gray-50 rounded-lg mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Course Pricing
-            </h3>
-            <p className="text-sm text-gray-500 mt-1 mb-4">
-              <span className="font-semibold">Course Name:</span>
-              {getValues("name") || "N/A"}
-              <span className="ml-4 font-semibold">Course Code:</span>
-              {getValues("code") || "N/A"}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-              {/* Lump Sum Fee */}
-              <div className="flex flex-col">
-                <label
-                  htmlFor="lumpSumFee"
-                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
-                >
-                  <DollarSign size={14} /> Lump Sum Fee
-                </label>
-                <input
-                  type="number"
-                  id="lumpSumFee"
-                  {...register("lumpSumFee", { valueAsNumber: true })}
-                  className="w-full h-10 px-4 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-                  placeholder="₦0"
-                />
-                {errors.lumpSumFee && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.lumpSumFee.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Base Enrollment Fee */}
-              <div className="flex flex-col">
-                <label
-                  htmlFor="baseFee"
-                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
-                >
-                  <DollarSign size={14} /> Base Enrollment Fee
-                </label>
-                <input
-                  type="number"
-                  id="baseFee"
-                  {...register("baseFee", { valueAsNumber: true })}
-                  className="w-full h-10 px-4 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-                  placeholder="₦0"
-                />
-                {errors.baseFee && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.baseFee.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Max No. of Installments */}
-              <div className="flex flex-col relative">
-                <label
-                  htmlFor="maxInstallments"
-                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
-                >
-                  <BookOpen size={14} /> Max No. of Installments
-                </label>
-                <select
-                  id="maxInstallments"
-                  {...register("maxInstallments", { valueAsNumber: true })}
-                  className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
-                >
-                  {installmentOptions.map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <ChevronDown size={18} />
-                </span>
-                {errors.maxInstallments && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.maxInstallments.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Cost Per Installments (Auto-Calculated) */}
-              <div className="flex flex-col">
-                <label
-                  htmlFor="costPerInstallment"
-                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
-                >
-                  <DollarSign size={14} /> Cost Per Installments
-                </label>
-                <input
-                  type="text"
-                  id="costPerInstallment"
-                  value={getValues("costPerInstallment")!.toLocaleString(
-                    "en-NG",
-                    { style: "currency", currency: "NGN" }
-                  )}
-                  readOnly
-                  className="w-full h-10 px-4 text-sm rounded-lg bg-gray-200 text-gray-600 border border-gray-300 focus:outline-none cursor-not-allowed"
-                />
-              </div>
-
-              {/* Select Center */}
-              <div className="flex flex-col relative sm:col-span-2">
-                <label
-                  htmlFor="centers"
-                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
-                >
-                  <MapPin size={14} /> Select Center
-                </label>
-                <select
-                  id="centers"
-                  multiple
-                  {...register("centers")}
-                  className="w-full h-24 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
-                >
-                  {centersData.map((center) => (
-                    <option key={center} value={center}>
-                      {center}
-                    </option>
-                  ))}
-                </select>
-                {errors.centers && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.centers.message}
-                  </p>
-                )}
-                <p className="text-sm text-gray-600 mt-2">
-                  Selected: {centers.join(", ") || "None"}
-                </p>
               </div>
             </div>
           </div>
