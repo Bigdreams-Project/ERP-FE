@@ -1,4 +1,5 @@
-import { ILead } from "./lead.interface";
+import { Batch } from "./batch.interface";
+import { Document, ILead } from "./lead.interface";
 import { IStudent } from "./student.interface";
  
 export interface Course {
@@ -8,29 +9,22 @@ export interface Course {
   type: string;
   status: string;
   duration: number;
-  lumpSumFee: number;
+  lumpSumFee: number; 
   baseFee: number;
   students: IStudent[];
   leads: ILead[];
   maxInstallments: number;
   costPerInstallment: number | null;
-  centers: string[];
+  batches: Batch[];
+  documents: Document[];
+  createdAt?: string;
 }
 
 export interface ICourse {
   id?: string;
-  code: string;
   name: string;
   type: string;
-  status: string;
   duration: number;
-  lumpSumFee: number;
-  baseFee: number;
-  students: IStudent[];
-  leads: ILead[];
-  maxInstallments: number;
-  costPerInstallment: number | null;
-  centers: string[];
 }
 
 export interface ICourseModalProps {

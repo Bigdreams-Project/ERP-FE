@@ -1,17 +1,21 @@
 "use client";
 import CenterModal from "@/components/modals/academic/Center.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { centers } from "@/data/mock/academic.data";
+import { Center } from "@/types/academic/center.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 
 type CenterTableProps = {
+  centers: Center[];
   searchQuery: string;
 };
 
-export default function CenterTable({ searchQuery }: CenterTableProps) {
+export default function CenterTable({
+  centers,
+  searchQuery,
+}: CenterTableProps) {
   const router = useRouter();
   const [data] = useState(centers);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -24,7 +28,6 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
     const query = searchQuery.toLowerCase();
     return (
       center.name.toLowerCase().includes(query) ||
-      center.manager.toLowerCase().includes(query) ||
       center.email.toLowerCase().includes(query) ||
       center.phone.toLowerCase().includes(query) ||
       center.address.toLowerCase().includes(query)
@@ -138,11 +141,11 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
                   <th className="p-4">Center Address</th>
                   <th className="p-4">Enrolled Students</th>
                   <th className="p-4">Leads</th>
-                  <th className="p-4"></th>
+                  <th className="p-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-[13px]">
-                {paginatedData.map((center, index) => (
+                {paginatedData.map((center: Center, index) => (
                   <tr
                     key={center.id}
                     onClick={() =>
@@ -164,7 +167,7 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
                       {highlightMatch(center.name, searchQuery)}
                     </td>
                     <td className="p-3 font-bold">
-                      {highlightMatch(center.manager, searchQuery)}
+                      {highlightMatch(center.managers[0]?.fullname, searchQuery)}
                     </td>
                     <td className="p-3">
                       {highlightMatch(center.email, searchQuery)}
@@ -175,8 +178,8 @@ export default function CenterTable({ searchQuery }: CenterTableProps) {
                     <td className="p-3">
                       {highlightMatch(center.address, searchQuery)}
                     </td>
-                    <td className="p-3">{center.students}</td>
-                    <td className="p-3">{center.leads}</td>
+                    <td className="p-3">{center.students.length}</td>
+                    <td className="p-3">{center.leads.length}</td>
                     <td className="p-3 relative text-right">
                       <button
                         onClick={() => toggleDropdown(center.id)}

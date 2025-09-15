@@ -70,7 +70,7 @@ const LeadContent = ({ leads }: LeadContentProps) => {
   return (
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Leads" }]} />
-      <div className="w-full  flex items-center justify-between  text-center">
+      <div className="w-full  flex items-center justify-between text-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>

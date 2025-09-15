@@ -1,7 +1,7 @@
-import { conversionSteps } from "@/data/mock/academic.data";
 import { FaCheckCircle } from "react-icons/fa";
 import { RiRecordCircleFill } from "react-icons/ri";
 import { getStepBgColor } from "../utils/backgrounds";
+import { ConversionSteps } from "@/data/enums";
 
 interface ConversionProgressProps {
   currentStep: string;
@@ -10,13 +10,13 @@ interface ConversionProgressProps {
 export default function ConversionProgress({
   currentStep,
 }: ConversionProgressProps) {
-  const currentIndex = conversionSteps.findIndex((s) => s.id === currentStep);
-  const progress = ((currentIndex + 1) / conversionSteps.length) * 100;
+  const currentIndex = ConversionSteps.findIndex((s) => s.id === currentStep);
+  const progress = ((currentIndex + 1) / ConversionSteps.length) * 100;
 
   return (
     <div className="w-full p-4 bg-white">
       <div className="mt-4 flex items-center flex-wrap text-sm">
-        {conversionSteps.map((step, idx) => {
+        {ConversionSteps.map((step, idx) => {
           const isCompleted = idx <= currentIndex;
           return (
             <div key={step.id}>
@@ -32,7 +32,7 @@ export default function ConversionProgress({
                   {step.label}
                 </span>
               </span>
-              {idx < conversionSteps.length - 1 && (
+              {idx < ConversionSteps.length - 1 && (
                 <span className="mx-2 text-gray-400">→</span>
               )}
             </div>
@@ -57,19 +57,19 @@ export default function ConversionProgress({
           {/* Stepper */}
           <div className="relative w-full z-30 flex justify-between items-center">
             <div className="flex flex-col items-start">
-              {renderStep(conversionSteps[0], 0, currentIndex)}
+              {renderStep(ConversionSteps[0], 0, currentIndex)}
             </div>
 
             <div className="flex flex-1 justify-center space-x-24">
-              {conversionSteps
-                .slice(1, conversionSteps.length - 1)
+              {ConversionSteps
+                .slice(1, ConversionSteps.length - 1)
                 .map((step, idx) => renderStep(step, idx + 1, currentIndex))}
             </div>
 
             <div className="flex flex-col items-end">
               {renderStep(
-                conversionSteps[conversionSteps.length - 1],
-                conversionSteps.length - 1,
+                ConversionSteps[ConversionSteps.length - 1],
+                ConversionSteps.length - 1,
                 currentIndex
               )}
             </div>

@@ -1,7 +1,15 @@
 import { server } from "@/lib/server";
+import { CreateBatch } from "@/types/requests/batch.interface";
+import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
+import { CreateCourse, UpdateCourse } from "@/types/requests/course.interface";
+import { CreateLead, UpdateLead } from "@/types/requests/lead.interface";
+import {
+  CreateStudent,
+  UpdateStudent,
+} from "@/types/requests/student.interface";
 
 // Leads
-export const fetchLeads = async () => {
+export const getLeads = async () => {
   try {
     const api = await server();
     const res = await api.get("/leads");
@@ -12,8 +20,52 @@ export const fetchLeads = async () => {
   }
 };
 
+export const getLead = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/leads/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch lead:", err.message);
+    return {};
+  }
+};
+
+export const createLead = async (id: string, payload: CreateLead) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/leads`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create lead:", err.message);
+    return err.message;
+  }
+};
+
+export const updateLead = async (id: string, payload: UpdateLead) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/leads/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update lead:", err.message);
+    return err.message;
+  }
+};
+
+export const deleteLead = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/leads/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete lead:", err.message);
+    return err.message;
+  }
+};
+
 // Centers
-export const fetchCenters = async () => {
+export const getCenters = async () => {
   try {
     const api = await server();
     const res = await api.get("/centers");
@@ -24,8 +76,52 @@ export const fetchCenters = async () => {
   }
 };
 
+export const getCenter = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/centers/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch center:", err.message);
+    return {};
+  }
+};
+
+export const createCenter = async (id: string, payload: CreateCenter) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/centers`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create center:", err.message);
+    return err.message;
+  }
+};
+
+export const updateCenter = async (id: string, payload: UpdateCenter) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/centers/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update center:", err.message);
+    return err.message;
+  }
+};
+
+export const deleteCenter = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/centers/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete center:", err.message);
+    return err.message;
+  }
+};
+
 // Courses
-export const fetchCourses = async () => {
+export const getCourses = async () => {
   try {
     const api = await server();
     const res = await api.get("/courses");
@@ -36,8 +132,52 @@ export const fetchCourses = async () => {
   }
 };
 
+export const getCourse = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/courses/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch course:", err.message);
+    return {};
+  }
+};
+
+export const createCourse = async (id: string, payload: CreateCourse) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/courses`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create course:", err.message);
+    return err.message;
+  }
+};
+
+export const updateCourse = async (id: string, payload: UpdateCourse) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/courses/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update course:", err.message);
+    return err.message;
+  }
+};
+
+export const deleteCourse = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/courses/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete course:", err.message);
+    return err.message;
+  }
+};
+
 // Students
-export const fetchStudents = async () => {
+export const getStudents = async () => {
   try {
     const api = await server();
     const res = await api.get("/students");
@@ -48,8 +188,52 @@ export const fetchStudents = async () => {
   }
 };
 
+export const getStudent = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/students/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch students:", err.message);
+    return {};
+  }
+};
+
+export const createStudent = async (id: string, payload: CreateStudent) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/students`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create student:", err.message);
+    return err.message;
+  }
+};
+
+export const updateStudent = async (id: string, payload: UpdateStudent) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/students/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update student:", err.message);
+    return err.message;
+  }
+};
+
+export const deleteStudent = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/students/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete student:", err.message);
+    return err.message;
+  }
+};
+
 // Batches
-export const fetchBatches = async () => {
+export const getBatches = async () => {
   try {
     const api = await server();
     const res = await api.get("/batches");
@@ -57,5 +241,49 @@ export const fetchBatches = async () => {
   } catch (err: any) {
     console.error("Failed to fetch batches:", err.message);
     return [];
+  }
+};
+
+export const getBatch = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/batches/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch batch:", err.message);
+    return {};
+  }
+};
+
+export const createBatch = async (id: string, payload: CreateBatch) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/batches`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create batch:", err.message);
+    return err.message;
+  }
+};
+
+export const updateBatch = async (id: string, payload: UpdateLead) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/batches/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update batch", err.message);
+    return err.message;
+  }
+};
+
+export const deleteBatch = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/batches/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete batch:", err.message);
+    return err.message;
   }
 };

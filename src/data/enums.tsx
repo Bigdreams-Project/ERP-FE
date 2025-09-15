@@ -1,4 +1,4 @@
-export const ConversionSteps = {
+export const BgConversionSteps = {
   NEW: "new",
   CONTACTED: "contacted",
   DEPOSITED: "deposited",
@@ -20,3 +20,10 @@ export const AcademicStatus = {
   LOW: "Low",
   NORMAL: "Normal",
 };
+
+export const ConversionSteps = [
+  { id: "NEW", label: "New" },
+  { id: "CONTACTED", label: "Contacted" },
+  { id: "DEPOSITED", label: "Deposited" },
+  { id: "ENROLLED", label: "Enrolled" },
+];

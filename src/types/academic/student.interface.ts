@@ -1,3 +1,59 @@
+import { StudentBatch } from "./batch.interface";
+import { Course } from "./course.interface";
+
+export interface Guardian {
+  id: string;
+  fullname: string;
+  email: string;
+  phone: string;
+  address: string;
+  studentId: string;
+}
+
+export interface BatchStudent {
+  student: {
+    id: string;
+    studentId: string | null;
+    leadId: string | null;
+    fullName: string;
+    phone: string;
+    email: string;
+    image: string;
+    address: string;
+    guardians: Guardian[];
+    courses: Course[];
+    enrolledDate: string;
+    batches: StudentBatch[];
+    status: string;
+    paymentPlan: string;
+    lumpSum: number | null;
+    numberOfInstallments: number | null;
+    comments: string | null;
+    createdAt: string;
+  };
+}
+
+export interface Student {
+  id: string;
+  studentId: string | null;
+  leadId: string | null;
+  fullName: string;
+  phone: string;
+  email: string;
+  image: string;
+  address: string;
+  guardians: Guardian[];
+  courses: Course[];
+  enrolledDate: string;
+  batches: StudentBatch[];
+  status: string;
+  paymentPlan: string;
+  lumpSum: number | null;
+  numberOfInstallments: number | null;
+  comments: string | null;
+  createdAt: string;
+}
+
 export interface IStudent {
   id?: string;
   studentId: string | null;
@@ -17,7 +73,7 @@ export interface IStudent {
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
-} 
+}
 
 export interface IStudentModalProps {
   isOpen: boolean;

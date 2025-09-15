@@ -2,7 +2,8 @@
 import StudentModal from "@/components/modals/academic/StudentModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
-import { IStudent } from "@/types/academic/student.interface";
+import { formatDate } from "@/lib/utils";
+import { Student } from "@/types/academic/student.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,12 +12,11 @@ import StatusBadge from "../common/StatusBadge";
 
 type Props = {
   searchQuery: string;
-  filteredData: IStudent[];
+  filteredData: Student[];
 };
 
 export default function StudentTable({ searchQuery, filteredData }: Props) {
   const router = useRouter();
-  const [data] = useState(students);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -139,11 +139,12 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                   <th className="p-4">Parent/Guardian Name</th>
                   <th className="p-4">Parent/Guardian Phone Number</th>
                   <th className="p-4">Course Enrolled</th>
-                  <th className="p-4"></th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-[13px] ">
-                {paginatedData.map((student, index) => (
+                {paginatedData.map((student: Student, index) => (
                   <tr
                     key={student.id}
                     onClick={() =>
@@ -160,15 +161,17 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                       />
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="p-3">{student.dateEnrolled}</td>
+                    <td className="p-3">{formatDate(student.enrolledDate)}</td>
                     <td className="p-3">{student.studentId}</td>
                     <td className="p-3 font-bold">{student.fullName}</td>
                     <td className="p-3">{student.email}</td>
                     <td className="p-3">{student.phone}</td>
                     <td className="p-3">{student.address}</td>
-                    <td className="p-3">{student.parentGuardianName}</td>
-                    <td className="p-3">{student.parentGuardianPhone}</td>
-                    <td className="p-3">{student.courseEnrolled}</td>
+                    <td className="p-3">{student.guardians[0]?.fullname}</td>
+                    <td className="p-3">{student.guardians[0]?.phone}</td>
+                    <td className="p-3">
+                      {student.courses.length > 0 ? student.courses[0]?.name : "Not yet enrolled"}
+                    </td>
                     <td className="p-3">
                       <StatusBadge
                         step={student.status}

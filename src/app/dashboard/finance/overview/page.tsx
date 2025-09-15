@@ -18,9 +18,9 @@ import { IoDocumentAttachOutline } from "react-icons/io5";
 
 export default function Overview() {
   return (
-    <div className="flex bg-[#F5F5F5] font-sans text-gray-800">
+    <div className="flex bg-white font-sans text-gray-800">
       <main className="flex-1 p-8">
-        {/* Overview Header */}
+        {/* Header */}
         <div className="overview-gradient rounded-2xl p-6 text-white mb-6 shadow-md">
           <h1 className="text-xl font-bold">Welcome, John Doe</h1>
           <p className="text-sm font-medium">
@@ -57,7 +57,7 @@ export default function Overview() {
           {kpiData.map((kpi, index) => (
             <div
               key={index}
-              className="bg-white p-6 rounded-2xl shadow-md flex flex-col justify-between"
+              className="bg-white p-6 rounded-2xl shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl flex flex-col justify-between"
             >
               <div className="text-sm font-semibold text-gray-500 mb-2">
                 {kpi.title}
@@ -81,7 +81,10 @@ export default function Overview() {
         {/* Main Metrics (Revenue, Expenses, Profit, Cash Flow) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           {mainMetrics.map((metric, index) => (
-            <div key={index} className="bg-white p-6 rounded-2xl shadow-md">
+            <div
+              key={index}
+              className="bg-white p-6 rounded-2xl shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl"
+            >
               <div className="flex items-center space-x-2 mb-2">
                 <span className={`w-3 h-3 rounded-full ${metric.color}`}></span>
                 <div className="text-sm font-medium text-gray-500">
@@ -97,7 +100,7 @@ export default function Overview() {
         {/* Charts and Top Centers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Revenue Distribution */}
-          <div className="bg-white p-6 rounded-2xl shadow-md">
+          <div className="bg-white p-6 rounded-2xl shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl">
             <h3 className="text-lg font-semibold mb-2">
               Revenue Distribution by Center
             </h3>
