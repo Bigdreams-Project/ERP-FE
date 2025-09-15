@@ -18,7 +18,7 @@ import Image from "next/image";
 
 export default function Overview() {
   return (
-    <div className="flex bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div className="flex bg-white font-sans text-gray-800 min-h-screen">
       <main className="flex-1 p-8">
         {/* Overview Header */}
         <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6">
@@ -32,7 +32,6 @@ export default function Overview() {
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-bold">HR & Staff: Overview</h1>
           <div className="flex items-center space-x-4">
             <button className="px-4 py-2 flex items-center gap-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition-colors">
               <Users size={15} /> <span>New Staff</span>
@@ -50,7 +49,10 @@ export default function Overview() {
         {/* Staff Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6 text-rose-600">
           {staffStats.map((stat, index) => (
-            <div key={index} className="bg-white p-6 rounded-2xl shadow-md">
+            <div
+              key={index}
+              className="bg-white p-6 rounded-2xl shadow-sm shadow-gray-400 hover:shadow-2xl"
+            >
               <div className="text-sm font-semibold text-gray-500 flex justify-between mb-2">
                 {stat.title} {stat.icon}
               </div>
