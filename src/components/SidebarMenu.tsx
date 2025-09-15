@@ -15,9 +15,11 @@ import StaffIcon from "./svg/StaffIcon";
 const SidebarMenu = ({
   sidebarExpanded,
   isMobile,
+  toggleSidebar,
 }: {
   sidebarExpanded: boolean;
   isMobile: boolean;
+  toggleSidebar: () => void;
 }) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [expandedSubmenu, setExpandedSubmenu] = useState<string | null>(null);
@@ -157,6 +159,12 @@ const SidebarMenu = ({
           } transition-all duration-500 font-inter ${
             isActiveDashboard ? "bg-indigo-50 text-indigo-500 font-bold" : ""
           }`}
+          onClick={(e) => {
+            if (!sidebarExpanded) {
+              e.preventDefault();
+              toggleSidebar();
+            }
+          }}
         >
           <HouseIcon className="w-5 h-5 fill-current" />
           <div
@@ -165,6 +173,9 @@ const SidebarMenu = ({
                 ? "md:opacity-100 md:visible md:ml-2 md:w-auto opacity-0 invisible ml-0 w-0"
                 : "opacity-0 invisible ml-0 w-0"
             } ${!isActiveDashboard && "text-[rgba(0,0,0,0.7)]"}`}
+            onClick={() => {
+              if (!sidebarExpanded) toggleSidebar();
+            }}
           >
             Dashboard
           </div>
@@ -188,11 +199,10 @@ const SidebarMenu = ({
                     isMenuActive && "bg-indigo-50"
                   }`}
                   onClick={() => {
-                    setExpandedIndex(expandedIndex === index ? null : index);
-                    setHoveredIndex(index);
-                    if (hoveredIndex === index) {
-                      setHoveredIndex(null);
+                    if (!sidebarExpanded) {
+                      toggleSidebar();
                     } else {
+                      setExpandedIndex(expandedIndex === index ? null : index);
                       setHoveredIndex(index);
                     }
                   }}
@@ -303,6 +313,9 @@ const SidebarMenu = ({
                             <Link
                               key={i}
                               href={link.href!}
+                              onClick={() => {
+                                if (!sidebarExpanded) toggleSidebar();
+                              }}
                               className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${
                                 pathname === link.href
                                   ? "font-bold text-[rgba(0,0,0,0.8)]"
@@ -322,6 +335,8 @@ const SidebarMenu = ({
           })}
         </div>
       </div>
+
+      {/* Signout */}
       <div
         className={` flex gap-1 border-t justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
           sidebarExpanded ? "" : "px-[0rem] pl-[0.1rem]"
