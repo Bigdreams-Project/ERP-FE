@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
+import { CreateCourse } from "@/types/requests/course.interface";
+import { createCourse } from "@/lib/network";
 
 type Props = {
   searchQuery: string;
@@ -15,6 +17,7 @@ type Props = {
 
 export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const router = useRouter();
+  const [data, setData] = useState(filteredData);
   const [selectedCourses, setSelectedCourses] = useState<any>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -89,8 +92,17 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     );
   };
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
+    try {
+      const response = await createCourse(payload, isDraft);
+
+      console.log("Course created successfully:", response);
+
+      setData((prev) => [...prev, response]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save course:", error);
+    }
   };
 
   return (

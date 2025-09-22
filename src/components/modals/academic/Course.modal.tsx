@@ -1,21 +1,10 @@
-import { courseTypes } from "@/data/mock/academic.data";
+import { courseTypes, durationOptions } from "@/data/view/course.data";
 import { ICourse, ICourseModalProps } from "@/types/academic/course.interface";
 import { courseSchema } from "@/validations/academic/course.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  BookOpen,
-  ChevronDown,
-  Clock,
-  DollarSign,
-  MapPin,
-  X,
-} from "lucide-react";
+import { BookOpen, ChevronDown, Clock, X } from "lucide-react";
 import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-
-const installmentOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-const durationOptions = [12, 24, 36, 48];
-const centersData = ["Enugu", "Kubwa", "Onitsha", "Owerri", "Umuahia"];
 
 const CourseModal: React.FC<ICourseModalProps> = ({
   isOpen,
@@ -43,25 +32,29 @@ const CourseModal: React.FC<ICourseModalProps> = ({
   });
 
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    } else {
-      reset({
-        name: "",
-        type: "",
-        duration: 12,
-      });
+    if (isOpen) {
+      if (initialData) {
+        reset(initialData);
+      } else {
+        reset({
+          name: "",
+          type: "",
+          duration: 12,
+        });
+      }
     }
-  }, [initialData, reset]);
+  }, [isOpen, initialData, reset]);
 
-  const handleSaveDraft = () => {
-    const data = getValues();
+
+  const handleSaveDraft = (data: ICourse | any) => {
     onSave(data, true);
+    console.log(data, true);
     onClose();
   };
 
-  const handlePublish: SubmitHandler<ICourse> = (data) => {
+  const handlePublish = (data: ICourse | any) => {
     onSave(data, false);
+    console.log(data, false);
     onClose();
   };
 
@@ -89,7 +82,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
         {/* Form */}
         <form
           onSubmit={handleSubmit(handlePublish)}
-          className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
+          className="mt-2 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
           <div className="p-4 bg-white rounded-lg">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
@@ -131,8 +124,8 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                 >
                   <option value="">Select Type</option>
                   {courseTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
+                    <option key={type.value} value={type.value}>
+                      {type.label}
                     </option>
                   ))}
                 </select>
@@ -160,8 +153,8 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                   className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   {durationOptions.map((duration) => (
-                    <option key={duration} value={duration}>
-                      {duration}
+                    <option key={duration.value} value={duration.value}>
+                      {duration.label}
                     </option>
                   ))}
                 </select>

@@ -1,3 +1,4 @@
+import { CreateCourse } from "../requests/course.interface";
 import { Batch } from "./batch.interface";
 import { Document, ILead } from "./lead.interface";
 import { IStudent } from "./student.interface";
@@ -30,7 +31,7 @@ export interface ICourse {
 export interface ICourseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (courseData: ICourse, isDraft: boolean) => void;
+  onSave: (payload: CreateCourse, isDraft: boolean) => void;
   initialData?: Partial<ICourse>;
   mode: "add" | "edit";
 }

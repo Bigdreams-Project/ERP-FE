@@ -95,7 +95,7 @@ export const getCenter = async (id: string) => {
 export const createCenter = async (payload: CreateCenter, isDraft: boolean) => {
   try {
     const api = await server();
-    const res = await api.post(`/centers`, {...payload, isDraft});
+    const res = await api.post(`/centers`, { ...payload, isDraft });
     return res.data;
   } catch (err: any) {
     console.error("Failed to create center:", err.message);
@@ -148,10 +148,10 @@ export const getCourse = async (id: string) => {
   }
 };
 
-export const createCourse = async (id: string, payload: CreateCourse) => {
+export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
   try {
     const api = await server();
-    const res = await api.post(`/courses`, payload);
+    const res = await api.post(`/courses`, { ...payload, isDraft });
     return res.data;
   } catch (err: any) {
     console.error("Failed to create course:", err.message);
@@ -290,5 +290,28 @@ export const deleteBatch = async (id: string) => {
   } catch (err: any) {
     console.error("Failed to delete batch:", err.message);
     return err.message;
+  }
+};
+
+// Managers
+export const getManagers = async () => {
+  try {
+    const api = await server();
+    const res = await api.get("/managers");
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch managers:", err.message);
+    return [];
+  }
+};
+
+export const getManager = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/managers/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch manager:", err.message);
+    return {};
   }
 };

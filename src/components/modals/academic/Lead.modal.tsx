@@ -78,7 +78,25 @@ const LeadModal: React.FC<ILeadModalProps> = ({
     }
   }, [selectedCourseName]);
 
-  // Reset the form
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        reset({
+          ...initialData,
+          centerId: initialData.centerId ?? "",
+          courseId: initialData.courseId ?? "",
+          enquiryDate: initialData.enquiryDate ?? "",
+          source: initialData.source ?? "",
+          status: initialData.status ?? "",
+          assignedTo: initialData.assignedTo ?? "",
+          lastFollowUpDate: initialData.lastFollowUpDate ?? "",
+          nextFollowUpDate: initialData.nextFollowUpDate ?? "",
+          studyType: initialData.studyType ?? "",
+        });
+      }
+    }
+  }, [isOpen, initialData, reset]);
+
   useEffect(() => {
     if (initialData) {
       reset({
@@ -98,7 +116,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
 
   const onSubmit = (data: ILead | any) => {
     onSave(data);
-    console.log('Form data:', data);
+    console.log("Form data:", data);
     onClose();
   };
 
@@ -440,9 +458,13 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 onChange={(date) => {
                   if (date) {
                     setLastFollowUpDate(date);
-                    setValue("lastFollowUpDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
+                    setValue(
+                      "lastFollowUpDate",
+                      date.toISOString().split("T")[0],
+                      {
+                        shouldValidate: true,
+                      }
+                    );
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
@@ -468,9 +490,13 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 onChange={(date) => {
                   if (date) {
                     setNextFollowUpDate(date);
-                    setValue("nextFollowUpDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
+                    setValue(
+                      "nextFollowUpDate",
+                      date.toISOString().split("T")[0],
+                      {
+                        shouldValidate: true,
+                      }
+                    );
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
@@ -566,10 +592,11 @@ const LeadModal: React.FC<ILeadModalProps> = ({
             </button>
             <button
               type="submit"
-              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${isValid
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-blue-400 cursor-not-allowed opacity-70"
-                }`}
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
+                isValid
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-blue-400 cursor-not-allowed opacity-70"
+              }`}
               disabled={!isValid}
             >
               {mode === "add" ? "Add Lead" : "Update Lead"}

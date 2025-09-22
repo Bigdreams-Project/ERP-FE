@@ -33,22 +33,23 @@ const CenterModal: React.FC<ICenterModalProps> = ({
     },
   });
 
-  // Reset the form
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    } else {
-      reset({
-        name: "",
-        location: "",
-        address: "",
-        manager: "",
-        phone: "",
-        email: "",
-        status: "ACTIVE",
-      });
+    if (isOpen) {
+      if (initialData) {
+        reset(initialData);
+      } else {
+        reset({
+          name: "",
+          location: "",
+          address: "",
+          manager: "",
+          phone: "",
+          email: "",
+          status: "ACTIVE",
+        });
+      }
     }
-  }, [initialData, reset]);
+  }, [isOpen, initialData, reset]);
 
   const onSubmit = (data: ICenter | any) => {
     onSave(data, false);

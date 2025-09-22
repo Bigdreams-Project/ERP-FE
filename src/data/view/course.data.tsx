@@ -25,3 +25,16 @@ export const courseData = {
     { name: "Resource Links Compilation" },
   ],
 };
+
+export const courseTypes = [
+  { label: "Tec Terminal", value: "TEC_TERMINAL" },
+  { label: "ApTech", value: "APTECH" },
+  { label: "CPMS", value: "CPMS" },
+];
+
+export const durationOptions = [
+  { label: "12", value: "12" },
+  { label: "24", value: "24" },
+  { label: "36", value: "36" },
+  { label: "48", value: "48" },
+];
