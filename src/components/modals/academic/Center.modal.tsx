@@ -1,51 +1,10 @@
+import { locations, statuses } from "@/data/view/center.data";
 import { ICenter, ICenterModalProps } from "@/types/academic/center.interface";
 import { centerSchema } from "@/validations/academic/center.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, UploadCloud, X } from "lucide-react";
 import React, { useEffect } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-
-const locations = [
-  "Abia",
-  "Adamawa",
-  "Akwa Ibom",
-  "Anambra",
-  "Bauchi",
-  "Bayelsa",
-  "Benue",
-  "Borno",
-  "Cross River",
-  "Delta",
-  "Ebonyi",
-  "Edo",
-  "Ekiti",
-  "Enugu",
-  "Gombe",
-  "Imo",
-  "Jigawa",
-  "Kaduna",
-  "Kano",
-  "Katsina",
-  "Kebbi",
-  "Kogi",
-  "Kwara",
-  "Lagos",
-  "Nasarawa",
-  "Niger",
-  "Ogun",
-  "Ondo",
-  "Osun",
-  "Oyo",
-  "Plateau",
-  "Rivers",
-  "Sokoto",
-  "Taraba",
-  "Yobe",
-  "Zamfara",
-  "FCT",
-];
-
-const statuses = ["Active", "In Setup", "Suspended", "Closed"];
+import { useForm } from "react-hook-form";
 
 const CenterModal: React.FC<ICenterModalProps> = ({
   isOpen,
@@ -64,13 +23,13 @@ const CenterModal: React.FC<ICenterModalProps> = ({
     resolver: yupResolver(centerSchema),
     mode: "onTouched",
     defaultValues: {
-      centerName: "Owerri Center",
-      location: "Imo",
-      centerAddress: "645 East Street, Baltimore, MD 21215",
-      centerManagerName: "Christopher Brown",
-      contactPhone: "+234 815 815-9170",
-      emailAddress: "madison@hotmail.com",
-      status: "Active",
+      name: "",
+      location: "",
+      address: "",
+      manager: "",
+      phone: "",
+      email: "",
+      status: "ACTIVE",
     },
   });
 
@@ -80,19 +39,20 @@ const CenterModal: React.FC<ICenterModalProps> = ({
       reset(initialData);
     } else {
       reset({
-        centerName: "Owerri Center",
-        location: "Imo",
-        centerAddress: "645 East Street, Baltimore, MD 21215",
-        centerManagerName: "Christopher Brown",
-        contactPhone: "+234 815 815-9170",
-        emailAddress: "madison@hotmail.com",
-        status: "Active",
+        name: "",
+        location: "",
+        address: "",
+        manager: "",
+        phone: "",
+        email: "",
+        status: "ACTIVE",
       });
     }
   }, [initialData, reset]);
 
-  const onSubmit: SubmitHandler<ICenter> = (data) => {
+  const onSubmit = (data: ICenter | any) => {
     onSave(data, false);
+    console.log(data, false);
     onClose();
   };
 
@@ -119,7 +79,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pb-4">
             {/* Center Name */}
             <div className="flex flex-col">
               <label
@@ -131,12 +91,12 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <input
                 type="text"
                 id="centerName"
-                {...register("centerName")}
+                {...register("name")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.centerName && (
+              {errors.name && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.centerName.message}
+                  {errors.name.message}
                 </p>
               )}
             </div>
@@ -182,12 +142,12 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <input
                 type="text"
                 id="centerAddress"
-                {...register("centerAddress")}
+                {...register("address")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.centerAddress && (
+              {errors.address && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.centerAddress.message}
+                  {errors.address.message}
                 </p>
               )}
             </div>
@@ -203,12 +163,12 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <input
                 type="text"
                 id="centerManagerName"
-                {...register("centerManagerName")}
+                {...register("manager")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.centerManagerName && (
+              {errors.manager && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.centerManagerName.message}
+                  {errors.manager.message}
                 </p>
               )}
             </div>
@@ -224,12 +184,12 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <input
                 type="tel"
                 id="contactPhone"
-                {...register("contactPhone")}
+                {...register("phone")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.contactPhone && (
+              {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.contactPhone.message}
+                  {errors.phone.message}
                 </p>
               )}
             </div>
@@ -245,12 +205,12 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <input
                 type="email"
                 id="emailAddress"
-                {...register("emailAddress")}
+                {...register("email")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.emailAddress && (
+              {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.emailAddress.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
@@ -269,8 +229,8 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 {statuses.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+                  <option key={s.value} value={s.value}>
+                    {s.label}
                   </option>
                 ))}
               </select>

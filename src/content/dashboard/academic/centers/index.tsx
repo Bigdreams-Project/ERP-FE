@@ -3,16 +3,17 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CenterTable from "@/components/academic/tables/Center.table";
 import CenterModal from "@/components/modals/academic/Center.modal";
-import { Center } from "@/types/academic/center.interface";
+import { Center, Manager } from "@/types/academic/center.interface";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 
 interface CenterContentProps {
   centers: Center[];
+  managers: Manager[];
 }
 
-const CenterContent = ({ centers }: CenterContentProps) => {
+const CenterContent = ({ centers, managers }: CenterContentProps) => {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -77,11 +78,12 @@ const CenterContent = ({ centers }: CenterContentProps) => {
         </div>
       </div>
 
-      <CenterTable searchQuery={searchQuery} centers={centers} />
+      <CenterTable searchQuery={searchQuery} centers={centers} managers={managers} />
       <CenterModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        managers={managers}
         mode="add"
       />
     </div>

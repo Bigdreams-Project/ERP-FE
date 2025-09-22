@@ -1,15 +1,23 @@
 export interface CreateCenter {
-  id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  centerName: string;
+  location: string;
+  centerAddress: string;
+  centerManagerName: string;
+  contactPhone: string;
+  emailAddress: string;
+  status: string;
+  document?: FileList | null;
 }
 
 export interface UpdateCenter {
-  id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string; 
+  centerName?: string;
+  location?: string;
+  centerAddress?: string;
+  centerManagerName?: string;
+  contactPhone?: string;
+  emailAddress?: string;
+  status?: string;
+  document?: FileList | null;
+  updatedAt?: string;          
 }

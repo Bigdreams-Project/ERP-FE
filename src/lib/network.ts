@@ -1,4 +1,4 @@
-import { server } from "@/lib/server";
+import { NoSessionError, server } from "@/lib/server";
 import { CreateBatch } from "@/types/requests/batch.interface";
 import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
 import { CreateCourse, UpdateCourse } from "@/types/requests/course.interface";
@@ -15,7 +15,12 @@ export const getLeads = async () => {
     const res = await api.get("/leads");
     return res.data;
   } catch (err: any) {
-    console.error("Failed to fetch leads:", err.message);
+    if (err instanceof NoSessionError) {
+      console.error("No active session, please log in.");
+    } else {
+      console.error("Failed to fetch leads:", err.message);
+
+    }
     return [];
   }
 };
@@ -31,7 +36,7 @@ export const getLead = async (id: string) => {
   }
 };
 
-export const createLead = async (id: string, payload: CreateLead) => {
+export const createLead = async (payload: CreateLead) => {
   try {
     const api = await server();
     const res = await api.post(`/leads`, payload);
@@ -87,10 +92,10 @@ export const getCenter = async (id: string) => {
   }
 };
 
-export const createCenter = async (id: string, payload: CreateCenter) => {
+export const createCenter = async (payload: CreateCenter, isDraft: boolean) => {
   try {
     const api = await server();
-    const res = await api.post(`/centers`, payload);
+    const res = await api.post(`/centers`, {...payload, isDraft});
     return res.data;
   } catch (err: any) {
     console.error("Failed to create center:", err.message);

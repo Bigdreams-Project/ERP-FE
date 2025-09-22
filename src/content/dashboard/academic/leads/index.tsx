@@ -9,6 +9,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Center } from "@/types/academic/center.interface";
+import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
@@ -17,9 +19,11 @@ import { IoFilter } from "react-icons/io5";
 
 interface LeadContentProps {
   leads: Lead[];
+  centers: Center[];
+  courses: Course[];
 }
 
-const LeadContent = ({ leads }: LeadContentProps) => {
+const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -124,11 +128,15 @@ const LeadContent = ({ leads }: LeadContentProps) => {
 
       <LeadTable
         leads={leads}
+        centers={centers}
+        courses={courses}
         searchQuery={searchQuery}
         filterOptions={filterOptions}
       />
       <LeadModal
         isOpen={isModalOpen}
+        centers={centers}
+        courses={courses}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         mode="add"

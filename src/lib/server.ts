@@ -2,10 +2,17 @@ import { AuthRoutes } from "@/constants/apiRoutes.constant";
 import axios from "axios";
 import { getSession } from "./session";
 
+export class NoSessionError extends Error {
+  constructor() {
+    super("No active session");
+    this.name = "NoSessionError";
+  }
+}
+
 export const server = async () => {
   const session = await getSession();
   if (!session) {
-    throw new Error("No active session");
+    throw new NoSessionError();
   }
 
   const instance = axios.create({

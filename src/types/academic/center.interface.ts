@@ -1,5 +1,8 @@
+import { CreateCenter } from "../requests/center.interface";
 import { Lead } from "./lead.interface";
 import { Student } from "./student.interface";
+
+export type CenterStatus = "ACTIVE" | "IN_SETUP" | "SUSPENDED" | "CLOSED";
 
 export interface Certificate {
   name: string;
@@ -45,20 +48,21 @@ export interface Center {
 }
 
 export interface ICenter {
-  centerName: string;
+  name: string;
   location: string;
-  centerAddress: string;
-  centerManagerName: string;
-  contactPhone: string;
-  emailAddress: string;
-  status: string;
+  address: string;
+  manager: string;
+  phone: string;
+  email: string;
+  status: CenterStatus;
   document: FileList | null;
 }
 
 export interface ICenterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (centerData: ICenter, isDraft: boolean) => void;
+  onSave: (payload: CreateCenter, isDraft: boolean) => void;
   initialData?: Partial<ICenter>;
+  managers: Manager[];
   mode: "add" | "edit";
 }

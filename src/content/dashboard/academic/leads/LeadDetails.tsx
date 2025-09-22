@@ -307,7 +307,7 @@ const LeadDetails = ({ lead }: LeadDetailsProps) => {
               </div>
             </div>
           </div>
-        </div>
+        </div> 
       </div>
     </div>
   );

@@ -92,13 +92,14 @@ const CourseModal: React.FC<ICourseModalProps> = ({
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
           <div className="p-4 bg-white rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Enter Course Name
-            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               {/* Course Name */}
               <div className="flex flex-col sm:col-span-2">
-                <label htmlFor="name" className="sr-only">
+                <label
+                  htmlFor="name"
+                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                >
+                  <BookOpen size={14} />
                   Course Name
                 </label>
                 <input

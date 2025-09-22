@@ -3,7 +3,6 @@ import { AppAuthRoutes } from "@/constants/appRoutes.constant";
 import { Session } from "@/types/auth/session";
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 const secretKey = process.env.SESSION_SECRET_KEY;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -39,8 +38,7 @@ export const getSession = async () => {
     return payload as Session;
   } catch (error) {
     console.error("Failed to verify the session", error);
-    redirect(AppAuthRoutes.LOGIN);
-  }
+    return null;  }
 };
 
 export const deleteSession = async () => {

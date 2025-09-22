@@ -1,22 +1,25 @@
 import * as yup from "yup";
 
 export const centerSchema = yup.object().shape({
-  centerName: yup.string().required("Center name is required"),
+  name: yup.string().required("Center name is required"),
   location: yup.string().required("Location is required"),
-  centerAddress: yup.string().required("Center address is required"),
-  centerManagerName: yup.string().required("Center Manager name is required"),
-  contactPhone: yup
+  address: yup.string().required("Center address is required"),
+  manager: yup.string().required("Center Manager name is required"),
+  phone: yup
     .string()
-    .required("Contact phone is required")
+    .required("Phone number is required")
     .matches(
-      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
-      "Phone number must be in the format +234 815 815-9170"
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
-  emailAddress: yup
+  email: yup
     .string()
     .email("Invalid email format")
     .required("Email address is required"),
-  status: yup.string().required("Status is required"),
+  status: yup
+    .mixed<"ACTIVE" | "IN_SETUP" | "SUSPENDED" | "CLOSED">()
+    .oneOf(["ACTIVE", "IN_SETUP", "SUSPENDED", "CLOSED"], "Invalid status")
+    .required("Status is required"),
   document: yup
     .mixed()
     .test("required", "You need to provide a file", (value) => {

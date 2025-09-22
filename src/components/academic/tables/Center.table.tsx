@@ -1,7 +1,9 @@
 "use client";
 import CenterModal from "@/components/modals/academic/Center.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { Center } from "@/types/academic/center.interface";
+import { createCenter } from "@/lib/network";
+import { Center, Manager } from "@/types/academic/center.interface";
+import { CreateCenter } from "@/types/requests/center.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,15 +11,17 @@ import Pagination from "../common/Pagination";
 
 type CenterTableProps = {
   centers: Center[];
+  managers: Manager[];
   searchQuery: string;
 };
 
 export default function CenterTable({
   centers,
+  managers,
   searchQuery,
 }: CenterTableProps) {
   const router = useRouter();
-  const [data] = useState(centers);
+  const [data, setData] = useState(centers);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -105,8 +109,17 @@ export default function CenterTable({
     }
   };
 
-  const handleSave = () => {
-    console.log("I was called");
+  const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
+    try {
+      const response = await createCenter(payload, isDraft);
+
+      console.log("Center created successfully:", response);
+
+      setData((prev) => [...prev, response]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save lead:", error);
+    }
   };
 
   return (
@@ -167,7 +180,10 @@ export default function CenterTable({
                       {highlightMatch(center.name, searchQuery)}
                     </td>
                     <td className="p-3 font-bold">
-                      {highlightMatch(center.managers[0]?.fullname, searchQuery)}
+                      {highlightMatch(
+                        center.managers[0]?.fullname,
+                        searchQuery
+                      )}
                     </td>
                     <td className="p-3">
                       {highlightMatch(center.email, searchQuery)}
@@ -231,6 +247,7 @@ export default function CenterTable({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        managers={managers}
         mode="add"
       />
     </div>

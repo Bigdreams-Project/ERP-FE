@@ -33,6 +33,14 @@ export interface BatchStudent {
   };
 }
 
+export interface StudentNote {
+  id: string;
+  title: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Student {
   id: string;
   studentId: string | null;
@@ -46,6 +54,7 @@ export interface Student {
   courses: Course[];
   enrolledDate: string;
   batches: StudentBatch[];
+  notes: StudentNote[];
   status: string;
   paymentPlan: string;
   lumpSum: number | null;

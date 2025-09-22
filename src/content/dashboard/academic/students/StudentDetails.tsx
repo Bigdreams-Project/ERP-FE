@@ -23,7 +23,8 @@ import {
   Users,
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { IoMdAdd } from "react-icons/io";
 
 interface StudentDetailsProps {
   student: Student;
@@ -32,6 +33,7 @@ interface StudentDetailsProps {
 const StudentDetails = ({ student }: StudentDetailsProps) => {
   const [isEditable, setIsEditable] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -70,6 +72,46 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
       </div>
     </div>
   );
+
+  const generateCalendarDays = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = [];
+
+    // Add empty placeholders for the days before the 1st of the month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push({ day: '', status: null });
+    }
+
+    // Add the actual days of the month with random attendance data
+    for (let i = 1; i <= daysInMonth; i++) {
+      // Simple random attendance simulation
+      const isPresent = Math.random() > 0.25; // 75% present, 25% absent
+      days.push({
+        day: i,
+        status: isPresent ? 'present' : 'absent',
+      });
+    }
+    return days;
+  };
+
+  // Generate the calendar days using useMemo for performance
+  const calendarDays = useMemo(() => generateCalendarDays(selectedDate), [selectedDate]);
+
+  // Handle month/year change from the dropdown
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const [month, year] = e.target.value.split('-').map(Number);
+    setSelectedDate(new Date(year, month, 1));
+  };
+
+  // Get the month and year options for the dropdown
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const years = [2023, 2024, 2025];
 
   return (
     <div className="min-h-screen bg-white p-8">
@@ -290,6 +332,7 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
 
         {/* Right */}
         <div className="lg:col-span-2 space-y-8 p-4 border-t border-gray-300 rounded-lg shadow-md shadow-gray-400">
+          {/* Home Address */}
           <div className="bg-white py-6 border-b border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Home Address
@@ -303,6 +346,8 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
             {renderSection("Name", student.guardians[0]?.fullname, User)}
             {renderSection("Email", student.guardians[0]?.email, MailIcon)}
           </div>
+
+          {/* Payment History */}
           <div className="bg-white py-6 border-b border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Payment History
@@ -311,6 +356,78 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
               <span className="text-sm">
                 Payment history will be displayed here.
               </span>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <h3 className="text-md font-semibold text-gray-800 mb-2">
+              Notes
+            </h3>
+            <div className="space-y-2">
+              {student?.notes?.map(
+                (note, index) =>
+                  note.note && (
+                    <div className="mb-4">
+                      <p key={index} className="text-sm text-gray-400 font-medium mb-1">
+                        <span className="font-medium">
+                          {formatDate(note.createdAt || note.updatedAt)}
+                        </span>
+                      </p>
+                      <p>{note.note}</p>
+                    </div>
+                  )
+              )}
+            </div>
+            <button className="mt-4 text-blue-600 text-sm font-medium p-3 shadow-md shadow-gray-400 rounded-md flex items-center space-x-1">
+              <IoMdAdd />
+              <span>Add note</span>
+            </button>
+          </div>
+
+          {/* Attendance Records */}
+          <div className="py-6 border-b border-gray-200">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Attendance Record</h3>
+              <div className="relative inline-block text-left">
+                <select
+                  className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-300"
+                  onChange={handleMonthChange}
+                  value={`${selectedDate.getMonth()}-${selectedDate.getFullYear()}`}
+                >
+                  {years.map(year => months.map((monthName, monthIndex) => (
+                    <option key={`${monthIndex}-${year}`} value={`${monthIndex}-${year}`}>
+                      {monthName} {year}
+                    </option>
+                  )))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-7 gap-4 text-center text-gray-500 font-medium text-sm">
+              <div className="py-2">Sun</div>
+              <div className="py-2">Mon</div>
+              <div className="py-2">Tue</div>
+              <div className="py-2">Wed</div>
+              <div className="py-2">Thu</div>
+              <div className="py-2">Fri</div>
+              <div className="py-2">Sat</div>
+            </div>
+
+            <div className="grid grid-cols-7 gap-4 text-center mt-2">
+              {calendarDays.map((day, index) => (
+                <div key={index} className="p-2 text-gray-900 font-medium flex items-center justify-center">
+                  {day.day && (
+                    <span
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                                  ${day.status === 'present' ? 'bg-emerald-500' : ''}
+                                  ${day.status === 'absent' ? 'bg-rose-500' : ''}`}
+                    >
+                      {day.day}
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>

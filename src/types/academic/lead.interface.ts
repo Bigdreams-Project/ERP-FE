@@ -1,3 +1,5 @@
+import { CreateLead } from "../requests/lead.interface";
+import { Center } from "./center.interface";
 import { Course } from "./course.interface";
 import { Guardian } from "./student.interface";
 
@@ -38,18 +40,21 @@ export interface Lead {
 }
 
 export interface ILead {
-  fullname: string;
+  fullName: string;
   email: string;
   phone: string;
   address: string;
   parentName: string;
   parentPhone: string;
   parentEmail: string | null;
-  course: string;
+  centerId: string;
+  courseId: string;
   enquiryDate: string;
   source: string;
   status: string;
-  nextFollowup: string;
+  assignedTo: string;
+  lastFollowUpDate: string;
+  nextFollowUpDate: string;
   studyType: string;
   note: string;
 }
@@ -57,24 +62,25 @@ export interface ILead {
 export interface ILeadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (student: ILead) => void;
+  onSave: (payload: CreateLead) => void;
+  centers: Center[];
+  courses: Course[];
   initialData?: {
-    fullname?: string;
+    fullName?: string;
     phone?: string;
     email?: string;
     address?: string;
     parentName?: string;
     parentPhone?: string;
     parentEmail?: string;
-    course?: {
-      name?: string;
-      fee?: string;
-      baseFee?: string;
-    };
+    centerId?: string;
+    courseId?: string;
     enquiryDate?: string;
     source?: string;
     status?: string;
-    nextFollowup?: string;
+    assignedTo?: string;
+    lastFollowUpDate?: string;
+    nextFollowUpDate?: string;
     studyType?: string;
     note: string;
   };

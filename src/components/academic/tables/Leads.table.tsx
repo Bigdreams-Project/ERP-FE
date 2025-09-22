@@ -1,8 +1,12 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { createLead } from "@/lib/network";
 import { formatDate } from "@/lib/utils";
+import { Center } from "@/types/academic/center.interface";
+import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
+import { CreateLead } from "@/types/requests/lead.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,6 +15,8 @@ import StatusBadge from "../common/StatusBadge";
 
 type Props = {
   leads: Lead[];
+  centers: Center[];
+  courses: Course[];
   searchQuery: string;
   filterOptions: {
     startDate: string;
@@ -20,6 +26,8 @@ type Props = {
 
 export default function LeadTable({
   leads,
+  centers,
+  courses,
   searchQuery,
   filterOptions,
 }: Props) {
@@ -95,8 +103,17 @@ export default function LeadTable({
     }
   };
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateLead) => {
+    try {
+      const response = await createLead(payload);
+
+      console.log("Lead created successfully:", response);
+
+      setData((prev) => [...prev, response]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save lead:", error);
+    }
   };
 
   const toggleDropdown = (id: string) => {
@@ -243,6 +260,8 @@ export default function LeadTable({
 
         <LeadModal
           isOpen={isModalOpen}
+          centers={centers}
+          courses={courses}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
           mode="add"
