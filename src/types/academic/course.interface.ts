@@ -2,7 +2,15 @@ import { CreateCourse } from "../requests/course.interface";
 import { Batch } from "./batch.interface";
 import { Document, ILead } from "./lead.interface";
 import { IStudent } from "./student.interface";
- 
+
+export interface CourseAssignment {
+  id?: string;
+  lumpSumFee: number;
+  baseFee: number;
+  maxInstallments: number;
+  costPerInstallment: number;
+}
+
 export interface Course {
   id?: string;
   code: string;
@@ -10,14 +18,16 @@ export interface Course {
   type: string;
   status: string;
   duration: number;
-  lumpSumFee: number; 
+  lumpSumFee: number;
   baseFee: number;
   students: IStudent[];
   leads: ILead[];
   maxInstallments: number;
   costPerInstallment: number | null;
+  courseAssignment: CourseAssignment;
   batches: Batch[];
   documents: Document[];
+  paymentPlans: any[];
   createdAt?: string;
 }
 

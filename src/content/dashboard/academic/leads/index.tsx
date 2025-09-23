@@ -9,9 +9,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { createLead } from "@/lib/network";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
+import { CreateLead } from "@/types/requests/lead.interface";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -53,8 +55,15 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateLead) => {
+    try {
+      const response = await createLead(payload);
+      console.log("Lead created successfully:", response);
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save lead:", error);
+    }
   };
 
   const handleFilterChange = (newFilters: any) => {

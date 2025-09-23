@@ -19,7 +19,6 @@ export const getLeads = async () => {
       console.error("No active session, please log in.");
     } else {
       console.error("Failed to fetch leads:", err.message);
-
     }
     return [];
   }
@@ -151,7 +150,18 @@ export const getCourse = async (id: string) => {
 export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
   try {
     const api = await server();
-    const res = await api.post(`/courses`, { ...payload, isDraft });
+    console.log(`courses`, {
+      name: payload.name,
+      type: payload.type as any,
+      duration: payload.duration,
+      isDraft,
+    });
+    const res = await api.post(`/courses`, {
+      name: payload.name,
+      type: payload.type as any,
+      duration: payload.duration,
+      isDraft,
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to create course:", err.message);
@@ -204,7 +214,7 @@ export const getStudent = async (id: string) => {
   }
 };
 
-export const createStudent = async (id: string, payload: CreateStudent) => {
+export const createStudent = async (payload: CreateStudent) => {
   try {
     const api = await server();
     const res = await api.post(`/students`, payload);
@@ -312,6 +322,29 @@ export const getManager = async (id: string) => {
     return res.data;
   } catch (err: any) {
     console.error("Failed to fetch manager:", err.message);
+    return {};
+  }
+};
+
+// Faculties
+export const getFaculties = async () => {
+  try {
+    const api = await server();
+    const res = await api.get("/faculties");
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch faculties:", err.message);
+    return [];
+  }
+};
+
+export const getFaculty = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/faculties/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch faculty:", err.message);
     return {};
   }
 };

@@ -1,3 +1,6 @@
+import { installmentOptions } from "@/data/view/student.data";
+import { getCourse } from "@/lib/network";
+import { Course } from "@/types/academic/course.interface";
 import {
   IStudent,
   IStudentModalProps,
@@ -6,80 +9,82 @@ import { enrollmentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-
-const coursesData = [
-  { name: "ADSE", fee: 3000000, baseFee: 500000 },
-  { name: "Frontend", fee: 300000, baseFee: 100000 },
-  { name: "Cyber Security", fee: 1000000, baseFee: 300000 },
-  { name: "Web Dev", fee: 450000, baseFee: 200000 },
-];
-
-const batches = ["Batch A", "Batch B", "Batch C"];
-const installmentOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-const paymentPlans = ["Lump Sum", "Installments"];
+import { useForm } from "react-hook-form";
 
 const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   isOpen,
   onClose,
   initialData,
   onSave,
+  courses,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isValid },
     watch,
-    setValue,
+    formState: { errors, isValid },
+    getValues,
   } = useForm<IStudent>({
     resolver: yupResolver(enrollmentSchema),
     mode: "onTouched",
     defaultValues: {
-      leadId: "",
-      fullName: "John Doe Emeka",
-      phone: "+234 815 815-9170",
-      email: "johndoe@example.com",
-      address: "123 Main St, Anytown, USA",
-      parentGuardianName: "John Doe Emeka",
-      parentGuardianPhone: "+234 815 815-9170",
-      courseEnrolled: "Web Dev",
-      batch: "Batch A",
-      paymentPlan: "Lump Sum",
-      lumpSum: 500000,
-      numberOfInstallments: 5,
-      comments: "",
+      fullName: "",
+      phone: "",
+      email: "",
+      address: "",
+      centerId: "",
+      enrolledDate: "",
+      birthDate: "",
+      guardianName: "",
+      guardianPhone: "",
+      guardianEmail: "",
+      guardianAddress: "",
+      courseId: "",
+      batchId: "",
     },
   });
 
-  const courseOfInterest = watch("courseEnrolled");
-  const paymentPlan = watch("paymentPlan");
-  const lumpSum = watch("lumpSum");
-  const numberOfInstallments = watch("numberOfInstallments");
-
-  const [selectedCourse, setSelectedCourse] = useState(coursesData[3]);
+  const courseId = watch("courseId");
+  const [selectedCourse, setSelectedCourse] = useState<Course>();
   const [showBaseFeeError, setShowBaseFeeError] = useState(false);
+  const [loadingCourse, setLoadingCourse] = useState(false);
 
   useEffect(() => {
-    const course = coursesData.find((c) => c.name === courseOfInterest);
-    if (course) {
-      setSelectedCourse(course);
+    if (!courseId) {
+      setSelectedCourse(undefined);
+      return;
     }
-  }, [courseOfInterest]);
 
-  useEffect(() => {
-    // Check if lump sum meets base fee requirement
-    if (paymentPlan === "Lump Sum") {
-      setShowBaseFeeError(lumpSum! < selectedCourse.baseFee);
-    } else {
-      setShowBaseFeeError(false);
-    }
-  }, [lumpSum, paymentPlan, selectedCourse]);
+    const fetchCourse = async () => {
+      try {
+        setLoadingCourse(true);
+        const course = await getCourse(courseId);
+        console.log('course:', course);
+        setSelectedCourse(course);
+      } catch (err) {
+        console.error("Failed to fetch course details:", err);
+      } finally {
+        setLoadingCourse(false);
+      }
+    };
 
-  const onSubmit: SubmitHandler<IStudent> = (data) => {
+    fetchCourse();
+  }, [courseId]);
+
+  // useEffect(() => {
+  //   const courseId = getValues().courseId;
+  //   const course = courses.find((c) => c.id === courseId);
+  //   if (course) {
+  //     setSelectedCourse(course);
+  //   }
+  // }, [getValues().courseId]);
+
+  const onSubmit = (data: IStudent | any) => {
     if (showBaseFeeError) return;
     onSave(data);
+    console.log("Data:", data);
   };
 
   if (!isOpen) return null;
@@ -231,65 +236,86 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
-            {/* Parent/Guardian Name */}
+            {/* Guardian Name */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentGuardianName"
+                htmlFor="guardianName"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Parent/Guardian Name
+                Guardian Name
               </label>
               <input
                 type="text"
-                id="parentGuardianName"
-                {...register("parentGuardianName")}
+                id="guardianName"
+                {...register("guardianName")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentGuardianName && (
+              {errors.guardianName && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentGuardianName.message}
+                  {errors.guardianName.message}
                 </p>
               )}
             </div>
 
-            {/* Parent/Guardian Phone Number */}
+            {/* Guardian Phone Number */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentGuardianPhone"
+                htmlFor="guardianPhone"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Parent/Guardian Phone Number
+                Guardian Phone Number
               </label>
               <input
                 type="tel"
-                id="parentGuardianPhone"
-                {...register("parentGuardianPhone")}
+                id="guardianPhone"
+                {...register("guardianPhone")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentGuardianPhone && (
+              {errors.guardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentGuardianPhone.message}
+                  {errors.guardianPhone.message}
                 </p>
               )}
             </div>
 
-            {/* Parent/Guardian Email */}
+            {/* Guardian Email */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="parentGuardianEmail"
+                htmlFor="guardianEmail"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Parent/Guardian Email (Optional)
+                Guardian Email (Optional)
               </label>
               <input
                 type="email"
-                id="parentGuardianEmail"
-                {...register("parentGuardianEmail")}
+                id="guardianEmail"
+                {...register("guardianEmail")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentGuardianEmail && (
+              {errors.guardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentGuardianEmail.message}
+                  {errors.guardianEmail.message}
+                </p>
+              )}
+            </div>
+
+            {/* Guardian Address */}
+            <div className="flex flex-col sm:col-span-2">
+              <label
+                htmlFor="guardianAddress"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Guardian Address
+              </label>
+              <input
+                type="email"
+                id="guardianAddress"
+                {...register("guardianAddress")}
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.guardianAddress && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.guardianAddress.message}
                 </p>
               )}
             </div>
@@ -299,19 +325,19 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Course of Interest */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="courseEnrolled"
+                htmlFor="courseId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Course of Interest
               </label>
               <select
-                id="courseEnrolled"
-                {...register("courseEnrolled")}
+                id="courseId"
+                {...register("courseId")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
-                {coursesData.map((course) => (
-                  <option key={course.name} value={course.name}>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
                     {course.name}
                   </option>
                 ))}
@@ -319,9 +345,9 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.courseEnrolled && (
+              {errors.courseId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.courseEnrolled.message}
+                  {errors.courseId.message}
                 </p>
               )}
             </div>
@@ -337,7 +363,11 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <input
                 type="text"
                 id="courseFee"
-                value={`₦${selectedCourse?.fee.toLocaleString()}`}
+                value={
+                  selectedCourse
+                    ? `₦${selectedCourse.courseAssignment?.baseFee?.toLocaleString()}`
+                    : ""
+                }
                 readOnly
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
               />
@@ -346,29 +376,29 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Batch */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="batch"
+                htmlFor="batchId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Batch
               </label>
               <select
-                id="batch"
-                {...register("batch")}
+                id="batchId"
+                {...register("batchId")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
-                {batches.map((batch) => (
-                  <option key={batch} value={batch}>
-                    {batch}
+                {selectedCourse?.batches.map((batch) => (
+                  <option key={batch.id} value={batch.code}>
+                    {batch?.faculty?.fullname} - {batch?.code}
                   </option>
                 ))}
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.batch && (
+              {errors.batchId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.batch.message}
+                  {errors.batchId.message}
                 </p>
               )}
             </div>
@@ -376,28 +406,29 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Payment Plan */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="paymentPlan"
+                htmlFor="paymentPlanId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Payment Plan
               </label>
               <select
-                id="paymentPlan"
-                {...register("paymentPlan")}
+                id="paymentPlanId"
+                {...register("paymentPlanId")}
+                disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
-                {paymentPlans.map((plan) => (
-                  <option key={plan} value={plan}>
-                    {plan}
+                {selectedCourse?.paymentPlans?.map((plan) => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.name}
                   </option>
                 ))}
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.paymentPlan && (
+              {errors.paymentPlanId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.paymentPlan.message}
+                  {errors.paymentPlanId.message}
                 </p>
               )}
             </div>
@@ -414,18 +445,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <input
                 type="number"
-                id="lumpSum"
-                {...register("lumpSum", { valueAsNumber: true })}
-                disabled={paymentPlan !== "Lump Sum"}
-                className={`w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 ${
-                  paymentPlan === "Lump Sum"
-                    ? "border-transparent focus:border-blue-500"
-                    : "bg-gray-200 cursor-not-allowed"
-                } focus:outline-none transition-colors`}
+                {...register("lumpSumFee")}
+                value={selectedCourse?.courseAssignment?.lumpSumFee || ""}
+                readOnly
+                className={`w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors`}
               />
-              {errors.lumpSum && (
+              {errors.lumpSumFee && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.lumpSum.message}
+                  {errors.lumpSumFee.message}
                 </p>
               )}
             </div>
@@ -440,13 +467,8 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="numberOfInstallments"
-                {...register("numberOfInstallments", { valueAsNumber: true })}
-                disabled={paymentPlan !== "Installments"}
-                className={`w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 ${
-                  paymentPlan === "Installments"
-                    ? "border-transparent focus:border-blue-500"
-                    : "bg-gray-200 cursor-not-allowed"
-                } focus:outline-none transition-colors appearance-none`}
+                {...register("numberOfInstallments")}
+                className={`w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none`}
               >
                 {installmentOptions.map((num) => (
                   <option key={num} value={num}>
@@ -466,11 +488,12 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           </div>
 
           <p className="text-sm font-medium text-gray-700 mt-6">
-            Required base fee is ₦{selectedCourse?.baseFee.toLocaleString()} for
+            Required base fee is ₦
+            {selectedCourse?.courseAssignment?.baseFee.toLocaleString()} for
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">
-            Total Deposit Record: ₦33,000
+            Total Deposit Record: ₦
           </p>
 
           {showBaseFeeError && (
@@ -479,23 +502,23 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             </p>
           )}
 
-          {/* Comments */}
+          {/* Notes */}
           <div className="flex flex-col sm:col-span-2 mt-4">
             <label
-              htmlFor="comments"
+              htmlFor="notes"
               className="text-sm font-medium text-gray-700 mb-1"
             >
-              Comments
+              Note
             </label>
             <textarea
-              id="comments"
-              {...register("comments")}
+              id="notes"
+              {...register("notes")}
               rows={3}
               className="w-full p-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
             ></textarea>
-            {errors.comments && (
+            {errors.notes && (
               <p className="text-red-500 text-xs mt-1">
-                {errors.comments.message}
+                {errors.notes.message}
               </p>
             )}
           </div>

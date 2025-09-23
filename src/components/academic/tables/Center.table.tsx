@@ -181,7 +181,7 @@ export default function CenterTable({
                     </td>
                     <td className="p-3 font-bold">
                       {highlightMatch(
-                        center.managers[0]?.fullname,
+                        center.manager?.fullname,
                         searchQuery
                       )}
                     </td>

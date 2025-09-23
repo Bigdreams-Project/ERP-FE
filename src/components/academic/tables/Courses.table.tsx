@@ -1,14 +1,14 @@
 "use client";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { createCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
+import { CreateCourse } from "@/types/requests/course.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import { CreateCourse } from "@/types/requests/course.interface";
-import { createCourse } from "@/lib/network";
 
 type Props = {
   searchQuery: string;
@@ -95,7 +95,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
     try {
       const response = await createCourse(payload, isDraft);
-
       console.log("Course created successfully:", response);
 
       setData((prev) => [...prev, response]);
@@ -240,3 +239,4 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     </div>
   );
 }
+ 

@@ -4,7 +4,10 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/mock/academic.data";
+import { createStudent } from "@/lib/network";
+import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
+import { CreateStudent } from "@/types/requests/student.interface";
 import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -12,9 +15,10 @@ import { IoFilter } from "react-icons/io5";
 
 interface StudentContentProps {
   students: Student[];
+  courses: Course[];
 }
 
-const StudentContent = ({ students }: StudentContentProps) => {
+const StudentContent = ({ students, courses }: StudentContentProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,8 +79,16 @@ const StudentContent = ({ students }: StudentContentProps) => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateStudent) => {
+    try {
+      const response = await createStudent(payload);
+
+      console.log("Student created successfully:", response);
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save student:", error);
+    }
   };
 
   return (
@@ -171,11 +183,16 @@ const StudentContent = ({ students }: StudentContentProps) => {
         </div>
       </div>
 
-      <StudentTable searchQuery={searchQuery} filteredData={filteredData} />
+      <StudentTable
+        searchQuery={searchQuery}
+        filteredData={filteredData}
+        courses={courses}
+      />
       <StudentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        courses={courses}
         mode="enroll"
       />
     </div>

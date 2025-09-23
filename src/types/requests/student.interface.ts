@@ -1,15 +1,43 @@
 export interface CreateStudent {
-  id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  leadId: string | null;
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  status: string;
+  centerId: string;
+  enrolledDate: string;
+  birthDate: string;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail: string | null;
+  guardianAddress: string;
+  lumpSumFee: number | null;
+  numberOfInstallments: number | null;
+  courseId: string;
+  batchId: string;
+  paymentPlanId: string;
+  notes: string;
 }
 
 export interface UpdateStudent {
-  id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  leadId: string | null;
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  status: string;
+  centerId: string;
+  enrolledDate: string;
+  birthDate: string;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail: string | null;
+  guardianAddress: string;
+  lumpSumFee: number | null;
+  numberOfInstallments: number | null;
+  courseId: string;
+  batchId: string;
+  paymentPlanId: string;
+  notes: string;
 }

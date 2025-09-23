@@ -51,23 +51,23 @@ export interface StudentBatch {
 }
 
 export interface IBatch {
-  id?: string;
-  code: string;
-  course: string;
+  courseId: string;
   startDate: string;
   endDate: string;
-  createdDate: string;
   duration: string;
-  status: string;
+  status: string | null; 
   schedule: IBatchSchedule[];
-  faculty: string;
-  students: IStudent[];
+  facultyId: string;
+  students: string[];
 }
 
 export interface IBatchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (batchData: IBatch, isDraft: boolean) => void;
+  onSave: (payload: IBatch, isDraft: boolean) => void;
+  courses: Course[];
+  students: Student[];
+  faculties: Faculty[];
   initialData?: Partial<IBatch>;
   mode: "add" | "edit";
 }
@@ -78,16 +78,3 @@ export interface IBatchSchedule {
   endTime: string;
   duration: number;
 }
-
-// model BatchSchedule {
-//   id        String   @id @default(cuid()) @map("_id")
-//   day       String
-//   startTime DateTime @map("start_time")
-//   endTime   DateTime @map("end_time")
-//   duration  Int
-//   batchId   String?
-//   faculty   Faculty?
-//   batch     Batch?   @relation(fields: [batchId], references: [id])
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }

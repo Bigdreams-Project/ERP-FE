@@ -1,8 +1,12 @@
 import StudentContent from "@/content/dashboard/academic/students";
-import { getStudents } from "@/lib/network";
+import { getCourses, getStudents } from "@/lib/network";
 
 export default async function Students() {
   const students = await getStudents();
+  const courses = await getCourses();
 
-  return <StudentContent students={students} />;
+  console.log("students", students);
+  console.log("courses", courses);
+
+  return <StudentContent students={students} courses={courses} />;
 }

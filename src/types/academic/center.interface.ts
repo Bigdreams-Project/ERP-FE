@@ -20,6 +20,7 @@ export interface CenterNote {
 }
 
 export interface Manager {
+  id?: string;
   fullname: string;
   email: string;
   image: string;
@@ -36,7 +37,7 @@ export interface Center {
   phone: string;
   address: string;
   status: string;
-  managers: Manager[];
+  manager: Manager;
   faculties: Manager[];
   academicHead: Manager;
   students: Student[];
@@ -51,9 +52,9 @@ export interface ICenter {
   name: string;
   location: string;
   address: string;
-  manager: string;
   phone: string;
   email: string;
+  managerId: string;
   status: CenterStatus;
   document: FileList | null;
 }

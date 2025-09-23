@@ -13,7 +13,6 @@ export default async function Leads() {
     centers = await getCenters();
     courses = await getCourses();
 
-    console.log('Data', leads, centers, courses);
   } catch (err: any) {
     if (err.message === "No active session") {
       console.error("No active session, redirecting to login.");

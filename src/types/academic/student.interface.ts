@@ -1,3 +1,4 @@
+import { CreateStudent } from "../requests/student.interface";
 import { StudentBatch } from "./batch.interface";
 import { Course } from "./course.interface";
 
@@ -64,30 +65,32 @@ export interface Student {
 }
 
 export interface IStudent {
-  id?: string;
-  studentId: string | null;
   leadId: string | null;
   fullName: string;
   phone: string;
   email: string;
   address: string;
-  parentGuardianName: string;
-  parentGuardianPhone: string;
-  parentGuardianEmail: string | null;
-  courseEnrolled: string;
-  dateEnrolled: string;
-  batch: string;
   status: string;
-  paymentPlan: string;
-  lumpSum: number | null;
+  centerId: string;
+  enrolledDate: string;
+  birthDate: string;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail: string | null;
+  guardianAddress: string;
+  lumpSumFee: number | null;
   numberOfInstallments: number | null;
-  comments: string | null;
+  courseId: string;
+  batchId: string;
+  paymentPlanId: string;
+  notes: string;
 }
 
 export interface IStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (studentData: IStudent) => void;
+  onSave: (payload: CreateStudent) => void;
+  courses: Course[];
   initialData?: Partial<IStudent>;
   mode: "enroll";
 }

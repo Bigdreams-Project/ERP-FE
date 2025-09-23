@@ -1,4 +1,5 @@
 "use client";
+import { locations } from "@/data/view/center.data";
 import { ILead, ILeadModalProps } from "@/types/academic/lead.interface";
 import { leadSchema } from "@/validations/academic/lead.validations";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -116,7 +117,6 @@ const LeadModal: React.FC<ILeadModalProps> = ({
 
   const onSubmit = (data: ILead | any) => {
     onSave(data);
-    console.log("Form data:", data);
     onClose();
   };
 
@@ -315,7 +315,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
-                  <option key={center.name} value={center.name}>
+                  <option key={center.name} value={center.id}>
                     {center.name}
                   </option>
                 ))}
@@ -345,7 +345,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <option value="">Select Course</option>
                 {courses.map((course) => (
-                  <option key={course.name} value={course.name}>
+                  <option key={course.name} value={course.id}>
                     {course.name}
                   </option>
                 ))}
@@ -451,7 +451,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 htmlFor="lastFollowUpDate"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <Clock size={14} /> Next Follow-up
+                <Clock size={14} /> Last Follow-up
               </label>
               <DatePicker
                 selected={lastFollowUpDate}

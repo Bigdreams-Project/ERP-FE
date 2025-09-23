@@ -3,20 +3,29 @@ import StudentModal from "@/components/modals/academic/StudentModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
 import { formatDate } from "@/lib/utils";
+import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
+import { CreateStudent } from "@/types/requests/student.interface";
+import { createStudent } from "@/lib/network";
 
 type Props = {
   searchQuery: string;
   filteredData: Student[];
+  courses: Course[];
 };
 
-export default function StudentTable({ searchQuery, filteredData }: Props) {
+export default function StudentTable({
+  searchQuery,
+  filteredData,
+  courses,
+}: Props) {
   const router = useRouter();
+  const [data, setData] = useState(filteredData);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -64,8 +73,17 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
     }
   };
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateStudent) => {
+    try {
+      const response = await createStudent(payload);
+
+      console.log("Student created successfully:", response);
+
+      setData((prev) => [...prev, response]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save student:", error);
+    }
   };
 
   const toggleDropdown = (id: string) => {
@@ -170,7 +188,9 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                     <td className="p-3">{student.guardians[0]?.fullname}</td>
                     <td className="p-3">{student.guardians[0]?.phone}</td>
                     <td className="p-3">
-                      {student.courses.length > 0 ? student.courses[0]?.name : "Not yet enrolled"}
+                      {student.courses.length > 0
+                        ? student.courses[0]?.name
+                        : "Not yet enrolled"}
                     </td>
                     <td className="p-3">
                       <StatusBadge
@@ -229,6 +249,7 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        courses={courses}
         mode="enroll"
       />
     </div>

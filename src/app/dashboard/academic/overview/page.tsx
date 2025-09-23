@@ -55,14 +55,19 @@ export default function Overview() {
     <div className="min-h-screen bg-white text-gray-100 p-4 md:py-8 md:px-3 font-inter">
       <div className="max-w-7xl mx-auto">
         {/* Overview Header */}
-        <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6">
-          <h1 className="text-2xl font-bold text-white">Welcome, John Doe!</h1>
-          <p className="text-gray-300 mt-1">
-            Here's what's happening today across your academic operations.
-          </p>
-          <p className="text-sm font-medium text-white mt-2">
-            Role: Regional Manager
-          </p>
+        <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <h1 className="text-white text-4xl font-extrabold">Academic Overview</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Welcome, John Doe!
+            </h1>
+            <p className="text-gray-300 mt-1">
+              Here's what's happening today across your academic operations.
+            </p>
+            <p className="text-sm font-medium text-white mt-2">
+              Role: Regional Manager
+            </p>
+          </div>
         </div>
 
         {/* Top Stats */}

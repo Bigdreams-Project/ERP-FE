@@ -4,7 +4,7 @@ export const centerSchema = yup.object().shape({
   name: yup.string().required("Center name is required"),
   location: yup.string().required("Location is required"),
   address: yup.string().required("Center address is required"),
-  manager: yup.string().required("Center Manager name is required"),
+  managerId: yup.string().required("Center Manager name is required"),
   phone: yup
     .string()
     .required("Phone number is required")

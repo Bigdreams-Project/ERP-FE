@@ -4,7 +4,7 @@ import { courseSchema } from "@/validations/academic/course.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { BookOpen, ChevronDown, Clock, X } from "lucide-react";
 import React, { useEffect } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 const CourseModal: React.FC<ICourseModalProps> = ({
   isOpen,
@@ -45,16 +45,13 @@ const CourseModal: React.FC<ICourseModalProps> = ({
     }
   }, [isOpen, initialData, reset]);
 
-
   const handleSaveDraft = (data: ICourse | any) => {
     onSave(data, true);
-    console.log(data, true);
     onClose();
   };
 
-  const handlePublish = (data: ICourse | any) => {
+  const handleSave = (data: ICourse | any) => {
     onSave(data, false);
-    console.log(data, false);
     onClose();
   };
 
@@ -80,10 +77,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
         </div>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit(handlePublish)}
-          className="mt-2 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
-        >
+        <form className="mt-2 flex flex-col h-full overflow-y-auto pr-2 custom-scroll">
           <div className="p-4 bg-white rounded-lg">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               {/* Course Name */}
@@ -145,7 +139,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                   htmlFor="duration"
                   className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
                 >
-                  <Clock size={14} /> Duration (Month)
+                  <Clock size={14} /> Duration (Months)
                 </label>
                 <select
                   id="duration"
@@ -179,17 +173,16 @@ const CourseModal: React.FC<ICourseModalProps> = ({
             >
               Cancel
             </button>
-            {/* The Save as Draft button now uses type="button" and its own handler */}
             <button
               type="button"
-              onClick={handleSaveDraft}
+              onClick={() => handleSaveDraft(getValues())}
               className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
             >
               Save as Draft
             </button>
-            {/* The Publish button remains type="submit" and is disabled if the form is invalid */}
             <button
-              type="submit"
+              type="button"
+              onClick={() => handleSave(getValues())}
               className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
                 isValid
                   ? "bg-blue-600 hover:bg-blue-700"

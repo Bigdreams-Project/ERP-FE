@@ -4,7 +4,9 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import { courseStatus, courseTypes } from "@/data/mock/academic.data";
+import { createCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
+import { CreateCourse } from "@/types/requests/course.interface";
 import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -87,7 +89,17 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
     return matchesSearch && matchesStatus && matchesCourseType;
   });
 
-  const handleSave = () => {};
+  const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
+    try {
+      const response = await createCourse(payload, isDraft);
+
+      console.log("Course created successfully:", response);
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save course:", error);
+    }
+  };
 
   return (
     <div className="w-full">

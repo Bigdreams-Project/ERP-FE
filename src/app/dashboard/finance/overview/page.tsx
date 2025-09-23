@@ -21,13 +21,22 @@ export default function Overview() {
     <div className="flex bg-white font-sans text-gray-800">
       <main className="flex-1 py-8 px-3">
         {/* Header */}
-        <div className="overview-gradient rounded-2xl p-6 text-white mb-6 shadow-md">
-          <h1 className="text-xl font-bold">Welcome, John Doe</h1>
-          <p className="text-sm font-medium">
-            Have a great morning today, let's dive into your financial
-            operations.
-          </p>
-          <p className="text-xs mt-1">Role: COO/HQ Admin</p>
+        <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <h1 className="text-white text-4xl font-extrabold">
+            Finance Overview
+          </h1>
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Welcome, John Doe!
+            </h1>
+            <p className="text-gray-300 mt-1">
+              Have a great morning today, let's dive into your financial
+              operations.
+            </p>
+            <p className="text-sm font-medium text-white mt-2">
+              Role: COO/HQ Admin
+            </p>
+          </div>
         </div>
 
         <div className="flex justify-end space-x-4 my-4">

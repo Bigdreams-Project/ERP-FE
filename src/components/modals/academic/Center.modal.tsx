@@ -11,6 +11,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
   onClose,
   initialData,
   onSave,
+  managers,
   mode,
 }) => {
   const {
@@ -26,7 +27,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
       name: "",
       location: "",
       address: "",
-      manager: "",
+      managerId: "",
       phone: "",
       email: "",
       status: "ACTIVE",
@@ -42,7 +43,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
           name: "",
           location: "",
           address: "",
-          manager: "",
+          managerId: "",
           phone: "",
           email: "",
           status: "ACTIVE",
@@ -53,7 +54,6 @@ const CenterModal: React.FC<ICenterModalProps> = ({
 
   const onSubmit = (data: ICenter | any) => {
     onSave(data, false);
-    console.log(data, false);
     onClose();
   };
 
@@ -81,17 +81,17 @@ const CenterModal: React.FC<ICenterModalProps> = ({
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pb-4">
-            {/* Center Name */}
+            {/* Name */}
             <div className="flex flex-col">
               <label
-                htmlFor="centerName"
+                htmlFor="name"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Center Name
+                Name
               </label>
               <input
                 type="text"
-                id="centerName"
+                id="name"
                 {...register("name")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
@@ -132,17 +132,17 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               )}
             </div>
 
-            {/* Center Address */}
+            {/* Address */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="centerAddress"
+                htmlFor="address"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Center Address
+                Address
               </label>
               <input
                 type="text"
-                id="centerAddress"
+                id="address"
                 {...register("address")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
@@ -153,38 +153,44 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               )}
             </div>
 
-            {/* Center Manager Name */}
+            {/* Manager */}
             <div className="flex flex-col">
               <label
-                htmlFor="centerManagerName"
+                htmlFor="managerId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Center Manager Name
+                Manager
               </label>
-              <input
-                type="text"
-                id="centerManagerName"
-                {...register("manager")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              />
-              {errors.manager && (
+              <select
+                id="managerId"
+                {...register("managerId")}
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Manager</option>
+                {managers.map((manager) => (
+                  <option key={manager.fullname} value={manager.id}>
+                    {manager.fullname}
+                  </option>
+                ))}
+              </select>
+              {errors.managerId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.manager.message}
+                  {errors.managerId.message}
                 </p>
               )}
             </div>
 
-            {/* Contact Phone */}
+            {/*  Phone */}
             <div className="flex flex-col">
               <label
-                htmlFor="contactPhone"
+                htmlFor="phone"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Contact Phone
+                Phone
               </label>
               <input
                 type="tel"
-                id="contactPhone"
+                id="phone"
                 {...register("phone")}
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />

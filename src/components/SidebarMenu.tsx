@@ -105,8 +105,8 @@ const SidebarMenu = ({
         },
         { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
         {
-          label: "Payments & Invoices",
-          href: "/dashboard/finance/payments-invoices",
+          label: "Payments & Receipts",
+          href: "/dashboard/finance/payments-receipts",
         },
         { label: "Payroll", href: "/dashboard/finance/payroll" },
         {

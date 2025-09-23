@@ -147,7 +147,7 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
                   Address: center.address,
                   Created: center.createdAt,
                   Location: center.address,
-                  "Center Manager": center?.managers[0]?.fullname,
+                  "Center Manager": center?.manager?.fullname,
                   "Academic Head": center.academicHead?.fullname,
                   "Student Count": center.students?.length,
                   "Faculty Count": center.faculties?.length,

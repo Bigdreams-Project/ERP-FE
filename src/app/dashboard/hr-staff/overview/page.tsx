@@ -9,11 +9,7 @@ import {
   systemActions,
   upcomingAlerts,
 } from "@/data/mock/hr.data";
-import {
-  CalendarDays,
-  CheckCircle,
-  Users
-} from "lucide-react";
+import { CalendarDays, CheckCircle, Users } from "lucide-react";
 import Image from "next/image";
 
 export default function Overview() {
@@ -21,14 +17,20 @@ export default function Overview() {
     <div className="flex bg-white font-sans text-gray-800 min-h-screen">
       <main className="flex-1 py-8 px-3">
         {/* Overview Header */}
-        <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6">
-          <h1 className="text-2xl font-bold text-white">Welcome, John Doe!</h1>
-          <p className="text-gray-300 mt-1">
-            Here's what's happening today across your human resource operations.
-          </p>
-          <p className="text-sm font-medium text-white mt-2">
-            Role: Regional Manager
-          </p>
+        <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <h1 className="text-white text-4xl font-extrabold">HR Overview</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Welcome, John Doe!
+            </h1>
+            <p className="text-gray-300 mt-1">
+              Here's what's happening today across your human resource
+              operations.
+            </p>
+            <p className="text-sm font-medium text-white mt-2">
+              Role: Regional Manager
+            </p>
+          </div>
         </div>
 
         <div className="flex justify-between items-center mb-6">

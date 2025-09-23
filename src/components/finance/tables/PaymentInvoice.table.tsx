@@ -34,7 +34,7 @@ export default function PaymentInvoiceTable({
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent
-              text="Payments & Invoices"
+              text="Payments & Receipts"
               setIsModalOpen={setIsModalOpen}
             />
           ) : (

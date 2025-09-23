@@ -2,20 +2,31 @@
 import BatchModal from "@/components/modals/academic/Batch.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { batches } from "@/data/mock/academic.data";
-import { Batch } from "@/types/academic/batch.interface";
+import { formatDate } from "@/lib/utils";
+import { Batch, Faculty } from "@/types/academic/batch.interface";
+import { Course } from "@/types/academic/course.interface";
+import { Student } from "@/types/academic/student.interface";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import { formatDate } from "@/lib/utils";
 
 type Props = {
   searchQuery: string;
   filteredData: Batch[];
+  courses: Course[];
+  students: Student[];
+  faculties: Faculty[];
 };
 
-export default function BatchTable({ searchQuery, filteredData }: Props) {
+export default function BatchTable({
+  searchQuery,
+  filteredData,
+  courses,
+  students,
+  faculties,
+}: Props) {
   const router = useRouter();
   const [data] = useState(batches);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -173,6 +184,9 @@ export default function BatchTable({ searchQuery, filteredData }: Props) {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
+          courses={courses}
+          students={students}
+          faculties={faculties}
           mode="add"
         />
       </div>

@@ -3,7 +3,9 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CenterTable from "@/components/academic/tables/Center.table";
 import CenterModal from "@/components/modals/academic/Center.modal";
+import { createCenter } from "@/lib/network";
 import { Center, Manager } from "@/types/academic/center.interface";
+import { CreateCenter } from "@/types/requests/center.interface";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -40,8 +42,15 @@ const CenterContent = ({ centers, managers }: CenterContentProps) => {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
+    try {
+      const response = await createCenter(payload, isDraft);
+      console.log("Center created successfully:", response);
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save lead:", error);
+    }
   };
 
   return (
@@ -78,7 +87,11 @@ const CenterContent = ({ centers, managers }: CenterContentProps) => {
         </div>
       </div>
 
-      <CenterTable searchQuery={searchQuery} centers={centers} managers={managers} />
+      <CenterTable
+        searchQuery={searchQuery}
+        centers={centers}
+        managers={managers}
+      />
       <CenterModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
