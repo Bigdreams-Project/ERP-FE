@@ -12,12 +12,13 @@ export interface CreateStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
-  lumpSumFee: number | null;
-  numberOfInstallments: number | null;
-  courseId: string;
-  batchId: string;
-  paymentPlanId: string;
+  courseFee: string | null;
+  lumpSumFee: string | null;
+  numberOfInstallments: string | null;
+  paymentPlan: string;
   notes: string;
+  courseId: string;
+  batchId: string | null;
 }
 
 export interface UpdateStudent {
@@ -34,10 +35,12 @@ export interface UpdateStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
-  lumpSumFee: number | null;
-  numberOfInstallments: number | null;
-  courseId: string;
-  batchId: string;
-  paymentPlanId: string;
+  courseFee: string | null;
+  lumpSumFee: string | null;
+  numberOfInstallments: string | null;
+  paymentPlan: string;
   notes: string;
+  courseId: string;
+  batchId: string | null;
 }
+ 

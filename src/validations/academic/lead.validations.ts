@@ -14,15 +14,15 @@ export const leadSchema = yup.object().shape({
       "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
   address: yup.string().required("Address is required"),
-  parentName: yup.string().required("Parent's name is required"),
-  parentPhone: yup
+  guardianName: yup.string().required("Guardian's name is required"),
+  guardianPhone: yup
     .string()
-    .required("Parent's phone number is required")
+    .required("Guardian's phone number is required")
     .matches(
       /^0\d{10}$/,
       "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
-  parentEmail: yup
+  guardianEmail: yup
     .string()
     .email("Invalid email format")
     .nullable()

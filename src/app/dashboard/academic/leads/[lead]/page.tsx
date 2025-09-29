@@ -6,7 +6,5 @@ export default async function Lead({ params }: any) {
 
   const lead = await getLead(leadId);
 
-  console.log("data:", leadId, lead);
-
   return <LeadDetails lead={lead} />;
 }

@@ -38,3 +38,9 @@ export const durationOptions = [
   { label: "36", value: "36" },
   { label: "48", value: "48" },
 ];
+
+export const courseStatusEnum = {
+  Active: "ACTIVE",
+  Inactive: "INACTIVE",
+  Draft: "DRAFT",
+};

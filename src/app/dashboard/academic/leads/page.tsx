@@ -1,7 +1,8 @@
+export const dynamic = "force-dynamic";
 import { AppAuthRoutes } from "@/constants/appRoutes.constant";
 import LeadContent from "@/content/dashboard/academic/leads";
 import { getCenters, getCourses, getLeads } from "@/lib/network";
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
 export default async function Leads() {
   let leads = [];
@@ -12,7 +13,6 @@ export default async function Leads() {
     leads = await getLeads();
     centers = await getCenters();
     courses = await getCourses();
-
   } catch (err: any) {
     if (err.message === "No active session") {
       console.error("No active session, redirecting to login.");

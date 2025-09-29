@@ -5,6 +5,7 @@ import { IStudent } from "./student.interface";
 
 export interface CourseAssignment {
   id?: string;
+  centerId?: string;
   lumpSumFee: number;
   baseFee: number;
   maxInstallments: number;
@@ -24,7 +25,7 @@ export interface Course {
   leads: ILead[];
   maxInstallments: number;
   costPerInstallment: number | null;
-  courseAssignment: CourseAssignment;
+  courseAssignments: CourseAssignment[];
   batches: Batch[];
   documents: Document[];
   paymentPlans: any[];

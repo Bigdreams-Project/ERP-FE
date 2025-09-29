@@ -5,7 +5,9 @@ import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/mock/academic.data";
 import { createStudent } from "@/lib/network";
+import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
+import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { CreateStudent } from "@/types/requests/student.interface";
 import { useEffect, useRef, useState } from "react";
@@ -16,9 +18,16 @@ import { IoFilter } from "react-icons/io5";
 interface StudentContentProps {
   students: Student[];
   courses: Course[];
+  centers: Center[];
+  leads: Lead[];
 }
 
-const StudentContent = ({ students, courses }: StudentContentProps) => {
+const StudentContent = ({
+  students,
+  courses,
+  centers,
+  leads
+}: StudentContentProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -81,10 +90,7 @@ const StudentContent = ({ students, courses }: StudentContentProps) => {
 
   const handleSave = async (payload: CreateStudent) => {
     try {
-      const response = await createStudent(payload);
-
-      console.log("Student created successfully:", response);
-
+      await createStudent(payload);
       setIsModalOpen(false);
     } catch (error) {
       console.error("Failed to save student:", error);
@@ -187,12 +193,16 @@ const StudentContent = ({ students, courses }: StudentContentProps) => {
         searchQuery={searchQuery}
         filteredData={filteredData}
         courses={courses}
+        centers={centers}
+        leads={leads}
       />
       <StudentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         courses={courses}
+        centers={centers}
+        leads={leads}
         mode="enroll"
       />
     </div>

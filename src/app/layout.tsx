@@ -1,6 +1,7 @@
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
+import { ToastContainer } from "react-toastify";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${archivo.variable} antialiased`}>
         <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ToastContainer />
       </body>
     </html>
   );

@@ -6,7 +6,5 @@ export default async function Batch({ params }: any) {
 
   const batch = await getBatch(batchId);
 
-  console.log("data:", batchId, batch);
-
   return <BatchDetails batch={batch} />;
 }

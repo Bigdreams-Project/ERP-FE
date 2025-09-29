@@ -26,6 +26,8 @@ export interface Lead {
   email: string;
   phone: string;
   address: string;
+  birthDate: string;
+  centerId: string;
   courseId: string;
   course: Course;
   enquiryDate: string;
@@ -44,9 +46,9 @@ export interface ILead {
   email: string;
   phone: string;
   address: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string | null;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail: string | null;
   centerId: string;
   courseId: string;
   enquiryDate: string;
@@ -85,4 +87,12 @@ export interface ILeadModalProps {
     note: string;
   };
   mode: "add" | "edit";
+}
+
+export interface IDeleteModalProps {
+  title: string;
+  subtitle: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onDelete: (id: string) => void;
 }

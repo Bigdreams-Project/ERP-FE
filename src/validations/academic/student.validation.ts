@@ -13,8 +13,8 @@ export const enrollmentSchema = yup.object().shape({
     .string()
     .required("Phone number is required")
     .matches(
-      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
-      "Phone number must be in the format +234 815 815-9170"
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
   address: yup.string().required("Home address is required"),
   status: yup
@@ -34,8 +34,8 @@ export const enrollmentSchema = yup.object().shape({
     .string()
     .required("Guardian phone is required")
     .matches(
-      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
-      "Phone number must be in the format +234 815 815-9170"
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
   guardianEmail: yup
     .string()
@@ -43,24 +43,23 @@ export const enrollmentSchema = yup.object().shape({
     .nullable()
     .notRequired() as yup.StringSchema<string | null>,
   guardianAddress: yup.string().required("Guardian address is required"),
-  lumpSumFee: yup.number().nullable().notRequired() as yup.NumberSchema<
-    number | null
+  courseFee: yup.string().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
+  lumpSumFee: yup.string().nullable().notRequired() as yup.StringSchema<
+    string | null
   >,
   numberOfInstallments: yup
-    .number()
+    .string()
     .nullable()
-    .notRequired() as yup.NumberSchema<number | null>,
+    .notRequired() as yup.StringSchema<string | null>,
   courseId: yup.string().required("Course of interest is required"),
   batchId: yup
     .string()
     .optional()
     .nullable()
-    .notRequired() as yup.StringSchema<string>,
-  paymentPlanId: yup
-    .string()
-    .optional()
-    .nullable()
-    .notRequired() as yup.StringSchema<string>,
+    .notRequired() as yup.StringSchema<string | null>,
+  paymentPlan: yup.string().required("Payment plan is required"),
   notes: yup
     .string()
     .optional()

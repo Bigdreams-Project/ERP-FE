@@ -1,6 +1,8 @@
 import { CreateStudent } from "../requests/student.interface";
 import { StudentBatch } from "./batch.interface";
+import { Center } from "./center.interface";
 import { Course } from "./course.interface";
+import { Lead } from "./lead.interface";
 
 export interface Guardian {
   id: string;
@@ -12,26 +14,25 @@ export interface Guardian {
 }
 
 export interface BatchStudent {
-  student: {
-    id: string;
-    studentId: string | null;
-    leadId: string | null;
-    fullName: string;
-    phone: string;
-    email: string;
-    image: string;
-    address: string;
-    guardians: Guardian[];
-    courses: Course[];
-    enrolledDate: string;
-    batches: StudentBatch[];
-    status: string;
-    paymentPlan: string;
-    lumpSum: number | null;
-    numberOfInstallments: number | null;
-    comments: string | null;
-    createdAt: string;
-  };
+  id: string;
+  studentId: string | null;
+  leadId: string | null;
+  fullName: string;
+  phone: string;
+  email: string;
+  image: string;
+  address: string;
+  guardians: Guardian[];
+  courses: Course[];
+  enrolledDate: string;
+  batches: StudentBatch[];
+  status: string;
+  paymentPlan: string;
+  lumpSum: number | null;
+  numberOfInstallments: number | null;
+  comments: string | null;
+  payments: any[];
+  createdAt: string;
 }
 
 export interface StudentNote {
@@ -78,12 +79,13 @@ export interface IStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
-  lumpSumFee: number | null;
-  numberOfInstallments: number | null;
-  courseId: string;
-  batchId: string;
-  paymentPlanId: string;
+  courseFee: string | null;
+  lumpSumFee: string | null;
+  numberOfInstallments: string | null;
+  paymentPlan: string;
   notes: string;
+  courseId: string;
+  batchId: string | null;
 }
 
 export interface IStudentModalProps {
@@ -91,6 +93,8 @@ export interface IStudentModalProps {
   onClose: () => void;
   onSave: (payload: CreateStudent) => void;
   courses: Course[];
+  centers: Center[];
+  leads: Lead[];
   initialData?: Partial<IStudent>;
   mode: "enroll";
 }

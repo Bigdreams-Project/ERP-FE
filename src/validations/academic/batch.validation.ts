@@ -2,13 +2,14 @@ import * as yup from "yup";
 
 export const batchSchema = yup.object().shape({
   courseId: yup.string().required("Course is required"),
+  centerId: yup.string().required("Center is required"),
   startDate: yup.string().required("Start date is required"),
   endDate: yup.string().required("End date is required"),
   duration: yup.string().required("Duration is required"),
   status: yup.string().optional().nullable().notRequired() as yup.StringSchema<
     string | null
   >,
-  schedule: yup
+  schedules: yup
     .array()
     .of(
       yup

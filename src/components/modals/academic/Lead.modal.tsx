@@ -56,9 +56,9 @@ const LeadModal: React.FC<ILeadModalProps> = ({
       email: "",
       phone: "",
       address: "",
-      parentName: "",
-      parentPhone: "",
-      parentEmail: "",
+      guardianName: "",
+      guardianPhone: "",
+      guardianEmail: "",
       courseId: "",
       enquiryDate: "",
       source: "",
@@ -234,68 +234,68 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               )}
             </div>
 
-            {/* Parent/Guardian Name */}
+            {/* Guardian Name */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentName"
+                htmlFor="guardianName"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <User size={14} /> Parent/Guardian Name
+                <User size={14} /> Guardian Name
               </label>
               <input
                 type="text"
-                id="parentName"
+                id="guardianName"
                 placeholder="John Doe Emeka"
-                {...register("parentName")}
+                {...register("guardianName")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentName && (
+              {errors.guardianName && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentName.message}
+                  {errors.guardianName.message}
                 </p>
               )}
             </div>
 
-            {/* Parent Phone */}
+            {/* Guardian Phone */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentPhone"
+                htmlFor="guardianPhone"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <Phone size={14} /> Parent/Guardian Phone
+                <Phone size={14} /> Guardian Phone
               </label>
               <input
                 type="tel"
-                id="parentPhone"
+                id="guardianPhone"
                 placeholder="(234) 905-256-8454"
-                {...register("parentPhone")}
+                {...register("guardianPhone")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentPhone && (
+              {errors.guardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentPhone.message}
+                  {errors.guardianPhone.message}
                 </p>
               )}
             </div>
 
-            {/* Parent Email */}
+            {/* Guardian Email */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="parentEmail"
+                htmlFor="guardianEmail"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <Mail size={14} /> Parent/Guardian Email (Optional)
+                <Mail size={14} /> Guardian Email (Optional)
               </label>
               <input
                 type="email"
-                id="parentEmail"
+                id="guardianEmail"
                 placeholder="john@example.com"
-                {...register("parentEmail")}
+                {...register("guardianEmail")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentEmail && (
+              {errors.guardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentEmail.message}
+                  {errors.guardianEmail.message}
                 </p>
               )}
             </div>

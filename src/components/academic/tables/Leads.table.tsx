@@ -1,17 +1,21 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createLead } from "@/lib/network";
+import { createLead, createStudent, deleteLead } from "@/lib/network";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { CreateLead } from "@/types/requests/lead.interface";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Link2Icon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
+import EnrollStudentModal from "@/components/modals/academic/StudentModal";
+import { CreateStudent } from "@/types/requests/student.interface";
+import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   leads: Lead[];
@@ -37,6 +41,10 @@ export default function LeadTable({
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+
   const [filteredData, setFilteredData] = useState(data);
   const itemsPerPage = 10;
 
@@ -116,29 +124,43 @@ export default function LeadTable({
     }
   };
 
+  const handleEnrollSave = async (payload: CreateStudent) => {
+    try {
+      const response = await createStudent(payload);
+      console.log("Student enrolled successfully:", response);
+      setIsEnrollModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save student:", error);
+    }
+  };
+
+  const handleDeleteLead = async (leadId: string) => {
+    try {
+      await deleteLead(leadId);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete lead:", error);
+    }
+  };
+
+  const handleEnroll = (leadId: string) => {
+    setOpenDropdown(null);
+    setSelectedLeadId(leadId);
+    setIsEnrollModalOpen(true);
+  };
+
+  const handleDelete = (leadId: string) => {
+    setOpenDropdown(null);
+    setSelectedLeadId(leadId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleEmail = (id: string) => {
+    setOpenDropdown(null);
+  };
+
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
-  };
-
-  const handleEnroll = (centerId: string) => {
-    setOpenDropdown(null);
-    setIsModalOpen(true);
-  };
-
-  const handleView = (centerId: string) => {
-    setOpenDropdown(null);
-  };
-
-  const handleEmail = (centerId: string) => {
-    setOpenDropdown(null);
-  };
-
-  const handleDelete = (centerId: string) => {
-    setOpenDropdown(null);
-  };
-
-  const handleStudentSave = () => {
-    console.log("...");
   };
 
   return (
@@ -181,17 +203,19 @@ export default function LeadTable({
                 {paginatedData.map((lead: Lead, index) => (
                   <tr
                     key={lead.id}
-                    onClick={() =>
-                      router.push(`/dashboard/academic/leads/${lead.id}`)
-                    }
-                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
                     <td className="pt-6 flex items-center">
                       <input type="checkbox" className="mr-2" />
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-4">
-                      <p className="font-bold text-blue-700">{lead.code}</p>
+                      <Link
+                        href={`/dashboard/academic/leads/${lead.id}`}
+                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                      >
+                        {lead.code} <Link2Icon size={12} />
+                      </Link>
                     </td>
                     <td className="p-4 font-bold">{lead.fullName}</td>
                     <td className="p-4">{lead.email}</td>
@@ -221,18 +245,22 @@ export default function LeadTable({
                           </button>
 
                           <button
-                            onClick={() => handleView(lead.id)}
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/academic/leads/${lead.id}`
+                              )
+                            }
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View
                           </button>
 
-                          <button
+                          {/* <button
                             onClick={() => handleEmail(lead.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Send an Email
-                          </button>
+                          </button> */}
 
                           <button
                             onClick={() => handleDelete(lead.id)}
@@ -266,8 +294,26 @@ export default function LeadTable({
           onSave={handleSave}
           mode="add"
         />
+
+        <EnrollStudentModal
+          isOpen={isEnrollModalOpen}
+          onClose={() => setIsEnrollModalOpen(false)}
+          onSave={handleEnrollSave}
+          courses={courses}
+          centers={centers}
+          leads={leads}
+          initialData={{ leadId: selectedLeadId }}
+          mode="enroll"
+        />
+
+        <DeleteModal
+          title="Lead"
+          subtitle="Are you sure you want to delete this lead?"
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onDelete={handleDeleteLead}
+        />
       </div>
     </div>
   );
 }
- 

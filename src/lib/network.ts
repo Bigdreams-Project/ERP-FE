@@ -1,5 +1,5 @@
 import { NoSessionError, server } from "@/lib/server";
-import { CreateBatch } from "@/types/requests/batch.interface";
+import { CreateBatch, UpdateBatch } from "@/types/requests/batch.interface";
 import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
 import { CreateCourse, UpdateCourse } from "@/types/requests/course.interface";
 import { CreateLead, UpdateLead } from "@/types/requests/lead.interface";
@@ -7,6 +7,79 @@ import {
   CreateStudent,
   UpdateStudent,
 } from "@/types/requests/student.interface";
+import { getSession } from "./session";
+
+// Users
+export const getLoggedInUser = async () => {
+  try {
+    const api = await server();
+    const session = await getSession();
+    if (!session) {
+      throw new NoSessionError();
+    }
+    const { id } = session.user;
+    const res = await api.get(`/users/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch user logged in user:", err.message);
+    return {};
+  }
+};
+
+export const getUsers = async () => {
+  try {
+    const api = await server();
+    const res = await api.get("/users");
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch users:", err.message);
+    return [];
+  }
+};
+
+export const getUser = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/users/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch user:", err.message);
+    return {};
+  }
+};
+
+export const createUser = async (payload: CreateLead) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/users`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create user:", err.message);
+    return err.message;
+  }
+};
+
+export const updateUser = async (id: string, payload: UpdateLead) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/users/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update user:", err.message);
+    return err.message;
+  }
+};
+
+export const deleteUser = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/users/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete user:", err.message);
+    return err.message;
+  }
+};
 
 // Leads
 export const getLeads = async () => {
@@ -270,7 +343,7 @@ export const getBatch = async (id: string) => {
   }
 };
 
-export const createBatch = async (id: string, payload: CreateBatch) => {
+export const createBatch = async (payload: CreateBatch) => {
   try {
     const api = await server();
     const res = await api.post(`/batches`, payload);
@@ -281,7 +354,7 @@ export const createBatch = async (id: string, payload: CreateBatch) => {
   }
 };
 
-export const updateBatch = async (id: string, payload: UpdateLead) => {
+export const updateBatch = async (id: string, payload: UpdateBatch) => {
   try {
     const api = await server();
     const res = await api.patch(`/batches/${id}`, payload);

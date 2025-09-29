@@ -3,6 +3,7 @@ import {
   scheduleTimes,
   statuses,
 } from "@/data/view/batch.data";
+import { addHoursToTime } from "@/lib/utils";
 import {
   IBatch,
   IBatchModalProps,
@@ -20,10 +21,8 @@ import {
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import Select, { ActionMeta, MultiValue } from "react-select";
-import { Controller } from "react-hook-form";
-import { addHoursToTime } from "@/lib/utils";
 
 const BatchModal: React.FC<IBatchModalProps> = ({
   isOpen,
@@ -51,7 +50,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
       courseId: "",
       startDate: "",
       endDate: "",
-      schedule: [
+      schedules: [
         {
           day: "Monday",
           startTime: "02:00 PM",
@@ -67,15 +66,30 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   const [isDraft, setIsDraft] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
 
-  // Dynamically update the display string for class schedule
-  const classSchedule = watch("schedule");
+  const classSchedule = watch("schedules");
+  const courseId = watch("courseId");
+
+  useEffect(() => {
+    if (courseId) {
+      const selectedCourse = courses.find((course) => course.id === courseId);
+      if (selectedCourse) {
+        setValue(
+          "duration",
+          parseInt(selectedCourse.duration.toString(), 10).toString()
+        );
+        setValue("centerId", selectedCourse?.courseAssignments[0]?.centerId || "");
+      }
+
+      console.log("Selected Course:", selectedCourse?.courseAssignments[0]?.centerId);
+    }
+  }, [courseId, setValue]);
 
   useEffect(() => {
     classSchedule.forEach((schedule, index) => {
       if (schedule.startTime) {
         const newEnd = addHoursToTime(schedule.startTime, 2);
         if (newEnd !== schedule.endTime) {
-          setValue(`schedule.${index}.endTime`, newEnd);
+          setValue(`schedules.${index}.endTime`, newEnd);
         }
       }
     });
@@ -90,7 +104,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
         courseId: "",
         startDate: "",
         endDate: "",
-        schedule: [
+        schedules: [
           {
             day: "Monday",
             startTime: "02:00 PM",
@@ -156,15 +170,13 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   };
 
   const handleSaveDraft = (data: IBatch | any) => {
-    // onSave(data, true);
-    // onClose();
-    console.log(data, true);
+    onSave(data, true);
+    onClose();
   };
 
   const handleSave = (data: IBatch | any) => {
-    // onSave(data, false);
-    // onClose();
-    console.log(data, false);
+    onSave(data, false);
+    onClose();
   };
 
   const formatSchedule = (schedule: IBatchSchedule[]) => {
@@ -218,9 +230,6 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   </option>
                 ))}
               </select>
-              {/* <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <ChevronDown size={18} />
-              </span> */}
               {errors.courseId && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.courseId.message}
@@ -267,18 +276,16 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               </label>
               <select
                 id="duration"
-                {...register("duration", { valueAsNumber: true })}
+                {...register("duration")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100  focus:border-blue-500 focus:outline-none transition-colors"
               >
+                <option value="">Select Duration</option>
                 {durationOptions.map((duration) => (
                   <option key={duration.value} value={duration.value}>
                     {duration.label}
                   </option>
                 ))}
               </select>
-              {/* <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <ChevronDown size={18} />
-              </span> */}
               {errors.duration && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.duration.message}
@@ -357,7 +364,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       id={`classSchedule.${index}.dayOfWeek`}
-                      {...register(`schedule.${index}.day`)}
+                      {...register(`schedules.${index}.day`)}
                       className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                     >
                       <option value="Monday">Monday</option>
@@ -379,7 +386,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     <input
                       type="number"
                       id={`classSchedule.${index}.duration`}
-                      {...register(`schedule.${index}.duration`, {
+                      {...register(`schedules.${index}.duration`, {
                         valueAsNumber: true,
                       })}
                       className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
@@ -396,7 +403,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       id={`classSchedule.${index}.startTime`}
-                      {...register(`schedule.${index}.startTime`)}
+                      {...register(`schedules.${index}.startTime`)}
                       className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                     >
                       <option value="">Select Time</option>
@@ -437,9 +444,9 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   </div>
                 </div>
               ))}
-              {errors.schedule && (
+              {errors.schedules && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.schedule.message}
+                  {errors.schedules.message}
                 </p>
               )}
               {/* This is a simple display of the entered schedule, matching the image. */}

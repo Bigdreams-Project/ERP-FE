@@ -246,12 +246,12 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
                   : "Not yet enrolled.",
                 BookOpen
               )}
-              {renderSection("Batch", student.batches[0].batch?.code, Users)}
+              {renderSection("Batch", student.batches[0]?.code, Users)}
               {renderSection(
                 "Dates",
                 `${formatDate(
-                  student.batches[0]?.batch?.startDate
-                )} - ${formatDate(student.batches[0]?.batch?.endDate)}`,
+                  student.batches[0]?.startDate
+                )} - ${formatDate(student.batches[0]?.endDate)}`,
                 Clock
               )}
               <div className="bg-gray-100 p-4 rounded-lg flex items-center">

@@ -1,9 +1,14 @@
+import { User } from "@/types/auth/user.interface";
 import { BiSearchAlt } from "react-icons/bi";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import Centerdropdown from "./Centerdropdown";
 import Profile from "./profile";
 
-const Navbar = () => {
+interface NavbarProps {
+  user: User;
+}
+
+const Navbar = ({ user }: NavbarProps) => {
   return (
     <div className="sticky top-0 flex items-center mt-[0.6rem] font-inter">
       <div className="w-[70%] flex items-center text-center gap-2 bg-[rgb(238,242,255)] py-[0.4rem] px-[0.8rem] ml-2 rounded-full focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-200">
@@ -18,7 +23,7 @@ const Navbar = () => {
 
       <div className="w-[30%] flex items-center  text-center justify-around">
         <div className="">
-          <Centerdropdown />
+          <Centerdropdown user={user} />
         </div>
         <IoIosNotificationsOutline size={30} />
         <Profile />

@@ -34,29 +34,28 @@ export interface Batch {
 }
 
 export interface StudentBatch {
-  batch: {
-    id?: string;
-    code: string;
-    startDate: string;
-    endDate: string;
-    createdAt: string;
-    duration: string;
-    status: string;
-    faculty: Faculty;
-    course: Course;
-    center: Center;
-    schedules: IBatchSchedule[];
-    students: Student[];
-  };
+  id?: string;
+  code: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  duration: string;
+  status: string;
+  faculty: Faculty;
+  course: Course;
+  center: Center;
+  schedules: IBatchSchedule[];
+  students: Student[];
 }
 
 export interface IBatch {
   courseId: string;
+  centerId: string;
   startDate: string;
   endDate: string;
   duration: string;
-  status: string | null; 
-  schedule: IBatchSchedule[];
+  status: string | null;
+  schedules: IBatchSchedule[];
   facultyId: string;
   students: string[];
 }

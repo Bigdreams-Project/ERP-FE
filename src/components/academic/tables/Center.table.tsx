@@ -1,13 +1,15 @@
 "use client";
 import CenterModal from "@/components/modals/academic/Center.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createCenter } from "@/lib/network";
+import { createCenter, deleteCenter } from "@/lib/network";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Link2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
+import Link from "next/link";
+import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type CenterTableProps = {
   centers: Center[];
@@ -25,7 +27,10 @@ export default function CenterTable({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mode, setMode] = useState<"add" | "edit">("add");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedCenterId, setSelectedCenterId] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   const filteredData = data.filter((center) => {
@@ -77,12 +82,16 @@ export default function CenterTable({
     setOpenDropdown(null);
   };
 
-  const handleEmail = (centerId: string) => {
+  const handleEdit = (centerId: string) => {
     setOpenDropdown(null);
+    setMode("edit");
+    setIsModalOpen(true);
   };
 
   const handleDelete = (centerId: string) => {
     setOpenDropdown(null);
+    setSelectedCenterId(centerId);
+    setIsDeleteModalOpen(true);
   };
 
   const handleCheckboxChange = (id: string) => {
@@ -122,6 +131,15 @@ export default function CenterTable({
     }
   };
 
+  const handleDeleteCenter = async (leadId: string) => {
+    try {
+      await deleteCenter(leadId);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete lead:", error);
+    }
+  };
+
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
@@ -154,6 +172,7 @@ export default function CenterTable({
                   <th className="p-4">Center Address</th>
                   <th className="p-4">Enrolled Students</th>
                   <th className="p-4">Leads</th>
+                  <th className="p-4">Status</th>
                   <th className="p-4">Actions</th>
                 </tr>
               </thead>
@@ -161,10 +180,7 @@ export default function CenterTable({
                 {paginatedData.map((center: Center, index) => (
                   <tr
                     key={center.id}
-                    onClick={() =>
-                      router.push(`/dashboard/academic/centers/${center.id}`)
-                    }
-                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
                     <td className="p-4 flex items-center">
                       <input
@@ -175,15 +191,19 @@ export default function CenterTable({
                       />
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="p-3">{center.code}</td>
+                    <td className="p-3">
+                      <Link
+                        href={`/dashboard/academic/centers/${center.id}`}
+                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                      >
+                        {center.code} <Link2Icon size={12} />
+                      </Link>
+                    </td>
                     <td className="p-3">
                       {highlightMatch(center.name, searchQuery)}
                     </td>
                     <td className="p-3 font-bold">
-                      {highlightMatch(
-                        center.manager?.fullname,
-                        searchQuery
-                      )}
+                      {highlightMatch(center.manager?.fullname, searchQuery)}
                     </td>
                     <td className="p-3">
                       {highlightMatch(center.email, searchQuery)}
@@ -196,6 +216,7 @@ export default function CenterTable({
                     </td>
                     <td className="p-3">{center.students.length}</td>
                     <td className="p-3">{center.leads.length}</td>
+                    <td className="p-3">{center.status}</td>
                     <td className="p-3 relative text-right">
                       <button
                         onClick={() => toggleDropdown(center.id)}
@@ -207,13 +228,17 @@ export default function CenterTable({
                       {openDropdown === center.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                           <button
-                            onClick={() => handleView(center.id)}
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/academic/centers/${center.id}`
+                              )
+                            }
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => handleEmail(center.id)}
+                            onClick={() => handleEdit(center.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Edit
@@ -248,7 +273,15 @@ export default function CenterTable({
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         managers={managers}
-        mode="add"
+        mode={mode}
+      />
+
+      <DeleteModal
+        title="Center"
+        subtitle="Are you sure you want to delete this center?"
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={handleDeleteCenter}
       />
     </div>
   );

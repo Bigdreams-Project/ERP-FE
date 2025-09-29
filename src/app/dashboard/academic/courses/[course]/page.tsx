@@ -6,7 +6,5 @@ export default async function Course({ params }: any) {
 
   const course = await getCourse(courseId);
 
-  console.log("data:", courseId, course);
-
   return <CourseDetails course={course} />;
 }

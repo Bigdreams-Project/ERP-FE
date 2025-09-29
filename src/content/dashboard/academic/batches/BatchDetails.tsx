@@ -243,16 +243,16 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                       {batch.students?.map((student, index) => (
                         <tr key={index}>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            {student.student.fullName}
+                            {student?.fullName}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {98}
+                            {0}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {"Paid"}
+                            {student?.payments[0].pending ? "Pending" : "Paid"}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {280000}
+                            ₦{student?.payments[0].paid.toLocaleString()}
                           </td>
                         </tr>
                       ))}
@@ -285,7 +285,7 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                       className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-300"
                     >
                       <span className="font-medium text-gray-800">
-                        {student.student.fullName}
+                        {student?.fullName}
                       </span>
                       <div className="flex items-center space-x-4">
                         <label className="inline-flex items-center cursor-pointer">

@@ -4,6 +4,8 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import BatchTable from "@/components/academic/tables/Batches.table";
 import BatchModal from "@/components/modals/academic/Batch.modal";
 import { batchStatus } from "@/data/mock/academic.data";
+import { createBatch } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { Batch, Faculty } from "@/types/academic/batch.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
@@ -108,8 +110,15 @@ const BatchesContent = ({
     setEndDate(endDate);
   };
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: any) => {
+    try {
+      await createBatch(payload);
+      showSuccess("Batch created successfully!");
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save batch:", error);
+      showError("Failed to create batch. Please try again.");
+    }
   };
 
   const handleFilterChange = (filterCategory: string, value: string) => {
