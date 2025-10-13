@@ -5,4 +5,10 @@ export interface User {
   email: string;
   status: string;
   role: string;
+  centers: any[];
+  createdAt: string;
+  requestedAt: string;
+  approvedAt: string;
+  rejectedAt: string;
+  updatedAt: string;
 }

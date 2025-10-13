@@ -6,7 +6,7 @@ export interface CreateCourse {
 }
  
 export interface UpdateCourse {
-  id: string;
+  id?: string;
   name: string;
   type: string;
   duration: number;

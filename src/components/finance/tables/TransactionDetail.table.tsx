@@ -1,22 +1,25 @@
 "use client";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { Payment } from "@/types/finance/payment.interface";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Props = {
-  transactions: any[];
+  transactions: Payment[];
   searchQuery: string;
-  filterOptions: {
-    startDate: string;
-    endDate: string;
-  } | any;
+  filterOptions:
+    | {
+        startDate: string;
+        endDate: string;
+      }
+    | any;
 };
 
 export default function TransactionDetailTable({
   transactions,
   searchQuery,
   filterOptions,
-}: Props) {
+}: Props) { 
   const router = useRouter();
   const [data, setData] = useState(transactions);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -30,9 +33,12 @@ export default function TransactionDetailTable({
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
-            <NotFoundComponent text="Transaction" setIsModalOpen={setIsModalOpen} />
+            <NotFoundComponent
+              text="Transaction"
+              setIsModalOpen={setIsModalOpen}
+            />
           ) : (
-            <table className="min-w-max divide-y divide-gray-300">
+            <table className="min-w-full divide-y divide-gray-300">
               <thead className="bg-white">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -57,32 +63,42 @@ export default function TransactionDetailTable({
               </thead>
               <tbody className="bg-white divide-y divide-gray-300">
                 {data.map((transaction, index) => (
-                  <tr key={index}>
+                  <tr
+                    key={index}
+                    onClick={() =>
+                      router.push(
+                        `/dashboard/finance/banking/transactions/${transaction.id}`
+                      )
+                    }
+                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
-                      {transaction.date}
+                      {transaction.updatedAt
+                        ? transaction.updatedAt
+                        : transaction.createdAt}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                      {transaction.description}
+                      {transaction.disclaimer}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          transaction.type === "Inflow"
+                          transaction.message === "Inflow"
                             ? "text-green-400"
                             : "text-red-400"
                         }`}
                       >
-                        {transaction.type}
+                        {transaction.paymentPlan}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.debit}
+                      {transaction.amount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.credit}
+                      ₦{transaction.amount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black font-bold">
-                      {transaction.balance}
+                      ₦{transaction.estimate}
                     </td>
                   </tr>
                 ))}

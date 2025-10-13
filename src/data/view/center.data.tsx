@@ -81,3 +81,10 @@ export const statuses = [
   { label: "Suspended", value: "SUSPENDED" },
   { label: "Closed", value: "CLOSED" },
 ];
+
+export const centerStatusEnum = {
+  Active: "ACTIVE",
+  InSetup: "IN_SETUP",
+  Suspended: "SUSPENDED",
+  Closed: "CLOSED",
+};

@@ -1,52 +1,66 @@
 "use client";
-import {
-  DownloadIcon,
-  EditIcon,
-  PrintIcon,
-  ShareIcon,
-} from "@/components/ui/icons";
 import { courseData } from "@/data/view/course.data";
+import { updateCourse } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Course } from "@/types/academic/course.interface";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
+import { MdEdit } from "react-icons/md";
 
 interface CourseDetailsProps {
   course: Course;
 }
 
 const CourseDetails = ({ course }: CourseDetailsProps) => {
+  const queryClient = useQueryClient();
   const [isEditable, setIsEditable] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Course>(course);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    // setCourse((prevLead) => ({
-    //   ...prevLead,
-    //   [name]: value,
-    // }));
-  };
+  const { mutate: saveCourse, isPending } = useMutation({
+    mutationFn: async (updatedCourse: Course) => {
+      return await updateCourse(updatedCourse.id!, updatedCourse);
+    },
+    onSuccess: () => {
+      showSuccess("Course updated successfully");
+      setIsEditing(false);
+      queryClient.invalidateQueries(["courses"]);
+      queryClient.invalidateQueries(["course", course.id]);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      showError("Failed to update course");
+    },
+  });
 
   const handleEditToggle = () => {
-    setIsEditing(!isEditing);
     if (isEditing) {
-      console.log("Saving center data:", course);
+      console.log("Data:", formData);
+      saveCourse(formData);
+    } else {
+      setIsEditing(true);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // setCourse(courseData);
+    setFormData(course);
   };
 
-  const toggleEdit = () => {
-    setIsEditable(!isEditable);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
-    <div className="flex bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div className="flex bg-white font-sans text-gray-800 min-h-screen">
       <main className="flex-1 p-8 pb-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -111,22 +125,10 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
               <>
                 <button
                   onClick={handleEditToggle}
-                  className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
-                  <EditIcon />
+                  <MdEdit />
                   Edit
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <DownloadIcon />
-                  <span>Download</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <PrintIcon />
-                  <span>Print</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <ShareIcon />
-                  <span>Share</span>
                 </button>
               </>
             )}
@@ -141,7 +143,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
               <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 COURSE DETAILS
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
                 {Object.entries({
                   "Course Title": course.name,
                   Code: course.code,
@@ -188,7 +190,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
               <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 BATCHES
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
                 {course.batches?.map((batch, index) => (
                   <div
                     key={index}
@@ -213,7 +215,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 PRICING BY CENTER
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-4 grid gap-2">
+              <div className="bg-white rounded-lg px-2 py-4 grid gap-2">
                 {courseData.pricing.map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <span className="text-gray-800 font-bold">
@@ -225,7 +227,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
                       readOnly={!isEditable}
                       className={`text-indigo-600 font-medium p-2 rounded-lg border focus:outline-none ${
                         isEditable
-                          ? "bg-gray-50 border-gray-300"
+                          ? "bg-white border-gray-300"
                           : "bg-white border-transparent"
                       }`}
                     />
@@ -239,7 +241,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 MATERIALS
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6">
+              <div className="bg-white rounded-lg px-2 py-6">
                 <div className="space-y-4">
                   {course.documents?.map((document, index) => (
                     <div

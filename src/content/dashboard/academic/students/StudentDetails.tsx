@@ -1,13 +1,10 @@
 "use client";
-import {
-  DownloadIcon,
-  EditIcon,
-  PrintIcon,
-  ShareIcon,
-} from "@/components/ui/icons";
 import { studentData } from "@/data/view/student.data";
+import { updateStudent } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Student } from "@/types/academic/student.interface";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
   CalendarDays,
@@ -25,42 +22,58 @@ import {
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { IoMdAdd } from "react-icons/io";
+import { MdEdit } from "react-icons/md";
 
 interface StudentDetailsProps {
   student: Student;
 }
 
 const StudentDetails = ({ student }: StudentDetailsProps) => {
-  const [isEditable, setIsEditable] = useState(false);
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [formData, setFormData] = useState<Student>(student);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    // setCourse((prevLead) => ({
-    //   ...prevLead,
-    //   [name]: value,
-    // }));
-  };
+  const { mutate: saveStudent, isPending } = useMutation({
+    mutationFn: async (updatedStudent: Student | any) => {
+      return await updateStudent(updatedStudent.id!, updatedStudent);
+    },
+    onSuccess: () => {
+      showSuccess("Student updated successfully");
+      setIsEditing(false);
+      queryClient.invalidateQueries(["students"]);
+      queryClient.invalidateQueries(["student", student.id]);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      showError("Failed to update student");
+    },
+  });
 
   const handleEditToggle = () => {
-    setIsEditing(!isEditing);
     if (isEditing) {
-      //   console.log("Saving center data:", course);
+      console.log("Data:", formData);
+      saveStudent(formData);
+    } else {
+      setIsEditing(true);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // setCourse(studentData);
+    setFormData(student);
   };
 
-  const toggleEdit = () => {
-    setIsEditable(!isEditable);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const renderSection = (title: string, content: string, Icon: any) => (
-    <div className="bg-gray-100 px-2 py-4 rounded-lg flex items-center mb-4">
+    <div className="bg-white px-2 py-4 rounded-lg flex items-center mb-4">
       {Icon && (
         <div className="text-xl mr-3 text-gray-500">
           <Icon size={20} />
@@ -82,7 +95,7 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
 
     // Add empty placeholders for the days before the 1st of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push({ day: '', status: null });
+      days.push({ day: "", status: null });
     }
 
     // Add the actual days of the month with random attendance data
@@ -91,25 +104,38 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
       const isPresent = Math.random() > 0.25; // 75% present, 25% absent
       days.push({
         day: i,
-        status: isPresent ? 'present' : 'absent',
+        status: isPresent ? "present" : "absent",
       });
     }
     return days;
   };
 
   // Generate the calendar days using useMemo for performance
-  const calendarDays = useMemo(() => generateCalendarDays(selectedDate), [selectedDate]);
+  const calendarDays = useMemo(
+    () => generateCalendarDays(selectedDate),
+    [selectedDate]
+  );
 
   // Handle month/year change from the dropdown
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const [month, year] = e.target.value.split('-').map(Number);
+    const [month, year] = e.target.value.split("-").map(Number);
     setSelectedDate(new Date(year, month, 1));
   };
 
   // Get the month and year options for the dropdown
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const years = [2023, 2024, 2025];
 
@@ -177,23 +203,18 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
           ) : (
             <>
               <button
-                onClick={handleEditToggle}
-                className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                // onClick={handleEditToggle}
+                className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
               >
-                <EditIcon />
+                <MdEdit />
                 Edit
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                <DownloadIcon />
-                <span>Download</span>
-              </button>
-              <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                <PrintIcon />
-                <span>Print</span>
-              </button>
-              <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                <ShareIcon />
-                <span>Share</span>
+              <button
+                onClick={handleEditToggle}
+                className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              >
+                <MdEdit />
+                Payment
               </button>
             </>
           )}
@@ -249,18 +270,18 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
               {renderSection("Batch", student.batches[0]?.code, Users)}
               {renderSection(
                 "Dates",
-                `${formatDate(
-                  student.batches[0]?.startDate
-                )} - ${formatDate(student.batches[0]?.endDate)}`,
+                `${formatDate(student.batches[0]?.startDate)} - ${formatDate(
+                  student.batches[0]?.endDate
+                )}`,
                 Clock
               )}
-              <div className="bg-gray-100 p-4 rounded-lg flex items-center">
+              <div className="bg-white p-4 rounded-lg flex items-center">
                 <div className="text-xl mr-3 text-gray-500">
                   <FileText size={20} />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-800">Status</div>
-                  <div className="w-full text-sm text-gray-600 bg-gray-100 border-none focus:ring-0">
+                  <div className="w-full text-sm text-gray-600 bg-white border-none focus:ring-0">
                     <span>{student.status}</span>
                   </div>
                 </div>
@@ -361,15 +382,16 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
 
           {/* Notes */}
           <div>
-            <h3 className="text-md font-semibold text-gray-800 mb-2">
-              Notes
-            </h3>
+            <h3 className="text-md font-semibold text-gray-800 mb-2">Notes</h3>
             <div className="space-y-2">
               {student?.notes?.map(
                 (note, index) =>
                   note.note && (
                     <div className="mb-4">
-                      <p key={index} className="text-sm text-gray-400 font-medium mb-1">
+                      <p
+                        key={index}
+                        className="text-sm text-gray-400 font-medium mb-1"
+                      >
                         <span className="font-medium">
                           {formatDate(note.createdAt || note.updatedAt)}
                         </span>
@@ -388,18 +410,25 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
           {/* Attendance Records */}
           <div className="py-6 border-b border-gray-200">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Attendance Record</h3>
+              <h3 className="text-xl font-bold text-gray-800">
+                Attendance Record
+              </h3>
               <div className="relative inline-block text-left">
                 <select
                   className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-300"
                   onChange={handleMonthChange}
                   value={`${selectedDate.getMonth()}-${selectedDate.getFullYear()}`}
                 >
-                  {years.map(year => months.map((monthName, monthIndex) => (
-                    <option key={`${monthIndex}-${year}`} value={`${monthIndex}-${year}`}>
-                      {monthName} {year}
-                    </option>
-                  )))}
+                  {years.map((year) =>
+                    months.map((monthName, monthIndex) => (
+                      <option
+                        key={`${monthIndex}-${year}`}
+                        value={`${monthIndex}-${year}`}
+                      >
+                        {monthName} {year}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </div>
@@ -416,12 +445,21 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
 
             <div className="grid grid-cols-7 gap-4 text-center mt-2">
               {calendarDays.map((day, index) => (
-                <div key={index} className="p-2 text-gray-900 font-medium flex items-center justify-center">
+                <div
+                  key={index}
+                  className="p-2 text-gray-900 font-medium flex items-center justify-center"
+                >
                   {day.day && (
                     <span
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
-                                  ${day.status === 'present' ? 'bg-emerald-500' : ''}
-                                  ${day.status === 'absent' ? 'bg-rose-500' : ''}`}
+                                  ${
+                                    day.status === "present"
+                                      ? "bg-emerald-500"
+                                      : ""
+                                  }
+                                  ${
+                                    day.status === "absent" ? "bg-rose-500" : ""
+                                  }`}
                     >
                       {day.day}
                     </span>

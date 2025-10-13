@@ -1,4 +1,5 @@
 import { NoSessionError, server } from "@/lib/server";
+import { CreateUser, UpdateUser } from "@/types/auth/signup.interface";
 import { CreateBatch, UpdateBatch } from "@/types/requests/batch.interface";
 import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
 import { CreateCourse, UpdateCourse } from "@/types/requests/course.interface";
@@ -48,7 +49,7 @@ export const getUser = async (id: string) => {
   }
 };
 
-export const createUser = async (payload: CreateLead) => {
+export const createUser = async (payload: CreateUser) => {
   try {
     const api = await server();
     const res = await api.post(`/users`, payload);
@@ -59,7 +60,7 @@ export const createUser = async (payload: CreateLead) => {
   }
 };
 
-export const updateUser = async (id: string, payload: UpdateLead) => {
+export const updateUser = async (id: string, payload: UpdateUser) => {
   try {
     const api = await server();
     const res = await api.patch(`/users/${id}`, payload);
@@ -419,5 +420,61 @@ export const getFaculty = async (id: string) => {
   } catch (err: any) {
     console.error("Failed to fetch faculty:", err.message);
     return {};
+  }
+};
+
+// Banks
+export const getBanks = async () => {
+  try {
+    const api = await server();
+    const res = await api.get("/banks");
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch banks:", err.message);
+    return [];
+  }
+};
+
+export const getBank = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/banks/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch bank:", err.message);
+    return {};
+  }
+};
+
+export const createBank = async (payload: CreateLead) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/banks`, { ...payload });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create bank:", err.message);
+    return err.message;
+  }
+};
+
+export const updateBank = async (id: string, payload: UpdateLead) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/banks/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update bank:", err.message);
+    return err.message;
+  }
+};
+
+export const deleteBank = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/banks/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete banks:", err.message);
+    return err.message;
   }
 };

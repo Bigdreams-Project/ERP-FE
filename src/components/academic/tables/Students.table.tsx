@@ -241,6 +241,16 @@ export default function StudentTable({
                             View
                           </button>
                           <button
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/academic/students/enrollment/${student.id!}`
+                              )
+                            }
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Enrollment
+                          </button>
+                          <button
                             onClick={() => handleEdit(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >

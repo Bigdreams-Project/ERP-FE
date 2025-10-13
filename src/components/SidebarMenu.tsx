@@ -11,6 +11,19 @@ import HouseIcon from "./svg/HouseIcon";
 import MoneyIcon from "./svg/MoneyIcon";
 import SettingsIcon from "./svg/SettingsIcon";
 import StaffIcon from "./svg/StaffIcon";
+import { useUser } from "@/context/UserContext";
+import { permissions } from "@/config/permissions";
+
+interface SidebarLink {
+  label: string;
+  href: string;
+}
+
+interface SidebarSection {
+  label: string;
+  icon: (props: React.SVGProps<SVGSVGElement>) => any;
+  links: SidebarLink[];
+}
 
 const SidebarMenu = ({
   sidebarExpanded,
@@ -21,8 +34,9 @@ const SidebarMenu = ({
   isMobile: boolean;
   toggleSidebar: () => void;
 }) => {
+  const { user } = useUser();
+  // const userPermissions = permissions[user?.role ?? "staff"];
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [expandedSubmenu, setExpandedSubmenu] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const hoverRef = useRef<HTMLDivElement | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{
@@ -65,7 +79,7 @@ const SidebarMenu = ({
     if (sidebarExpanded && !isMobile) {
       timeoutId = setTimeout(() => {
         setShowChevron(true);
-      }, 300); // delay slightly after text shows
+      }, 300);
     } else {
       setShowChevron(false);
     }
@@ -73,12 +87,11 @@ const SidebarMenu = ({
     return () => clearTimeout(timeoutId);
   }, [sidebarExpanded, isMobile]);
 
-  const sidebarMenu = [
+  // Sidebar Menu
+  const sidebarMenu: SidebarSection[] = [
     {
       label: "Academic",
-      icon: (props: React.SVGProps<SVGSVGElement>) => (
-        <GraduationCapIcon {...props} />
-      ),
+      icon: (props) => <GraduationCapIcon {...props} />,
       links: [
         { label: "Overview", href: "/dashboard/academic/overview" },
         { label: "Leads", href: "/dashboard/academic/leads" },
@@ -90,18 +103,12 @@ const SidebarMenu = ({
     },
     {
       label: "Finance",
-      icon: (props: React.SVGProps<SVGSVGElement>) => <MoneyIcon {...props} />,
+      icon: (props) => <MoneyIcon {...props} />,
       links: [
         { label: "Overview", href: "/dashboard/finance/overview" },
         {
-          label: "Banking",
-          isDropdown: true,
-          links: [
-            {
-              label: "Transactions",
-              href: "/dashboard/finance/banking/transactions",
-            },
-          ],
+          label: "Transactions",
+          href: "/dashboard/finance/banking/banks",
         },
         { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
         {
@@ -118,31 +125,29 @@ const SidebarMenu = ({
     },
     {
       label: "HR & Staffs",
-      icon: (props: React.SVGProps<SVGSVGElement>) => <StaffIcon {...props} />,
+      icon: (props) => <StaffIcon {...props} />,
       links: [
         { label: "Overview", href: "/dashboard/hr-staff/overview" },
         { label: "Invoices", href: "/dashboard/hr-staff/invoices" },
         { label: "Payments", href: "/dashboard/hr-staff/payments" },
       ],
     },
-    {
-      label: "Reporting",
-      icon: (props: React.SVGProps<SVGSVGElement>) => (
-        <ChartBarAxisXIcon {...props} />
-      ),
-      links: [
-        { label: "Invoices", href: "/dashboard/reporting/invoices" },
-        { label: "Payments", href: "/dashboard/reporting/payments" },
-      ],
-    },
+    // {
+    //   label: "Reporting",
+    //   icon: (props) => <ChartBarAxisXIcon {...props} />,
+    //   links: [
+    //     { label: "Invoices", href: "/dashboard/reporting/invoices" },
+    //     { label: "Payments", href: "/dashboard/reporting/payments" },
+    //   ],
+    // },
     {
       label: "Settings",
-      icon: (props: React.SVGProps<SVGSVGElement>) => (
-        <SettingsIcon {...props} />
-      ),
+      icon: (props) => <SettingsIcon {...props} />,
       links: [
-        { label: "Invoices", href: "/dashboard/settings/invoices" },
-        { label: "Payments", href: "/dashboard/settings/payments" },
+        {
+          label: "User Management",
+          href: "/dashboard/settings/users",
+        },
       ],
     },
   ];
@@ -151,10 +156,10 @@ const SidebarMenu = ({
 
   return (
     <div className="h-full flex flex-col flex-1 mt-8">
-      <div className="flex-1 ">
-        <Link
+      <div className="flex-1">
+        {/* <Link
           href={"/dashboard"}
-          className={` flex text-center items-center px-[1.5rem] py-[0.4rem] ${
+          className={`flex items-center px-[1.5rem] py-[0.4rem] ${
             sidebarExpanded ? "" : "items-start !px-[2rem]"
           } transition-all duration-500 font-inter ${
             isActiveDashboard ? "bg-indigo-50 text-indigo-500 font-bold" : ""
@@ -179,23 +184,21 @@ const SidebarMenu = ({
           >
             Dashboard
           </div>
-        </Link>
+        </Link> */}
+
+        {/* Sidebar Sections */}
         <div className="w-full flex flex-col justify-between">
           {sidebarMenu.map((menu, index) => {
-            const isMenuActive = menu.links?.some((child) =>
-              child.isDropdown
-                ? child.links.some((subChild) =>
-                    pathname.startsWith(subChild.href)
-                  )
-                : pathname.startsWith(child.href!)
+            const isMenuActive = menu.links.some((link) =>
+              pathname.startsWith(link.href)
             );
 
             return (
               <div key={index}>
-                {/* Parent menu label and icon */}
+                {/* Section header */}
                 <div
                   ref={hoverRef}
-                  className={`flex !items-center justify-between font-inter mt-[0.5rem] text-[16px] cursor-pointer px-[1.5rem] py-[0.4rem] ${
+                  className={`flex items-center justify-between font-inter mt-[0.5rem] text-[16px] cursor-pointer px-[1.5rem] py-[0.4rem] ${
                     isMenuActive && "bg-indigo-50"
                   }`}
                   onClick={() => {
@@ -207,21 +210,15 @@ const SidebarMenu = ({
                     }
                   }}
                 >
-                  {/* Left Side: Icon and Label */}
-                  <div
-                    className={`flex items-center transition-all text-center justify-center font-inter duration-300 ease-in-out ${
-                      sidebarExpanded ? "" : "items-start !px-[0.5rem]"
-                    } `}
-                  >
-                    <span>
-                      {menu.icon({
-                        className: `${
-                          isMenuActive
-                            ? "text-indigo-500"
-                            : "text-[rgba(0,0,0,0.7)]"
-                        } w-[20px] h-[20px]`,
-                      })}
-                    </span>
+                  {/* Icon + Label */}
+                  <div className="flex items-center">
+                    {menu.icon({
+                      className: `${
+                        isMenuActive
+                          ? "text-indigo-500"
+                          : "text-[rgba(0,0,0,0.7)]"
+                      } w-[20px] h-[20px]`,
+                    })}
                     <span
                       className={`transition-all duration-300 origin-left whitespace-nowrap overflow-hidden ${
                         sidebarExpanded
@@ -234,127 +231,59 @@ const SidebarMenu = ({
                       {menu.label}
                     </span>
                   </div>
-                  {/* Chevron Icon */}
-                  {sidebarExpanded && showChevron ? (
+
+                  {sidebarExpanded && showChevron && (
                     <div
-                      className={`transform transition-all duration-500 ease-in-out text-[rgba(0,0,0,0.7)] ${
+                      className={`transform transition-all duration-500 ease-in-out ${
                         expandedIndex === index ? "rotate-90" : "rotate-0"
-                      } md:opacity-100 md:scale-100 md:w-auto md:ml-2 ${
-                        isMenuActive && "text-indigo-500"
-                      }`}
+                      } ${isMenuActive && "text-indigo-500"}`}
                     >
                       <FiChevronRight size={20} />
                     </div>
-                  ) : (
-                    ""
                   )}
                 </div>
-                {/* Nested links */}
-                <div className="full relative">
-                  {sidebarExpanded && !isMobile && (
-                    <div
-                      className={`overflow-hidden transition-all duration-500 flex flex-col gap-1 mt-1 ${
-                        expandedIndex === index ? "max-h-[400px]" : "max-h-0"
-                      }`}
-                    >
-                      {menu.links.map((link, i) => {
-                        if (link.isDropdown) {
-                          return (
-                            <div key={i}>
-                              <div
-                                className={`flex justify-between items-center cursor-pointer hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${
-                                  expandedSubmenu === link.label
-                                    ? "font-bold text-[rgba(0,0,0,0.8)]"
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  setExpandedSubmenu(
-                                    expandedSubmenu === link.label
-                                      ? null
-                                      : link.label
-                                  )
-                                }
-                              >
-                                <span>{link.label}</span>
-                                <FiChevronRight
-                                  size={20}
-                                  className={`transform transition-transform duration-300 ${
-                                    expandedSubmenu === link.label
-                                      ? "rotate-90"
-                                      : "rotate-0"
-                                  }`}
-                                />
-                              </div>
-                              <div
-                                className={`overflow-hidden transition-all duration-300 flex flex-col pl-[1.5rem] ${
-                                  expandedSubmenu === link.label
-                                    ? "max-h-[200px]"
-                                    : "max-h-0"
-                                }`}
-                              >
-                                {link.links.map((subLink, j) => (
-                                  <Link
-                                    key={j}
-                                    href={subLink.href}
-                                    className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${
-                                      pathname === subLink.href
-                                        ? "font-bold text-[rgba(0,0,0,0.8)]"
-                                        : ""
-                                    }`}
-                                  >
-                                    {subLink.label}
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        } else {
-                          return (
-                            <Link
-                              key={i}
-                              href={link.href!}
-                              onClick={() => {
-                                if (!sidebarExpanded) toggleSidebar();
-                              }}
-                              className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${
-                                pathname === link.href
-                                  ? "font-bold text-[rgba(0,0,0,0.8)]"
-                                  : ""
-                              }`}
-                            >
-                              {link.label}
-                            </Link>
-                          );
-                        }
-                      })}
-                    </div>
-                  )}
-                </div>
+
+                {/* Links */}
+                {sidebarExpanded && (
+                  <div
+                    className={`overflow-hidden transition-all duration-500 flex flex-col gap-1 mt-1 ${
+                      expandedIndex === index ? "max-h-[400px]" : "max-h-0"
+                    }`}
+                  >
+                    {menu.links.map((link, i) => (
+                      <Link
+                        key={i}
+                        href={link.href}
+                        onClick={() => {
+                          if (!sidebarExpanded) toggleSidebar();
+                        }}
+                        className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${
+                          pathname === link.href
+                            ? "font-bold text-[rgba(0,0,0,0.8)]"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Signout */}
+      {/* Sign out */}
       <div
-        className={` flex gap-1 border-t justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
+        className={`flex gap-1 border-t justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
           sidebarExpanded ? "" : "px-[0rem] pl-[0.1rem]"
         }`}
       >
         {sidebarExpanded ? (
-          <div className="flex pr-[6rem]">
+          <div className="flex pr-[6rem]" onClick={logoutUser}>
             <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />
-            <h1
-              className={`transition-all duration-500 whitespace-nowrap font-inter text-[rgba(0,0,0,0.7)] ${
-                sidebarExpanded
-                  ? "opacity-100 visible ml-1"
-                  : "opacity-0 invisible ml-0 none"
-              }`}
-              onClick={() => logoutUser}
-            >
-              Sign out
-            </h1>
+            <h1 className="ml-1 text-[rgba(0,0,0,0.7)]">Sign out</h1>
           </div>
         ) : (
           <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />

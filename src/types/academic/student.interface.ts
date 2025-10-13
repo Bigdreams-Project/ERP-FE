@@ -50,7 +50,7 @@ export interface Student {
   fullName: string;
   phone: string;
   email: string;
-  image: string;
+  image: string; 
   address: string;
   guardians: Guardian[];
   courses: Course[];

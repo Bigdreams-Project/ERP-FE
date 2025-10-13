@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useCenter } from "@/context/CenterContext";
 import { createLead } from "@/lib/network";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -26,6 +27,8 @@ interface LeadContentProps {
 }
 
 const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
+  const { selectedCenter } = useCenter();
+
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -36,6 +39,14 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
     startDate: "",
     endDate: "",
   });
+
+  const filteredLeads =
+    selectedCenter === "all"
+      ? leads
+      : leads.filter((lead) => lead.centerId === selectedCenter);
+
+  console.log("selected center:", selectedCenter);
+  console.log("filtered leads:", filteredLeads);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -136,7 +147,7 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
       </div>
 
       <LeadTable
-        leads={leads}
+        leads={filteredLeads}
         centers={centers}
         courses={courses}
         searchQuery={searchQuery}

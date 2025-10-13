@@ -22,6 +22,7 @@ export interface CreateStudent {
 }
 
 export interface UpdateStudent {
+  id: string;
   leadId: string | null;
   fullName: string;
   phone: string;

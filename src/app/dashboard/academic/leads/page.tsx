@@ -13,6 +13,8 @@ export default async function Leads() {
     leads = await getLeads();
     centers = await getCenters();
     courses = await getCourses();
+
+    console.log("Leads", leads);
   } catch (err: any) {
     if (err.message === "No active session") {
       console.error("No active session, redirecting to login.");

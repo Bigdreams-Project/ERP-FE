@@ -15,6 +15,30 @@ export function formatDate(dateString: string): string {
   });
 }
 
+export function formatDateRange(range: string): string {
+  if (!range.includes("-")) return range;
+
+  const [start, end] = range.split("-").map((s) => s.trim());
+
+  const [startDay, startMonth, startYear] = start.split("/").map(Number);
+  const [endDay, endMonth, endYear] = end.split("/").map(Number);
+
+  const startDate = new Date(startYear, startMonth - 1, startDay);
+  const endDate = new Date(endYear, endMonth - 1, endDay);
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const formattedStart = formatter.format(startDate);
+  const formattedEnd = formatter.format(endDate);
+
+  return `${formattedStart} – ${formattedEnd}`;
+}
+
+
 export function addHoursToTime(time: string, hours: number): string {
   if (!time) return "";
   const [raw, modifier] = time.split(" ");

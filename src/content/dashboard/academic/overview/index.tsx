@@ -5,33 +5,34 @@ import { mockData } from "@/data/mock/academic.data";
 import { courseStatusEnum } from "@/data/view/course.data";
 import { leadStatusEnum } from "@/data/view/lead.data";
 import {
-    formatNumber,
-    getChangeText,
-    includesDate,
-    percent,
+  formatNumber,
+  getChangeText,
+  includesDate,
+  percent,
 } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { User } from "@/types/auth/user.interface";
-import { Book, BookOpen, GraduationCap, School, Trophy, UserPlus, Users } from "lucide-react";
+import { BookOpen, GraduationCap, School, UserPlus, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
+import { BiConversation } from "react-icons/bi";
 import { FiPieChart } from "react-icons/fi";
 import { LuGraduationCap } from "react-icons/lu";
 import {
-    Area,
-    AreaChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import ActivityItem from "../../../../components/academic/cards/ActivityItem.card";
-import { BiConversation } from "react-icons/bi";
+import { centerStatusEnum } from "@/data/view/center.data";
 
 interface OverviewContentProps {
   user: User;
@@ -58,14 +59,6 @@ const OverviewContent = ({
   ]);
   const [displayRange, setDisplayRange] = useState("");
 
-  //   const [stats, setStats] = useState(mockData.stats);
-  //   const [funnel, setFunnel] = useState(mockData.funnel);
-  //   const [insights, setInsights] = useState(mockData.insights);
-  //   const [academicStats, setAcademicStats] = useState(mockData.academicStats);
-  //   const [courseStats, setCourseStats] = useState(mockData.courseStats);
-  //   const [recentActivity, setRecentActivity] = useState(mockData.recentActivity);
-
-  // const [stats, setStats] = useState(mockData.stats);
   const [stats, setStats] = useState<any[]>([]);
   const [funnel, setFunnel] = useState<any[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
@@ -109,13 +102,20 @@ const OverviewContent = ({
     const totalCenters = centers.length;
 
     // Funnel
-    // Consider "follow-up scheduled" as leads with nextFollowUpDate in range
     const followUpScheduled = leadsInRange.filter((l) =>
       l.nextFollowUpDate ? includesDate(l.nextFollowUpDate, start, end) : false
     ).length;
 
     const leadsContacted = leadsInRange.filter(
       (l) => l.status === leadStatusEnum.Contacted
+    ).length;
+
+    const leadsDeposited = leadsInRange.filter(
+      (l) => l.status === leadStatusEnum.Deposited
+    ).length;
+
+    const leadsEnrolled = leadsInRange.filter(
+      (l) => l.status === leadStatusEnum.Enrolled
     ).length;
 
     // Conversions
@@ -166,8 +166,8 @@ const OverviewContent = ({
     const newFunnel = [
       { name: "Leads", value: totalLeads },
       { name: "Contacted", value: leadsContacted },
-      { name: "Follow-ups", value: followUpScheduled },
-      { name: "Converted", value: convertedFromLeadsInRange || totalStudents },
+      { name: "Deposited", value: leadsDeposited },
+      { name: "Enrolled", value: leadsEnrolled },
     ];
 
     // Course stats: top courses by leads and enrollments inside range
@@ -178,25 +178,25 @@ const OverviewContent = ({
     courses.forEach((c) => {
       courseMap.set(c.id!, { id: c.id!, name: c.name, leads: 0, enrolls: 0 });
     });
-    // count leads per course
+
+    // Count leads per course
     leadsInRange.forEach((l) => {
       if (!l.courseId) return;
       const entry = courseMap.get(l.courseId);
       if (entry) entry.leads += 1;
     });
-    // count enrolls per course (students may have courses array)
+
+    // Count enrolls per course (students may have courses array)
     studentsInRange.forEach((s) => {
-      // students.courses is an array — try to count each course in the student's course list
       (s.courses || []).forEach((sc: any) => {
         const entry = courseMap.get(sc.id);
         if (entry) entry.enrolls += 1;
       });
-      // fallback: if student's lead references courseId via leadId -> find that lead
       if (s.leadId) {
         const lead = leads.find((l) => l.id === s.leadId);
         if (lead && lead.courseId) {
           const entry = courseMap.get(lead.courseId);
-          if (entry) entry.enrolls += 0; // already counted via courses array if present
+          if (entry) entry.enrolls += 0;
         }
       }
     });
@@ -218,7 +218,7 @@ const OverviewContent = ({
         title: "Centers",
         value: formatNumber(totalCenters),
         subText: `${
-          centers.filter((ct) => ct.status === "active").length
+          centers.filter((ct) => ct.status === centerStatusEnum.Active).length
         } active`,
         icon: School,
       },

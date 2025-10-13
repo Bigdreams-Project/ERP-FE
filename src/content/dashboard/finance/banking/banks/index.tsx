@@ -2,9 +2,14 @@
 import Pagination from "@/components/academic/common/Pagination";
 import TransactionsTable from "@/components/finance/tables/Transactions.table";
 import { transactions } from "@/data/mock/finance.data";
+import { Bank } from "@/types/finance/bank.interface";
 import { useState } from "react";
 
-const TransactionsContent = () => {
+interface BankContentProps {
+  banks: Bank[];
+}
+
+const BanksContent = ({ banks }: BankContentProps) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 10;
   const totalPages = 10;
@@ -53,7 +58,7 @@ const TransactionsContent = () => {
         {/* Transactions */}
         <div className="bg-white p-6 rounded-2xl shadow-lg shadow-gray-400 custom-scroll overflow-x-auto">
           <TransactionsTable
-            transactions={transactions}
+            banks={banks}
             searchQuery=""
             filterOptions={{}}
           />
@@ -80,4 +85,4 @@ const TransactionsContent = () => {
   );
 };
 
-export default TransactionsContent;
+export default BanksContent;

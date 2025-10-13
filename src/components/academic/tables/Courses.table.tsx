@@ -131,7 +131,7 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
           {filteredData.length === 0 ? (
             <NotFoundComponent text="Courses" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
+            <table className="min-w-full relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
                 <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                   <th className="p-4 flex items-center">

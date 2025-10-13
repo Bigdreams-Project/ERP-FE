@@ -7,7 +7,7 @@ export const signupSchema = yup.object().shape({
     .string()
     .email("Please enter a valid email address.")
     .required("Email is required."),
-  password: yup
+  password: yup 
     .string()
     .min(8, "Password must have at least 8 characters.")
     .matches(/[a-z]/, "Password must contain a lowercase letter.")

@@ -1,45 +1,59 @@
 "use client";
 import StatusBadge2 from "@/components/academic/common/StatusBadge2";
-import {
-  DownloadIcon,
-  EditIcon,
-  PrintIcon,
-  ShareIcon,
-} from "@/components/ui/icons";
+import { updateCenter } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
+import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
+import { MdEdit } from "react-icons/md";
 
 interface CenterDetailsProps {
   center: Center;
 }
 
 const CenterDetails = ({ center }: CenterDetailsProps) => {
-  const [isEditable, setIsEditable] = useState(false);
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Center>(center);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    // setCenter((prevLead) => ({
-    //   ...prevLead,
-    //   [name]: value,
-    // }));
-  };
+  const { mutate: saveCenter, isPending } = useMutation({
+    mutationFn: async (updatedCenter: Center) => {
+      return await updateCenter(updatedCenter.id, updatedCenter);
+    },
+    onSuccess: () => {
+      showSuccess("Center updated successfully");
+      setIsEditing(false);
+      queryClient.invalidateQueries(["centers"]);
+      queryClient.invalidateQueries(["center", center.id]);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      showError("Failed to update lead");
+    },
+  });
 
   const handleEditToggle = () => {
-    setIsEditing(!isEditing);
     if (isEditing) {
-      console.log("Saving center data:", center);
+      console.log("Data:", formData);
+      saveCenter(formData);
+    } else {
+      setIsEditing(true);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // setCenter(centerData);
+    setFormData(center);
   };
 
-  const toggleEdit = () => {
-    setIsEditable(!isEditable);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const getOverduePayment = (amount: string, status: string) => {
@@ -112,22 +126,10 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
               <>
                 <button
                   onClick={handleEditToggle}
-                  className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
-                  <EditIcon />
+                  <MdEdit />
                   Edit
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <DownloadIcon />
-                  <span>Download</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <PrintIcon />
-                  <span>Print</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <ShareIcon />
-                  <span>Share</span>
                 </button>
               </>
             )}
@@ -136,12 +138,12 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           <div className="border-r-2 border-grey">
-            {/* Lead Details */}
+            {/* Center Details */}
             <div className={isEditing ? `h-96` : `h-80`}>
               <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 CENTER DETAILS
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
                 {Object.entries({
                   Name: center.name,
                   Address: center.address,
@@ -157,7 +159,8 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
                     <p className="text-gray-500 text-sm font-medium">
                       {label}:
                     </p>
-                    {isEditing ? (
+                    {isEditing &&
+                    !["createdAt", "updatedAt"].includes(label) ? (
                       <input
                         type="text"
                         name={label.toLowerCase().replace(/ /g, "")}
@@ -177,6 +180,8 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
                           >
                             {value}
                           </span>
+                        ) : label.includes("Date") || label === "createdAt" ? (
+                          formatDate(formData[label as keyof Center] as any)
                         ) : (
                           value
                         )}
@@ -194,7 +199,7 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 ACCOUNTING INFORMATION
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
                 {Object.entries({
                   "Bank Name": "N/A",
                   "Account Number": "N/A",
@@ -219,7 +224,7 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 RECENT ACTIVITY LOG
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6">
+              <div className="bg-white rounded-lg px-2 py-6">
                 <h3 className="text-md font-semibold text-gray-800 mb-2">
                   Notes
                 </h3>
