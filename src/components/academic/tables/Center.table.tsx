@@ -33,15 +33,28 @@ export default function CenterTable({
   const [selectedCenterId, setSelectedCenterId] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  const filteredData = data.filter((center) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      center.name.toLowerCase().includes(query) ||
-      center.email.toLowerCase().includes(query) ||
-      center.phone.toLowerCase().includes(query) ||
-      center.address.toLowerCase().includes(query)
-    );
-  });
+  const filteredData = data
+    .filter((center) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        center.name.toLowerCase().includes(query) ||
+        center.email.toLowerCase().includes(query) ||
+        center.phone.toLowerCase().includes(query) ||
+        center.address.toLowerCase().includes(query)
+      );
+    })
+    .sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+
+      if (nameA < nameB) {
+        return 1;
+      }
+      if (nameA > nameB) {
+        return -1;
+      }
+      return 0;
+    });
 
   useEffect(() => {
     setCurrentPage(1);

@@ -98,18 +98,18 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
     const lead = leads.find((l) => l.id === leadId);
     if (lead) {
-      setValue("fullName", lead.fullName || "");
-      setValue("phone", lead.phone || "");
-      setValue("email", lead.email || "");
-      setValue("address", lead.address || "");
-      setValue("centerId", lead.centerId || "");
-      setValue("enrolledDate", lead.enquiryDate || "");
-      setValue("birthDate", lead.birthDate || "");
-      setValue("guardianName", lead.guardians[0]?.fullname || "");
-      setValue("guardianPhone", lead.guardians[0]?.phone || "");
-      setValue("guardianEmail", lead.guardians[0]?.email || "");
-      setValue("guardianAddress", lead.guardians[0]?.address || "");
-      setValue("courseId", lead.courseId || "");
+      setValue("fullName", lead.fullName);
+      setValue("phone", lead.phone);
+      setValue("email", lead.email);
+      setValue("address", lead.address);
+      setValue("centerId", lead.centerId);
+      setValue("enrolledDate", lead.enquiryDate);
+      setValue("birthDate", lead.birthDate);
+      setValue("guardianName", lead.guardians[0]?.fullname);
+      setValue("guardianPhone", lead.guardians[0]?.phone);
+      setValue("guardianEmail", lead.guardians[0]?.email);
+      setValue("guardianAddress", lead.guardians[0]?.address);
+      setValue("courseId", lead.courseId);
     }
   }, [leadId, leads, setValue]);
 
@@ -141,7 +141,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     }
   }, [initialData, setValue]);
 
-
   const handlePaymentPlan = (e: any) => {
     setValue("paymentPlan", e.target.value);
     setPlan(e.target.value);
@@ -154,7 +153,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
   const onSubmit = (data: IStudent | any) => {
     if (showBaseFeeError) return;
-    onSave(data);
+    // onSave(data);
     console.log("Data:", data);
   };
 
@@ -194,7 +193,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <select
                 id="leadId"
                 {...register("leadId")}
-                className="w-full h-10 px-4 text-sm text-gray-400 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10 appearance-none"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10 appearance-none"
               >
                 <option value="">Search lead ID</option>
                 {leads.map((lead) => (
@@ -244,7 +243,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="fullName"
                 {...register("fullName")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.fullName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -265,7 +264,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="tel"
                 id="phone"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
@@ -286,7 +285,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="email"
                 id="email"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
@@ -307,7 +306,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="address"
                 {...register("address")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.address && (
                 <p className="text-red-500 text-xs mt-1">
@@ -327,7 +326,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <select
                 id="status"
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Choose Status</option>
                 {statuses.map((status) => (
@@ -357,7 +356,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <select
                 id="centerId"
                 {...register("centerId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
@@ -395,7 +394,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.enrolledDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -423,7 +422,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -444,7 +443,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="guardianName"
                 {...register("guardianName")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -465,7 +464,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="tel"
                 id="guardianPhone"
                 {...register("guardianPhone")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
@@ -486,7 +485,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="email"
                 id="guardianEmail"
                 {...register("guardianEmail")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
@@ -507,7 +506,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="guardianAddress"
                 {...register("guardianAddress")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianAddress && (
                 <p className="text-red-500 text-xs mt-1">
@@ -529,7 +528,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <select
                 id="courseId"
                 {...register("courseId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
                 {courses.map((course) => (
@@ -581,7 +580,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <select
                 id="batchId"
                 {...register("batchId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
                 {selectedCourse?.batches.map((batch) => (
@@ -612,7 +611,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 id="paymentPlan"
                 onChange={handlePaymentPlan}
                 disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Payment Plan</option>
                 {paymentPlan?.map((plan) => (
@@ -646,7 +645,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 {...register("lumpSumFee")}
                 value={lumpSum ? `₦${lumpSum.toLocaleString()}` : ""}
                 readOnly
-                className={`w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
+                className={`w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
               />
               {errors.lumpSumFee && (
                 <p className="text-red-500 text-xs mt-1">
@@ -670,7 +669,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   disabled={
                     !selectedCourse?.courseAssignments[0]?.maxInstallments
                   }
-                  className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent 
+                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent 
              focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Installments</option>
@@ -726,7 +725,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               id="notes"
               {...register("notes")}
               rows={3}
-              className="w-full p-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
             ></textarea>
             {errors.notes && (
               <p className="text-red-500 text-xs mt-1">

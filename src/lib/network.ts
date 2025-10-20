@@ -1,5 +1,6 @@
 import { NoSessionError, server } from "@/lib/server";
 import { CreateUser, UpdateUser } from "@/types/auth/signup.interface";
+import { AttendanceRecord } from "@/types/requests/attendance";
 import { CreateBatch, UpdateBatch } from "@/types/requests/batch.interface";
 import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
 import { CreateCourse, UpdateCourse } from "@/types/requests/course.interface";
@@ -86,7 +87,7 @@ export const deleteUser = async (id: string) => {
 export const getLeads = async () => {
   try {
     const api = await server();
-    const res = await api.get("/leads");
+    const res = await api.get("/leads/active");
     return res.data;
   } catch (err: any) {
     if (err instanceof NoSessionError) {
@@ -168,7 +169,7 @@ export const getCenter = async (id: string) => {
 export const createCenter = async (payload: CreateCenter, isDraft: boolean) => {
   try {
     const api = await server();
-    const res = await api.post(`/centers`, { ...payload, isDraft });
+    const res = await api.post(`/centers`, payload);
     return res.data;
   } catch (err: any) {
     console.error("Failed to create center:", err.message);
@@ -475,6 +476,24 @@ export const deleteBank = async (id: string) => {
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete banks:", err.message);
+    return err.message;
+  }
+};
+
+// Attendance
+export const getAttendance = async (
+  studentId: string,
+  year: number,
+  month: number
+): Promise<AttendanceRecord[]> => {
+  try {
+    const api = await server();
+    const res = await api.get(`/attendance/student/${studentId}?year=${year}&month=${month}`
+    );
+    console.log("Attendance Data:", res.data);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to get attendance:", err.message);
     return err.message;
   }
 };

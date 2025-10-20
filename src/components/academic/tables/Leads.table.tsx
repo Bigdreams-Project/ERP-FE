@@ -82,7 +82,7 @@ export default function LeadTable({
         return false;
       });
     }
-
+ 
     setFilteredData(result);
     setCurrentPage(1);
   }, [searchQuery, filterOptions, data]);

@@ -1,3 +1,4 @@
+import { Payment } from "../finance/payment.interface";
 import { CreateStudent } from "../requests/student.interface";
 import { StudentBatch } from "./batch.interface";
 import { Center } from "./center.interface";
@@ -54,9 +55,11 @@ export interface Student {
   address: string;
   guardians: Guardian[];
   courses: Course[];
+  center: Center;
   enrolledDate: string;
   batches: StudentBatch[];
   notes: StudentNote[];
+  payments: Payment[];
   status: string;
   paymentPlan: string;
   lumpSum: number | null;

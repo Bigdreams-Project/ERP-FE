@@ -1,8 +1,11 @@
+import { IBank } from "../finance/bank.interface";
 import { CreateCenter } from "../requests/center.interface";
 import { Lead } from "./lead.interface";
 import { Student } from "./student.interface";
 
 export type CenterStatus = "ACTIVE" | "IN_SETUP" | "SUSPENDED" | "CLOSED";
+
+export type CenterType = "OWNED" | "PARTNERED";
 
 export interface Certificate {
   name: string;
@@ -37,6 +40,7 @@ export interface Center {
   phone: string;
   address: string;
   status: string;
+  type: string;
   manager: Manager;
   faculties: Manager[];
   academicHead: Manager;
@@ -55,8 +59,10 @@ export interface ICenter {
   phone: string;
   email: string;
   managerId: string;
-  status: CenterStatus;
-  document: FileList | null;
+  status: CenterStatus | "";
+  type: CenterType | "";
+  document?: FileList | null;
+  banks: IBank[];
 }
 
 export interface ICenterModalProps {

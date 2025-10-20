@@ -4,6 +4,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CenterTable from "@/components/academic/tables/Center.table";
 import CenterModal from "@/components/modals/academic/Center.modal";
 import { createCenter } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
 import { useEffect, useState } from "react";
@@ -45,10 +46,11 @@ const CenterContent = ({ centers, managers }: CenterContentProps) => {
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
       const response = await createCenter(payload, isDraft);
-      console.log("Center created successfully:", response);
 
+      showSuccess("Center created successfully");
       setIsModalOpen(false);
     } catch (error) {
+      showError("Failed to save lead");
       console.error("Failed to save lead:", error);
     }
   };

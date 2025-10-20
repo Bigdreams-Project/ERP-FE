@@ -45,9 +45,6 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
       ? leads
       : leads.filter((lead) => lead.centerId === selectedCenter);
 
-  console.log("selected center:", selectedCenter);
-  console.log("filtered leads:", filteredLeads);
-
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
       setIsTyping(true);

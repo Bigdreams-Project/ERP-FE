@@ -175,6 +175,7 @@ export default function StudentTable({
                   <th className="p-4">Parent/Guardian Name</th>
                   <th className="p-4">Parent/Guardian Phone Number</th>
                   <th className="p-4">Course Enrolled</th>
+                  <th className="p-4">Center</th>
                   <th className="p-4">Status</th>
                   <th className="p-4">Actions</th>
                 </tr>
@@ -213,6 +214,9 @@ export default function StudentTable({
                       {student.courses.length > 0
                         ? student.courses[0]?.name
                         : "Not yet enrolled"}
+                    </td>
+                    <td className="p-3">
+                      {student.center && student.center?.name}
                     </td>
                     <td className="p-3">
                       <StatusBadge

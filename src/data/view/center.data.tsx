@@ -82,6 +82,11 @@ export const statuses = [
   { label: "Closed", value: "CLOSED" },
 ];
 
+export const types = [
+  { label: "Owned", value: "OWNED" },
+  { label: "Partnered", value: "PARTNERED" },
+];
+
 export const centerStatusEnum = {
   Active: "ACTIVE",
   InSetup: "IN_SETUP",

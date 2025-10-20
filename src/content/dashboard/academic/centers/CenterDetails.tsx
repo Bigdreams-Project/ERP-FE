@@ -19,7 +19,7 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
   const [formData, setFormData] = useState<Center>(center);
 
   const { mutate: saveCenter, isPending } = useMutation({
-    mutationFn: async (updatedCenter: Center) => {
+    mutationFn: async (updatedCenter: Center | any) => {
       return await updateCenter(updatedCenter.id, updatedCenter);
     },
     onSuccess: () => {

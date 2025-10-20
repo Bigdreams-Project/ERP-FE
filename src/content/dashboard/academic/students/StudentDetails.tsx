@@ -1,11 +1,12 @@
 "use client";
-import { studentData } from "@/data/view/student.data";
 import { updateStudent } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Student } from "@/types/academic/student.interface";
+import { Payment } from "@/types/finance/payment.interface";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowRight,
   BookOpen,
   CalendarDays,
   CircleUserRound,
@@ -20,15 +21,20 @@ import {
   Users,
 } from "lucide-react";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { BiMoney } from "react-icons/bi";
 import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
+import AttendanceCalendar from "./AttendanceCalendar";
 
 interface StudentDetailsProps {
   student: Student;
 }
 
 const StudentDetails = ({ student }: StudentDetailsProps) => {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -86,58 +92,59 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
     </div>
   );
 
-  const generateCalendarDays = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days = [];
-
-    // Add empty placeholders for the days before the 1st of the month
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push({ day: "", status: null });
+  const renderPaymentHistory = () => {
+    if (!student.payments || student.payments.length === 0) {
+      return (
+        <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 min-h-32">
+          <span className="text-sm">
+            No payment records found for this student.
+          </span>
+        </div>
+      );
     }
 
-    // Add the actual days of the month with random attendance data
-    for (let i = 1; i <= daysInMonth; i++) {
-      // Simple random attendance simulation
-      const isPresent = Math.random() > 0.25; // 75% present, 25% absent
-      days.push({
-        day: i,
-        status: isPresent ? "present" : "absent",
-      });
-    }
-    return days;
+    const sortedPayments = student.payments.sort(
+      (a: Payment, b: Payment) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    const paymentsToShow = sortedPayments.slice(0, 5);
+
+    return (
+      <div className="space-y-3">
+        {paymentsToShow.map((payment) => (
+          <div
+            key={payment.id}
+            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-indigo-50 hover:shadow-md transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex flex-col">
+              <span className="font-semibold text-gray-800">
+                Payment on {formatDate(payment.createdAt)}
+              </span>
+              <span className="text-sm text-gray-500">
+                {payment.pending === 0
+                  ? "Full Payment"
+                  : `Partial Payment (Pending: $${payment.pending})`}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-lg font-bold text-emerald-600">
+                ₦{payment.amount}
+              </span>
+              <Link href={`/dashboard/finance/payments/${payment.id}`}>
+                <ArrowRight className="w-4 h-4 text-indigo-600" />
+              </Link>
+            </div>
+          </div>
+        ))}
+        {student.payments.length > 0 && (
+          <button className="w-full text-center py-2 text-indigo-600 font-medium hover:text-indigo-800 transition-colors text-sm">
+            View All Payments ({student.payments.length})
+          </button>
+        )}
+      </div>
+    );
   };
-
-  // Generate the calendar days using useMemo for performance
-  const calendarDays = useMemo(
-    () => generateCalendarDays(selectedDate),
-    [selectedDate]
-  );
-
-  // Handle month/year change from the dropdown
-  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const [month, year] = e.target.value.split("-").map(Number);
-    setSelectedDate(new Date(year, month, 1));
-  };
-
-  // Get the month and year options for the dropdown
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const years = [2023, 2024, 2025];
 
   return (
     <div className="min-h-screen bg-white p-8">
@@ -202,19 +209,20 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
             </>
           ) : (
             <>
-              <button
-                // onClick={handleEditToggle}
-                className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-              >
+              <button className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                 <MdEdit />
                 Edit
               </button>
               <button
-                onClick={handleEditToggle}
+                onClick={() =>
+                  router.push(
+                    `/dashboard/academic/students/enrollment/${student.id}`
+                  )
+                }
                 className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
               >
-                <MdEdit />
-                Payment
+                <BiMoney />
+                Record Payment
               </button>
             </>
           )}
@@ -226,7 +234,6 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
       </h2>
 
       <div className="bg-white rounded-lg w-full max-w-6xl py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left */}
         <div className="lg:col-span-2 p-4 pt-6 border-t border-gray-300 rounded-lg shadow-md shadow-gray-400">
           <div className="flex flex-col items-center">
             {student.image ? (
@@ -262,7 +269,7 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
               )}
               {renderSection(
                 "Course",
-                student.courses.length > 0
+                student.courses?.length > 0
                   ? student.courses[0]?.name
                   : "Not yet enrolled.",
                 BookOpen
@@ -270,9 +277,11 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
               {renderSection("Batch", student.batches[0]?.code, Users)}
               {renderSection(
                 "Dates",
-                `${formatDate(student.batches[0]?.startDate)} - ${formatDate(
-                  student.batches[0]?.endDate
-                )}`,
+                student.batches && student.batches.length > 0
+                  ? `Start on ${formatDate(
+                      student.batches[0]?.startDate
+                    )} - End on ${formatDate(student.batches[0]?.endDate)}`
+                  : "Start and end dates not available",
                 Clock
               )}
               <div className="bg-white p-4 rounded-lg flex items-center">
@@ -313,9 +322,21 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
                     Payment Status
                   </div>
                   <div className="text-sm text-gray-600 flex items-center justify-between">
-                    <span>{studentData.financialInfo.paymentStatus}</span>
+                    <span>
+                      {student.payments && student.payments.length > 0
+                        ? student.payments[student.payments.length - 1]
+                            .pending === 0
+                          ? "Paid"
+                          : "Pending"
+                        : "No payments found"}
+                    </span>
                     <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                      Paid
+                      {student.payments && student.payments.length > 0
+                        ? student.payments[student.payments.length - 1]
+                            .pending === 0
+                          ? "Paid"
+                          : "Pending"
+                        : "N/A"}
                     </span>
                   </div>
                 </div>
@@ -331,17 +352,22 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
                       <div
                         className="bg-blue-500 h-full rounded-full"
                         style={{
-                          width: `${studentData.financialInfo.attendance}%`,
+                          width: `${2}%`,
                         }}
                       ></div>
                     </div>
-                    <span>{studentData.financialInfo.attendance}%</span>
+                    <span>{2}%</span>
                   </div>
                 </div>
               </div>
               {renderSection(
                 "Next Payment Due",
-                studentData.financialInfo.nextPaymentDue,
+                student.payments && student.payments.length > 0
+                  ? formatDate(
+                      student.payments[student.payments.length - 1]
+                        .nextPaymentDate
+                    )
+                  : "No payments found",
                 CalendarDays
               )}
             </div>
@@ -368,16 +394,12 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
             {renderSection("Email", student.guardians[0]?.email, MailIcon)}
           </div>
 
-          {/* Payment History */}
+          {/* Payment History - UPDATED SECTION */}
           <div className="bg-white py-6 border-b border-gray-200">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Payment History
             </h3>
-            <div className="h-64 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500">
-              <span className="text-sm">
-                Payment history will be displayed here.
-              </span>
-            </div>
+            {renderPaymentHistory()}
           </div>
 
           {/* Notes */}
@@ -387,11 +409,8 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
               {student?.notes?.map(
                 (note, index) =>
                   note.note && (
-                    <div className="mb-4">
-                      <p
-                        key={index}
-                        className="text-sm text-gray-400 font-medium mb-1"
-                      >
+                    <div key={note?.id!} className="mb-4">
+                      <p className="text-sm text-gray-400 font-medium mb-1">
                         <span className="font-medium">
                           {formatDate(note.createdAt || note.updatedAt)}
                         </span>
@@ -409,64 +428,7 @@ const StudentDetails = ({ student }: StudentDetailsProps) => {
 
           {/* Attendance Records */}
           <div className="py-6 border-b border-gray-200">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">
-                Attendance Record
-              </h3>
-              <div className="relative inline-block text-left">
-                <select
-                  className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-300"
-                  onChange={handleMonthChange}
-                  value={`${selectedDate.getMonth()}-${selectedDate.getFullYear()}`}
-                >
-                  {years.map((year) =>
-                    months.map((monthName, monthIndex) => (
-                      <option
-                        key={`${monthIndex}-${year}`}
-                        value={`${monthIndex}-${year}`}
-                      >
-                        {monthName} {year}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-7 gap-4 text-center text-gray-500 font-medium text-sm">
-              <div className="py-2">Sun</div>
-              <div className="py-2">Mon</div>
-              <div className="py-2">Tue</div>
-              <div className="py-2">Wed</div>
-              <div className="py-2">Thu</div>
-              <div className="py-2">Fri</div>
-              <div className="py-2">Sat</div>
-            </div>
-
-            <div className="grid grid-cols-7 gap-4 text-center mt-2">
-              {calendarDays.map((day, index) => (
-                <div
-                  key={index}
-                  className="p-2 text-gray-900 font-medium flex items-center justify-center"
-                >
-                  {day.day && (
-                    <span
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
-                                  ${
-                                    day.status === "present"
-                                      ? "bg-emerald-500"
-                                      : ""
-                                  }
-                                  ${
-                                    day.status === "absent" ? "bg-rose-500" : ""
-                                  }`}
-                    >
-                      {day.day}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+            <AttendanceCalendar studentId={student.id} />
           </div>
         </div>
       </div>

@@ -11,3 +11,10 @@ export interface Bank {
   center: Center;
   payments: Payment[];
 }
+
+export interface IBank {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  balance: number;
+}

@@ -6,5 +6,7 @@ export default async function Student({ params }: any) {
 
   const student = await getStudent(studentId);
 
+  console.log("Student Details:", student);
+
   return <StudentDetails student={student} />;
 }
