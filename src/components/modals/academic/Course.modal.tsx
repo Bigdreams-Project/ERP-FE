@@ -27,7 +27,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
     defaultValues: {
       name: "",
       type: "",
-      duration: 12,
+      duration: 1,
     },
   });
 
@@ -39,7 +39,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
         reset({
           name: "",
           type: "",
-          duration: 12,
+          duration: 1,
         });
       }
     }

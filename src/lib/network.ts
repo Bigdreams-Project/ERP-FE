@@ -1,4 +1,5 @@
 import { NoSessionError, server } from "@/lib/server";
+import { ICenterFeeAssignment } from "@/types/academic/center.interface";
 import { CreateUser, UpdateUser } from "@/types/auth/signup.interface";
 import { AttendanceRecord } from "@/types/requests/attendance";
 import { CreateBatch, UpdateBatch } from "@/types/requests/batch.interface";
@@ -222,15 +223,20 @@ export const getCourse = async (id: string) => {
   }
 };
 
+export const getCourseUnassignedCenters = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/courses/${id}/unassigned-centers`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch unassigned centers:", err.message);
+    return [];
+  }
+};
+
 export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
   try {
     const api = await server();
-    console.log(`courses`, {
-      name: payload.name,
-      type: payload.type as any,
-      duration: payload.duration,
-      isDraft,
-    });
     const res = await api.post(`/courses`, {
       name: payload.name,
       type: payload.type as any,
@@ -241,6 +247,45 @@ export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
   } catch (err: any) {
     console.error("Failed to create course:", err.message);
     return err.message;
+  }
+};
+
+export const assignCenterFee = async (
+  courseId: string,
+  payload: ICenterFeeAssignment
+) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/courses/${courseId}/assign-center-fee`, {
+      centerId: payload.centerId,
+      lumpSumFee: payload.lumpSumFee,
+      baseFee: payload.baseFee,
+      maxInstallments: payload.maxInstallments,
+      costPerInstallment: payload.costPerInstallment,
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to assign center fee:", err.message);
+    throw new Error(err.message || "Error assigning center fee");
+  }
+};
+
+export const updateCenterFee = async (
+  assignmentId: string,
+  payload: ICenterFeeAssignment
+) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/courses/center-fee/${assignmentId}`, {
+      lumpSumFee: payload.lumpSumFee,
+      baseFee: payload.baseFee,
+      maxInstallments: payload.maxInstallments,
+      costPerInstallment: payload.costPerInstallment,
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update center fee assignment:", err.message);
+    throw new Error(err.message || "Error updating center fee");
   }
 };
 

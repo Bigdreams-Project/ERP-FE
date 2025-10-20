@@ -52,7 +52,7 @@ const ProofOfPaymentUpload = ({ data }: any) => {
             {file}
           </p>
         ))} */}
-        <p className="text-xs text-blue-600 hover:underline cursor-pointer">
+        <p className="text-xs text-blue-600">
           No receipts available. Please upload.
         </p>
       </div>

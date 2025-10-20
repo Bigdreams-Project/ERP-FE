@@ -1,24 +1,29 @@
 "use client";
-import { courseData } from "@/data/view/course.data";
-import { updateCourse } from "@/lib/network";
+import CenterFeeModal from "@/components/modals/academic/CoursePricing.modal";
+import { assignCenterFee, updateCourse } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
+import {
+  Center,
+  ICenterFeeAssignment,
+} from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
-import { MdEdit } from "react-icons/md";
+import { MdAdd, MdEdit } from "react-icons/md";
 
 interface CourseDetailsProps {
   course: Course;
+  centers: Center[];
 }
 
-const CourseDetails = ({ course }: CourseDetailsProps) => {
+const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
   const queryClient = useQueryClient();
-  const [isEditable, setIsEditable] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isCenterModalOpen, setIsCenterModalOpen] = useState(false);
   const [formData, setFormData] = useState<Course>(course);
 
   const { mutate: saveCourse, isPending } = useMutation({
@@ -37,6 +42,21 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
     },
   });
 
+  const { mutate: addCenterFee, isPending: isSavingCenter } = useMutation({
+    mutationFn: async (assignmentData: ICenterFeeAssignment) => {
+      return await assignCenterFee(course.id!, assignmentData);
+    },
+    onSuccess: () => {
+      showSuccess("Center and Fee Structure assigned successfully!");
+      queryClient.invalidateQueries(["course", course.id]);
+      setIsCenterModalOpen(false);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      showError("Failed to assign center and fee structure.");
+    },
+  });
+
   const handleEditToggle = () => {
     if (isEditing) {
       console.log("Data:", formData);
@@ -44,6 +64,18 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
     } else {
       setIsEditing(true);
     }
+  };
+
+  const handleCenterToggle = () => {
+    setIsCenterModalOpen(true);
+  };
+
+  const handleSaveCenterFee = (data: ICenterFeeAssignment) => {
+    const feeAssignment = {
+      courseId: course.id,
+      ...data,
+    };
+    addCenterFee(feeAssignment);
   };
 
   const handleCancel = () => {
@@ -130,6 +162,14 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
                   <MdEdit />
                   Edit
                 </button>
+
+                <button
+                  onClick={handleCenterToggle}
+                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                >
+                  <MdAdd />
+                  Add Center
+                </button>
               </>
             )}
           </div>
@@ -140,7 +180,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
           <div className="border-r-2 border-grey">
             {/* Course Details */}
             <div className={isEditing ? `h-96` : `h-96`}>
-              <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 COURSE DETAILS
               </h2>
               <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
@@ -187,7 +227,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
 
             {/* Batches */}
             <div className={isEditing ? "mt-14" : ""}>
-              <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 BATCHES
               </h2>
               <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
@@ -211,26 +251,31 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
 
           <div>
             {/* Pricing by Center */}
-            <div className={isEditing ? `h-96` : `h-96`}>
+            <div className={isEditing ? `h96` : `h96`}>
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 PRICING BY CENTER
               </h2>
-              <div className="bg-white rounded-lg px-2 py-4 grid gap-2">
-                {courseData.pricing.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="text-gray-800 font-bold">
-                      {item.center}
+              <div className="bg-white rounded-lg px-2 pt-4 grid gap-2">
+                {course.courseAssignments.map((item, index) => (
+                  <div key={index} className="pb-3 border-b border-gray-300">
+                    <span className="text-gray-800 font-bold block mb-2">
+                      {item.center?.name}
                     </span>
-                    <input
-                      type="text"
-                      defaultValue={item.price}
-                      readOnly={!isEditable}
-                      className={`text-indigo-600 font-medium p-2 rounded-lg border focus:outline-none ${
-                        isEditable
-                          ? "bg-white border-gray-300"
-                          : "bg-white border-transparent"
-                      }`}
-                    />
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <p>
+                        <span className="font-medium text-gray-600">
+                          Base Fee:{" "}
+                        </span>
+                        ₦{item.baseFee.toLocaleString()}
+                        <MdEdit className="inline ml-1 text-indigo-600 cursor-pointer" />
+                      </p>
+                      <p>
+                        <span className="font-medium text-gray-600">
+                          Max Installments:{" "}
+                        </span>
+                        {item.maxInstallments}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -269,7 +314,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
                         </Link>
                       </div>
                       <Link href={document.url}>
-                        <Download size={16} color="#1f2937" />
+                        <Download size={16} className="text-indigo-600" />
                       </Link>
                     </div>
                   ))}
@@ -285,6 +330,14 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
           </div>
         </div>
       </main>
+
+      <CenterFeeModal
+        isOpen={isCenterModalOpen}
+        onClose={() => setIsCenterModalOpen(false)}
+        onSave={handleSaveCenterFee}
+        isSaving={isSavingCenter}
+        centers={centers}
+      />
     </div>
   );
 };

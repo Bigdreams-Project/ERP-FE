@@ -73,3 +73,19 @@ export interface ICenterModalProps {
   managers: Manager[];
   mode: "add" | "edit";
 }
+
+export interface ICenterFeeAssignment {
+  centerId: string;
+  lumpSumFee: number;
+  baseFee: number;
+  maxInstallments: number;
+  costPerInstallment: number;
+}
+
+export interface ICenterFeeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  centers: Center[];
+  onSave: (data: ICenterFeeAssignment) => void;
+  isSaving: boolean;
+}

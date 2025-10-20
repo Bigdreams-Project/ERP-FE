@@ -32,12 +32,11 @@ export const courseTypes = [
   { label: "CPMS", value: "CPMS" },
 ];
 
-export const durationOptions = [
-  { label: "12", value: "12" },
-  { label: "24", value: "24" },
-  { label: "36", value: "36" },
-  { label: "48", value: "48" },
-];
+export const durationOptions = Array.from({ length: 60 }, (_, i) => ({
+  label: (i + 1).toString(),
+  value: (i + 1).toString(),
+}));
+
 
 export const courseStatusEnum = {
   Active: "ACTIVE",

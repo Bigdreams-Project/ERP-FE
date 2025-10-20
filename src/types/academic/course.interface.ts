@@ -1,11 +1,13 @@
 import { CreateCourse } from "../requests/course.interface";
 import { Batch } from "./batch.interface";
+import { Center } from "./center.interface";
 import { Document, ILead } from "./lead.interface";
 import { IStudent } from "./student.interface";
 
 export interface CourseAssignment {
   id?: string;
   centerId?: string;
+  center: Center;
   lumpSumFee: number;
   baseFee: number;
   maxInstallments: number;
