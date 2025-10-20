@@ -7,7 +7,5 @@ export default async function Course({ params }: any) {
   const course = await getCourse(courseId);
   const centers = await getCourseUnassignedCenters(courseId);
 
-  console.log("course", course);
-
   return <CourseDetails course={course} centers={centers} />;
 }
