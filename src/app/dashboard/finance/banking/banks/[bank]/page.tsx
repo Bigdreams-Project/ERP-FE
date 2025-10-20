@@ -9,3 +9,4 @@ export default async function Bank({ params }: any) {
 
   return <BankDetails bank={bank} />;
 }
+ 

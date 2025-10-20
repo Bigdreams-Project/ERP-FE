@@ -1,5 +1,6 @@
 "use client";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { formatDate } from "@/lib/utils";
 import { Payment } from "@/types/finance/payment.interface";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -74,8 +75,8 @@ export default function TransactionDetailTable({
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
                       {transaction.updatedAt
-                        ? transaction.updatedAt
-                        : transaction.createdAt}
+                        ? formatDate(transaction.updatedAt)
+                        : formatDate(transaction.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {transaction.disclaimer}
@@ -95,10 +96,10 @@ export default function TransactionDetailTable({
                       {transaction.amount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ₦{transaction.amount}
+                      ₦{transaction.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black font-bold">
-                      ₦{transaction.estimate}
+                      ₦{transaction.estimate.toLocaleString()}
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,5 @@
 "use client";
 import TransactionDetailTable from "@/components/finance/tables/TransactionDetail.table";
-import { ledgerData } from "@/data/mock/finance.data";
 import { formatDateRange } from "@/lib/utils";
 import { Bank } from "@/types/finance/bank.interface";
 import { useEffect, useState } from "react";
@@ -57,7 +56,9 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
             <p className="text-gray-400 font-semibold text-lg">
               Current Balance
             </p>
-            <p className="text-4xl font-bold text-indigo-500">₦2,500,345.78</p>
+            <p className="text-4xl font-bold text-indigo-500">
+              ₦{parseInt(bank.balance).toLocaleString()}
+            </p>
           </div>
         </div>
 

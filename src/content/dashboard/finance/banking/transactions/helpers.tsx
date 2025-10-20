@@ -1,25 +1,31 @@
+import { formatDate } from "@/lib/utils";
+import { Payment } from "@/types/finance/payment.interface";
 import {
-    Book,
-    Box,
-    Calendar,
-    CheckCircle,
-    Clock,
-    CreditCard,
-    DollarSign,
-    Download,
-    Edit,
-    Gavel,
-    Hash,
-    Landmark,
-    Mail,
-    MapPin,
-    Percent,
-    Printer,
-    Receipt,
-    RefreshCcw,
-    Share,
-    User
+  Book,
+  Box,
+  Calendar,
+  CheckCircle,
+  Clock,
+  CreditCard,
+  DollarSign,
+  Download,
+  Edit,
+  Gavel,
+  Hash,
+  Landmark,
+  Mail,
+  Percent,
+  Printer,
+  Receipt,
+  RefreshCcw,
+  Share,
+  User,
 } from "lucide-react";
+import { BiMoney } from "react-icons/bi";
+
+interface Props {
+  data: Payment;
+}
 
 export const DetailRow = ({
   icon: Icon,
@@ -36,9 +42,13 @@ export const DetailRow = ({
   </div>
 );
 
-export const PaymentSummary = ({ data }: any) => {
+export const PaymentSummary = ({ data }: Props) => {
+  const getStatus = (pending: number) => {
+    return pending === 0 ? "Paid" : "Pending";
+  };
+
   const statusColor =
-    data.status === "Paid"
+    getStatus(data.pending) === "Paid"
       ? "bg-green-100 text-green-700"
       : "bg-red-100 text-red-700";
 
@@ -50,31 +60,37 @@ export const PaymentSummary = ({ data }: any) => {
 
       {/* Amount and Status */}
       <div className="flex items-center justify-between mb-6">
-        <span className="text-3xl font-bold text-gray-900">{data.amount}</span>
+        <span className="text-3xl font-bold text-gray-900">
+          ₦{data.amount.toLocaleString()}
+        </span>
         <span
           className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColor}`}
         >
-          {data.status}
+          {getStatus(data.pending)}
         </span>
       </div>
 
       {/* Details List */}
       <div className="divide-y divide-gray-100">
-        <DetailRow icon={Calendar} label="Date" value={data.date} />
+        <DetailRow
+          icon={Calendar}
+          label="Date"
+          value={formatDate(data.paymentDate)}
+        />
         <DetailRow
           icon={CreditCard}
           label="Payment Method"
-          value={data.paymentMethod}
+          value={data.paymentPlan}
         />
-        <DetailRow icon={Hash} label="Reference ID" value={data.referenceId} />
-        <DetailRow icon={Landmark} label="Bank" value={data.bank} />
-        <DetailRow icon={MapPin} label="Center Info" value={data.centerInfo} />
+        <DetailRow icon={Hash} label="Reference ID" value={data.id} />
+        <DetailRow icon={Landmark} label="Bank" value={data.bank?.bankName} />
+        {/* <DetailRow icon={MapPin} label="Center Info" value={data.centerInfo} /> */}
       </div>
     </div>
   );
 };
 
-export const PaymentDetails = ({ data }: any) => {
+export const PaymentDetails = ({ data }: Props) => {
   return (
     <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
       <h2 className="text-xl font-semibold mb-6 text-gray-700">
@@ -82,12 +98,20 @@ export const PaymentDetails = ({ data }: any) => {
       </h2>
 
       <div className="divide-y divide-gray-100 mb-6">
-        <DetailRow icon={Book} label="Course" value={data.course} />
-        <DetailRow icon={Box} label="Batch" value={data.batch} />
         <DetailRow
-          icon={DollarSign}
+          icon={Book}
+          label="Course"
+          value={
+            data.student?.courses && data.student?.courses.length > 0
+              ? data.student?.courses[0]?.name
+              : "No enrolled courses"
+          }
+        />
+        {/* <DetailRow icon={Box} label="Batch" value={data.batch} /> */}
+        <DetailRow
+          icon={BiMoney}
           label="Payment Type"
-          value={data.paymentType}
+          value={data.paymentPlan}
         />
       </div>
 
@@ -95,19 +119,19 @@ export const PaymentDetails = ({ data }: any) => {
         <DetailRow
           icon={Percent}
           label="Total Fee"
-          value={data.totalFee}
+          value={`₦${data.amount.toLocaleString()}`}
           valueClassName="font-bold text-gray-900"
         />
         <DetailRow
           icon={CheckCircle}
           label="Paid So Far"
-          value={data.paidSoFar}
+          value={`₦${data.paid.toLocaleString()}`}
           valueClassName="font-bold text-gray-900"
         />
         <DetailRow
           icon={Receipt}
           label="Balance"
-          value={data.balance}
+          value={`₦${(data.amount - data.paid).toLocaleString()}`}
           valueClassName="font-extrabold text-red-600"
         />
       </div>
@@ -167,7 +191,7 @@ export const AdditionalActions = ({ data }: any) => {
   );
 };
 
-export const PayerInformation = ({ data }: any) => {
+export const PayerInformation = ({ data }: Props) => {
   const PayerDetail = ({ icon: Icon, label, value }: any) => (
     <div className="flex items-start mb-4">
       <Icon className="w-4 h-4 mr-3 text-gray-400 mt-1" />
@@ -186,14 +210,18 @@ export const PayerInformation = ({ data }: any) => {
         Payer Information
       </h2>
       <div className="divide-y divide-gray-100">
-        <PayerDetail icon={User} label="Name" value={data.payerName} />
+        <PayerDetail icon={User} label="Name" value={data.student?.fullName} />
+        <PayerDetail icon={User} label="Relationship" value={"Student"} />
+        <PayerDetail icon={Mail} label="Contact" value={data.student?.phone} />
         <PayerDetail
           icon={User}
-          label="Relationship"
-          value={data.relationship}
+          label="Sponsor"
+          value={
+            data.student?.guardians && data.student?.guardians.length > 0
+              ? data.student?.guardians[0]?.fullname
+              : "No Sponsor"
+          }
         />
-        <PayerDetail icon={Mail} label="Contact" value={data.contact} />
-        <PayerDetail icon={User} label="Sponsor" value={data.sponsor} />
       </div>
     </div>
   );

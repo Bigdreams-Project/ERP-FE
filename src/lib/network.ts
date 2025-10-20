@@ -492,6 +492,17 @@ export const getBank = async (id: string) => {
   }
 };
 
+export const getTransaction = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/payment/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch transactions:", err.message);
+    return {};
+  }
+};
+
 export const createBank = async (payload: CreateLead) => {
   try {
     const api = await server();

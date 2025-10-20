@@ -1,3 +1,6 @@
+import { Student } from "../academic/student.interface";
+import { Bank } from "./bank.interface";
+
 export interface Payment {
   id: string;
   userId: string;
@@ -14,6 +17,8 @@ export interface Payment {
   disclaimer: string;
   paymentDate: string;
   paymentPlan: "Lump Sum" | "Installment Plan" | string;
+  bank: Bank;
+  student: Student;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,6 +1,11 @@
 import TransactionDetails from "@/content/dashboard/finance/banking/transactions/TransactionDetails";
-import BankDetails from "@/content/dashboard/finance/banking/transactions/TransactionDetails";
+import { getTransaction } from "@/lib/network";
 
-export default async function Transaction() {
-  return <TransactionDetails />;
+export default async function Transaction({ params }: any) {
+  const { transaction: transactionId } = await params;
+
+  const transaction = await getTransaction(transactionId);
+  console.log("Transaction:", transaction);
+
+  return <TransactionDetails transaction={transaction} />;
 }
