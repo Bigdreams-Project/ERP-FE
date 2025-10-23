@@ -9,11 +9,11 @@ interface Props {
 
 const PaymentHistory = ({ data }: Props) => (
   <Card title="Payment History">
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto custom-scroll">
       <table className="min-w-full divide-y divide-gray-200">
         <thead>
           <tr>
-            {["Transaction ID", "Date", "Amount", "Plan"].map((header) => (
+            {["Date", "Amount", "Plan", "Transaction ID"].map((header) => (
               <th
                 key={header}
                 className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -26,9 +26,6 @@ const PaymentHistory = ({ data }: Props) => (
         <tbody className="bg-white divide-y divide-gray-200">
           {data.payments.map((item: Payment, index: any) => (
             <tr key={index}>
-              <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.id}
-              </td>
               <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                 {formatDate(item.paymentDate)}
               </td>
@@ -37,6 +34,9 @@ const PaymentHistory = ({ data }: Props) => (
               </td>
               <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
                 {item.paymentPlan}
+              </td>
+              <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                {item.id}
               </td>
             </tr>
           ))}

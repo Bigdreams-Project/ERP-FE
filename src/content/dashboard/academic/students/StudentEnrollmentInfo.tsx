@@ -1,17 +1,20 @@
 "use client";
+import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
 import EnrollmentInfo from "./EnrollmentInfo";
-import InvoiceDetails from "./InvoiceDetails";
+import InvoiceDetails from "./StudentCourses";
 import NewPaymentForm from "./NewPaymentForm";
 import PaymentHistory from "./PaymentHistory";
 import ProofOfPaymentUpload from "./ProofOfPaymentUpload";
 import SystemActionsSummary from "./SystemActionsSummary";
+import StudentCourses from "./StudentCourses";
 
 interface StudentDetailsProps {
   student: Student;
+  courses: Course[];
 }
 
-const StudentEnrollmentInfo = ({ student }: StudentDetailsProps) => {
+const StudentEnrollmentInfo = ({ student, courses }: StudentDetailsProps) => {
   const data = student;
 
   return (
@@ -37,12 +40,12 @@ const StudentEnrollmentInfo = ({ student }: StudentDetailsProps) => {
                 <EnrollmentInfo data={data} />
               </div>
               <div className="md:col-span-2">
-                <InvoiceDetails data={data} />
+                <StudentCourses data={data} />
               </div>
             </div>
 
             {/* New Payment Form */}
-            <NewPaymentForm />
+            <NewPaymentForm courses={courses} studentId={data.id} />
           </div>
 
           <div className="lg:col-span-1 space-y-6">

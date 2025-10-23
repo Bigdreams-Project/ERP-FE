@@ -64,8 +64,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
 
   const onSubmit = (data: ICenter | any) => {
     onSave(data, true);
-    console.log('Data:', data);
-    // onClose();
+    onClose();
   };
 
   if (!isOpen) return null;

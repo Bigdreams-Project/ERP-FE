@@ -1,11 +1,14 @@
 "use client";
-import CenterFeeModal from "@/components/modals/academic/CoursePricing.modal";
-import { assignCenterFee, updateCourse } from "@/lib/network";
+import CoursePricingModal from "@/components/modals/academic/CoursePricing.modal";
+import EditCoursePricing from "@/components/modals/academic/EditCoursePricing.modal";
+import { assignCenterFee, updateCenterFee, updateCourse } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import {
   Center,
-  ICenterFeeAssignment,
+  CourseFeeAssignment,
+  ICourseFeeAssignment,
+  IEditCourseFeeAssignment,
 } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,8 +25,11 @@ interface CourseDetailsProps {
 
 const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
   const queryClient = useQueryClient();
+  const [selectedCourseAssignment, setSelectedCourseAssignment] =
+    useState<CourseFeeAssignment>();
   const [isEditing, setIsEditing] = useState(false);
   const [isCenterModalOpen, setIsCenterModalOpen] = useState(false);
+  const [isEditCenterModalOpen, setEditCenterModalOpen] = useState(false);
   const [formData, setFormData] = useState<Course>(course);
 
   const { mutate: saveCourse, isPending } = useMutation({
@@ -42,12 +48,13 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
     },
   });
 
-  const { mutate: addCenterFee, isPending: isSavingCenter } = useMutation({
-    mutationFn: async (assignmentData: ICenterFeeAssignment) => {
+  const { mutate: addCenterFee, isPending: isSavingCourseFee } = useMutation({
+    mutationFn: async (assignmentData: ICourseFeeAssignment) => {
       return await assignCenterFee(course.id!, assignmentData);
     },
     onSuccess: () => {
       showSuccess("Center and Fee Structure assigned successfully!");
+      queryClient.invalidateQueries(["courses"]);
       queryClient.invalidateQueries(["course", course.id]);
       setIsCenterModalOpen(false);
     },
@@ -56,6 +63,23 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
       showError("Failed to assign center and fee structure.");
     },
   });
+
+  const { mutate: updateCourseFee, isPending: isEditingCourseFee } =
+    useMutation({
+      mutationFn: async (assignmentData: IEditCourseFeeAssignment) => {
+        return await updateCenterFee(assignmentData.id, assignmentData);
+      },
+      onSuccess: () => {
+        showSuccess("Center and Fee Structure updated successfully!");
+        queryClient.invalidateQueries(["courses"]);
+        queryClient.invalidateQueries(["course", course.id]);
+        setEditCenterModalOpen(false);
+      },
+      onError: (error: any) => {
+        console.error(error);
+        showError("Failed to update center and fee structure.");
+      },
+    });
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -70,12 +94,25 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
     setIsCenterModalOpen(true);
   };
 
-  const handleSaveCenterFee = (data: ICenterFeeAssignment) => {
+  const handleSaveCourseFee = (data: ICourseFeeAssignment) => {
     const feeAssignment = {
       courseId: course.id,
       ...data,
     };
     addCenterFee(feeAssignment);
+  };
+
+  const handleEditCourseFee = (data: IEditCourseFeeAssignment) => {
+    const feeAssignment = {
+      courseId: course.id,
+      ...data,
+    };
+    updateCourseFee(feeAssignment);
+  };
+
+  const handleOpenEditModal = (assignment: CourseFeeAssignment | any) => {
+    setSelectedCourseAssignment(assignment);
+    setEditCenterModalOpen(true);
   };
 
   const handleCancel = () => {
@@ -185,38 +222,44 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
               </h2>
               <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
                 {Object.entries({
-                  "Course Title": course.name,
-                  Code: course.code,
-                  Status: course.status,
-                  Created: formatDate(course.createdAt!),
-                  Duration: course.duration,
-                }).map(([label, value]) => (
+                  "Course Title": "name",
+                  Code: "code",
+                  Status: "status",
+                  Created: "createdAt",
+                  Duration: "duration",
+                }).map(([label, key]) => (
                   <div key={label} className="col-span-1">
                     <p className="text-gray-500 text-sm font-medium">
                       {label}:
                     </p>
-                    {isEditing ? (
+                    {isEditing && key !== "createdAt" ? (
                       <input
                         type="text"
-                        name={label.toLowerCase().replace(/ /g, "")}
-                        value={value}
+                        name={key}
+                        value={
+                          key === "createdAt"
+                            ? formatDate(formData[key]!)
+                            : formData[key as keyof Course] ?? ""
+                        }
                         onChange={handleChange}
                         className="w-full mt-1 p-1 border rounded-md text-gray-900"
                       />
                     ) : (
                       <p className="mt-1 font-semibold text-gray-900">
-                        {label === "Status" ? (
+                        {key === "status" ? (
                           <span
                             className={`py-0.5 text-md font-semibold rounded-full ${
-                              value === "New"
+                              formData.status === "New"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {value}
+                            {formData.status}
                           </span>
+                        ) : key === "createdAt" ? (
+                          formatDate(formData.createdAt!)
                         ) : (
-                          value
+                          formData[key as keyof Course]
                         )}
                       </p>
                     )}
@@ -267,7 +310,10 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                           Base Fee:{" "}
                         </span>
                         ₦{item.baseFee.toLocaleString()}
-                        <MdEdit className="inline ml-1 text-indigo-600 cursor-pointer" />
+                        <MdEdit
+                          className="inline ml-1 text-indigo-600 cursor-pointer"
+                          onClick={() => handleOpenEditModal(item)}
+                        />
                       </p>
                       <p>
                         <span className="font-medium text-gray-600">
@@ -331,12 +377,21 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
         </div>
       </main>
 
-      <CenterFeeModal
+      <CoursePricingModal
         isOpen={isCenterModalOpen}
         onClose={() => setIsCenterModalOpen(false)}
-        onSave={handleSaveCenterFee}
-        isSaving={isSavingCenter}
+        onSave={handleSaveCourseFee}
+        isSaving={isSavingCourseFee}
         centers={centers}
+      />
+
+      <EditCoursePricing
+        isOpen={isEditCenterModalOpen}
+        onClose={() => setEditCenterModalOpen(false)}
+        onSave={handleEditCourseFee}
+        isSaving={isEditingCourseFee}
+        centers={centers}
+        initialData={selectedCourseAssignment}
       />
     </div>
   );

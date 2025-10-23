@@ -5,6 +5,7 @@ import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/mock/academic.data";
 import { createStudent } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
@@ -91,9 +92,11 @@ const StudentContent = ({
   const handleSave = async (payload: CreateStudent) => {
     try {
       await createStudent(payload);
-      setIsModalOpen(false);
+      showSuccess("Student enrolled successfully");
+      // setIsModalOpen(false);
     } catch (error) {
       console.error("Failed to save student:", error);
+      showError("Student enrollment failed");
     }
   };
 

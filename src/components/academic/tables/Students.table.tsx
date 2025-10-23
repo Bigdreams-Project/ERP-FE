@@ -44,8 +44,13 @@ export default function StudentTable({
   );
   const itemsPerPage = 10;
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
+  const sortedData = [...filteredData].sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const paginatedData = sortedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -88,9 +93,6 @@ export default function StudentTable({
   const handleSave = async (payload: CreateStudent) => {
     try {
       const response = await createStudent(payload);
-
-      console.log("Student created successfully:", response);
-
       setData((prev) => [...prev, response]);
       setIsModalOpen(false);
     } catch (error) {
@@ -252,20 +254,20 @@ export default function StudentTable({
                             }
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
-                            Enrollment
+                            Record Payment
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleEdit(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Edit
-                          </button>
-                          <button
+                          </button> */}
+                          {/* <button
                             onClick={() => handleDelete(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                           >
                             Delete
-                          </button>
+                          </button> */}
                         </div>
                       )}
                     </td>

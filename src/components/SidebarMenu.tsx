@@ -110,17 +110,17 @@ const SidebarMenu = ({
           label: "Transactions",
           href: "/dashboard/finance/banking/banks",
         },
-        { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
-        {
-          label: "Payments & Receipts",
-          href: "/dashboard/finance/payments-receipts",
-        },
-        { label: "Payroll", href: "/dashboard/finance/payroll" },
-        {
-          label: "Franchise Tracking",
-          href: "/dashboard/finance/franchise-tracking",
-        },
-        { label: "Expenses", href: "/dashboard/finance/expenses" },
+        // { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
+        // {
+        //   label: "Payments & Receipts",
+        //   href: "/dashboard/finance/payments-receipts",
+        // },
+        // { label: "Payroll", href: "/dashboard/finance/payroll" },
+        // {
+        //   label: "Franchise Tracking",
+        //   href: "/dashboard/finance/franchise-tracking",
+        // },
+        // { label: "Expenses", href: "/dashboard/finance/expenses" },
       ],
     },
     {

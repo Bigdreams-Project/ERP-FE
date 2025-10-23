@@ -35,6 +35,18 @@ export const paymentPlan = [
   { name: "Installment", value: "installment" },
 ];
 
+export const paymentTypes = [
+  { name: "Lumpsum", value: "lumpsum" },
+  { name: "Bi-Annual", value: "bi-annual" },
+  { name: "Quarterly", value: "quarterly" },
+];
+
+export const paymentMethods = [
+  { name: "Bank Transfer", value: "bank-transfer" },
+  { name: "POS", value: "pos" },
+  { name: "Cash", value: "cash" },
+];
+
 export const statuses = [
   { name: "Active", value: "ACTIVE" },
   { name: "Dropout", value: "DROPOUT" },

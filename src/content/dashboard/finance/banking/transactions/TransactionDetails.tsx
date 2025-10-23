@@ -136,7 +136,7 @@ const TransactionDetail = ({ transaction }: TransactionDetailsProps) => {
         </div>
       </div>
 
-      <PaymentReceiptModal />
+      {/* <PaymentReceiptModal /> */}
     </div>
   );
 };

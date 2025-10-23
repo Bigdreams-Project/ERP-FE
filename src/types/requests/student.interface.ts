@@ -23,7 +23,6 @@ export interface CreateStudent {
 
 export interface UpdateStudent {
   id: string;
-  leadId: string | null;
   fullName: string;
   phone: string;
   email: string;
@@ -44,4 +43,12 @@ export interface UpdateStudent {
   courseId: string;
   batchId: string | null;
 }
- 
+
+export interface CreateStudentPayment {
+  studentId: string;
+  courseId: string;
+  amount: number;
+  paymentPlan: string;
+  paymentType: string;
+  paymentMethod: string;
+}

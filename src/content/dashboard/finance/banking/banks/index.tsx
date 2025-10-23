@@ -64,22 +64,22 @@ const BanksContent = ({ banks }: BankContentProps) => {
           />
 
           <div className="flex justify-end gap-4 mt-6">
-            <button className="px-6 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition-colors shadow-sm">
+            {/* <button className="px-6 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition-colors shadow-sm">
               Add Bank Account
-            </button>
+            </button> */}
             <button className="px-6 py-1.5 border border-gray-300 text-black rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-sm">
               Export List
             </button>
           </div>
         </div>
 
-        <div className="flex justify-between sticky bottom-0 bg-white mt-6">
+        {/* <div className="flex justify-between sticky bottom-0 bg-white mt-6">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
-        </div>
+        </div> */}
       </main>
     </div>
   );

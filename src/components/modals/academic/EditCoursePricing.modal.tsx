@@ -1,38 +1,47 @@
 import {
-  ICourseFeeAssignment,
-  ICoursePricingModalProps
+  IEditCourseFeeAssignment,
+  IEditCoursePricingModalProps,
 } from "@/types/academic/center.interface";
 import { X } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
 
-const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
+const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
   isOpen,
   onClose,
   onSave,
   isSaving,
   centers,
+  initialData,
 }) => {
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
     reset,
-  } = useForm<ICourseFeeAssignment>({
-    defaultValues: {
-      centerId: "",
-      lumpSumFee: 0,
-      baseFee: 0,
-      maxInstallments: 0,
-      costPerInstallment: 0,
-    },
+  } = useForm<IEditCourseFeeAssignment>({
     mode: "onTouched",
   });
 
+  React.useEffect(() => {
+    if (initialData) {
+      reset({
+        centerId: initialData.centerId || "",
+        lumpSumFee: initialData.lumpSumFee || 0,
+        baseFee: initialData.baseFee || 0,
+        maxInstallments: initialData.maxInstallments || 0,
+        costPerInstallment: initialData.costPerInstallment || 0,
+      });
+    }
+  }, [initialData, reset]);
+
   if (!isOpen) return null;
 
-  const onSubmit = (data: ICourseFeeAssignment) => {
-    onSave(data);
+  const onSubmit = (data: IEditCourseFeeAssignment) => {
+    onSave({
+      ...initialData,
+      ...data,
+    });
     reset();
   };
 
@@ -43,10 +52,10 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div className="flex flex-col">
             <h2 className="text-xl font-bold text-gray-800">
-              Assign Center & Set Fee Structure
+              Edit Center Fee Structure
             </h2>
             <p className="text-sm text-gray-500">
-              Link a course to a center with its specific pricing.
+              Modify the fee details for this course.
             </p>
           </div>
           <button
@@ -65,21 +74,37 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
           className="mt-4 flex flex-col gap-4 overflow-y-auto pr-2 custom-scroll"
         >
           {/* Center */}
-          <div className="flex flex-col relative">
+          <div className="flex flex-col">
             <label
               htmlFor="centerId"
-              className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              className="text-sm font-medium text-gray-700 mb-1"
+            >
+              Center
+            </label>
+            <input
+              type="text"
+              id="centerId"
+              value={initialData?.center?.name}
+              className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
+              {...register("centerId")}
+            />
+          </div>
+
+          {/* <div className="flex flex-col relative">
+            <label
+              htmlFor="centerId"
+              className="text-sm font-medium text-gray-700 mb-1"
             >
               Select Center
             </label>
             <select
               id="centerId"
               {...register("centerId", { required: "Center is required" })}
-              className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
             >
               <option value="">Select Center</option>
               {centers.map((center) => (
-                <option key={center.name} value={center.id}>
+                <option key={center.id} value={center.id}>
                   {center.name}
                 </option>
               ))}
@@ -89,7 +114,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 {errors.centerId.message}
               </p>
             )}
-          </div>
+          </div> */}
 
           <h3 className="text-md font-bold text-gray-700 mt-2 border-b pb-2">
             Fee Structure
@@ -100,7 +125,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="lumpSumFee"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 mb-1"
               >
                 Lump Sum Fee
               </label>
@@ -108,21 +133,15 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 type="number"
                 id="lumpSumFee"
                 {...register("lumpSumFee", { valueAsNumber: true })}
-                placeholder="e.g., 5000"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
-              {errors.lumpSumFee && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.lumpSumFee.message}
-                </p>
-              )}
             </div>
 
             {/* Base Fee */}
             <div className="flex flex-col">
               <label
                 htmlFor="baseFee"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 mb-1"
               >
                 Base Fee
               </label>
@@ -130,21 +149,15 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 type="number"
                 id="baseFee"
                 {...register("baseFee", { valueAsNumber: true })}
-                placeholder="e.g., 1000"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
-              {errors.baseFee && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.baseFee.message}
-                </p>
-              )}
             </div>
 
             {/* Max Installments */}
             <div className="flex flex-col">
               <label
                 htmlFor="maxInstallments"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 mb-1"
               >
                 Max Installments
               </label>
@@ -152,21 +165,15 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 type="number"
                 id="maxInstallments"
                 {...register("maxInstallments", { valueAsNumber: true })}
-                placeholder="e.g., 12"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
-              {errors.maxInstallments && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.maxInstallments.message}
-                </p>
-              )}
             </div>
 
             {/* Cost Per Installment */}
             <div className="flex flex-col">
               <label
                 htmlFor="costPerInstallment"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 mb-1"
               >
                 Cost Per Installment
               </label>
@@ -174,14 +181,8 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 type="number"
                 id="costPerInstallment"
                 {...register("costPerInstallment", { valueAsNumber: true })}
-                placeholder="e.g., 300"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
-              {errors.costPerInstallment && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.costPerInstallment.message}
-                </p>
-              )}
             </div>
           </div>
 
@@ -197,14 +198,14 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
             </button>
             <button
               type="submit"
-              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center ${
+              disabled={!isValid || isSaving}
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
                 isValid && !isSaving
                   ? "bg-blue-600 hover:bg-blue-700"
                   : "bg-blue-400 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid || isSaving}
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
@@ -213,4 +214,4 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
   );
 };
 
-export default CoursePricingModal;
+export default EditCoursePricing;

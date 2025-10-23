@@ -46,6 +46,7 @@ export interface ILead {
   email: string;
   phone: string;
   address: string;
+  birthDate: string;
   guardianName: string;
   guardianPhone: string;
   guardianEmail: string | null;
@@ -58,7 +59,7 @@ export interface ILead {
   lastFollowUpDate: string;
   nextFollowUpDate: string;
   studyType: string;
-  note: string;
+  note: string | null;
 }
 
 export interface ILeadModalProps {

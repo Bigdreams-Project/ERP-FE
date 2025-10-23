@@ -74,7 +74,17 @@ export interface ICenterModalProps {
   mode: "add" | "edit";
 }
 
-export interface ICenterFeeAssignment {
+export interface CourseFeeAssignment {
+  id: string;
+  centerId: string;
+  lumpSumFee: number;
+  baseFee: number;
+  maxInstallments: number;
+  costPerInstallment: number;
+  center: Center
+}
+
+export interface ICourseFeeAssignment {
   centerId: string;
   lumpSumFee: number;
   baseFee: number;
@@ -82,10 +92,28 @@ export interface ICenterFeeAssignment {
   costPerInstallment: number;
 }
 
-export interface ICenterFeeModalProps {
+export interface IEditCourseFeeAssignment {
+  id: string;
+  centerId: string;
+  lumpSumFee: number;
+  baseFee: number;
+  maxInstallments: number;
+  costPerInstallment: number;
+}
+
+export interface ICoursePricingModalProps {
   isOpen: boolean;
   onClose: () => void;
   centers: Center[];
-  onSave: (data: ICenterFeeAssignment) => void;
+  onSave: (data: ICourseFeeAssignment) => void;
   isSaving: boolean;
+}
+
+export interface IEditCoursePricingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  centers: Center[];
+  onSave: (data: IEditCourseFeeAssignment) => void;
+  isSaving: boolean;
+  initialData?: Partial<CourseFeeAssignment>;
 }

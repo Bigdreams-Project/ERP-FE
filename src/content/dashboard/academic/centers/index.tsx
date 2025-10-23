@@ -45,8 +45,7 @@ const CenterContent = ({ centers, managers }: CenterContentProps) => {
 
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
-      const response = await createCenter(payload, isDraft);
-
+      await createCenter(payload, isDraft);
       showSuccess("Center created successfully");
       setIsModalOpen(false);
     } catch (error) {

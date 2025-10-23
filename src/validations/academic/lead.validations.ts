@@ -14,6 +14,7 @@ export const leadSchema = yup.object().shape({
       "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
   address: yup.string().required("Address is required"),
+  birthDate: yup.string().required("Birth date is required"),
   guardianName: yup.string().required("Guardian's name is required"),
   guardianPhone: yup
     .string()
@@ -36,5 +37,7 @@ export const leadSchema = yup.object().shape({
   lastFollowUpDate: yup.string().required("Last follow-up date is required"),
   nextFollowUpDate: yup.string().required("Next follow-up date is required"),
   studyType: yup.string().required("Study type is required"),
-  note: yup.string().required("Note is required"),
+  note: yup.string().required("Note is required")
+    .nullable()
+    .notRequired() as yup.StringSchema<string | null>,
 });

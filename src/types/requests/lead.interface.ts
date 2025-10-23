@@ -4,6 +4,7 @@ export interface CreateLead {
   email: string;
   phone: string;
   address: string;
+  birthDate: string;
   parentName: string;
   parentEmail: string;
   parentPhone: string;
@@ -27,6 +28,7 @@ export interface UpdateLead {
   email?: string;
   phone?: string;
   address?: string;
+  birthDate?: string;
   parentName?: string;
   parentEmail?: string;
   parentPhone?: string;

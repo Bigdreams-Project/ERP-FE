@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { useCenter } from "@/context/CenterContext";
 import { createLead } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
@@ -67,9 +68,10 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
     try {
       const response = await createLead(payload);
       console.log("Lead created successfully:", response);
-
-      setIsModalOpen(false);
+      showSuccess("Lead created successfully:");
+      // setIsModalOpen(false);
     } catch (error) {
+      showError("Failed to save lead");
       console.error("Failed to save lead:", error);
     }
   };

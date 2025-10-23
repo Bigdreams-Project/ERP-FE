@@ -53,6 +53,7 @@ export default function LeadTable({
     const { startDate, endDate } = filterOptions;
     const query = searchQuery.toLowerCase();
 
+    // Filter by search query
     const filtered = result.filter((lead) => {
       const matchesSearch =
         lead.code.toLowerCase().includes(query) ||
@@ -65,6 +66,7 @@ export default function LeadTable({
 
     result = filtered;
 
+    // Filter by date range
     if (startDate || endDate) {
       const start = startDate ? new Date(startDate) : null;
       const end = endDate ? new Date(endDate) : null;
@@ -82,7 +84,13 @@ export default function LeadTable({
         return false;
       });
     }
- 
+
+    // ✅ Sort leads in descending order by enquiryDate
+    result = result.sort(
+      (a, b) =>
+        new Date(b.enquiryDate).getTime() - new Date(a.enquiryDate).getTime()
+    );
+
     setFilteredData(result);
     setCurrentPage(1);
   }, [searchQuery, filterOptions, data]);
@@ -262,12 +270,12 @@ export default function LeadTable({
                             Send an Email
                           </button> */}
 
-                          <button
+                          {/* <button
                             onClick={() => handleDelete(lead.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                           >
                             Delete
-                          </button>
+                          </button> */}
                         </div>
                       )}
                     </td>

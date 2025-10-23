@@ -35,12 +35,16 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const sortedData = [...filteredData].sort(
+    (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+  );
 
-  const paginatedData = filteredData.slice(
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const paginatedData = sortedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };

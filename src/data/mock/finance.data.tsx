@@ -457,7 +457,7 @@ export const studentPayment = {
 
   systemActions: [
     "Update payment status from Pending to Paid.",
-    "Add amount to daily inflow in Aptech Kubwa at Zenith Bank.",
+    "Add amount to daily inflow in center and bank.",
     "Notify course manager and student via WhatsApp/SMS.",
     "Unlock portal access if restricted.",
   ],

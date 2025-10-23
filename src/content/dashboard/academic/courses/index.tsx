@@ -5,6 +5,7 @@ import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import { courseStatus, courseTypes } from "@/data/mock/academic.data";
 import { createCourse } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { Course } from "@/types/academic/course.interface";
 import { CreateCourse } from "@/types/requests/course.interface";
 import { useEffect, useRef, useState } from "react";
@@ -91,13 +92,12 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
 
   const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
     try {
-      const response = await createCourse(payload, isDraft);
-
-      console.log("Course created successfully:", response);
-
+      await createCourse(payload, isDraft);
+      showSuccess("Course created successfully");
       setIsModalOpen(false);
     } catch (error) {
       console.error("Failed to save course:", error);
+      showError("Failed to create new course");
     }
   };
 

@@ -2,25 +2,26 @@ import { paymentPlan, statuses } from "@/data/view/student.data";
 import { getCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
 import {
+  IEditStudent,
   IStudent,
-  IStudentModalProps,
+  IStudentEditModalProps
 } from "@/types/academic/student.interface";
-import { enrollmentSchema } from "@/validations/academic/student.validation";
+import { editStudentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ChevronDown, Info, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
 
-const EnrollStudentModal: React.FC<IStudentModalProps> = ({
+const EditStudentModal: React.FC<IStudentEditModalProps> = ({
   isOpen,
   onClose,
   initialData,
   onSave,
+  student,
   courses,
   centers,
-  leads,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const {
@@ -31,32 +32,60 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     setValue,
     formState: { errors, isValid },
     getValues,
-  } = useForm<IStudent>({
-    resolver: yupResolver(enrollmentSchema),
+  } = useForm<IEditStudent>({
+    resolver: yupResolver(editStudentSchema),
     mode: "onTouched",
     defaultValues: {
-      fullName: "",
-      phone: "",
-      email: "",
-      address: "",
-      centerId: "",
-      enrolledDate: "",
-      birthDate: "",
-      guardianName: "",
-      guardianPhone: "",
-      guardianEmail: "",
-      guardianAddress: "",
-      courseId: "",
-      batchId: "",
+      fullName: student.fullName,
+      phone: student.phone,
+      email: student.email,
+      address: student.address,
+      centerId: student.centerId,
+      enrolledDate: student.enrolledDate,
+      birthDate: student.birthDate,
+      guardianName: student.guardians[0]?.fullname,
+      guardianPhone: student.guardians[0]?.phone,
+      guardianEmail: student.guardians[0]?.email,
+      guardianAddress: student.guardians[0]?.address,
+      courseId: student.courses[0]?.id,
+      batchId: student.batches[0]?.id,
     },
   });
 
-  const leadId = watch("leadId");
+  useEffect(() => {
+    if (student) {
+      reset({
+        fullName: student.fullName || "",
+        phone: student.phone || "",
+        email: student.email || "",
+        address: student.address || "",
+        centerId: student.centerId || "",
+        enrolledDate: student.enrolledDate || "",
+        birthDate: student.birthDate || "",
+        guardianName: student.guardians?.[0]?.fullname || "",
+        guardianPhone: student.guardians?.[0]?.phone || "",
+        guardianEmail: student.guardians?.[0]?.email || "",
+        guardianAddress: student.guardians?.[0]?.address || "",
+        courseId: student.courses?.[0]?.id || "",
+        batchId: student.batches?.[0]?.id || "",
+        paymentPlan: student.paymentPlan || "",
+        status: student.status || "",
+      });
+
+      setEnrolledDate(
+        student.enrolledDate ? new Date(student.enrolledDate) : null
+      );
+      setBirthDate(student.birthDate ? new Date(student.birthDate) : null);
+    }
+  }, [student, reset, isOpen]);
+
+
   const courseId = watch("courseId");
   const paymentplan = watch("paymentPlan");
 
   const [selectedCourse, setSelectedCourse] = useState<Course>();
   const [showBaseFeeError, setShowBaseFeeError] = useState(false);
+  const [loadingCourse, setLoadingCourse] = useState(false);
 
   const [plan, setPlan] = useState<string>("lumpsum");
   const [maxInstallment, setMaxInstallment] = useState<number>(2);
@@ -93,26 +122,12 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   }, [plan, maxInstallment, selectedCourse?.courseAssignments[0]?.baseFee!]);
 
   useEffect(() => {
-    if (!leadId) return;
-
-    const lead = leads.find((l) => l.id === leadId);
-    if (lead) {
-      setValue("fullName", lead.fullName);
-      setValue("phone", lead.phone);
-      setValue("email", lead.email);
-      setValue("address", lead.address);
-      setValue("centerId", lead.centerId);
-      setValue("enrolledDate", lead.enquiryDate);
-      setValue("birthDate", lead.birthDate);
-      setValue("guardianName", lead.guardians[0]?.fullname);
-      setValue("guardianPhone", lead.guardians[0]?.phone);
-      setValue("guardianEmail", lead.guardians[0]?.email);
-      setValue("guardianAddress", lead.guardians[0]?.address);
-      setValue("courseId", lead.courseId);
+    if (initialData?.courseId) {
+      setValue("courseId", initialData.courseId);
+      setSelectedCourse(undefined);
+      return;
     }
-  }, [leadId, leads, setValue]); 
 
-  useEffect(() => {
     if (!courseId) {
       setSelectedCourse(undefined);
       return;
@@ -120,11 +135,13 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
     const fetchCourse = async () => {
       try {
+        setLoadingCourse(true);
         const course = await getCourse(courseId);
-        console.log("course:", course);
         setSelectedCourse(course);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
+      } finally {
+        setLoadingCourse(false);
       }
     };
 
@@ -132,8 +149,8 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   }, [courseId]);
 
   useEffect(() => {
-    if (initialData?.leadId) {
-      setValue("leadId", initialData.leadId);
+    if (initialData?.courseId) {
+      setValue("courseId", initialData.courseId);
     }
   }, [initialData, setValue]);
 
@@ -150,7 +167,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const onSubmit = (data: IStudent | any) => {
     if (showBaseFeeError) return;
     onSave(data);
-    console.log(data);
   };
 
   if (!isOpen) return null;
@@ -160,9 +176,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">
-            Enroll New Student
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800">Edit Student</h2>
           <button
             onClick={onClose}
             className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
@@ -177,55 +191,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
-          {/* Lead ID */}
-          <div className="w-full flex flex-col relative mb-5">
-            <label
-              htmlFor="leadId"
-              className="text-sm font-medium text-gray-700 mb-1"
-            >
-              Lead ID
-            </label>
-            <div className="relative">
-              <select
-                id="leadId"
-                {...register("leadId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10 appearance-none"
-              >
-                <option value="">Search lead ID</option>
-                {leads.map((lead) => (
-                  <option
-                    key={lead.id}
-                    value={lead.id}
-                    className="placeholder:text-gray-400"
-                  >
-                    {lead.fullName} - {lead.phone}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors"
-                onClick={() => setShowTooltip(!showTooltip)}
-              >
-                <Info size={18} />
-              </button>
-            </div>
-            {errors.leadId && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.leadId.message}
-              </p>
-            )}
-            {/* Tooltip */}
-            {showTooltip && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white">
-                <p className="text-gray-700">
-                  Use a Lead ID to auto-populate fields from an existing record.
-                </p>
-              </div>
-            )}
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             {/* Full Name */}
             <div className="flex flex-col sm:col-span-1">
@@ -475,7 +440,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 htmlFor="guardianEmail"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Guardian Email
+                Guardian Email (Optional)
               </label>
               <input
                 type="email"
@@ -748,7 +713,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               }`}
               disabled={!isValid || showBaseFeeError}
             >
-              Enroll
+              Save changes
             </button>
           </div>
         </form>
@@ -757,4 +722,4 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   );
 };
 
-export default EnrollStudentModal;
+export default EditStudentModal;

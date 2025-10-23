@@ -1,5 +1,5 @@
 import { Payment } from "../finance/payment.interface";
-import { CreateStudent } from "../requests/student.interface";
+import { CreateStudent, UpdateStudent } from "../requests/student.interface";
 import { StudentBatch } from "./batch.interface";
 import { Center } from "./center.interface";
 import { Course } from "./course.interface";
@@ -53,6 +53,8 @@ export interface Student {
   email: string;
   image: string; 
   address: string;
+  birthDate: string;
+  centerId: string;
   guardians: Guardian[];
   courses: Course[];
   center: Center;
@@ -91,6 +93,28 @@ export interface IStudent {
   batchId: string | null;
 }
 
+export interface IEditStudent {
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  status: string;
+  centerId: string;
+  enrolledDate: string;
+  birthDate: string;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail: string | null;
+  guardianAddress: string;
+  courseFee: string | null;
+  lumpSumFee: string | null;
+  numberOfInstallments: string | null;
+  paymentPlan: string;
+  notes: string;
+  courseId: string;
+  batchId: string | null;
+}
+
 export interface IStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -100,4 +124,15 @@ export interface IStudentModalProps {
   leads: Lead[];
   initialData?: Partial<IStudent>;
   mode: "enroll";
+}
+
+export interface IStudentEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (payload: UpdateStudent) => void;
+  student: Student;
+  courses: Course[];
+  centers: Center[];
+  initialData?: Partial<IStudent>;
+  mode: "edit";
 }

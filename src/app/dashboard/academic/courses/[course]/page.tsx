@@ -1,5 +1,5 @@
 import CourseDetails from "@/content/dashboard/academic/courses/CourseDetails";
-import { getCenters, getCourse, getCourseUnassignedCenters } from "@/lib/network";
+import { getCourse, getCourseFee, getCourseUnassignedCenters } from "@/lib/network";
 
 export default async function Course({ params }: any) {
   const { course: courseId } = await params;
@@ -7,5 +7,10 @@ export default async function Course({ params }: any) {
   const course = await getCourse(courseId);
   const centers = await getCourseUnassignedCenters(courseId);
 
-  return <CourseDetails course={course} centers={centers} />;
+  return (
+    <CourseDetails
+      course={course}
+      centers={centers}
+    />
+  );
 }

@@ -34,6 +34,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
   onSave,
   mode,
 }) => {
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [enquiryDate, setEnquiryDate] = useState<Date | null>(null);
   const [nextFollowUpDate, setNextFollowUpDate] = useState<Date | null>(null);
   const [lastFollowUpDate, setLastFollowUpDate] = useState<Date | null>(null);
@@ -117,7 +118,8 @@ const LeadModal: React.FC<ILeadModalProps> = ({
 
   const onSubmit = (data: ILead | any) => {
     onSave(data);
-    onClose();
+    console.log('Data:', data);
+    // onClose();
   };
 
   if (!isOpen) return null;
@@ -360,6 +362,34 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               )}
             </div>
 
+            {/* Birth Date */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="birthDate"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                <Calendar size={14} /> Birth Date
+              </label>
+              <DatePicker
+                selected={birthDate}
+                onChange={(date) => {
+                  if (date) {
+                    setBirthDate(date);
+                    setValue("birthDate", date.toISOString().split("T")[0], {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                dateFormat="yyyy-MM-dd"
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.birthDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.birthDate.message}
+                </p>
+              )}
+            </div>
+
             {/* Enquiry Date */}
             <div className="flex flex-col">
               <label
@@ -537,7 +567,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
             </div>
 
             {/* Assigned To */}
-            <div className="flex flex-col sm:col-span-2">
+            <div className="flex flex-col">
               <label
                 htmlFor="assignedTo"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"

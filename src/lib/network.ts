@@ -1,5 +1,5 @@
 import { NoSessionError, server } from "@/lib/server";
-import { ICenterFeeAssignment } from "@/types/academic/center.interface";
+import { ICourseFeeAssignment, IEditCourseFeeAssignment } from "@/types/academic/center.interface";
 import { CreateUser, UpdateUser } from "@/types/auth/signup.interface";
 import { AttendanceRecord } from "@/types/requests/attendance";
 import { CreateBatch, UpdateBatch } from "@/types/requests/batch.interface";
@@ -8,6 +8,7 @@ import { CreateCourse, UpdateCourse } from "@/types/requests/course.interface";
 import { CreateLead, UpdateLead } from "@/types/requests/lead.interface";
 import {
   CreateStudent,
+  CreateStudentPayment,
   UpdateStudent,
 } from "@/types/requests/student.interface";
 import { getSession } from "./session";
@@ -234,6 +235,17 @@ export const getCourseUnassignedCenters = async (id: string) => {
   }
 };
 
+export const getCourseFee = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/courses/center/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch center course fee:", err.message);
+    return [];
+  }
+};
+
 export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
   try {
     const api = await server();
@@ -252,7 +264,7 @@ export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
 
 export const assignCenterFee = async (
   courseId: string,
-  payload: ICenterFeeAssignment
+  payload: ICourseFeeAssignment
 ) => {
   try {
     const api = await server();
@@ -272,11 +284,12 @@ export const assignCenterFee = async (
 
 export const updateCenterFee = async (
   assignmentId: string,
-  payload: ICenterFeeAssignment
+  payload: IEditCourseFeeAssignment
 ) => {
   try {
     const api = await server();
     const res = await api.patch(`/courses/center-fee/${assignmentId}`, {
+      centerId: payload.centerId,
       lumpSumFee: payload.lumpSumFee,
       baseFee: payload.baseFee,
       maxInstallments: payload.maxInstallments,
@@ -334,6 +347,18 @@ export const getStudent = async (id: string) => {
   }
 };
 
+export const getStudentCourses = async (studentId: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/students/${studentId}/courses`);
+    return res.data;
+  } catch (err: any) {
+    console.error(`Failed to fetch courses for student ${studentId}:`, err.message);
+    return [];
+  }
+};
+
+
 export const createStudent = async (payload: CreateStudent) => {
   try {
     const api = await server();
@@ -341,6 +366,28 @@ export const createStudent = async (payload: CreateStudent) => {
     return res.data;
   } catch (err: any) {
     console.error("Failed to create student:", err.message);
+    return err.message;
+  }
+};
+
+export const enrollStudentCourse = async (payload: CreateStudentPayment) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/students/enroll/course`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create student payment:", err.message);
+    return err.message;
+  }
+};
+
+export const updateStudentCoursePayment = async (payload: CreateStudentPayment) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/students/add/payment`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update course payment:", err.message);
     return err.message;
   }
 };

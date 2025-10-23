@@ -1,10 +1,11 @@
-import EnrollmentInfo from "@/content/dashboard/academic/students/StudentEnrollmentInfo";
-import { getStudent } from "@/lib/network";
+import StudentEnrollmentInfo from "@/content/dashboard/academic/students/StudentEnrollmentInfo";
+import { getCourses, getStudent } from "@/lib/network";
 
-export default async function StudentEnrollmentInfo({ params }: any) {
+export default async function StudentEnrollment({ params }: any) {
   const { info: studentId } = await params;
 
   const student = await getStudent(studentId);
+  const courses = await getCourses();
 
-  return <EnrollmentInfo student={student} />;
+  return <StudentEnrollmentInfo student={student} courses={courses} />;
 }
