@@ -421,8 +421,20 @@ const StudentDetails = ({
               <h3 className="text-xl font-bold text-gray-800 mb-4">
                 Parent/Guardian
               </h3>
-              {renderSection("Name", student.guardians[0]?.fullname, User)}
-              {renderSection("Email", student.guardians[0]?.email, MailIcon)}
+              {renderSection(
+                "Name",
+                student.guardians && student.guardians.length
+                  ? student.guardians[0]?.fullname
+                  : "",
+                User
+              )}
+              {renderSection(
+                "Email",
+                student.guardians && student.guardians.length
+                  ? student.guardians[0]?.email
+                  : "",
+                MailIcon
+              )}
             </div>
 
             {/* Payment History */}

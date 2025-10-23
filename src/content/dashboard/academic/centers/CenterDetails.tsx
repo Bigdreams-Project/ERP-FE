@@ -151,9 +151,14 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
                   Location: center.address,
                   "Center Manager": center?.manager?.fullname,
                   "Academic Head": center.academicHead?.fullname,
-                  "Student Count": center.students?.length,
-                  "Faculty Count": center.faculties?.length,
-                  "Regional Manager": center.regionalManager?.fullname,
+                  "Student Count": center.students
+                    ? center.students?.length
+                    : "0",
+                  "Faculty Count": center.faculties
+                    ? center.faculties?.length
+                    : "0",
+                  "Regional Manager":
+                    center.regionalManager ? center.regionalManager?.fullname : "N/A",
                 }).map(([label, value]) => (
                   <div key={label} className="col-span-1">
                     <p className="text-gray-500 text-sm font-medium">

@@ -94,33 +94,43 @@ const CenterModal: React.FC<ICenterModalProps> = ({
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
           {/* Basic Information Section */}
-          <h3 className="text-lg font-semibold text-gray-700 mb-3">Basic Information</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">
+            Basic Information
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pb-6 border-b border-gray-200">
             {/* Name */}
             <div className="flex flex-col">
-              <label htmlFor="name" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="name"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Name
               </label>
               <input
                 type="text"
                 id="name"
                 {...register("name")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.name && (
-                <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
             {/* Location */}
             <div className="flex flex-col relative">
-              <label htmlFor="location" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="location"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Location
               </label>
               <select
                 id="location"
                 {...register("location")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Location</option>
                 {locations.map((loc) => (
@@ -133,35 +143,45 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.location && (
-                <p className="text-red-500 text-xs mt-1">{errors.location.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.location.message}
+                </p>
               )}
             </div>
 
             {/* Address */}
             <div className="flex flex-col sm:col-span-2">
-              <label htmlFor="address" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="address"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Address
               </label>
               <input
                 type="text"
                 id="address"
                 {...register("address")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.address && (
-                <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.address.message}
+                </p>
               )}
             </div>
 
             {/* Manager */}
             <div className="flex flex-col relative">
-              <label htmlFor="managerId" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="managerId"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Manager
               </label>
               <select
                 id="managerId"
                 {...register("managerId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Manager</option>
                 {managers.map((manager) => (
@@ -174,39 +194,51 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.managerId && (
-                <p className="text-red-500 text-xs mt-1">{errors.managerId.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.managerId.message}
+                </p>
               )}
             </div>
 
             {/* Phone */}
             <div className="flex flex-col">
-              <label htmlFor="phone" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="phone"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Phone
               </label>
               <input
                 type="tel"
                 id="phone"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.phone.message}
+                </p>
               )}
             </div>
 
             {/* Email Address */}
             <div className="flex flex-col sm:col-span-2">
-              <label htmlFor="emailAddress" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="emailAddress"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Email Address
               </label>
               <input
                 type="email"
                 id="emailAddress"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
           </div>
@@ -230,7 +262,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               key={field.id}
               className="p-4 mb-4 border border-gray-200 rounded-xl bg-gray-50 relative"
             >
-              {/* Remove Button (for all but the first bank entry if we require at least one) */}
+              {/* Remove Button */}
               {bankFields.length > 1 && (
                 <button
                   type="button"
@@ -242,7 +274,9 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 </button>
               )}
 
-              <h4 className="text-sm font-bold text-gray-700 mb-3">Bank Account {index + 1}</h4>
+              <h4 className="text-sm font-bold text-gray-700 mb-3">
+                Bank Account {index + 1}
+              </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                 {/* Bank Name */}
@@ -253,12 +287,11 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                   >
                     Bank Name
                   </label>
-                  {/* Using select for bank name as seen in the image, but defaulting to input for simplicity here */}
                   <input
                     id={`banks.${index}.bankName`}
                     type="text"
                     {...register(`banks.${index}.bankName`)}
-                    className="w-full h-10 px-4 text-sm rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="e.g., Zenith Bank"
                   />
                   {errors.banks?.[index]?.bankName && (
@@ -280,7 +313,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                     id={`banks.${index}.accountNumber`}
                     type="text"
                     {...register(`banks.${index}.accountNumber`)}
-                    className="w-full h-10 px-4 text-sm rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="1234567890"
                   />
                   {errors.banks?.[index]?.accountNumber && (
@@ -302,7 +335,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                     id={`banks.${index}.accountName`}
                     type="text"
                     {...register(`banks.${index}.accountName`)}
-                    className="w-full h-10 px-4 text-sm rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="e.g., TecTerminal Enugu"
                   />
                   {errors.banks?.[index]?.accountName && (
@@ -324,7 +357,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                     id={`banks.${index}.balance`}
                     type="text"
                     {...register(`banks.${index}.balance`)}
-                    className="w-full h-10 px-4 text-sm rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="e.g., Enugu Main"
                   />
                   {errors.banks?.[index]?.balance && (
@@ -340,13 +373,16 @@ const CenterModal: React.FC<ICenterModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pt-4 border-t border-gray-200">
             {/* Status */}
             <div className="flex flex-col relative">
-              <label htmlFor="status" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="status"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Status
               </label>
               <select
                 id="status"
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Status</option>
                 {statuses.map((s) => (
@@ -359,18 +395,24 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.status && (
-                <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.status.message}
+                </p>
               )}
             </div>
 
+            {/* Type */}
             <div className="flex flex-col relative">
-              <label htmlFor="status" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="status"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Type
               </label>
               <select
                 id="type"
                 {...register("type")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Type</option>
                 {types.map((t) => (
@@ -383,16 +425,26 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.type && (
-                <p className="text-red-500 text-xs mt-1">{errors.type.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.type.message}
+                </p>
               )}
             </div>
 
             {/* Upload Document */}
             <div className="flex flex-col  sm:col-span-2 relative">
-              <label htmlFor="document" className="text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="document"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
                 Upload Document
               </label>
-              <input id="document" type="file" {...register("document")} className="hidden" />
+              <input
+                id="document"
+                type="file"
+                {...register("document")}
+                className="hidden"
+              />
               <label
                 htmlFor="document"
                 className="w-full h-10 flex items-center justify-center gap-2 px-4 text-sm rounded-lg bg-gray-100 border-2 border-dashed border-gray-300 text-gray-600 cursor-pointer hover:border-blue-500 transition-colors"
@@ -401,7 +453,9 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 <span>Choose File</span>
               </label>
               {errors.document && (
-                <p className="text-red-500 text-xs mt-1">{errors.document.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.document.message}
+                </p>
               )}
             </div>
           </div>

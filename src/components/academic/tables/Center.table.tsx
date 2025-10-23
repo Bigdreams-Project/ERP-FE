@@ -227,8 +227,12 @@ export default function CenterTable({
                     <td className="p-3">
                       {highlightMatch(center.address, searchQuery)}
                     </td>
-                    <td className="p-3">{center.students.length}</td>
-                    <td className="p-3">{center.leads.length}</td>
+                    <td className="p-3">
+                      {center.students ? center.students.length : ""}
+                    </td>
+                    <td className="p-3">
+                      {center.leads ? center.leads.length : ""}
+                    </td>
                     <td className="p-3">{center.status}</td>
                     <td className="p-3 relative text-right">
                       <button

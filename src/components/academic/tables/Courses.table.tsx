@@ -192,8 +192,10 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                     </td>
                     <td className="p-4">{course.duration}</td>
                     <td className="p-4">{course.baseFee}</td>
-                    <td className="p-4">{course.students?.length}</td>
-                    <td className="p-4">{course.leads?.length}</td>
+                    <td className="p-4">
+                      {course.students ? course.students?.length : ""}
+                    </td>
+                    <td className="p-4">{course.leads ? course.leads?.length : ""}</td>
                     <td className="p-4">{course.type}</td>
                     <td className="p-3">
                       <StatusBadge step={course.status} label={course.status} />

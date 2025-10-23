@@ -147,8 +147,12 @@ export default function BatchTable({
                     <td className="p-3">{batch.course?.name}</td>
                     <td className="p-3">{batch.duration} months</td>
                     <td className="p-3">{batch.faculty?.fullname}</td>
-                    <td className="p-3">{batch.schedules.length}</td>
-                    <td className="p-3">{batch.students.length}</td>
+                    <td className="p-3">
+                      {batch.schedules ? batch.schedules.length : ""}
+                    </td>
+                    <td className="p-3">
+                      {batch.students ? batch.students.length : ""}
+                    </td>
                     <td className="p-3">{formatDate(batch.createdAt)}</td>
                     <td className="p-3">{formatDate(batch.startDate)}</td>
                     <td className="p-3">{formatDate(batch.endDate)}</td>

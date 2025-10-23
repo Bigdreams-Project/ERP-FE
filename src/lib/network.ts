@@ -593,7 +593,6 @@ export const getAttendance = async (
     const api = await server();
     const res = await api.get(`/attendance/student/${studentId}?year=${year}&month=${month}`
     );
-    console.log("Attendance Data:", res.data);
     return res.data;
   } catch (err: any) {
     console.error("Failed to get attendance:", err.message);

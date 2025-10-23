@@ -151,8 +151,8 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                   Schedule: batch?.schedules[0]?.day,
                   Faculty: batch.faculty?.fullname,
                   "Faculty Phone": batch.faculty?.phone || "N/A",
-                  "Max Students": batch.students?.length,
-                  Enrolled: batch.students?.length,
+                  "Max Students": batch.students ? batch.students?.length : "0",
+                  Enrolled: batch.students ? batch.students?.length : "0",
                   // "Next Class": batch.regionalManager?.fullname,
                 }).map(([key, value]) => (
                   <div key={key} className="col-span-1">

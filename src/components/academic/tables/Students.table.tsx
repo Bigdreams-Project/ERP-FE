@@ -45,8 +45,7 @@ export default function StudentTable({
   const itemsPerPage = 10;
 
   const sortedData = [...filteredData].sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
@@ -210,10 +209,18 @@ export default function StudentTable({
                     <td className="p-3">{student.phone}</td>
                     <td className="p-3">{student.address}</td>
                     <td className="p-3">{formatDate(student.enrolledDate)}</td>
-                    <td className="p-3">{student.guardians[0]?.fullname}</td>
-                    <td className="p-3">{student.guardians[0]?.phone}</td>
                     <td className="p-3">
-                      {student.courses.length > 0
+                      {student.guardians && student.guardians.length
+                        ? student.guardians[0]?.fullname
+                        : "N/A"}
+                    </td>
+                    <td className="p-3">
+                      {student.guardians && student.guardians.length
+                        ? student.guardians[0]?.phone
+                        : "N/A"}
+                    </td>
+                    <td className="p-3">
+                      {student.courses && student.courses.length > 0
                         ? student.courses[0]?.name
                         : "Not yet enrolled"}
                     </td>
