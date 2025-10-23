@@ -12,7 +12,6 @@ export default async function Batches() {
   const courses = await getCourses();
   const students = await getStudents();
   const faculties = await getFaculties();
-  console.log("data:", batches);
 
   return (
     <BatchesContent

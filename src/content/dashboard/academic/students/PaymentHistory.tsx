@@ -24,7 +24,7 @@ const PaymentHistory = ({ data }: Props) => (
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data.payments.map((item: Payment, index: any) => (
+          {data.payments?.map((item: Payment, index: any) => (
             <tr key={index}>
               <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                 {formatDate(item.paymentDate)}

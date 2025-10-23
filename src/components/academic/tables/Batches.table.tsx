@@ -145,7 +145,7 @@ export default function BatchTable({
                       </Link>
                     </td>
                     <td className="p-3">{batch.course?.name}</td>
-                    <td className="p-3">{batch.duration}</td>
+                    <td className="p-3">{batch.duration} months</td>
                     <td className="p-3">{batch.faculty?.fullname}</td>
                     <td className="p-3">{batch.schedules.length}</td>
                     <td className="p-3">{batch.students.length}</td>
@@ -181,24 +181,24 @@ export default function BatchTable({
                           >
                             View
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleEdit(batch.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Edit
-                          </button>
+                          </button> */}
                           {/* <button
                             onClick={() => handleExport(batch.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Export
                           </button> */}
-                          <button
+                          {/* <button
                             onClick={() => handleDelete(batch.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                           >
                             Delete
-                          </button>
+                          </button> */}
                         </div>
                       )}
                     </td>

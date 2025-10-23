@@ -4,6 +4,7 @@ import {
   statuses,
 } from "@/data/view/batch.data";
 import { addHoursToTime } from "@/lib/utils";
+import { useFieldArray } from "react-hook-form";
 import {
   IBatch,
   IBatchModalProps,
@@ -63,10 +64,18 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     },
   });
 
+  const {
+    fields: schedules,
+    append,
+    remove,
+  } = useFieldArray({
+    control,
+    name: "schedules",
+  });
+
   const [isDraft, setIsDraft] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
 
-  const classSchedule = watch("schedules");
   const courseId = watch("courseId");
 
   useEffect(() => {
@@ -84,16 +93,16 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     }
   }, [courseId, setValue]);
 
-  useEffect(() => {
-    classSchedule.forEach((schedule, index) => {
-      if (schedule.startTime) {
-        const newEnd = addHoursToTime(schedule.startTime, 2);
-        if (newEnd !== schedule.endTime) {
-          setValue(`schedules.${index}.endTime`, newEnd);
-        }
-      }
-    });
-  }, [classSchedule, setValue]);
+  // useEffect(() => {
+  //   classSchedule.forEach((schedule, index) => {
+  //     if (schedule.startTime) {
+  //       const newEnd = addHoursToTime(schedule.startTime, 2);
+  //       if (newEnd !== schedule.endTime) {
+  //         setValue(`schedules.${index}.endTime`, newEnd);
+  //       }
+  //     }
+  //   });
+  // }, [classSchedule, setValue]);
 
   // Reset the form
   useEffect(() => {
@@ -352,59 +361,52 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                 </button>
               </div>
 
-              {classSchedule.map((schedule, index) => (
-                <div key={index} className="grid grid-cols-2 gap-4 mb-2">
+              {schedules.map((schedule, index) => (
+                <div
+                  key={schedule.id}
+                  className="grid grid-cols-2 gap-4 mb-4 relative border p-3 rounded-lg"
+                >
                   {/* Day */}
-                  <div className="flex flex-col ">
-                    <label
-                      htmlFor={`classSchedule.${index}.dayOfWeek`}
-                      className="text-xs font-medium text-gray-500 mb-1"
-                    >
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-gray-500 mb-1">
                       Day
                     </label>
                     <select
-                      id={`classSchedule.${index}.dayOfWeek`}
                       {...register(`schedules.${index}.day`)}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     >
                       <option value="Monday">Monday</option>
                       <option value="Tuesday">Tuesday</option>
                       <option value="Wednesday">Wednesday</option>
                       <option value="Thursday">Thursday</option>
                       <option value="Friday">Friday</option>
+                      <option value="Saturday">Saturday</option>
+                      <option value="Sunday">Sunday</option>
                     </select>
                   </div>
 
                   {/* Duration */}
-                  <div className="flex flex-col ">
-                    <label
-                      htmlFor={`classSchedule.${index}.duration`}
-                      className="text-xs font-medium text-gray-500 mb-1"
-                    >
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-gray-500 mb-1">
                       Duration (hours)
                     </label>
                     <input
                       type="number"
-                      id={`classSchedule.${index}.duration`}
                       {...register(`schedules.${index}.duration`, {
                         valueAsNumber: true,
                       })}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     />
                   </div>
 
                   {/* Start Time */}
-                  <div className="flex flex-col ">
-                    <label
-                      htmlFor={`classSchedule.${index}.startTime`}
-                      className="text-xs font-medium text-gray-500 mb-1"
-                    >
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-gray-500 mb-1">
                       Start Time
                     </label>
                     <select
-                      id={`classSchedule.${index}.startTime`}
                       {...register(`schedules.${index}.startTime`)}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     >
                       <option value="">Select Time</option>
                       {scheduleTimes.map((time) => (
@@ -416,23 +418,13 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   </div>
 
                   {/* End Time */}
-                  <div className="flex flex-col ">
-                    <label
-                      htmlFor={`classSchedule.${index}.endTime`}
-                      className="text-xs font-medium text-gray-500 mb-1"
-                    >
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium text-gray-500 mb-1">
                       End Time
                     </label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={classSchedule[index]?.endTime || ""}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-200 border-2 border-transparent cursor-not-allowed"
-                    />
-                    {/* <select
-                      id={`classSchedule.${index}.endTime`}
-                      {...register(`schedule.${index}.endTime`)}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    <select
+                      {...register(`schedules.${index}.endTime`)}
+                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     >
                       <option value="">Select Time</option>
                       {scheduleTimes.map((time) => (
@@ -440,8 +432,17 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                           {time.label}
                         </option>
                       ))}
-                    </select> */}
+                    </select>
                   </div>
+
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               ))}
               {errors.schedules && (
@@ -450,9 +451,24 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                 </p>
               )}
               {/* This is a simple display of the entered schedule, matching the image. */}
-              <p className="text-sm text-gray-600 mt-2">
+              {/* <p className="text-sm text-gray-600 mt-2">
                 {formatSchedule(classSchedule)}
-              </p>
+              </p> */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  append({
+                    day: "Monday",
+                    startTime: "02:00 PM",
+                    endTime: "04:00 PM",
+                    duration: 2,
+                  })
+                }
+                className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+              >
+                + Add Another Schedule
+              </button>
             </div>
 
             {/* Faculty */}

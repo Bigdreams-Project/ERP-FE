@@ -1,10 +1,9 @@
-import Image from "next/image";
-import Dashboard from "./dashboard/page";
+import Overview from "./dashboard/academic/overview/page";
 
 export default function Home() {
   return (
     <div>
-      <Dashboard />
+      <Overview />
     </div>
   );
 }

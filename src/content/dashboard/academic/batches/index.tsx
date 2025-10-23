@@ -96,7 +96,7 @@ const BatchesContent = ({
         setSearchQuery(searchInput);
       }
     }, 500);
-
+ 
     return () => clearTimeout(handler);
   }, [searchInput]);
 

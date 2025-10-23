@@ -121,13 +121,13 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               </>
             ) : (
               <>
-                <button
+                {/* <button
                   onClick={handleEditToggle}
                   className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
                   <MdEdit />
                   Edit
-                </button>
+                </button> */}
               </>
             )}
           </div>

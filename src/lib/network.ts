@@ -448,7 +448,7 @@ export const createBatch = async (payload: CreateBatch) => {
   }
 };
 
-export const updateBatch = async (id: string, payload: UpdateBatch) => {
+export const updateBatch = async (id: string, payload: UpdateBatch | any) => {
   try {
     const api = await server();
     const res = await api.patch(`/batches/${id}`, payload);
@@ -598,5 +598,17 @@ export const getAttendance = async (
   } catch (err: any) {
     console.error("Failed to get attendance:", err.message);
     return err.message;
+  }
+};
+
+// Payments
+export const getAllPayments = async () => {
+  try {
+    const api = await server();
+    const res = await api.get("/payments");
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch payments", err.message);
+    throw new Error(err.message);
   }
 };
