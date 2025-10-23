@@ -1,23 +1,32 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
+import { AuthRoutes } from "@/constants/apiRoutes.constant";
+import { logoutUser } from "@/lib/auth/login";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { IoPersonCircleOutline } from "react-icons/io5";
 import { MdOutlineModeNight } from "react-icons/md";
 import { PiSignInFill } from "react-icons/pi";
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
-import { logoutUser } from "@/lib/auth/login";
 const Profile = () => {
+  const router = useRouter();
   const iconSize = "20";
   const [isChecked, setIsChecked] = useState(false);
+
+  const logout = () => {
+    logoutUser();
+    router.push(AuthRoutes.LOGIN);
+  };
+
   return (
     <div className="">
       <DropdownMenu>
@@ -62,7 +71,7 @@ const Profile = () => {
             </div>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => logoutUser}>
+          <DropdownMenuItem onClick={logout}>
             <PiSignInFill size={iconSize} className="text-gray-600" />
             Sign out
           </DropdownMenuItem>

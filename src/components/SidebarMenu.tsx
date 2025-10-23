@@ -1,18 +1,16 @@
 "use client";
+import { useUser } from "@/context/UserContext";
 import { logoutUser } from "@/lib/auth/login";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { PiSignInFill } from "react-icons/pi";
-import ChartBarAxisXIcon from "./svg/ChartBarAxisXIcon";
 import GraduationCapIcon from "./svg/GraduationCapIcon";
-import HouseIcon from "./svg/HouseIcon";
 import MoneyIcon from "./svg/MoneyIcon";
 import SettingsIcon from "./svg/SettingsIcon";
 import StaffIcon from "./svg/StaffIcon";
-import { useUser } from "@/context/UserContext";
-import { permissions } from "@/config/permissions";
+import { AuthRoutes } from "@/constants/apiRoutes.constant";
 
 interface SidebarLink {
   label: string;
@@ -34,6 +32,7 @@ const SidebarMenu = ({
   isMobile: boolean;
   toggleSidebar: () => void;
 }) => {
+  const router = useRouter();
   const { user } = useUser();
   // const userPermissions = permissions[user?.role ?? "staff"];
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -86,6 +85,11 @@ const SidebarMenu = ({
 
     return () => clearTimeout(timeoutId);
   }, [sidebarExpanded, isMobile]);
+
+  const logout = () => {
+    logoutUser();
+    router.push(AuthRoutes.LOGIN)
+  }
 
   // Sidebar Menu
   const sidebarMenu: SidebarSection[] = [
@@ -281,7 +285,7 @@ const SidebarMenu = ({
         }`}
       >
         {sidebarExpanded ? (
-          <div className="flex pr-[6rem]" onClick={logoutUser}>
+          <div className="flex pr-[6rem]" onClick={logout}>
             <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />
             <h1 className="ml-1 text-[rgba(0,0,0,0.7)]">Sign out</h1>
           </div>
