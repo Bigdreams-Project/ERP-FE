@@ -1,10 +1,11 @@
 "use client";
+
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import { courseStatus, courseTypes } from "@/data/mock/academic.data";
-import { createCourse } from "@/lib/network";
+import { createCourse, getCourses } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Course } from "@/types/academic/course.interface";
 import { CreateCourse } from "@/types/requests/course.interface";
@@ -17,8 +18,9 @@ interface CoursesContentProps {
   courses: Course[];
 }
 
-const CoursesContent = ({ courses }: CoursesContentProps) => {
+const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [courses, setCourses] = useState<Course[]>(initialCourses);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -29,6 +31,7 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
     status: [],
     courseType: [],
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: any) => {
@@ -41,22 +44,35 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
   }, []);
 
   useEffect(() => {
-    if (!isTyping && searchInput.length > 0) {
-      setIsTyping(true);
-    }
+    if (!isTyping && searchInput.length > 0) setIsTyping(true);
+
     const handler = setTimeout(() => {
-      if (searchInput.length === 0) {
+      if (searchInput.trim().length === 0) {
         setSearchQuery("");
         setError("");
-      } else if (searchInput.length < 3) {
+      } else if (searchInput.trim().length < 3) {
         setError("Please enter at least 3 characters");
       } else {
         setError("");
-        setSearchQuery(searchInput);
+        setSearchQuery(searchInput.trim());
       }
     }, 500);
+
     return () => clearTimeout(handler);
   }, [searchInput]);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const data = await getCourses();
+      setCourses(data);
+    } catch (error) {
+      console.error("Failed to fetch courses:", error);
+      showError("Failed to refresh courses");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFilterChange = (filterCategory: string, value: string) => {
     setAppliedFilters((prev: any) => {
@@ -68,13 +84,10 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
     });
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = () =>
     setAppliedFilters({ status: [], courseType: [] });
-  };
 
-  const handleApplyFilter = () => {
-    setIsFilterDropdown(false);
-  };
+  const handleApplyFilter = () => setIsFilterDropdown(false);
 
   const filteredData = courses.filter((course) => {
     const query = searchQuery.toLowerCase();
@@ -95,6 +108,7 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
       await createCourse(payload, isDraft);
       showSuccess("Course created successfully");
       setIsModalOpen(false);
+      await fetchCourses();
     } catch (error) {
       console.error("Failed to save course:", error);
       showError("Failed to create new course");
@@ -105,12 +119,13 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Courses" }]} />
 
-      <div className="w-full  flex items-center justify-between">
+      <div className="w-full flex items-center justify-between">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
 
         <div className="w-full flex items-center justify-end gap-4 p-3">
+          {/* Filter */}
           <div className="relative" ref={dropdownRef}>
             <div
               className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
@@ -122,6 +137,7 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
             {isFilterDropdown && (
               <div className="absolute right-0 mt-2 bg-white rounded-md w-[200px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400">
                 <div className="flex flex-col gap-3">
+                  {/* Status Filter */}
                   <div className="flex flex-col gap-1">
                     <p className="font-semibold text-gray-800">Status</p>
                     <ul className="flex flex-col gap-1">
@@ -150,6 +166,7 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
                     </ul>
                   </div>
 
+                  {/* Type Filter */}
                   <div className="flex flex-col gap-1">
                     <p className="font-semibold text-gray-800">Course Type</p>
                     <ul className="flex flex-col gap-1">
@@ -178,6 +195,7 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
                     </ul>
                   </div>
 
+                  {/* Buttons */}
                   <div className="flex items-center justify-between gap-2 mt-4 text-[14px]">
                     <button
                       onClick={handleClearAll}
@@ -197,19 +215,21 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
             )}
           </div>
 
+          {/* Search */}
           <div className="w-[250px]">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
+            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:border-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
               <BiSearchAlt size={18} className="ml-2" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search courses..."
                 onChange={(e) => {
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
-                className="outline-none"
+                className="outline-none w-full bg-transparent px-2"
               />
             </div>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
           </div>
 
           <button
@@ -223,6 +243,7 @@ const CoursesContent = ({ courses }: CoursesContentProps) => {
       </div>
 
       <CoursesTable searchQuery={searchQuery} filteredData={filteredData} />
+
       <CourseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

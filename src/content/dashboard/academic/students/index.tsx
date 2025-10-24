@@ -4,7 +4,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/mock/academic.data";
-import { createStudent } from "@/lib/network";
+import { createStudent, getStudents } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -27,9 +27,11 @@ const StudentContent = ({
   students,
   courses,
   centers,
-  leads
+  leads,
 }: StudentContentProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [studentList, setStudentList] = useState<Student[]>(students);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -41,9 +43,7 @@ const StudentContent = ({
   });
 
   useEffect(() => {
-    if (!isTyping && searchInput.length > 0) {
-      setIsTyping(true);
-    }
+    if (!isTyping && searchInput.length > 0) setIsTyping(true);
 
     const handler = setTimeout(() => {
       if (searchInput.length === 0) {
@@ -71,14 +71,14 @@ const StudentContent = ({
   };
 
   const handleClearAll = () => {
-    setAppliedFilters({ status: [], courseType: [] });
+    setAppliedFilters({ status: [] });
   };
 
   const handleApplyFilter = () => {
     setIsFilterDropdown(false);
   };
 
-  const filteredData = students.filter((student) => {
+  const filteredData = studentList.filter((student) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       student.fullName.toLowerCase().includes(query) ||
@@ -91,9 +91,11 @@ const StudentContent = ({
 
   const handleSave = async (payload: CreateStudent) => {
     try {
-      await createStudent(payload);
+      const newStudent = await createStudent(payload);
       showSuccess("Student enrolled successfully");
-      // setIsModalOpen(false);
+      setIsModalOpen(false);
+
+      setStudentList((prev) => [newStudent, ...prev]);
     } catch (error) {
       console.error("Failed to save student:", error);
       showError("Student enrollment failed");
@@ -101,14 +103,16 @@ const StudentContent = ({
   };
 
   return (
-    <div className="w-full ">
+    <div className="w-full">
       <BreadCrumb paths={[{ name: "Students" }]} />
 
       <div className="w-full flex items-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
+
         <div className="w-full flex items-center justify-end gap-7 p-2">
+          {/* Filter Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <div
               className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
@@ -167,6 +171,7 @@ const StudentContent = ({
             )}
           </div>
 
+          {/* Search */}
           <div className="w-[250px]">
             <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
               <BiSearchAlt size={18} className="ml-2" />
@@ -182,6 +187,7 @@ const StudentContent = ({
             </div>
           </div>
 
+          {/* Add Button */}
           <button
             className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             onClick={() => setIsModalOpen(true)}

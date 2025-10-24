@@ -286,8 +286,8 @@ const SidebarMenu = ({
       >
         {sidebarExpanded ? (
           <div className="flex pr-[6rem]" onClick={logout}>
-            <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />
-            <h1 className="ml-1 text-[rgba(0,0,0,0.7)]">Sign out</h1>
+            <PiSignInFill size={20} className="text-red-600" />
+            <h1 className="ml-1 text-red-600">Sign out</h1>
           </div>
         ) : (
           <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />

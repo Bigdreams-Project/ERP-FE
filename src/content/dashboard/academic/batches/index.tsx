@@ -10,6 +10,7 @@ import { Batch, Faculty } from "@/types/academic/batch.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -52,6 +53,7 @@ const BatchesContent = ({
   students,
   faculties,
 }: BatchesContentProps) => {
+  const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,7 +98,7 @@ const BatchesContent = ({
         setSearchQuery(searchInput);
       }
     }, 500);
- 
+
     return () => clearTimeout(handler);
   }, [searchInput]);
 
@@ -115,6 +117,7 @@ const BatchesContent = ({
       await createBatch(payload);
       showSuccess("Batch created successfully!");
       setIsModalOpen(false);
+      router.refresh();
     } catch (error) {
       console.error("Failed to save batch:", error);
       showError("Failed to create batch. Please try again.");
@@ -151,7 +154,6 @@ const BatchesContent = ({
       appliedFilters.status.length === 0 ||
       appliedFilters.status.includes(batch.status);
 
-    // 👇 Date filtering
     const matchesDateRange =
       !startDate ||
       !endDate ||
@@ -169,7 +171,7 @@ const BatchesContent = ({
     <div className="w-full overflow-hidden">
       <BreadCrumb paths={[{ name: "Batches" }]} />
 
-      <div className="w-full  flex items-center">
+      <div className="w-full flex items-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
@@ -193,7 +195,6 @@ const BatchesContent = ({
               >
                 {dateFilterName && (
                   <div className="p-1">
-                    {/* Date range */}
                     <div className="mb-2 px-2">
                       <input
                         type="text"
@@ -203,7 +204,6 @@ const BatchesContent = ({
                       />
                     </div>
 
-                    {/* Date Picker */}
                     <div className="bg-white">
                       <DateRangePicker
                         ranges={range}

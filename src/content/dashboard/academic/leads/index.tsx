@@ -30,6 +30,7 @@ interface LeadContentProps {
 const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
   const { selectedCenter } = useCenter();
 
+  const [leadList, setLeadList] = useState<Lead[]>(leads);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -43,8 +44,8 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
 
   const filteredLeads =
     selectedCenter === "all"
-      ? leads
-      : leads.filter((lead) => lead.centerId === selectedCenter);
+      ? leadList
+      : leadList.filter((lead) => lead.centerId === selectedCenter);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -66,10 +67,11 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
 
   const handleSave = async (payload: CreateLead) => {
     try {
-      const response = await createLead(payload);
-      console.log("Lead created successfully:", response);
-      showSuccess("Lead created successfully:");
-      // setIsModalOpen(false);
+      const newLead = await createLead(payload);
+      showSuccess("Lead created successfully");
+      setIsModalOpen(false);
+
+      setLeadList((prev) => [newLead, ...prev]);
     } catch (error) {
       showError("Failed to save lead");
       console.error("Failed to save lead:", error);
@@ -93,7 +95,7 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
   return (
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Leads" }]} />
-      <div className="w-full  flex items-center justify-between text-center">
+      <div className="w-full flex items-center justify-between text-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
