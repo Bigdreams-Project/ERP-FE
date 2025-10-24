@@ -118,8 +118,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
 
   const onSubmit = (data: ILead | any) => {
     onSave(data);
-    console.log('Data:', data);
-    // onClose();
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -161,7 +160,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="fullname"
                 placeholder="Aisha Bukola Nneka"
                 {...register("fullName")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.fullName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -183,7 +182,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="phone"
                 placeholder="(234) 905-256-8454"
                 {...register("phone")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
@@ -205,7 +204,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="email"
                 placeholder="jane@example.com"
                 {...register("email")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
@@ -227,7 +226,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="address"
                 placeholder="1020 West Street, Las Vegas, NV 89104"
                 {...register("address")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.address && (
                 <p className="text-red-500 text-xs mt-1">
@@ -249,7 +248,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="guardianName"
                 placeholder="John Doe Emeka"
                 {...register("guardianName")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -271,7 +270,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="guardianPhone"
                 placeholder="(234) 905-256-8454"
                 {...register("guardianPhone")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
@@ -293,7 +292,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="guardianEmail"
                 placeholder="john@example.com"
                 {...register("guardianEmail")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
@@ -313,7 +312,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               <select
                 id="centerId"
                 {...register("centerId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
@@ -343,7 +342,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               <select
                 id="courseId"
                 {...register("courseId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
                 {courses.map((course) => (
@@ -381,7 +380,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -409,7 +408,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.enquiryDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -429,7 +428,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               <select
                 id="source"
                 {...register("source")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Source</option>
                 <option value="Online Ad">Online Ad</option>
@@ -457,7 +456,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               <select
                 id="status"
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Choose Status</option>
                 <option value="New">New</option>
@@ -498,7 +497,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.lastFollowUpDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -530,7 +529,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.nextFollowUpDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -550,7 +549,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               <select
                 id="studyType"
                 {...register("studyType")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Choose Type</option>
                 <option value="Online">Online</option>
@@ -579,7 +578,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 id="assignedTo"
                 placeholder="Jerry Okeke Aliyu"
                 {...register("assignedTo")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.assignedTo && (
                 <p className="text-red-500 text-xs mt-1">
@@ -601,7 +600,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 cols={4}
                 placeholder="Add conversation here"
                 {...register("note")}
-                className="w-full h-24 px-3 pt-1 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-24 px-3 pt-1 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.note && (
                 <p className="text-red-500 text-xs mt-1">

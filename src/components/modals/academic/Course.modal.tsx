@@ -94,7 +94,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                   id="name"
                   {...register("name")}
                   placeholder="Title of Course Here"
-                  className="w-full h-12 px-4 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                  className="w-full h-12 px-4 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                 />
                 {errors.name && (
                   <p className="text-red-500 text-xs mt-1">
@@ -114,7 +114,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                 <select
                   id="type"
                   {...register("type")}
-                  className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Type</option>
                   {courseTypes.map((type) => (
@@ -144,7 +144,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                 <select
                   id="duration"
                   {...register("duration", { valueAsNumber: true })}
-                  className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   {durationOptions.map((duration) => (
                     <option key={duration.value} value={duration.value}>

@@ -230,7 +230,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               <select
                 id="course"
                 {...register("courseId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               >
                 <option value="">Select Course</option>
                 {courses?.map((course) => (
@@ -257,7 +257,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               <select
                 id="status"
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 {statuses.map((s) => (
                   <option key={s.value} value={s.value}>
@@ -286,7 +286,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               <select
                 id="duration"
                 {...register("duration")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100  focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100  focus:border-blue-500 focus:outline-none transition-colors"
               >
                 <option value="">Select Duration</option>
                 {durationOptions.map((duration) => (
@@ -316,7 +316,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   type="date"
                   id="startDate"
                   {...register("startDate")}
-                  className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                 />
                 {errors.startDate && (
                   <p className="text-red-500 text-xs mt-1">
@@ -337,7 +337,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   type="date"
                   id="endDate"
                   {...register("endDate")}
-                  className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                 />
                 {errors.endDate && (
                   <p className="text-red-500 text-xs mt-1">
@@ -373,7 +373,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       {...register(`schedules.${index}.day`)}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
+                      className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     >
                       <option value="Monday">Monday</option>
                       <option value="Tuesday">Tuesday</option>
@@ -395,7 +395,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                       {...register(`schedules.${index}.duration`, {
                         valueAsNumber: true,
                       })}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
+                      className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     />
                   </div>
 
@@ -406,7 +406,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       {...register(`schedules.${index}.startTime`)}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
+                      className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     >
                       <option value="">Select Time</option>
                       {scheduleTimes.map((time) => (
@@ -424,7 +424,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     </label>
                     <select
                       {...register(`schedules.${index}.endTime`)}
-                      className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
+                      className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none"
                     >
                       <option value="">Select Time</option>
                       {scheduleTimes.map((time) => (
@@ -450,10 +450,6 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   {errors.schedules.message}
                 </p>
               )}
-              {/* This is a simple display of the entered schedule, matching the image. */}
-              {/* <p className="text-sm text-gray-600 mt-2">
-                {formatSchedule(classSchedule)}
-              </p> */}
 
               <button
                 type="button"
@@ -482,7 +478,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               <select
                 id="facultyId"
                 {...register("facultyId")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               >
                 <option value="">Select Faculty</option>
                 {faculties?.map((faculty) => (
@@ -514,7 +510,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     isMulti
                     name="students"
                     options={options}
-                    className="basic-multi-select"
+                    className="basic-multi-select text-sm text-gray-600"
                     classNamePrefix="select"
                     // onChange={handleChange}
                     value={options.filter((option) =>

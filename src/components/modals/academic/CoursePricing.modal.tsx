@@ -75,7 +75,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
             <select
               id="centerId"
               {...register("centerId", { required: "Center is required" })}
-              className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
             >
               <option value="">Select Center</option>
               {centers.map((center) => (
@@ -109,7 +109,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 id="lumpSumFee"
                 {...register("lumpSumFee", { valueAsNumber: true })}
                 placeholder="e.g., 5000"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.lumpSumFee && (
                 <p className="text-red-500 text-xs mt-1">
@@ -131,7 +131,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 id="baseFee"
                 {...register("baseFee", { valueAsNumber: true })}
                 placeholder="e.g., 1000"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.baseFee && (
                 <p className="text-red-500 text-xs mt-1">
@@ -153,7 +153,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 id="maxInstallments"
                 {...register("maxInstallments", { valueAsNumber: true })}
                 placeholder="e.g., 12"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.maxInstallments && (
                 <p className="text-red-500 text-xs mt-1">
@@ -175,7 +175,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 id="costPerInstallment"
                 {...register("costPerInstallment", { valueAsNumber: true })}
                 placeholder="e.g., 300"
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.costPerInstallment && (
                 <p className="text-red-500 text-xs mt-1">
