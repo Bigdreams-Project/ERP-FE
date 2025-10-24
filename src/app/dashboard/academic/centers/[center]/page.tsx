@@ -5,8 +5,6 @@ export default async function Center({ params }: any) {
   const { center: centerId } = await params;
 
   const center = await getCenter(centerId);
-
-  console.log("data:", centerId, center);
-
+  
   return <CenterDetails center={center} />;
 }

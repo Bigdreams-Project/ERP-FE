@@ -2,29 +2,54 @@
 import StudentModal from "@/components/modals/academic/StudentModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
+import { createStudent, deleteStudent } from "@/lib/network";
 import { formatDate } from "@/lib/utils";
+import { Center } from "@/types/academic/center.interface";
+import { Course } from "@/types/academic/course.interface";
+import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
-import { ChevronDown } from "lucide-react";
+import { CreateStudent } from "@/types/requests/student.interface";
+import { ChevronDown, Link2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
+import Link from "next/link";
+import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   searchQuery: string;
   filteredData: Student[];
+  courses: Course[];
+  centers: Center[];
+  leads: Lead[];
 };
 
-export default function StudentTable({ searchQuery, filteredData }: Props) {
+export default function StudentTable({
+  searchQuery,
+  filteredData,
+  courses,
+  centers,
+  leads,
+}: Props) {
   const router = useRouter();
+  const [data, setData] = useState(filteredData);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null
+  );
   const itemsPerPage = 10;
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
+  const sortedData = [...filteredData].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const paginatedData = sortedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -64,8 +89,14 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
     }
   };
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateStudent) => {
+    try {
+      const response = await createStudent(payload);
+      setData((prev) => [...prev, response]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save student:", error);
+    }
   };
 
   const toggleDropdown = (id: string) => {
@@ -82,6 +113,12 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
     setOpenDropdown(null);
   };
 
+  const handleDelete = (centerId: string) => {
+    setOpenDropdown(null);
+    setSelectedStudentId(centerId);
+    setIsDeleteModalOpen(true);
+  };
+
   const handleEdit = (studentId: string) => {
     const student = students.find((s) => s.id === studentId);
     if (student) {
@@ -91,19 +128,19 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (studentId: string) => {
-    console.log(`Deleting student with ID: ${studentId}`);
-    setOpenDropdown(null);
-  };
-
   const handleCheckboxChange = (id: string) => {
     setSelectedStudents((prev) =>
       prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
     );
   };
 
-  const handleStudentSave = () => {
-    console.log("I was called");
+  const handleDeleteStudent = async (studentId: string) => {
+    try {
+      await deleteStudent(studentId);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete student:", error);
+    }
   };
 
   return (
@@ -114,7 +151,7 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
             <NotFoundComponent text="Student" setIsModalOpen={setIsModalOpen} />
           ) : (
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
-              <thead className="">
+              <thead>
                 <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                   <th className="p-4 flex items-center">
                     <input
@@ -130,15 +167,16 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                     />{" "}
                     #
                   </th>
-                  <th className="p-4">Date Enrolled</th>
                   <th className="p-4">Student ID</th>
                   <th className="p-4">Name</th>
                   <th className="p-4">Email</th>
                   <th className="p-4">Phone</th>
                   <th className="p-4">Address</th>
+                  <th className="p-4">Date Enrolled</th>
                   <th className="p-4">Parent/Guardian Name</th>
                   <th className="p-4">Parent/Guardian Phone Number</th>
                   <th className="p-4">Course Enrolled</th>
+                  <th className="p-4">Center</th>
                   <th className="p-4">Status</th>
                   <th className="p-4">Actions</th>
                 </tr>
@@ -147,10 +185,7 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                 {paginatedData.map((student: Student, index) => (
                   <tr
                     key={student.id}
-                    onClick={() =>
-                      router.push(`/dashboard/academic/students/${student.id}`)
-                    }
-                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
                     <td className="p-4 flex items-center align-middle">
                       <input
@@ -161,16 +196,36 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                       />
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="p-3">{formatDate(student.enrolledDate)}</td>
-                    <td className="p-3">{student.studentId}</td>
+                    <td className="p-3">
+                      <Link
+                        href={`/dashboard/academic/students/${student.id!}`}
+                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                      >
+                        {student.studentId} <Link2Icon size={12} />
+                      </Link>
+                    </td>
                     <td className="p-3 font-bold">{student.fullName}</td>
                     <td className="p-3">{student.email}</td>
                     <td className="p-3">{student.phone}</td>
                     <td className="p-3">{student.address}</td>
-                    <td className="p-3">{student.guardians[0]?.fullname}</td>
-                    <td className="p-3">{student.guardians[0]?.phone}</td>
+                    <td className="p-3">{formatDate(student.enrolledDate)}</td>
                     <td className="p-3">
-                      {student.courses.length > 0 ? student.courses[0]?.name : "Not yet enrolled"}
+                      {student.guardians && student.guardians.length
+                        ? student.guardians[0]?.fullname
+                        : "N/A"}
+                    </td>
+                    <td className="p-3">
+                      {student.guardians && student.guardians.length
+                        ? student.guardians[0]?.phone
+                        : "N/A"}
+                    </td>
+                    <td className="p-3">
+                      {student.courses && student.courses.length > 0
+                        ? student.courses[0]?.name
+                        : "Not yet enrolled"}
+                    </td>
+                    <td className="p-3">
+                      {student.center && student.center?.name}
                     </td>
                     <td className="p-3">
                       <StatusBadge
@@ -189,23 +244,37 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
                       {openDropdown === student.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                           <button
-                            onClick={() => handleView(student.id!)}
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/academic/students/${student.id!}`
+                              )
+                            }
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View
                           </button>
                           <button
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/academic/students/enrollment/${student.id!}`
+                              )
+                            }
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Record Payment
+                          </button>
+                          {/* <button
                             onClick={() => handleEdit(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Edit
-                          </button>
-                          <button
+                          </button> */}
+                          {/* <button
                             onClick={() => handleDelete(student.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                           >
                             Delete
-                          </button>
+                          </button> */}
                         </div>
                       )}
                     </td>
@@ -229,7 +298,18 @@ export default function StudentTable({ searchQuery, filteredData }: Props) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        courses={courses}
+        centers={centers}
+        leads={leads}
         mode="enroll"
+      />
+
+      <DeleteModal
+        title="Student"
+        subtitle="Are you sure you want to delete this student?"
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={handleDeleteStudent}
       />
     </div>
   );

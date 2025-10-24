@@ -34,40 +34,39 @@ export interface Batch {
 }
 
 export interface StudentBatch {
-  batch: {
-    id?: string;
-    code: string;
-    startDate: string;
-    endDate: string;
-    createdAt: string;
-    duration: string;
-    status: string;
-    faculty: Faculty;
-    course: Course;
-    center: Center;
-    schedules: IBatchSchedule[];
-    students: Student[];
-  };
+  id?: string;
+  code: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  duration: string;
+  status: string;
+  faculty: Faculty;
+  course: Course;
+  center: Center;
+  schedules: IBatchSchedule[];
+  students: Student[];
 }
 
 export interface IBatch {
-  id?: string;
-  code: string;
-  course: string;
+  courseId: string;
+  centerId: string;
   startDate: string;
   endDate: string;
-  createdDate: string;
   duration: string;
-  status: string;
-  schedule: IBatchSchedule[];
-  faculty: string;
-  students: IStudent[];
+  status: string | null;
+  schedules: IBatchSchedule[];
+  facultyId: string;
+  students: string[];
 }
 
 export interface IBatchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (batchData: IBatch, isDraft: boolean) => void;
+  onSave: (payload: IBatch, isDraft: boolean) => void;
+  courses: Course[];
+  students: Student[];
+  faculties: Faculty[];
   initialData?: Partial<IBatch>;
   mode: "add" | "edit";
 }
@@ -78,16 +77,3 @@ export interface IBatchSchedule {
   endTime: string;
   duration: number;
 }
-
-// model BatchSchedule {
-//   id        String   @id @default(cuid()) @map("_id")
-//   day       String
-//   startTime DateTime @map("start_time")
-//   endTime   DateTime @map("end_time")
-//   duration  Int
-//   batchId   String?
-//   faculty   Faculty?
-//   batch     Batch?   @relation(fields: [batchId], references: [id])
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }

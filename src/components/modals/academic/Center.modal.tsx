@@ -1,98 +1,69 @@
+import { locations, statuses, types } from "@/data/view/center.data";
 import { ICenter, ICenterModalProps } from "@/types/academic/center.interface";
+import { IBank } from "@/types/finance/bank.interface";
 import { centerSchema } from "@/validations/academic/center.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ChevronDown, UploadCloud, X } from "lucide-react";
+import { ChevronDown, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import React, { useEffect } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-
-const locations = [
-  "Abia",
-  "Adamawa",
-  "Akwa Ibom",
-  "Anambra",
-  "Bauchi",
-  "Bayelsa",
-  "Benue",
-  "Borno",
-  "Cross River",
-  "Delta",
-  "Ebonyi",
-  "Edo",
-  "Ekiti",
-  "Enugu",
-  "Gombe",
-  "Imo",
-  "Jigawa",
-  "Kaduna",
-  "Kano",
-  "Katsina",
-  "Kebbi",
-  "Kogi",
-  "Kwara",
-  "Lagos",
-  "Nasarawa",
-  "Niger",
-  "Ogun",
-  "Ondo",
-  "Osun",
-  "Oyo",
-  "Plateau",
-  "Rivers",
-  "Sokoto",
-  "Taraba",
-  "Yobe",
-  "Zamfara",
-  "FCT",
-];
-
-const statuses = ["Active", "In Setup", "Suspended", "Closed"];
+import { useFieldArray, useForm } from "react-hook-form";
 
 const CenterModal: React.FC<ICenterModalProps> = ({
   isOpen,
   onClose,
   initialData,
   onSave,
+  managers, 
   mode,
 }) => {
+  const defaultBank: IBank = { 
+    bankName: "",
+    accountNumber: "",
+    accountName: "",
+    balance: 0,
+  };
+
+  const defaultCenterValues: ICenter = {
+    name: "",
+    location: "",
+    address: "",
+    managerId: "",
+    phone: "",
+    email: "",
+    status: "",
+    type: "",
+    document: null,
+    banks: [defaultBank],
+  };
+
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isValid },
-    getValues,
   } = useForm<ICenter>({
-    resolver: yupResolver(centerSchema),
+    resolver: yupResolver(centerSchema as any),
     mode: "onTouched",
-    defaultValues: {
-      centerName: "Owerri Center",
-      location: "Imo",
-      centerAddress: "645 East Street, Baltimore, MD 21215",
-      centerManagerName: "Christopher Brown",
-      contactPhone: "+234 815 815-9170",
-      emailAddress: "madison@hotmail.com",
-      status: "Active",
-    },
+    defaultValues: defaultCenterValues,
   });
 
-  // Reset the form
-  useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    } else {
-      reset({
-        centerName: "Owerri Center",
-        location: "Imo",
-        centerAddress: "645 East Street, Baltimore, MD 21215",
-        centerManagerName: "Christopher Brown",
-        contactPhone: "+234 815 815-9170",
-        emailAddress: "madison@hotmail.com",
-        status: "Active",
-      });
-    }
-  }, [initialData, reset]);
+  const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({
+    control,
+    name: "banks",
+  });
 
-  const onSubmit: SubmitHandler<ICenter> = (data) => {
-    onSave(data, false);
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        reset({ ...initialData, banks: initialData.banks && initialData.banks.length > 0 ? initialData.banks : [defaultBank] });
+      } else {
+        reset(defaultCenterValues);
+      }
+    }
+  }, [isOpen, initialData, reset]);
+
+  const onSubmit = (data: ICenter | any) => {
+    onSave(data, true);
     onClose();
   };
 
@@ -100,10 +71,13 @@ const CenterModal: React.FC<ICenterModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
-      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-3xl max-h-[95vh] overflow-hidden flex flex-col">
+        {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div className="flex flex-col">
-            <h2 className="text-xl font-bold text-gray-800">Add Center</h2>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {mode === "add" ? "Add New Center" : "Edit Center"}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -119,24 +93,28 @@ const CenterModal: React.FC<ICenterModalProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-            {/* Center Name */}
+          {/* Basic Information Section */}
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">
+            Basic Information
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pb-6 border-b border-gray-200">
+            {/* Name */}
             <div className="flex flex-col">
               <label
-                htmlFor="centerName"
+                htmlFor="name"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Center Name
+                Name
               </label>
               <input
                 type="text"
-                id="centerName"
-                {...register("centerName")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                id="name"
+                {...register("name")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.centerName && (
+              {errors.name && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.centerName.message}
+                  {errors.name.message}
                 </p>
               )}
             </div>
@@ -152,7 +130,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <select
                 id="location"
                 {...register("location")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Location</option>
                 {locations.map((loc) => (
@@ -161,7 +139,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-[calc(1.75rem+4px)] text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.location && (
@@ -171,65 +149,74 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               )}
             </div>
 
-            {/* Center Address */}
+            {/* Address */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="centerAddress"
+                htmlFor="address"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Center Address
+                Address
               </label>
               <input
                 type="text"
-                id="centerAddress"
-                {...register("centerAddress")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                id="address"
+                {...register("address")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.centerAddress && (
+              {errors.address && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.centerAddress.message}
+                  {errors.address.message}
                 </p>
               )}
             </div>
 
-            {/* Center Manager Name */}
-            <div className="flex flex-col">
+            {/* Manager */}
+            <div className="flex flex-col relative">
               <label
-                htmlFor="centerManagerName"
+                htmlFor="managerId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Center Manager Name
+                Manager
               </label>
-              <input
-                type="text"
-                id="centerManagerName"
-                {...register("centerManagerName")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              />
-              {errors.centerManagerName && (
+              <select
+                id="managerId"
+                {...register("managerId")}
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Manager</option>
+                {managers.map((manager) => (
+                  <option key={manager.id} value={manager.id}>
+                    {manager.fullname}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-[calc(1.75rem+4px)] text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.managerId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.centerManagerName.message}
+                  {errors.managerId.message}
                 </p>
               )}
             </div>
 
-            {/* Contact Phone */}
+            {/* Phone */}
             <div className="flex flex-col">
               <label
-                htmlFor="contactPhone"
+                htmlFor="phone"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Contact Phone
+                Phone
               </label>
               <input
                 type="tel"
-                id="contactPhone"
-                {...register("contactPhone")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                id="phone"
+                {...register("phone")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.contactPhone && (
+              {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.contactPhone.message}
+                  {errors.phone.message}
                 </p>
               )}
             </div>
@@ -245,16 +232,145 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <input
                 type="email"
                 id="emailAddress"
-                {...register("emailAddress")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                {...register("email")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.emailAddress && (
+              {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.emailAddress.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
+          </div>
 
+          {/* Financial Details Section - Multi-Bank Implementation */}
+          <h3 className="text-lg font-semibold text-gray-700 my-3 flex justify-between items-center">
+            Financial Details
+            <button
+              type="button"
+              onClick={() => appendBank(defaultBank)}
+              className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors p-2 rounded-lg bg-blue-50"
+              aria-label="Add a new bank account"
+            >
+              <Plus size={16} /> Add Bank
+            </button>
+          </h3>
+
+          {/* Bank Entries List */}
+          {bankFields.map((field, index) => (
+            <div
+              key={field.id}
+              className="p-4 mb-4 border border-gray-200 rounded-xl bg-gray-50 relative"
+            >
+              {/* Remove Button */}
+              {bankFields.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeBank(index)}
+                  className="absolute top-2 right-2 p-1 text-red-500 hover:text-red-700 transition-colors rounded-full bg-white shadow-sm"
+                  aria-label={`Remove bank account ${index + 1}`}
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+
+              <h4 className="text-sm font-bold text-gray-700 mb-3">
+                Bank Account {index + 1}
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                {/* Bank Name */}
+                <div className="flex flex-col relative">
+                  <label
+                    htmlFor={`banks.${index}.bankName`}
+                    className="text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Bank Name
+                  </label>
+                  <input
+                    id={`banks.${index}.bankName`}
+                    type="text"
+                    {...register(`banks.${index}.bankName`)}
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="e.g., Zenith Bank"
+                  />
+                  {errors.banks?.[index]?.bankName && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.banks[index].bankName.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Account Number */}
+                <div className="flex flex-col">
+                  <label
+                    htmlFor={`banks.${index}.accountNumber`}
+                    className="text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Account Number
+                  </label>
+                  <input
+                    id={`banks.${index}.accountNumber`}
+                    type="text"
+                    {...register(`banks.${index}.accountNumber`)}
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="1234567890"
+                  />
+                  {errors.banks?.[index]?.accountNumber && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.banks[index].accountNumber.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Account Name */}
+                <div className="flex flex-col">
+                  <label
+                    htmlFor={`banks.${index}.accountName`}
+                    className="text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Account Name
+                  </label>
+                  <input
+                    id={`banks.${index}.accountName`}
+                    type="text"
+                    {...register(`banks.${index}.accountName`)}
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="e.g., TecTerminal Enugu"
+                  />
+                  {errors.banks?.[index]?.accountName && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.banks[index].accountName.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Balance */}
+                <div className="flex flex-col">
+                  <label
+                    htmlFor={`banks.${index}.balance`}
+                    className="text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Balance
+                  </label>
+                  <input
+                    id={`banks.${index}.balance`}
+                    type="text"
+                    {...register(`banks.${index}.balance`)}
+                    className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-white border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="e.g., Enugu Main"
+                  />
+                  {errors.banks?.[index]?.balance && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.banks[index].balance.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pt-4 border-t border-gray-200">
             {/* Status */}
             <div className="flex flex-col relative">
               <label
@@ -266,15 +382,16 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               <select
                 id="status"
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
+                <option value="">Select Status</option>
                 {statuses.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+                  <option key={s.value} value={s.value}>
+                    {s.label}
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-[calc(1.75rem+4px)] text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.status && (
@@ -284,8 +401,38 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               )}
             </div>
 
-            {/* Upload Document */}
+            {/* Type */}
             <div className="flex flex-col relative">
+              <label
+                htmlFor="status"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Type
+              </label>
+              <select
+                id="type"
+                {...register("type")}
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Type</option>
+                {types.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-[calc(1.75rem+4px)] text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.type && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.type.message}
+                </p>
+              )}
+            </div>
+
+            {/* Upload Document */}
+            <div className="flex flex-col  sm:col-span-2 relative">
               <label
                 htmlFor="document"
                 className="text-sm font-medium text-gray-700 mb-1"
@@ -314,7 +461,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-auto pt-4 border-t border-gray-200 flex justify-end gap-3">
+          <div className="mt-auto pt-4 border-t border-gray-200 flex justify-end gap-3 sticky bottom-0 bg-white">
             <button
               type="button"
               onClick={onClose}

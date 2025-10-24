@@ -9,7 +9,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useCenter } from "@/context/CenterContext";
+import { createLead } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
+import { Center } from "@/types/academic/center.interface";
+import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
+import { CreateLead } from "@/types/requests/lead.interface";
 import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -17,9 +23,14 @@ import { IoFilter } from "react-icons/io5";
 
 interface LeadContentProps {
   leads: Lead[];
+  centers: Center[];
+  courses: Course[];
 }
 
-const LeadContent = ({ leads }: LeadContentProps) => {
+const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
+  const { selectedCenter } = useCenter();
+
+  const [leadList, setLeadList] = useState<Lead[]>(leads);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -30,6 +41,11 @@ const LeadContent = ({ leads }: LeadContentProps) => {
     startDate: "",
     endDate: "",
   });
+
+  const filteredLeads =
+    selectedCenter === "all"
+      ? leadList
+      : leadList.filter((lead) => lead.centerId === selectedCenter);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -49,8 +65,17 @@ const LeadContent = ({ leads }: LeadContentProps) => {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateLead) => {
+    try {
+      const newLead = await createLead(payload);
+      showSuccess("Lead created successfully");
+      setIsModalOpen(false);
+
+      setLeadList((prev) => [newLead, ...prev]);
+    } catch (error) {
+      showError("Failed to save lead");
+      console.error("Failed to save lead:", error);
+    }
   };
 
   const handleFilterChange = (newFilters: any) => {
@@ -70,7 +95,7 @@ const LeadContent = ({ leads }: LeadContentProps) => {
   return (
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Leads" }]} />
-      <div className="w-full  flex items-center justify-between text-center">
+      <div className="w-full flex items-center justify-between text-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
@@ -123,12 +148,16 @@ const LeadContent = ({ leads }: LeadContentProps) => {
       </div>
 
       <LeadTable
-        leads={leads}
+        leads={filteredLeads}
+        centers={centers}
+        courses={courses}
         searchQuery={searchQuery}
         filterOptions={filterOptions}
       />
       <LeadModal
         isOpen={isModalOpen}
+        centers={centers}
+        courses={courses}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         mode="add"

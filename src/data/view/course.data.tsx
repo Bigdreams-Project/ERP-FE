@@ -25,3 +25,21 @@ export const courseData = {
     { name: "Resource Links Compilation" },
   ],
 };
+
+export const courseTypes = [
+  { label: "Tec Terminal", value: "TEC_TERMINAL" },
+  { label: "ApTech", value: "APTECH" },
+  { label: "CPMS", value: "CPMS" },
+];
+
+export const durationOptions = Array.from({ length: 60 }, (_, i) => ({
+  label: (i + 1).toString(),
+  value: (i + 1).toString(),
+}));
+
+
+export const courseStatusEnum = {
+  Active: "ACTIVE",
+  Inactive: "INACTIVE",
+  Draft: "DRAFT",
+};

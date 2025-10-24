@@ -406,3 +406,59 @@ export const invoices = [
     status: "Paid",
   },
 ];
+
+export const studentPayment = {
+  studentName: "John Doe",
+  studentId: "JD-001-2023",
+  course: "Web Development Fundamentals",
+  batch: "WD-101-B12",
+  enrollmentDate: "January 15, 2023",
+  status: "Active",
+
+  totalFee: "₦1,200.00",
+  amountPaid: "₦700.00",
+  balanceDue: "₦500.00",
+  nextPaymentDue: "March 15, 2024",
+
+  paymentHistory: [
+    {
+      date: "Feb 15, 2024",
+      amount: "$200.00",
+      method: "Bank Transfer",
+      transId: "BTRX-78901",
+    },
+    {
+      date: "Jan 15, 2024",
+      amount: "$500.00",
+      method: "POS",
+      transId: "POS-ABC1234",
+    },
+    {
+      date: "Dec 10, 2023",
+      amount: "$300.00",
+      method: "Cash",
+      transId: "CASH-XYZ567",
+    },
+    {
+      date: "Nov 05, 2023",
+      amount: "$150.00",
+      method: "Bank Transfer",
+      transId: "BTRX-98765",
+    },
+    {
+      date: "Oct 01, 2023",
+      amount: "$100.00",
+      method: "POS",
+      transId: "POS-DEF9876",
+    },
+  ],
+
+  recentlyUploaded: ["receipt_john_doe_feb_2024.pdf", "pos_slip_jan_2024.jpg"],
+
+  systemActions: [
+    "Update payment status from Pending to Paid.",
+    "Add amount to daily inflow in center and bank.",
+    "Notify course manager and student via WhatsApp/SMS.",
+    "Unlock portal access if restricted.",
+  ],
+};

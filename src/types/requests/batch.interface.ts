@@ -1,15 +1,25 @@
+import { IBatchSchedule } from "../academic/batch.interface";
+
 export interface CreateBatch {
-  id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  courseId: string;
+  centerId: string;
+  startDate: string;
+  endDate: string;
+  duration: string;
+  status: string | null;
+  schedules: IBatchSchedule[];
+  facultyId: string;
+  students: string[];
 }
 
 export interface UpdateBatch {
-  id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  courseId: string;
+  centerId: string;
+  startDate: string;
+  endDate: string;
+  duration: string;
+  status: string | null;
+  schedules: IBatchSchedule[];
+  facultyId: string;
+  students: string[];
 }

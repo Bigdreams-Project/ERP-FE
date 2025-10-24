@@ -1,21 +1,10 @@
-import { courseTypes } from "@/data/mock/academic.data";
+import { courseTypes, durationOptions } from "@/data/view/course.data";
 import { ICourse, ICourseModalProps } from "@/types/academic/course.interface";
 import { courseSchema } from "@/validations/academic/course.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  BookOpen,
-  ChevronDown,
-  Clock,
-  DollarSign,
-  MapPin,
-  X,
-} from "lucide-react";
+import { BookOpen, ChevronDown, Clock, X } from "lucide-react";
 import React, { useEffect } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-
-const installmentOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-const durationOptions = [12, 24, 36, 48];
-const centersData = ["Enugu", "Kubwa", "Onitsha", "Owerri", "Umuahia"];
+import { useForm } from "react-hook-form";
 
 const CourseModal: React.FC<ICourseModalProps> = ({
   isOpen,
@@ -38,29 +27,30 @@ const CourseModal: React.FC<ICourseModalProps> = ({
     defaultValues: {
       name: "",
       type: "",
-      duration: 12,
+      duration: 1,
     },
   });
 
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    } else {
-      reset({
-        name: "",
-        type: "",
-        duration: 12,
-      });
+    if (isOpen) {
+      if (initialData) {
+        reset(initialData);
+      } else {
+        reset({
+          name: "",
+          type: "",
+          duration: 1,
+        });
+      }
     }
-  }, [initialData, reset]);
+  }, [isOpen, initialData, reset]);
 
-  const handleSaveDraft = () => {
-    const data = getValues();
+  const handleSaveDraft = (data: ICourse | any) => {
     onSave(data, true);
     onClose();
   };
 
-  const handlePublish: SubmitHandler<ICourse> = (data) => {
+  const handleSave = (data: ICourse | any) => {
     onSave(data, false);
     onClose();
   };
@@ -87,18 +77,16 @@ const CourseModal: React.FC<ICourseModalProps> = ({
         </div>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit(handlePublish)}
-          className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
-        >
+        <form className="mt-2 flex flex-col h-full overflow-y-auto pr-2 custom-scroll">
           <div className="p-4 bg-white rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Enter Course Name
-            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               {/* Course Name */}
               <div className="flex flex-col sm:col-span-2">
-                <label htmlFor="name" className="sr-only">
+                <label
+                  htmlFor="name"
+                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                >
+                  <BookOpen size={14} />
                   Course Name
                 </label>
                 <input
@@ -130,8 +118,8 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                 >
                   <option value="">Select Type</option>
                   {courseTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
+                    <option key={type.value} value={type.value}>
+                      {type.label}
                     </option>
                   ))}
                 </select>
@@ -151,7 +139,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                   htmlFor="duration"
                   className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
                 >
-                  <Clock size={14} /> Duration (Month)
+                  <Clock size={14} /> Duration (Months)
                 </label>
                 <select
                   id="duration"
@@ -159,8 +147,8 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                   className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   {durationOptions.map((duration) => (
-                    <option key={duration} value={duration}>
-                      {duration}
+                    <option key={duration.value} value={duration.value}>
+                      {duration.label}
                     </option>
                   ))}
                 </select>
@@ -185,17 +173,16 @@ const CourseModal: React.FC<ICourseModalProps> = ({
             >
               Cancel
             </button>
-            {/* The Save as Draft button now uses type="button" and its own handler */}
             <button
               type="button"
-              onClick={handleSaveDraft}
+              onClick={() => handleSaveDraft(getValues())}
               className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
             >
               Save as Draft
             </button>
-            {/* The Publish button remains type="submit" and is disabled if the form is invalid */}
             <button
-              type="submit"
+              type="button"
+              onClick={() => handleSave(getValues())}
               className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
                 isValid
                   ? "bg-blue-600 hover:bg-blue-700"

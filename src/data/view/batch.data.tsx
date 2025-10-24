@@ -74,3 +74,38 @@ export const batchData = {
     },
   ],
 };
+
+export const durationOptions = [
+  { label: "12", value: "12" },
+  { label: "24", value: "24" },
+  { label: "36", value: "36" },
+  { label: "48", value: "48" },
+];
+
+export const scheduleTimes = [
+  { label: "08:00 AM", value: "08:00 AM" },
+  { label: "08:30 AM", value: "08:30 AM" },
+  { label: "09:00 AM", value: "09:00 AM" },
+  { label: "09:30 AM", value: "09:30 AM" },
+  { label: "10:00 AM", value: "10:00 AM" },
+  { label: "10:30 AM", value: "10:30 AM" },
+  { label: "11:00 AM", value: "11:00 AM" },
+  { label: "11:30 AM", value: "11:30 AM" },
+  { label: "12:00 PM", value: "12:00 PM" },
+  { label: "12:30 PM", value: "12:30 PM" },
+  { label: "01:00 PM", value: "01:00 PM" },
+  { label: "01:30 PM", value: "01:30 PM" },
+  { label: "02:00 PM", value: "02:00 PM" },
+  { label: "02:30 PM", value: "02:30 PM" },
+  { label: "03:00 PM", value: "03:00 PM" },
+  { label: "03:30 PM", value: "03:30 PM" },
+  { label: "04:00 PM", value: "04:00 PM" },
+  { label: "04:30 PM", value: "04:30 PM" },
+  { label: "05:00 PM", value: "05:00 PM" },
+];
+
+export const statuses = [
+  { label: "Active", value: "ACTIVE" },
+  { label: "Inactive", value: "INACTIVE" },
+  { label: "Draft", value: "DRAFT" },
+];

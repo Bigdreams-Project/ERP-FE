@@ -1,50 +1,63 @@
 "use client";
-import {
-  DownloadIcon,
-  EditIcon,
-  PrintIcon,
-  ShareIcon,
-} from "@/components/ui/icons";
-import { batchData } from "@/data/view/batch.data";
+import { updateBatch } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
-import { Batch, StudentBatch } from "@/types/academic/batch.interface";
+import { Batch } from "@/types/academic/batch.interface";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
+import { MdEdit } from "react-icons/md";
 
 interface BatchDetailsProps {
   batch: Batch;
 }
 
 const BatchDetails = ({ batch }: BatchDetailsProps) => {
+  const queryClient = useQueryClient();
   const [isEditable, setIsEditable] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Batch>(batch);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    // setBatch((prevLead) => ({
-    //   ...prevLead,
-    //   [name]: value,
-    // }));
-  };
+  const { mutate: saveCourse, isPending } = useMutation({
+    mutationFn: async (updatedBatch: Batch | any) => {
+      return await updateBatch(updatedBatch.id!, updatedBatch);
+    },
+    onSuccess: () => {
+      showSuccess("Batch updated successfully");
+      setIsEditing(false);
+      queryClient.invalidateQueries(["batches"]);
+      queryClient.invalidateQueries(["batch", batch.id]);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      showError("Failed to update batch");
+    },
+  });
 
   const handleEditToggle = () => {
-    setIsEditing(!isEditing);
     if (isEditing) {
-      console.log("Saving center data:", batch);
+      console.log("Data:", formData);
+      saveCourse(formData);
+    } else {
+      setIsEditing(true);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // setBatch(batchData);
+    setFormData(batch);
   };
 
-  const toggleEdit = () => {
-    setIsEditable(!isEditable);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
-    <div className="flex bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div className="flex bg-white font-sans text-gray-800 min-h-screen">
       <main className="flex-1 p-8 pb-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -108,25 +121,13 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               </>
             ) : (
               <>
-                <button
+                {/* <button
                   onClick={handleEditToggle}
-                  className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
-                  <EditIcon />
+                  <MdEdit />
                   Edit
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <DownloadIcon />
-                  <span>Download</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <PrintIcon />
-                  <span>Print</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <ShareIcon />
-                  <span>Share</span>
-                </button>
+                </button> */}
               </>
             )}
           </div>
@@ -140,7 +141,7 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 BATCH DETAILS
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
                 {Object.entries({
                   "Batch Id": batch.code,
                   "Course Name": batch.course?.name,
@@ -150,19 +151,31 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                   Schedule: batch?.schedules[0]?.day,
                   Faculty: batch.faculty?.fullname,
                   "Faculty Phone": batch.faculty?.phone || "N/A",
-                  "Max Students": batch.students?.length,
-                  Enrolled: batch.students?.length,
+                  "Max Students": batch.students ? batch.students?.length : "0",
+                  Enrolled: batch.students ? batch.students?.length : "0",
                   // "Next Class": batch.regionalManager?.fullname,
                 }).map(([key, value]) => (
                   <div key={key} className="col-span-1">
                     <p className="text-sm font-medium text-gray-500 mb-1">
                       {key.replace(/([A-Z])/g, " $1").trim()}
                     </p>
-                    {isEditing ? (
+                    {isEditing &&
+                    ![
+                      "createdAt",
+                      "updatedAt",
+                      "startDate",
+                      "endDate",
+                    ].includes(key) ? (
                       <input
                         type="text"
                         defaultValue={value}
                         readOnly={!isEditable}
+                        // name={key}
+                        // value={
+                        //   formData[key as keyof Batch]
+                        //     ? String(formData[key as keyof Batch])
+                        //     : ""
+                        // }
                         className="w-full mt-1 p-1 border rounded-md text-gray-900"
                       />
                     ) : (
@@ -171,7 +184,7 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                           className={`py-0.5 text-md font-semibold rounded-full ${
                             value === "New"
                               ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              : "bg-white text-gray-800"
                           }`}
                         >
                           {value}
@@ -188,7 +201,7 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 RECENT ACTIVITY LOG
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
                 {batch.notes?.length > 0 ? (
                   batch.notes?.map((note, index) => (
                     <div key={index} className="text-sm text-gray-700">
@@ -220,10 +233,10 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 STUDENTS LIST
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-4 grid gap-2">
+              <div className="bg-white rounded-lg px-2 py-4 grid gap-2">
                 <div className="overflow-x-auto custom-scroll-white">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Name
@@ -243,16 +256,16 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                       {batch.students?.map((student, index) => (
                         <tr key={index}>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            {student.student.fullName}
+                            {student?.fullName}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {98}
+                            {0}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {"Paid"}
+                            {student?.payments[0].pending ? "Pending" : "Paid"}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {280000}
+                            ₦{student?.payments[0].paid.toLocaleString()}
                           </td>
                         </tr>
                       ))}
@@ -282,10 +295,10 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                   {batch.students?.map((student, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-300"
+                      className="flex items-center justify-between p-4 bg-white border-b border-gray-300"
                     >
                       <span className="font-medium text-gray-800">
-                        {student.student.fullName}
+                        {student?.fullName}
                       </span>
                       <div className="flex items-center space-x-4">
                         <label className="inline-flex items-center cursor-pointer">

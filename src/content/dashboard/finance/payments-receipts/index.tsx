@@ -6,7 +6,7 @@ const PaymentInvoicesContent = () => {
     <div className="bg-white text-white min-h-screen font-sans flex flex-col">
       <main className="flex-1 p-8 overflow-y-auto">
         <h1 className="text-3xl font-bold text-black mb-8">
-          Payments & Invoices
+          Payments & Receipts
         </h1>
 
         {/* Filter Section */}

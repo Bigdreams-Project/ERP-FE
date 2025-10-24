@@ -23,7 +23,7 @@ export const mockData = {
       direction: "up",
       icon: Users,
       changeText: "from yesterday",
-    },
+    }, 
     {
       title: "New Enrollments",
       value: 32,

@@ -1,9 +1,7 @@
 "use server";
 import { AuthRoutes } from "@/constants/apiRoutes.constant";
-import { AppAuthRoutes } from "@/constants/appRoutes.constant";
 import { ILoginUser } from "@/types/auth/login.interface";
 import axios from "axios";
-import { revalidatePath } from "next/cache";
 import { createSession, deleteSession } from "../session";
 
 export const loginUser = async (credentials: ILoginUser) => {
@@ -44,8 +42,6 @@ export const loginUser = async (credentials: ILoginUser) => {
 export const logoutUser = async () => {
   try {
     await deleteSession();
-    revalidatePath("/");
-    window.location.href = AppAuthRoutes.LOGIN;
   } catch (error: any) {
     console.error("Logout failed:", error.response?.data || error.message);
   }

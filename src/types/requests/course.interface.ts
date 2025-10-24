@@ -1,15 +1,13 @@
 export interface CreateCourse {
   id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  name: string;
+  type: string;
+  duration: number;
 }
-
+ 
 export interface UpdateCourse {
-  id: string;
-  title: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
+  id?: string;
+  name: string;
+  type: string;
+  duration: number;
 }

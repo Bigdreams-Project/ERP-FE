@@ -1,86 +1,145 @@
 import * as yup from "yup";
 
 export const enrollmentSchema = yup.object().shape({
-  studentId: yup
-    .string()
-    .optional()
-    .nullable()
-    .notRequired() as yup.StringSchema<string | null>,
   leadId: yup.string().optional().nullable().notRequired() as yup.StringSchema<
     string | null
   >,
   fullName: yup.string().required("Full name is required"),
-  phone: yup
-    .string()
-    .required("Phone number is required")
-    .matches(
-      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
-      "Phone number must be in the format +234 815 815-9170"
-    ),
   email: yup
     .string()
     .email("Invalid email format")
     .required("Email is required"),
-  address: yup.string().required("Home address is required"),
-  parentGuardianName: yup.string().required("Parent/Guardian name is required"),
-  parentGuardianPhone: yup
+  phone: yup
     .string()
-    .required("Parent/Guardian phone is required")
+    .required("Phone number is required")
     .matches(
-      /^\+\d{1,3} \d{3} \d{3}-\d{4}$/,
-      "Phone number must be in the format +234 815 815-9170"
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
-  parentGuardianEmail: yup
-    .string()
-    .email("Invalid email format")
-    .nullable()
-    .notRequired() as yup.StringSchema<string | null>,
-  courseEnrolled: yup.string().required("Course of interest is required"),
-  dateEnrolled: yup.string().required("Date enrolled is required"),
-  batch: yup
-    .string()
-    .optional()
-    .nullable()
-    .notRequired() as yup.StringSchema<string>,
+  address: yup.string().required("Home address is required"),
   status: yup
     .string()
     .optional()
     .nullable()
     .notRequired() as yup.StringSchema<string>,
-  paymentPlan: yup.string().required(),
-  lumpSum: yup
-    .number()
-    .transform((value) =>
-      isNaN(value) || value === null || value === undefined ? null : value
-    )
-    .when("paymentPlan", {
-      is: "Lump Sum",
-      then: (schema) =>
-        schema
-          .required("Lump sum is required")
-          .min(0, "Lump sum must be a positive number"),
-      otherwise: (schema) => schema.nullable().optional(),
-    })
+  centerId: yup
+    .string()
+    .optional()
     .nullable()
-    .notRequired() as yup.NumberSchema<number | null>,
+    .notRequired() as yup.StringSchema<string>,
+  enrolledDate: yup.string().required("Enrolled date is required"),
+  birthDate: yup.string().required("Birth date enrolled is required"),
+  guardianName: yup.string().required("Guardian name is required"),
+  guardianPhone: yup
+    .string()
+    .required("Guardian phone is required")
+    .matches(
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
+    ),
+  guardianEmail: yup
+    .string()
+    .email("Invalid email format")
+    .nullable()
+    .notRequired() as yup.StringSchema<string | null>,
+  guardianAddress: yup.string().required("Guardian address is required"),
+  courseFee: yup.string().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
+  lumpSumFee: yup.string().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
   numberOfInstallments: yup
-    .number()
-    .transform((value) =>
-      isNaN(value) || value === null || value === undefined ? null : value
-    )
-    .when("paymentPlan", {
-      is: "Installments",
-      then: (schema) =>
-        schema
-          .required("Number of installments is required")
-          .min(1, "Must be at least 1 installment"),
-      otherwise: (schema) => schema.nullable().optional(),
-    })
+    .string()
     .nullable()
-    .notRequired() as yup.NumberSchema<number | null>,
-  comments: yup
+    .notRequired() as yup.StringSchema<string | null>,
+  courseId: yup.string().required("Course of interest is required"),
+  batchId: yup
     .string()
     .optional()
     .nullable()
     .notRequired() as yup.StringSchema<string | null>,
+  paymentPlan: yup.string().required("Payment plan is required"),
+  notes: yup
+    .string()
+    .optional()
+    .nullable()
+    .notRequired() as yup.StringSchema<string>,
+});
+
+export const editStudentSchema = yup.object().shape({
+  fullName: yup.string().required("Full name is required"),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  phone: yup
+    .string()
+    .required("Phone number is required")
+    .matches(
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
+    ),
+  address: yup.string().required("Home address is required"),
+  status: yup
+    .string()
+    .optional()
+    .nullable()
+    .notRequired() as yup.StringSchema<string>,
+  centerId: yup
+    .string()
+    .optional()
+    .nullable()
+    .notRequired() as yup.StringSchema<string>,
+  enrolledDate: yup.string().required("Enrolled date is required"),
+  birthDate: yup.string().required("Birth date enrolled is required"),
+  guardianName: yup.string().required("Guardian name is required"),
+  guardianPhone: yup
+    .string()
+    .required("Guardian phone is required")
+    .matches(
+      /^0\d{10}$/,
+      "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
+    ),
+  guardianEmail: yup
+    .string()
+    .email("Invalid email format")
+    .nullable()
+    .notRequired() as yup.StringSchema<string | null>,
+  guardianAddress: yup.string().required("Guardian address is required"),
+  courseFee: yup.string().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
+  lumpSumFee: yup.string().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
+  numberOfInstallments: yup
+    .string()
+    .nullable()
+    .notRequired() as yup.StringSchema<string | null>,
+  courseId: yup.string().required("Course of interest is required"),
+  batchId: yup
+    .string()
+    .optional()
+    .nullable()
+    .notRequired() as yup.StringSchema<string | null>,
+  paymentPlan: yup.string().required("Payment plan is required"),
+  notes: yup
+    .string()
+    .optional()
+    .nullable()
+    .notRequired() as yup.StringSchema<string>,
+});
+
+export const addStudentPaymentSchema = yup.object().shape({
+  studentId: yup.string().required("Student ID is required"),
+  courseId: yup.string().required("Course selection is required"),
+  amount: yup
+    .number()
+    .typeError("Amount must be a number")
+    .positive("Amount must be greater than zero")
+    .required("Amount is required"),
+  paymentPlan: yup.string().required("Payment plan is required"),
+  paymentType: yup.string().required("Payment type is required"),
+  paymentMethod: yup.string().required("Payment method is required"),
 });

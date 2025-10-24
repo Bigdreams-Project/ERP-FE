@@ -3,9 +3,14 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import BatchTable from "@/components/academic/tables/Batches.table";
 import BatchModal from "@/components/modals/academic/Batch.modal";
-import { batches, batchStatus } from "@/data/mock/academic.data";
-import { Batch, IBatch } from "@/types/academic/batch.interface";
+import { batchStatus } from "@/data/mock/academic.data";
+import { createBatch } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
+import { Batch, Faculty } from "@/types/academic/batch.interface";
+import { Course } from "@/types/academic/course.interface";
+import { Student } from "@/types/academic/student.interface";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -16,6 +21,9 @@ import { IoFilter } from "react-icons/io5";
 
 interface BatchesContentProps {
   batches: Batch[];
+  courses: Course[];
+  students: Student[];
+  faculties: Faculty[];
 }
 
 const filterItems = [
@@ -39,7 +47,13 @@ const filterItems = [
   },
 ];
 
-const BatchesContent = ({ batches }: BatchesContentProps) => {
+const BatchesContent = ({
+  batches,
+  courses,
+  students,
+  faculties,
+}: BatchesContentProps) => {
+  const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,8 +112,16 @@ const BatchesContent = ({ batches }: BatchesContentProps) => {
     setEndDate(endDate);
   };
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: any) => {
+    try {
+      await createBatch(payload);
+      showSuccess("Batch created successfully!");
+      setIsModalOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to save batch:", error);
+      showError("Failed to create batch. Please try again.");
+    }
   };
 
   const handleFilterChange = (filterCategory: string, value: string) => {
@@ -132,7 +154,6 @@ const BatchesContent = ({ batches }: BatchesContentProps) => {
       appliedFilters.status.length === 0 ||
       appliedFilters.status.includes(batch.status);
 
-    // 👇 Date filtering
     const matchesDateRange =
       !startDate ||
       !endDate ||
@@ -150,7 +171,7 @@ const BatchesContent = ({ batches }: BatchesContentProps) => {
     <div className="w-full overflow-hidden">
       <BreadCrumb paths={[{ name: "Batches" }]} />
 
-      <div className="w-full  flex items-center">
+      <div className="w-full flex items-center">
         <div className="flex items-center mt-4">
           <AcademicTabs />
         </div>
@@ -174,7 +195,6 @@ const BatchesContent = ({ batches }: BatchesContentProps) => {
               >
                 {dateFilterName && (
                   <div className="p-1">
-                    {/* Date range */}
                     <div className="mb-2 px-2">
                       <input
                         type="text"
@@ -184,7 +204,6 @@ const BatchesContent = ({ batches }: BatchesContentProps) => {
                       />
                     </div>
 
-                    {/* Date Picker */}
                     <div className="bg-white">
                       <DateRangePicker
                         ranges={range}
@@ -221,7 +240,7 @@ const BatchesContent = ({ batches }: BatchesContentProps) => {
                     <div className="flex flex-col gap-1 pl-4">
                       <p className="font-semibold text-gray-800">Status</p>
                       <ul className="flex flex-col gap-1">
-                        {batchStatus.map((status) => (
+                        {batchStatus?.map((status) => (
                           <li
                             key={status}
                             className="flex items-center gap-2 text-sm text-gray-700"
@@ -291,11 +310,20 @@ const BatchesContent = ({ batches }: BatchesContentProps) => {
         </div>
       </div>
 
-      <BatchTable searchQuery={searchQuery} filteredData={filteredData} />
+      <BatchTable
+        searchQuery={searchQuery}
+        filteredData={filteredData}
+        courses={courses}
+        students={students}
+        faculties={faculties}
+      />
       <BatchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        courses={courses}
+        students={students}
+        faculties={faculties}
         mode="add"
       />
     </div>

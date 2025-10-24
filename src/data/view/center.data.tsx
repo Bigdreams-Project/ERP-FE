@@ -34,3 +34,62 @@ export const centerData = {
     },
   ],
 };
+
+export const locations = [
+  "Abia",
+  "Adamawa",
+  "Akwa Ibom",
+  "Anambra",
+  "Bauchi",
+  "Bayelsa",
+  "Benue",
+  "Borno",
+  "Cross River",
+  "Delta",
+  "Ebonyi",
+  "Edo",
+  "Ekiti",
+  "Enugu",
+  "Gombe",
+  "Imo",
+  "Jigawa",
+  "Kaduna",
+  "Kano",
+  "Katsina",
+  "Kebbi",
+  "Kogi",
+  "Kwara",
+  "Lagos",
+  "Nasarawa",
+  "Niger",
+  "Ogun",
+  "Ondo",
+  "Osun",
+  "Oyo",
+  "Plateau",
+  "Rivers",
+  "Sokoto",
+  "Taraba",
+  "Yobe",
+  "Zamfara",
+  "FCT",
+];
+
+export const statuses = [
+  { label: "Active", value: "ACTIVE" },
+  { label: "In Setup", value: "IN_SETUP" },
+  { label: "Suspended", value: "SUSPENDED" },
+  { label: "Closed", value: "CLOSED" },
+];
+
+export const types = [
+  { label: "Owned", value: "OWNED" },
+  { label: "Partnered", value: "PARTNERED" },
+];
+
+export const centerStatusEnum = {
+  Active: "ACTIVE",
+  InSetup: "IN_SETUP",
+  Suspended: "SUSPENDED",
+  Closed: "CLOSED",
+};

@@ -1,4 +1,5 @@
 "use client";
+import { locations } from "@/data/view/center.data";
 import { ILead, ILeadModalProps } from "@/types/academic/lead.interface";
 import { leadSchema } from "@/validations/academic/lead.validations";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -14,49 +15,31 @@ import {
   MapPin,
   Notebook,
   Phone,
+  School,
   User,
   X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-const coursesData = [
-  {
-    name: "ADSE",
-    fee: 3000000,
-    baseFee: 500000,
-  },
-  {
-    name: "Frontend",
-    fee: 300000,
-    baseFee: 100000,
-  },
-  {
-    name: "Cyber Security",
-    fee: 1000000,
-    baseFee: 300000,
-  },
-  {
-    name: "Web Dev",
-    fee: 450000,
-    baseFee: 200000,
-  },
-];
+import { useForm } from "react-hook-form";
+import { GiTeacher } from "react-icons/gi";
 
 const LeadModal: React.FC<ILeadModalProps> = ({
   isOpen,
   onClose,
+  centers,
+  courses,
   initialData,
   onSave,
   mode,
 }) => {
-  const [startDate, setStartDate] = useState(new Date());
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [enquiryDate, setEnquiryDate] = useState<Date | null>(null);
+  const [nextFollowUpDate, setNextFollowUpDate] = useState<Date | null>(null);
+  const [lastFollowUpDate, setLastFollowUpDate] = useState<Date | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<{
     name: string;
-    fee: number;
-    baseFee: number;
   } | null>(null);
 
   const {
@@ -70,26 +53,26 @@ const LeadModal: React.FC<ILeadModalProps> = ({
     resolver: yupResolver(leadSchema),
     mode: "onTouched",
     defaultValues: {
-      fullname: "",
+      fullName: "",
       email: "",
       phone: "",
       address: "",
-      parentName: "",
-      parentPhone: "",
-      parentEmail: "",
-      course: "",
+      guardianName: "",
+      guardianPhone: "",
+      guardianEmail: "",
+      courseId: "",
       enquiryDate: "",
       source: "",
       status: "",
-      nextFollowup: "",
+      lastFollowUpDate: "",
       studyType: "",
     },
   });
 
-  const selectedCourseName = watch("course");
+  const selectedCourseName = watch("courseId");
 
   useEffect(() => {
-    const found = coursesData.find((c) => c.name === selectedCourseName);
+    const found = courses.find((c) => c.name === selectedCourseName);
     if (found) {
       setSelectedCourse(found);
     } else {
@@ -97,24 +80,46 @@ const LeadModal: React.FC<ILeadModalProps> = ({
     }
   }, [selectedCourseName]);
 
-  // Reset the form
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        reset({
+          ...initialData,
+          centerId: initialData.centerId ?? "",
+          courseId: initialData.courseId ?? "",
+          enquiryDate: initialData.enquiryDate ?? "",
+          source: initialData.source ?? "",
+          status: initialData.status ?? "",
+          assignedTo: initialData.assignedTo ?? "",
+          lastFollowUpDate: initialData.lastFollowUpDate ?? "",
+          nextFollowUpDate: initialData.nextFollowUpDate ?? "",
+          studyType: initialData.studyType ?? "",
+        });
+      }
+    }
+  }, [isOpen, initialData, reset]);
+
   useEffect(() => {
     if (initialData) {
       reset({
         ...initialData,
-        course: initialData.course?.name ?? "",
+        centerId: initialData.centerId ?? "",
+        courseId: initialData.courseId ?? "",
         enquiryDate: initialData.enquiryDate ?? "",
         source: initialData.source ?? "",
         status: initialData.status ?? "",
-        nextFollowup: initialData.nextFollowup ?? "",
+        assignedTo: initialData.assignedTo ?? "",
+        lastFollowUpDate: initialData.lastFollowUpDate ?? "",
+        nextFollowUpDate: initialData.nextFollowUpDate ?? "",
         studyType: initialData.studyType ?? "",
       });
     }
   }, [initialData, reset]);
 
-  const onSubmit = (data: ILead) => {
+  const onSubmit = (data: ILead | any) => {
     onSave(data);
-    onClose();
+    console.log('Data:', data);
+    // onClose();
   };
 
   if (!isOpen) return null;
@@ -146,7 +151,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
             {/* Full Name */}
             <div className="flex flex-col">
               <label
-                htmlFor="fullname"
+                htmlFor="fullName"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
                 <User size={14} /> Full Name
@@ -155,12 +160,12 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 type="text"
                 id="fullname"
                 placeholder="Aisha Bukola Nneka"
-                {...register("fullname")}
+                {...register("fullName")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.fullname && (
+              {errors.fullName && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.fullname.message}
+                  {errors.fullName.message}
                 </p>
               )}
             </div>
@@ -231,68 +236,98 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               )}
             </div>
 
-            {/* Parent/Guardian Name */}
+            {/* Guardian Name */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentName"
+                htmlFor="guardianName"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <User size={14} /> Parent/Guardian Name
+                <User size={14} /> Guardian Name
               </label>
               <input
                 type="text"
-                id="parentName"
+                id="guardianName"
                 placeholder="John Doe Emeka"
-                {...register("parentName")}
+                {...register("guardianName")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentName && (
+              {errors.guardianName && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentName.message}
+                  {errors.guardianName.message}
                 </p>
               )}
             </div>
 
-            {/* Parent Phone */}
+            {/* Guardian Phone */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentPhone"
+                htmlFor="guardianPhone"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <Phone size={14} /> Parent/Guardian Phone
+                <Phone size={14} /> Guardian Phone
               </label>
               <input
                 type="tel"
-                id="parentPhone"
+                id="guardianPhone"
                 placeholder="(234) 905-256-8454"
-                {...register("parentPhone")}
+                {...register("guardianPhone")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentPhone && (
+              {errors.guardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentPhone.message}
+                  {errors.guardianPhone.message}
                 </p>
               )}
             </div>
 
-            {/* Parent Email */}
+            {/* Guardian Email */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="parentEmail"
+                htmlFor="guardianEmail"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <Mail size={14} /> Parent/Guardian Email (Optional)
+                <Mail size={14} /> Guardian Email (Optional)
               </label>
               <input
                 type="email"
-                id="parentEmail"
+                id="guardianEmail"
                 placeholder="john@example.com"
-                {...register("parentEmail")}
+                {...register("guardianEmail")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentEmail && (
+              {errors.guardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentEmail.message}
+                  {errors.guardianEmail.message}
+                </p>
+              )}
+            </div>
+
+            {/* Center */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="centerId"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                <School size={14} /> Center
+              </label>
+              <select
+                id="centerId"
+                {...register("centerId")}
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Center</option>
+                {centers.map((center) => (
+                  <option key={center.name} value={center.id}>
+                    {center.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.centerId && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.centerId.message}
                 </p>
               )}
             </div>
@@ -306,13 +341,13 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 <BookOpen size={14} /> Course of Interest
               </label>
               <select
-                id="course"
-                {...register("course")}
+                id="courseId"
+                {...register("courseId")}
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
-                {coursesData.map((course) => (
-                  <option key={course.name} value={course.name}>
+                {courses.map((course) => (
+                  <option key={course.name} value={course.id}>
                     {course.name}
                   </option>
                 ))}
@@ -320,9 +355,37 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.course && (
+              {errors.courseId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.course.message}
+                  {errors.courseId.message}
+                </p>
+              )}
+            </div>
+
+            {/* Birth Date */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="birthDate"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                <Calendar size={14} /> Birth Date
+              </label>
+              <DatePicker
+                selected={birthDate}
+                onChange={(date) => {
+                  if (date) {
+                    setBirthDate(date);
+                    setValue("birthDate", date.toISOString().split("T")[0], {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                dateFormat="yyyy-MM-dd"
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.birthDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.birthDate.message}
                 </p>
               )}
             </div>
@@ -336,10 +399,10 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 <Calendar size={14} /> Enquiry Date
               </label>
               <DatePicker
-                selected={startDate}
+                selected={enquiryDate}
                 onChange={(date) => {
                   if (date) {
-                    setStartDate(date);
+                    setEnquiryDate(date);
                     setValue("enquiryDate", date.toISOString().split("T")[0], {
                       shouldValidate: true,
                     });
@@ -412,30 +475,66 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               )}
             </div>
 
-            {/* Next Follow-up */}
+            {/* Last Follow-up */}
             <div className="flex flex-col">
               <label
-                htmlFor="nextFollowup"
+                htmlFor="lastFollowUpDate"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <Clock size={14} /> Next Follow-up
+                <Clock size={14} /> Last Follow-up
               </label>
               <DatePicker
-                selected={startDate}
+                selected={lastFollowUpDate}
                 onChange={(date) => {
                   if (date) {
-                    setStartDate(date);
-                    setValue("nextFollowup", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
+                    setLastFollowUpDate(date);
+                    setValue(
+                      "lastFollowUpDate",
+                      date.toISOString().split("T")[0],
+                      {
+                        shouldValidate: true,
+                      }
+                    );
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
                 className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.nextFollowup && (
+              {errors.lastFollowUpDate && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.nextFollowup.message}
+                  {errors.lastFollowUpDate.message}
+                </p>
+              )}
+            </div>
+
+            {/* Next Follow-up */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="nextFollowUpDate"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                <Clock size={14} /> Next Follow-up
+              </label>
+              <DatePicker
+                selected={nextFollowUpDate}
+                onChange={(date) => {
+                  if (date) {
+                    setNextFollowUpDate(date);
+                    setValue(
+                      "nextFollowUpDate",
+                      date.toISOString().split("T")[0],
+                      {
+                        shouldValidate: true,
+                      }
+                    );
+                  }
+                }}
+                dateFormat="yyyy-MM-dd"
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.nextFollowUpDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.nextFollowUpDate.message}
                 </p>
               )}
             </div>
@@ -463,6 +562,28 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               {errors.studyType && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.studyType.message}
+                </p>
+              )}
+            </div>
+
+            {/* Assigned To */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="assignedTo"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                <GiTeacher size={14} /> Assigned To
+              </label>
+              <input
+                type="text"
+                id="assignedTo"
+                placeholder="Jerry Okeke Aliyu"
+                {...register("assignedTo")}
+                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.assignedTo && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.assignedTo.message}
                 </p>
               )}
             </div>

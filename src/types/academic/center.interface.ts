@@ -1,5 +1,11 @@
+import { IBank } from "../finance/bank.interface";
+import { CreateCenter } from "../requests/center.interface";
 import { Lead } from "./lead.interface";
 import { Student } from "./student.interface";
+
+export type CenterStatus = "ACTIVE" | "IN_SETUP" | "SUSPENDED" | "CLOSED";
+
+export type CenterType = "OWNED" | "PARTNERED";
 
 export interface Certificate {
   name: string;
@@ -17,6 +23,7 @@ export interface CenterNote {
 }
 
 export interface Manager {
+  id?: string;
   fullname: string;
   email: string;
   image: string;
@@ -33,7 +40,8 @@ export interface Center {
   phone: string;
   address: string;
   status: string;
-  managers: Manager[];
+  type: string;
+  manager: Manager;
   faculties: Manager[];
   academicHead: Manager;
   students: Student[];
@@ -45,20 +53,67 @@ export interface Center {
 }
 
 export interface ICenter {
-  centerName: string;
+  name: string;
   location: string;
-  centerAddress: string;
-  centerManagerName: string;
-  contactPhone: string;
-  emailAddress: string;
-  status: string;
-  document: FileList | null;
+  address: string;
+  phone: string;
+  email: string;
+  managerId: string;
+  status: CenterStatus | "";
+  type: CenterType | "";
+  document?: FileList | null;
+  banks: IBank[];
 }
 
 export interface ICenterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (centerData: ICenter, isDraft: boolean) => void;
+  onSave: (payload: CreateCenter, isDraft: boolean) => void;
   initialData?: Partial<ICenter>;
+  managers: Manager[];
   mode: "add" | "edit";
+}
+
+export interface CourseFeeAssignment {
+  id: string;
+  centerId: string;
+  lumpSumFee: number;
+  baseFee: number;
+  maxInstallments: number;
+  costPerInstallment: number;
+  center: Center
+}
+
+export interface ICourseFeeAssignment {
+  centerId: string;
+  lumpSumFee: number;
+  baseFee: number;
+  maxInstallments: number;
+  costPerInstallment: number;
+}
+
+export interface IEditCourseFeeAssignment {
+  id: string;
+  centerId: string;
+  lumpSumFee: number;
+  baseFee: number;
+  maxInstallments: number;
+  costPerInstallment: number;
+}
+
+export interface ICoursePricingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  centers: Center[];
+  onSave: (data: ICourseFeeAssignment) => void;
+  isSaving: boolean;
+}
+
+export interface IEditCoursePricingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  centers: Center[];
+  onSave: (data: IEditCourseFeeAssignment) => void;
+  isSaving: boolean;
+  initialData?: Partial<CourseFeeAssignment>;
 }

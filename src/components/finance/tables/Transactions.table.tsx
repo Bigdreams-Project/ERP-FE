@@ -1,10 +1,11 @@
 "use client";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { Bank } from "@/types/finance/bank.interface";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Props = {
-  transactions: any[];
+  banks: Bank[];
   searchQuery: string;
   filterOptions:
     | {
@@ -14,13 +15,13 @@ type Props = {
     | any;
 };
 
-export default function TransactionsTable({
-  transactions,
+export default function BanksTable({
+  banks,
   searchQuery,
   filterOptions,
 }: Props) {
   const router = useRouter();
-  const [data, setData] = useState(transactions);
+  const [data, setData] = useState(banks);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,7 +32,10 @@ export default function TransactionsTable({
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
-            <NotFoundComponent text="Transactions" setIsModalOpen={setIsModalOpen} />
+            <NotFoundComponent
+              text="Transactions"
+              setIsModalOpen={setIsModalOpen}
+            />
           ) : (
             <table className="min-w-max divide-y divide-gray-200">
               <thead className="bg-white">
@@ -60,46 +64,45 @@ export default function TransactionsTable({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.map((transaction, index) => (
+                {banks.map((bank, index) => (
                   <tr
                     key={index}
-                    onClick={() =>
-                      router.push(
-                        `/dashboard/finance/banking/transactions/${transaction.id}`
-                      )
-                    }
-                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                      {transaction.name}
+                      {bank.bankName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.center}
+                      {bank.center?.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.bank}
+                      {bank.accountName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.account}
+                      {bank.accountNumber}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                      {transaction.balance}
+                      {bank.balance}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          transaction.status === "Active"
+                          bank.status === "Active"
                             ? "bg-green-100 text-green-800"
-                            : transaction.status === "Pending"
+                            : bank.status === "Pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {transaction.status}
+                        {bank.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:underline">
-                      <a href="#">View Ledger</a>
+                      <a
+                        href={`/dashboard/finance/banking/banks/${bank.id}`}
+                      >
+                        View Ledger
+                      </a>
                     </td>
                   </tr>
                 ))}

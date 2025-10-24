@@ -2,9 +2,14 @@
 import Pagination from "@/components/academic/common/Pagination";
 import TransactionsTable from "@/components/finance/tables/Transactions.table";
 import { transactions } from "@/data/mock/finance.data";
+import { Bank } from "@/types/finance/bank.interface";
 import { useState } from "react";
 
-const TransactionsContent = () => {
+interface BankContentProps {
+  banks: Bank[];
+}
+
+const BanksContent = ({ banks }: BankContentProps) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 10;
   const totalPages = 10;
@@ -53,31 +58,31 @@ const TransactionsContent = () => {
         {/* Transactions */}
         <div className="bg-white p-6 rounded-2xl shadow-lg shadow-gray-400 custom-scroll overflow-x-auto">
           <TransactionsTable
-            transactions={transactions}
+            banks={banks}
             searchQuery=""
             filterOptions={{}}
           />
 
           <div className="flex justify-end gap-4 mt-6">
-            <button className="px-6 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition-colors shadow-sm">
+            {/* <button className="px-6 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition-colors shadow-sm">
               Add Bank Account
-            </button>
+            </button> */}
             <button className="px-6 py-1.5 border border-gray-300 text-black rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-sm">
               Export List
             </button>
           </div>
         </div>
 
-        <div className="flex justify-between sticky bottom-0 bg-white mt-6">
+        {/* <div className="flex justify-between sticky bottom-0 bg-white mt-6">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
-        </div>
+        </div> */}
       </main>
     </div>
   );
 };
 
-export default TransactionsContent;
+export default BanksContent;

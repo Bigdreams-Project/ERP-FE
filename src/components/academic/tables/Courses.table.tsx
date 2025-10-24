@@ -1,12 +1,16 @@
 "use client";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import { createCourse, deleteCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
-import { ChevronDown } from "lucide-react";
+import { CreateCourse } from "@/types/requests/course.interface";
+import { ChevronDown, Link2Icon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
+import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   searchQuery: string;
@@ -15,40 +19,54 @@ type Props = {
 
 export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const router = useRouter();
+  const [data, setData] = useState(filteredData);
   const [selectedCourses, setSelectedCourses] = useState<any>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mode, setMode] = useState<"add" | "edit">("add");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null
+  );
   const itemsPerPage = 10;
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const sortedData = [...filteredData].sort(
+    (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+  );
 
-  const paginatedData = filteredData.slice(
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const paginatedData = sortedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
   const toggleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
 
-  const handleEnroll = (centerId: string) => {
+  const handleEnroll = (courseId: string) => {
     setOpenDropdown(null);
   };
 
-  const handleView = (centerId: string) => {
+  const handleView = (courseId: string) => {
     setOpenDropdown(null);
   };
 
-  const handleEmail = (centerId: string) => {
+  const handleEdit = (courseId: string) => {
     setOpenDropdown(null);
+    setMode("edit");
+    setIsModalOpen(true);
   };
 
-  const handleDelete = (centerId: string) => {
+  const handleDelete = (courseId: string) => {
     setOpenDropdown(null);
+    setSelectedStudentId(courseId);
+    setIsDeleteModalOpen(true);
   };
 
   const handleCheckboxChange = (id: string) => {
@@ -89,8 +107,25 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     );
   };
 
-  const handleSave = () => {
-    console.log("...");
+  const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
+    try {
+      const response = await createCourse(payload, isDraft);
+      console.log("Course created successfully:", response);
+
+      setData((prev) => [...prev, response]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save course:", error);
+    }
+  };
+
+  const handleDeleteCourse = async (courseId: string) => {
+    try {
+      await deleteCourse(courseId);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete course:", error);
+    }
   };
 
   return (
@@ -100,9 +135,9 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
           {filteredData.length === 0 ? (
             <NotFoundComponent text="Courses" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
+            <table className="min-w-full relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
-                <tr className=" w-full font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
                   <th className="p-4 flex items-center">
                     <input
                       type="checkbox"
@@ -125,17 +160,14 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                   <th className="p-4">Leads</th>
                   <th className="p-4">Course Type</th>
                   <th className="p-4">Status</th>
-                  <th className="p-4"></th>
+                  <th className="p-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-[13px]">
                 {paginatedData.map((course, index) => (
                   <tr
                     key={course.id}
-                    onClick={() =>
-                      router.push(`/dashboard/academic/courses/${course.id}`)
-                    }
-                    className="hover:shadow-md hover:shadow-gray-400 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
                     <td className="p-4 flex items-center">
                       <input
@@ -147,15 +179,23 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-4">
-                      {highlightMatch(course.code, searchQuery)}
+                      <Link
+                        href={`/dashboard/academic/courses/${course.id!}`}
+                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                      >
+                        {highlightMatch(course.code, searchQuery)}
+                        <Link2Icon size={12} />
+                      </Link>
                     </td>
                     <td className="p-4 font-bold ">
                       {highlightMatch(course.name, searchQuery)}
                     </td>
                     <td className="p-4">{course.duration}</td>
                     <td className="p-4">{course.baseFee}</td>
-                    <td className="p-4">{course.students?.length}</td>
-                    <td className="p-4">{course.leads?.length}</td>
+                    <td className="p-4">
+                      {course.students ? course.students?.length : ""}
+                    </td>
+                    <td className="p-4">{course.leads ? course.leads?.length : ""}</td>
                     <td className="p-4">{course.type}</td>
                     <td className="p-3">
                       <StatusBadge step={course.status} label={course.status} />
@@ -170,29 +210,27 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                       </button>
                       {openDropdown === course.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                          <button
+                          {/* <button
                             onClick={() => handleEnroll(course.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-green-500 hover:bg-gray-100"
                           >
-                            Activate
-                          </button>
+                            Enroll
+                          </button> */}
                           <button
-                            onClick={() => handleView(course.id!)}
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/academic/courses/${course.id!}`
+                              )
+                            }
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => handleEmail(course.id!)}
+                            onClick={() => handleEdit(course.id!)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Edit
-                          </button>
-                          <button
-                            onClick={() => handleEmail(course.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Explore
                           </button>
                           <button
                             onClick={() => handleDelete(course.id!)}
@@ -222,7 +260,15 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
-          mode="add"
+          mode={mode}
+        />
+
+        <DeleteModal
+          title="Course"
+          subtitle="Are you sure you want to delete this course?"
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onDelete={handleDeleteCourse}
         />
       </div>
     </div>

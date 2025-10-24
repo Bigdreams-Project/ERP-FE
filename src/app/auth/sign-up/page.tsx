@@ -95,19 +95,35 @@ export default function Signup() {
               className="flex flex-col gap-5"
               onSubmit={handleSubmit(onSubmit)}
             >
-              {/* Full Name */}
+              {/* First Name */}
               <div className="flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl">
                 <CiUser className="text-[rgba(0,0,0,0.5)]" size={20} />
                 <input
                   type="text"
-                  placeholder="Enter your full name"
+                  placeholder="Enter your first name"
                   className="w-full bg-transparent outline-none text-[16px]"
-                  {...register("fullName")}
+                  {...register("firstname")}
                 />
               </div>
-              {errors.fullName && (
+              {errors.firstname && (
                 <p className="text-red-500 text-xs font-semibold -mt-3">
-                  {errors.fullName.message}
+                  {errors.firstname.message}
+                </p>
+              )}
+
+              {/* Last Name */}
+              <div className="flex items-center gap-2 bg-[#eef2ff] p-3 rounded-2xl">
+                <CiUser className="text-[rgba(0,0,0,0.5)]" size={20} />
+                <input
+                  type="text"
+                  placeholder="Enter your last name"
+                  className="w-full bg-transparent outline-none text-[16px]"
+                  {...register("lastname")}
+                />
+              </div>
+              {errors.lastname && (
+                <p className="text-red-500 text-xs font-semibold -mt-3">
+                  {errors.lastname.message}
                 </p>
               )}
 
@@ -295,7 +311,10 @@ export default function Signup() {
             <div className="mt-[2rem]">
               <p className="text-[15px] text-center">
                 Already have an account?{" "}
-                <a href="/login" className="text-[#636ae8] font-semibold">
+                <a
+                  href={AppAuthRoutes.LOGIN}
+                  className="text-[#636ae8] font-semibold"
+                >
                   Login
                 </a>
               </p>

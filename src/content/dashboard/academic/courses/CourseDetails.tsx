@@ -1,52 +1,135 @@
 "use client";
-import {
-  DownloadIcon,
-  EditIcon,
-  PrintIcon,
-  ShareIcon,
-} from "@/components/ui/icons";
-import { courseData } from "@/data/view/course.data";
+import CoursePricingModal from "@/components/modals/academic/CoursePricing.modal";
+import EditCoursePricing from "@/components/modals/academic/EditCoursePricing.modal";
+import { assignCenterFee, updateCenterFee, updateCourse } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
+import {
+  Center,
+  CourseFeeAssignment,
+  ICourseFeeAssignment,
+  IEditCourseFeeAssignment,
+} from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
+import { MdAdd, MdEdit } from "react-icons/md";
 
 interface CourseDetailsProps {
   course: Course;
+  centers: Center[];
 }
 
-const CourseDetails = ({ course }: CourseDetailsProps) => {
-  const [isEditable, setIsEditable] = useState(false);
+const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
+  const queryClient = useQueryClient();
+  const [selectedCourseAssignment, setSelectedCourseAssignment] =
+    useState<CourseFeeAssignment>();
   const [isEditing, setIsEditing] = useState(false);
+  const [isCenterModalOpen, setIsCenterModalOpen] = useState(false);
+  const [isEditCenterModalOpen, setEditCenterModalOpen] = useState(false);
+  const [formData, setFormData] = useState<Course>(course);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    // setCourse((prevLead) => ({
-    //   ...prevLead,
-    //   [name]: value,
-    // }));
-  };
+  const { mutate: saveCourse, isPending } = useMutation({
+    mutationFn: async (updatedCourse: Course) => {
+      return await updateCourse(updatedCourse.id!, updatedCourse);
+    },
+    onSuccess: () => {
+      showSuccess("Course updated successfully");
+      setIsEditing(false);
+      queryClient.invalidateQueries(["courses"]);
+      queryClient.invalidateQueries(["course", course.id]);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      showError("Failed to update course");
+    },
+  });
+
+  const { mutate: addCenterFee, isPending: isSavingCourseFee } = useMutation({
+    mutationFn: async (assignmentData: ICourseFeeAssignment) => {
+      return await assignCenterFee(course.id!, assignmentData);
+    },
+    onSuccess: () => {
+      showSuccess("Center and Fee Structure assigned successfully!");
+      queryClient.invalidateQueries(["courses"]);
+      queryClient.invalidateQueries(["course", course.id]);
+      setIsCenterModalOpen(false);
+    },
+    onError: (error: any) => {
+      console.error(error);
+      showError("Failed to assign center and fee structure.");
+    },
+  });
+
+  const { mutate: updateCourseFee, isPending: isEditingCourseFee } =
+    useMutation({
+      mutationFn: async (assignmentData: IEditCourseFeeAssignment) => {
+        return await updateCenterFee(assignmentData.id, assignmentData);
+      },
+      onSuccess: () => {
+        showSuccess("Center and Fee Structure updated successfully!");
+        queryClient.invalidateQueries(["courses"]);
+        queryClient.invalidateQueries(["course", course.id]);
+        setEditCenterModalOpen(false);
+      },
+      onError: (error: any) => {
+        console.error(error);
+        showError("Failed to update center and fee structure.");
+      },
+    });
 
   const handleEditToggle = () => {
-    setIsEditing(!isEditing);
     if (isEditing) {
-      console.log("Saving center data:", course);
+      console.log("Data:", formData);
+      saveCourse(formData);
+    } else {
+      setIsEditing(true);
     }
+  };
+
+  const handleCenterToggle = () => {
+    setIsCenterModalOpen(true);
+  };
+
+  const handleSaveCourseFee = (data: ICourseFeeAssignment) => {
+    const feeAssignment = {
+      courseId: course.id,
+      ...data,
+    };
+    addCenterFee(feeAssignment);
+  };
+
+  const handleEditCourseFee = (data: IEditCourseFeeAssignment) => {
+    const feeAssignment = {
+      courseId: course.id,
+      ...data,
+    };
+    updateCourseFee(feeAssignment);
+  };
+
+  const handleOpenEditModal = (assignment: CourseFeeAssignment | any) => {
+    setSelectedCourseAssignment(assignment);
+    setEditCenterModalOpen(true);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // setCourse(courseData);
+    setFormData(course);
   };
 
-  const toggleEdit = () => {
-    setIsEditable(!isEditable);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
-    <div className="flex bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div className="flex bg-white font-sans text-gray-800 min-h-screen">
       <main className="flex-1 p-8 pb-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -111,22 +194,18 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
               <>
                 <button
                   onClick={handleEditToggle}
-                  className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
-                  <EditIcon />
+                  <MdEdit />
                   Edit
                 </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <DownloadIcon />
-                  <span>Download</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <PrintIcon />
-                  <span>Print</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-                  <ShareIcon />
-                  <span>Share</span>
+
+                <button
+                  onClick={handleCenterToggle}
+                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                >
+                  <MdAdd />
+                  Add Center
                 </button>
               </>
             )}
@@ -138,43 +217,49 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
           <div className="border-r-2 border-grey">
             {/* Course Details */}
             <div className={isEditing ? `h-96` : `h-96`}>
-              <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 COURSE DETAILS
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
                 {Object.entries({
-                  "Course Title": course.name,
-                  Code: course.code,
-                  Status: course.status,
-                  Created: formatDate(course.createdAt!),
-                  Duration: course.duration,
-                }).map(([label, value]) => (
+                  "Course Title": "name",
+                  Code: "code",
+                  Status: "status",
+                  Created: "createdAt",
+                  Duration: "duration",
+                }).map(([label, key]) => (
                   <div key={label} className="col-span-1">
                     <p className="text-gray-500 text-sm font-medium">
                       {label}:
                     </p>
-                    {isEditing ? (
+                    {isEditing && key !== "createdAt" ? (
                       <input
                         type="text"
-                        name={label.toLowerCase().replace(/ /g, "")}
-                        value={value}
+                        name={key}
+                        value={
+                          key === "createdAt"
+                            ? formatDate(formData[key]!)
+                            : formData[key as keyof Course] ?? ""
+                        }
                         onChange={handleChange}
                         className="w-full mt-1 p-1 border rounded-md text-gray-900"
                       />
                     ) : (
                       <p className="mt-1 font-semibold text-gray-900">
-                        {label === "Status" ? (
+                        {key === "status" ? (
                           <span
                             className={`py-0.5 text-md font-semibold rounded-full ${
-                              value === "New"
+                              formData.status === "New"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {value}
+                            {formData.status}
                           </span>
+                        ) : key === "createdAt" ? (
+                          formatDate(formData.createdAt!)
                         ) : (
-                          value
+                          formData[key as keyof Course]
                         )}
                       </p>
                     )}
@@ -185,10 +270,10 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
 
             {/* Batches */}
             <div className={isEditing ? "mt-14" : ""}>
-              <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 BATCHES
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
                 {course.batches?.map((batch, index) => (
                   <div
                     key={index}
@@ -209,26 +294,34 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
 
           <div>
             {/* Pricing by Center */}
-            <div className={isEditing ? `h-96` : `h-96`}>
+            <div className={isEditing ? `h96` : `h96`}>
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 PRICING BY CENTER
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-4 grid gap-2">
-                {courseData.pricing.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="text-gray-800 font-bold">
-                      {item.center}
+              <div className="bg-white rounded-lg px-2 pt-4 grid gap-2">
+                {course.courseAssignments.map((item, index) => (
+                  <div key={index} className="pb-3 border-b border-gray-300">
+                    <span className="text-gray-800 font-bold block mb-2">
+                      {item.center?.name}
                     </span>
-                    <input
-                      type="text"
-                      defaultValue={item.price}
-                      readOnly={!isEditable}
-                      className={`text-indigo-600 font-medium p-2 rounded-lg border focus:outline-none ${
-                        isEditable
-                          ? "bg-gray-50 border-gray-300"
-                          : "bg-white border-transparent"
-                      }`}
-                    />
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <p>
+                        <span className="font-medium text-gray-600">
+                          Base Fee:{" "}
+                        </span>
+                        ₦{item.baseFee.toLocaleString()}
+                        <MdEdit
+                          className="inline ml-1 text-indigo-600 cursor-pointer"
+                          onClick={() => handleOpenEditModal(item)}
+                        />
+                      </p>
+                      <p>
+                        <span className="font-medium text-gray-600">
+                          Max Installments:{" "}
+                        </span>
+                        {item.maxInstallments}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -239,7 +332,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 MATERIALS
               </h2>
-              <div className="bg-gray-50 rounded-lg px-2 py-6">
+              <div className="bg-white rounded-lg px-2 py-6">
                 <div className="space-y-4">
                   {course.documents?.map((document, index) => (
                     <div
@@ -267,7 +360,7 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
                         </Link>
                       </div>
                       <Link href={document.url}>
-                        <Download size={16} color="#1f2937" />
+                        <Download size={16} className="text-indigo-600" />
                       </Link>
                     </div>
                   ))}
@@ -283,6 +376,23 @@ const CourseDetails = ({ course }: CourseDetailsProps) => {
           </div>
         </div>
       </main>
+
+      <CoursePricingModal
+        isOpen={isCenterModalOpen}
+        onClose={() => setIsCenterModalOpen(false)}
+        onSave={handleSaveCourseFee}
+        isSaving={isSavingCourseFee}
+        centers={centers}
+      />
+
+      <EditCoursePricing
+        isOpen={isEditCenterModalOpen}
+        onClose={() => setEditCenterModalOpen(false)}
+        onSave={handleEditCourseFee}
+        isSaving={isEditingCourseFee}
+        centers={centers}
+        initialData={selectedCourseAssignment}
+      />
     </div>
   );
 };

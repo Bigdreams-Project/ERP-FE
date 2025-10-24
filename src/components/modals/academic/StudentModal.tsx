@@ -1,3 +1,6 @@
+import { paymentPlan, statuses } from "@/data/view/student.data";
+import { getCourse } from "@/lib/network";
+import { Course } from "@/types/academic/course.interface";
 import {
   IStudent,
   IStudentModalProps,
@@ -6,80 +9,148 @@ import { enrollmentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-
-const coursesData = [
-  { name: "ADSE", fee: 3000000, baseFee: 500000 },
-  { name: "Frontend", fee: 300000, baseFee: 100000 },
-  { name: "Cyber Security", fee: 1000000, baseFee: 300000 },
-  { name: "Web Dev", fee: 450000, baseFee: 200000 },
-];
-
-const batches = ["Batch A", "Batch B", "Batch C"];
-const installmentOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-const paymentPlans = ["Lump Sum", "Installments"];
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useForm } from "react-hook-form";
 
 const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   isOpen,
   onClose,
   initialData,
   onSave,
+  courses,
+  centers,
+  leads,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isValid },
     watch,
     setValue,
+    formState: { errors, isValid },
+    getValues,
   } = useForm<IStudent>({
     resolver: yupResolver(enrollmentSchema),
     mode: "onTouched",
     defaultValues: {
-      leadId: "",
-      fullName: "John Doe Emeka",
-      phone: "+234 815 815-9170",
-      email: "johndoe@example.com",
-      address: "123 Main St, Anytown, USA",
-      parentGuardianName: "John Doe Emeka",
-      parentGuardianPhone: "+234 815 815-9170",
-      courseEnrolled: "Web Dev",
-      batch: "Batch A",
-      paymentPlan: "Lump Sum",
-      lumpSum: 500000,
-      numberOfInstallments: 5,
-      comments: "",
+      fullName: "",
+      phone: "",
+      email: "",
+      address: "",
+      centerId: "",
+      enrolledDate: "",
+      birthDate: "",
+      guardianName: "",
+      guardianPhone: "",
+      guardianEmail: "",
+      guardianAddress: "",
+      courseId: "",
+      batchId: "",
     },
   });
 
-  const courseOfInterest = watch("courseEnrolled");
-  const paymentPlan = watch("paymentPlan");
-  const lumpSum = watch("lumpSum");
-  const numberOfInstallments = watch("numberOfInstallments");
+  const leadId = watch("leadId");
+  const courseId = watch("courseId");
+  const paymentplan = watch("paymentPlan");
 
-  const [selectedCourse, setSelectedCourse] = useState(coursesData[3]);
+  const [selectedCourse, setSelectedCourse] = useState<Course>();
   const [showBaseFeeError, setShowBaseFeeError] = useState(false);
 
-  useEffect(() => {
-    const course = coursesData.find((c) => c.name === courseOfInterest);
-    if (course) {
-      setSelectedCourse(course);
-    }
-  }, [courseOfInterest]);
+  const [plan, setPlan] = useState<string>("lumpsum");
+  const [maxInstallment, setMaxInstallment] = useState<number>(2);
+  const [lumpSum, setLumpSum] = useState<number>(0);
+
+  const [enrolledDate, setEnrolledDate] = useState<Date | null>(null);
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    // Check if lump sum meets base fee requirement
-    if (paymentPlan === "Lump Sum") {
-      setShowBaseFeeError(lumpSum! < selectedCourse.baseFee);
+    if (plan === "lumpsum") {
+      setValue(
+        "lumpSumFee",
+        selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
+      );
+      setLumpSum(selectedCourse?.courseAssignments[0]?.baseFee!);
+      setMaxInstallment(2);
     } else {
-      setShowBaseFeeError(false);
+      setValue(
+        "lumpSumFee",
+        (
+          selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment!
+        ).toString()
+      );
+      setLumpSum(
+        selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment
+      );
     }
-  }, [lumpSum, paymentPlan, selectedCourse]);
 
-  const onSubmit: SubmitHandler<IStudent> = (data) => {
+    setValue(
+      "courseFee",
+      selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
+    );
+    setValue("numberOfInstallments", maxInstallment?.toString());
+  }, [plan, maxInstallment, selectedCourse?.courseAssignments[0]?.baseFee!]);
+
+  useEffect(() => {
+    if (!leadId) return;
+
+    const lead = leads.find((l) => l.id === leadId);
+    if (lead) {
+      setValue("fullName", lead.fullName);
+      setValue("phone", lead.phone);
+      setValue("email", lead.email);
+      setValue("address", lead.address);
+      setValue("centerId", lead.centerId);
+      setValue("enrolledDate", lead.enquiryDate);
+      setValue("birthDate", lead.birthDate);
+      setValue("guardianName", lead.guardians[0]?.fullname);
+      setValue("guardianPhone", lead.guardians[0]?.phone);
+      setValue("guardianEmail", lead.guardians[0]?.email);
+      setValue("guardianAddress", lead.guardians[0]?.address);
+      setValue("courseId", lead.courseId);
+    }
+  }, [leadId, leads, setValue]); 
+
+  useEffect(() => {
+    if (!courseId) {
+      setSelectedCourse(undefined);
+      return;
+    }
+
+    const fetchCourse = async () => {
+      try {
+        const course = await getCourse(courseId);
+        console.log("course:", course);
+        setSelectedCourse(course);
+      } catch (err) {
+        console.error("Failed to fetch course details:", err);
+      }
+    };
+
+    fetchCourse();
+  }, [courseId]);
+
+  useEffect(() => {
+    if (initialData?.leadId) {
+      setValue("leadId", initialData.leadId);
+    }
+  }, [initialData, setValue]);
+
+  const handlePaymentPlan = (e: any) => {
+    setValue("paymentPlan", e.target.value);
+    setPlan(e.target.value);
+  };
+
+  const handleMaxInstallment = (e: any) => {
+    setValue("numberOfInstallments", e.target.value);
+    setMaxInstallment(e.target.value);
+  };
+
+  const onSubmit = (data: IStudent | any) => {
     if (showBaseFeeError) return;
     onSave(data);
+    console.log(data);
   };
 
   if (!isOpen) return null;
@@ -115,13 +186,22 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               Lead ID
             </label>
             <div className="relative">
-              <input
-                type="text"
+              <select
                 id="leadId"
-                placeholder="Search lead ID"
                 {...register("leadId")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10" // Added pr-10 for icon padding
-              />
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10 appearance-none"
+              >
+                <option value="">Search lead ID</option>
+                {leads.map((lead) => (
+                  <option
+                    key={lead.id}
+                    value={lead.id}
+                    className="placeholder:text-gray-400"
+                  >
+                    {lead.fullName} - {lead.phone}
+                  </option>
+                ))}
+              </select>
 
               <button
                 type="button"
@@ -159,7 +239,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="fullName"
                 {...register("fullName")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.fullName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -180,7 +260,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="tel"
                 id="phone"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
@@ -201,7 +281,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="email"
                 id="email"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
@@ -222,7 +302,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="address"
                 {...register("address")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.address && (
                 <p className="text-red-500 text-xs mt-1">
@@ -231,65 +311,202 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
-            {/* Parent/Guardian Name */}
-            <div className="flex flex-col">
+            {/* Status */}
+            <div className="flex flex-col relative">
               <label
-                htmlFor="parentGuardianName"
+                htmlFor="status"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                Status
+              </label>
+              <select
+                id="status"
+                {...register("status")}
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Choose Status</option>
+                {statuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.status && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.status.message}
+                </p>
+              )}
+            </div>
+
+            {/* Center */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="centerId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Parent/Guardian Name
+                Center
+              </label>
+              <select
+                id="centerId"
+                {...register("centerId")}
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Center</option>
+                {centers.map((center) => (
+                  <option key={center.id} value={center.id}>
+                    {center.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.courseId && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.courseId.message}
+                </p>
+              )}
+            </div>
+
+            {/* Enrolled Date */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="enrolledDate"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                Enquiry Date
+              </label>
+              <DatePicker
+                selected={enrolledDate}
+                onChange={(date) => {
+                  if (date) {
+                    setEnrolledDate(date);
+                    setValue("enrolledDate", date.toISOString().split("T")[0], {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                dateFormat="yyyy-MM-dd"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.enrolledDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.enrolledDate.message}
+                </p>
+              )}
+            </div>
+
+            {/* Birth Date */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="birthDate"
+                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+              >
+                Birth Date
+              </label>
+              <DatePicker
+                selected={birthDate}
+                onChange={(date) => {
+                  if (date) {
+                    setBirthDate(date);
+                    setValue("birthDate", date.toISOString().split("T")[0], {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                dateFormat="yyyy-MM-dd"
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.birthDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.birthDate.message}
+                </p>
+              )}
+            </div>
+
+            {/* Guardian Name */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="guardianName"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Guardian Name
               </label>
               <input
                 type="text"
-                id="parentGuardianName"
-                {...register("parentGuardianName")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                id="guardianName"
+                {...register("guardianName")}
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentGuardianName && (
+              {errors.guardianName && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentGuardianName.message}
+                  {errors.guardianName.message}
                 </p>
               )}
             </div>
 
-            {/* Parent/Guardian Phone Number */}
+            {/* Guardian Phone Number */}
             <div className="flex flex-col">
               <label
-                htmlFor="parentGuardianPhone"
+                htmlFor="guardianPhone"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Parent/Guardian Phone Number
+                Guardian Phone Number
               </label>
               <input
                 type="tel"
-                id="parentGuardianPhone"
-                {...register("parentGuardianPhone")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                id="guardianPhone"
+                {...register("guardianPhone")}
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentGuardianPhone && (
+              {errors.guardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentGuardianPhone.message}
+                  {errors.guardianPhone.message}
                 </p>
               )}
             </div>
 
-            {/* Parent/Guardian Email */}
+            {/* Guardian Email */}
             <div className="flex flex-col sm:col-span-2">
               <label
-                htmlFor="parentGuardianEmail"
+                htmlFor="guardianEmail"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Parent/Guardian Email (Optional)
+                Guardian Email
               </label>
               <input
                 type="email"
-                id="parentGuardianEmail"
-                {...register("parentGuardianEmail")}
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                id="guardianEmail"
+                {...register("guardianEmail")}
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
-              {errors.parentGuardianEmail && (
+              {errors.guardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.parentGuardianEmail.message}
+                  {errors.guardianEmail.message}
+                </p>
+              )}
+            </div>
+
+            {/* Guardian Address */}
+            <div className="flex flex-col sm:col-span-2">
+              <label
+                htmlFor="guardianAddress"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Guardian Address
+              </label>
+              <input
+                type="text"
+                id="guardianAddress"
+                {...register("guardianAddress")}
+                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.guardianAddress && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.guardianAddress.message}
                 </p>
               )}
             </div>
@@ -299,19 +516,19 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Course of Interest */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="courseEnrolled"
+                htmlFor="courseId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Course of Interest
               </label>
               <select
-                id="courseEnrolled"
-                {...register("courseEnrolled")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                id="courseId"
+                {...register("courseId")}
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
-                {coursesData.map((course) => (
-                  <option key={course.name} value={course.name}>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
                     {course.name}
                   </option>
                 ))}
@@ -319,9 +536,9 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.courseEnrolled && (
+              {errors.courseId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.courseEnrolled.message}
+                  {errors.courseId.message}
                 </p>
               )}
             </div>
@@ -337,7 +554,12 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <input
                 type="text"
                 id="courseFee"
-                value={`₦${selectedCourse?.fee.toLocaleString()}`}
+                {...register("courseFee")}
+                value={
+                  selectedCourse
+                    ? `₦${selectedCourse.courseAssignments[0]?.baseFee?.toLocaleString()}`
+                    : ""
+                }
                 readOnly
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
               />
@@ -346,29 +568,29 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             {/* Batch */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="batch"
+                htmlFor="batchId"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
                 Batch
               </label>
               <select
-                id="batch"
-                {...register("batch")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                id="batchId"
+                {...register("batchId")}
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
-                {batches.map((batch) => (
-                  <option key={batch} value={batch}>
-                    {batch}
+                {selectedCourse?.batches.map((batch) => (
+                  <option key={batch.id} value={batch.id}>
+                    {batch?.faculty?.fullname} - {batch?.code}
                   </option>
                 ))}
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.batch && (
+              {errors.batchId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.batch.message}
+                  {errors.batchId.message}
                 </p>
               )}
             </div>
@@ -383,12 +605,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="paymentPlan"
-                {...register("paymentPlan")}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                onChange={handlePaymentPlan}
+                disabled={!selectedCourse}
+                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
-                {paymentPlans.map((plan) => (
-                  <option key={plan} value={plan}>
-                    {plan}
+                <option value="">Select Payment Plan</option>
+                {paymentPlan?.map((plan) => (
+                  <option key={plan.name} value={plan.value}>
+                    {plan.name}
                   </option>
                 ))}
               </select>
@@ -408,69 +632,75 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="lumpSum"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Lump Sum
+                {paymentplan === "installment" ? "Installment Sum" : "Lump Sum"}
               </label>
               <input
-                type="number"
-                id="lumpSum"
-                {...register("lumpSum", { valueAsNumber: true })}
-                disabled={paymentPlan !== "Lump Sum"}
-                className={`w-full h-10 px-4 text-sm rounded-lg bg-gray-100 border-2 ${
-                  paymentPlan === "Lump Sum"
-                    ? "border-transparent focus:border-blue-500"
-                    : "bg-gray-200 cursor-not-allowed"
-                } focus:outline-none transition-colors`}
+                type="text"
+                {...register("lumpSumFee")}
+                value={lumpSum ? `₦${lumpSum.toLocaleString()}` : ""}
+                readOnly
+                className={`w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
               />
-              {errors.lumpSum && (
+              {errors.lumpSumFee && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.lumpSum.message}
+                  {errors.lumpSumFee.message}
                 </p>
               )}
             </div>
 
             {/* No. of Installments */}
-            <div className="flex flex-col relative">
-              <label
-                htmlFor="numberOfInstallments"
-                className="text-sm font-medium text-gray-700 mb-1"
-              >
-                No. of Installments
-              </label>
-              <select
-                id="numberOfInstallments"
-                {...register("numberOfInstallments", { valueAsNumber: true })}
-                disabled={paymentPlan !== "Installments"}
-                className={`w-full h-10 px-3 text-sm rounded-lg bg-gray-100 border-2 ${
-                  paymentPlan === "Installments"
-                    ? "border-transparent focus:border-blue-500"
-                    : "bg-gray-200 cursor-not-allowed"
-                } focus:outline-none transition-colors appearance-none`}
-              >
-                {installmentOptions.map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <ChevronDown size={18} />
-              </span>
-              {errors.numberOfInstallments && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.numberOfInstallments.message}
-                </p>
-              )}
-            </div>
+            {paymentplan === "installment" && (
+              <div className="flex flex-col relative">
+                <label
+                  htmlFor="numberOfInstallments"
+                  className="text-sm font-medium text-gray-700 mb-1"
+                >
+                  No. of Installments
+                </label>
+                <select
+                  id="numberOfInstallments"
+                  onChange={handleMaxInstallment}
+                  disabled={
+                    !selectedCourse?.courseAssignments[0]?.maxInstallments
+                  }
+                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent 
+             focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                >
+                  <option value="">Select Installments</option>
+                  {selectedCourse?.courseAssignments[0]?.maxInstallments &&
+                    Array.from(
+                      {
+                        length:
+                          selectedCourse.courseAssignments[0]?.maxInstallments,
+                      },
+                      (_, i) => i + 2
+                    ).map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
+                </select>
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <ChevronDown size={18} />
+                </span>
+                {errors.numberOfInstallments && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.numberOfInstallments.message}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <p className="text-sm font-medium text-gray-700 mt-6">
-            Required base fee is ₦{selectedCourse?.baseFee.toLocaleString()} for
+            Required base fee is ₦
+            {selectedCourse?.courseAssignments[0]?.baseFee.toLocaleString()} for
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">
-            Total Deposit Record: ₦33,000
+            Total Deposit Record: ₦
           </p>
 
           {showBaseFeeError && (
@@ -479,23 +709,23 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             </p>
           )}
 
-          {/* Comments */}
+          {/* Notes */}
           <div className="flex flex-col sm:col-span-2 mt-4">
             <label
-              htmlFor="comments"
+              htmlFor="notes"
               className="text-sm font-medium text-gray-700 mb-1"
             >
-              Comments
+              Note
             </label>
             <textarea
-              id="comments"
-              {...register("comments")}
+              id="notes"
+              {...register("notes")}
               rows={3}
-              className="w-full p-4 text-sm rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
             ></textarea>
-            {errors.comments && (
+            {errors.notes && (
               <p className="text-red-500 text-xs mt-1">
-                {errors.comments.message}
+                {errors.notes.message}
               </p>
             )}
           </div>
