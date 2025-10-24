@@ -299,12 +299,18 @@ const StudentDetails = ({
                 )}
                 {renderSection(
                   "Course",
-                  student.courses?.length > 0
+                  student.courses && student.courses?.length > 0
                     ? student.courses[0]?.name
                     : "Not yet enrolled.",
                   BookOpen
                 )}
-                {renderSection("Batch", student.batches[0]?.code, Users)}
+                {renderSection(
+                  "Batch",
+                  student.batches && student.batches?.length > 0
+                    ? student.batches[0]?.code
+                    : "Not yet assigned.",
+                  Users
+                )}
                 {renderSection(
                   "Dates",
                   student.batches && student.batches.length > 0
