@@ -307,9 +307,9 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <p>
                         <span className="font-medium text-gray-600">
-                          Base Fee:{" "}
+                          Course Fee:{" "}
                         </span>
-                        ₦{item.baseFee.toLocaleString()}
+                        ₦{item.lumpSumFee.toLocaleString()}
                         <MdEdit
                           className="inline ml-1 text-indigo-600 cursor-pointer"
                           onClick={() => handleOpenEditModal(item)}

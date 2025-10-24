@@ -557,7 +557,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 {...register("courseFee")}
                 value={
                   selectedCourse
-                    ? `₦${selectedCourse.courseAssignments[0]?.baseFee?.toLocaleString()}`
+                    ? `₦${selectedCourse.courseAssignments[0]?.lumpSumFee?.toLocaleString()}`
                     : ""
                 }
                 readOnly
