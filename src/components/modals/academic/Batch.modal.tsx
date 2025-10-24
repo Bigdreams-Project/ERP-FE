@@ -512,7 +512,6 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     options={options}
                     className="basic-multi-select text-sm text-gray-600"
                     classNamePrefix="select"
-                    // onChange={handleChange}
                     value={options.filter((option) =>
                       field.value?.includes(option.value)
                     )}
