@@ -51,7 +51,7 @@ export interface Student {
   fullName: string;
   phone: string;
   email: string;
-  image: string; 
+  image: string;
   address: string;
   birthDate: string;
   centerId: string;
@@ -84,10 +84,13 @@ export interface IStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
+  amount: string | null;
   courseFee: string | null;
   lumpSumFee: string | null;
   numberOfInstallments: string | null;
   paymentPlan: string;
+  paymentType: string;
+  paymentMethod: string;
   notes: string;
   courseId: string;
   batchId: string | null;

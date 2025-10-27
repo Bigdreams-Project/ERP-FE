@@ -43,6 +43,9 @@ export const enrollmentSchema = yup.object().shape({
     .nullable()
     .notRequired() as yup.StringSchema<string | null>,
   guardianAddress: yup.string().required("Guardian address is required"),
+  amount: yup.string().nullable().notRequired() as yup.StringSchema<
+    string | null
+    >,
   courseFee: yup.string().nullable().notRequired() as yup.StringSchema<
     string | null
   >,
@@ -60,6 +63,8 @@ export const enrollmentSchema = yup.object().shape({
     .nullable()
     .notRequired() as yup.StringSchema<string | null>,
   paymentPlan: yup.string().required("Payment plan is required"),
+  paymentType: yup.string().required("Payment type is required"),
+  paymentMethod: yup.string().required("Payment method is required"),
   notes: yup
     .string()
     .optional()
@@ -139,6 +144,16 @@ export const addStudentPaymentSchema = yup.object().shape({
     .typeError("Amount must be a number")
     .positive("Amount must be greater than zero")
     .required("Amount is required"),
+  courseFee: yup
+    .number()
+    .typeError("Course fee must be a number")
+    .positive("Course fee must be greater than zero")
+    .required("Course fee is required"),
+  numberOfInstallments: yup
+    .number()
+    .typeError("Number of installments must be a number")
+    .positive("Number of installments must be greater than zero")
+    .required("Number of installments is required"),
   paymentPlan: yup.string().required("Payment plan is required"),
   paymentType: yup.string().required("Payment type is required"),
   paymentMethod: yup.string().required("Payment method is required"),

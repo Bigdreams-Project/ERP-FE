@@ -1,8 +1,10 @@
 "use client";
 import StudentModal from "@/components/modals/academic/StudentModal";
+import DeleteModal from "@/components/modals/common/Delete.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
 import { createStudent, deleteStudent } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -10,12 +12,11 @@ import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { CreateStudent } from "@/types/requests/student.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import Link from "next/link";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   searchQuery: string;
@@ -93,9 +94,11 @@ export default function StudentTable({
     try {
       const response = await createStudent(payload);
       setData((prev) => [...prev, response]);
-      setIsModalOpen(false);
+      showSuccess("Student enrolled successfully");
+      // setIsModalOpen(false);
     } catch (error) {
       console.error("Failed to save student:", error);
+      showError("Student enrollment failed");
     }
   };
 
@@ -173,8 +176,8 @@ export default function StudentTable({
                   <th className="p-4">Phone</th>
                   <th className="p-4">Address</th>
                   <th className="p-4">Date Enrolled</th>
-                  <th className="p-4">Parent/Guardian Name</th>
-                  <th className="p-4">Parent/Guardian Phone Number</th>
+                  <th className="p-4">Guardian Name</th>
+                  <th className="p-4">Guardian Phone Number</th>
                   <th className="p-4">Course Enrolled</th>
                   <th className="p-4">Center</th>
                   <th className="p-4">Status</th>

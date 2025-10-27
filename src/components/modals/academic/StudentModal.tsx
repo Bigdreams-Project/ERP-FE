@@ -1,4 +1,4 @@
-import { paymentPlan, statuses } from "@/data/view/student.data";
+import { paymentMethods, paymentPlan, paymentTypes, statuses } from "@/data/view/student.data";
 import { getCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
 import {
@@ -54,6 +54,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const leadId = watch("leadId");
   const courseId = watch("courseId");
   const paymentplan = watch("paymentPlan");
+  const amount = watch("amount");
 
   const [selectedCourse, setSelectedCourse] = useState<Course>();
   const [showBaseFeeError, setShowBaseFeeError] = useState(false);
@@ -71,26 +72,26 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
         "lumpSumFee",
         selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
       );
-      setLumpSum(selectedCourse?.courseAssignments[0]?.baseFee!);
+      setLumpSum(selectedCourse?.courseAssignments[0]?.lumpSumFee!);
       setMaxInstallment(2);
     } else {
       setValue(
         "lumpSumFee",
         (
-          selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment!
+          selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment!
         ).toString()
       );
       setLumpSum(
-        selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment
+        selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment
       );
     }
 
     setValue(
       "courseFee",
-      selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
+      selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
     );
     setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse?.courseAssignments[0]?.baseFee!]);
+  }, [plan, maxInstallment, selectedCourse?.courseAssignments]);
 
   useEffect(() => {
     if (!leadId) return;
@@ -121,7 +122,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     const fetchCourse = async () => {
       try {
         const course = await getCourse(courseId);
-        console.log("course:", course);
         setSelectedCourse(course);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
@@ -565,6 +565,27 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               />
             </div>
 
+            {/* Amount */}
+            <div className="flex flex-col sm:col-span-2">
+              <label
+                htmlFor="amount"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Amount Paid
+              </label>
+              <input
+                type="number"
+                id="amount"
+                {...register("amount")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              />
+              {errors.amount && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.amount.message}
+                </p>
+              )}
+            </div>
+
             {/* Batch */}
             <div className="flex flex-col relative">
               <label
@@ -622,6 +643,66 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               {errors.paymentPlan && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.paymentPlan.message}
+                </p>
+              )}
+            </div>
+
+            {/* Payment Type */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="paymentType"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Payment Type
+              </label>
+              <select
+                id="paymentType"
+                disabled={!selectedCourse}
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Payment Plan</option>
+                {paymentTypes?.map((plan) => (
+                  <option key={plan.name} value={plan.value}>
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.paymentType && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.paymentType.message}
+                </p>
+              )}
+            </div>
+
+            {/* Payment Method */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="paymentMethod"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Payment Plan
+              </label>
+              <select
+                id="paymentMethod"
+                disabled={!selectedCourse}
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Payment Method</option>
+                {paymentMethods?.map((plan) => (
+                  <option key={plan.name} value={plan.value}>
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.paymentMethod && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.paymentMethod.message}
                 </p>
               )}
             </div>
@@ -700,7 +781,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">
-            Total Deposit Record: ₦
+            Total Deposit: ₦{amount}
           </p>
 
           {showBaseFeeError && (

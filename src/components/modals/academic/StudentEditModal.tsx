@@ -98,28 +98,28 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
     if (plan === "lumpsum") {
       setValue(
         "lumpSumFee",
-        selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
+        selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
       );
-      setLumpSum(selectedCourse?.courseAssignments[0]?.baseFee!);
+      setLumpSum(selectedCourse?.courseAssignments[0]?.lumpSumFee!);
       setMaxInstallment(2);
     } else {
       setValue(
         "lumpSumFee",
         (
-          selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment!
+          selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment!
         ).toString()
       );
       setLumpSum(
-        selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment
+        selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment
       );
     }
 
     setValue(
       "courseFee",
-      selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
+      selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
     );
     setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse?.courseAssignments[0]?.baseFee!]);
+  }, [plan, maxInstallment, selectedCourse?.courseAssignments]);
 
   useEffect(() => {
     if (initialData?.courseId) {

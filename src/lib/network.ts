@@ -358,7 +358,6 @@ export const getStudentCourses = async (studentId: string) => {
   }
 };
 
-
 export const createStudent = async (payload: CreateStudent) => {
   try {
     const api = await server();

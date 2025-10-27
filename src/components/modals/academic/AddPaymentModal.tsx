@@ -1,6 +1,7 @@
 "use client";
 import { updateStudentCoursePayment } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
+import { Course } from "@/types/academic/course.interface";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -21,6 +22,8 @@ const AddPaymentModal = ({
   const [amount, setAmount] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
+  console.log("Modal course:", course);
+
   const handleSubmit = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       toast.error("Please enter a valid amount");
@@ -29,13 +32,15 @@ const AddPaymentModal = ({
 
     const payload = {
       studentId,
-      courseId: course.id,
+      courseId: course.course.id!,
       amount: parseFloat(amount),
       paymentPlan: "Installment",
       paymentType: "Tuition",
       paymentMethod: "Cash",
+      courseFee: course.course?.courseAssignments[0]?.lumpSumFee,
+      numberOfInstallments:
+        course.course?.courseAssignments[0]?.maxInstallments,
     };
-    console.log("Payment Payload:", payload);
 
     try {
       setLoading(true);

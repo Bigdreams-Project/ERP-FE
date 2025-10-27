@@ -37,6 +37,8 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
       studentId: studentId,
       courseId: "",
       amount: 0.0,
+      courseFee: 0,
+      numberOfInstallments: 0,
       paymentPlan: "",
       paymentType: "",
       paymentMethod: "",
@@ -113,14 +115,43 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
           <input
             type="text"
             id="courseFee"
+            {...register("courseFee")}
             value={
               selectedCourse
-                ? `₦${selectedCourse.courseAssignments[0]?.baseFee?.toLocaleString()}`
+                ? `₦${selectedCourse.courseAssignments[0]?.lumpSumFee?.toLocaleString()}`
                 : ""
             }
             readOnly
             className="w-full h-10 px-4 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none text-gray-600 cursor-not-allowed"
           />
+          {errors.courseFee && (
+            <p className="text-red-500 text-sm">{errors.courseFee.message}</p>
+          )}
+        </div>
+
+        {/* Max Installment */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="numberOfInstallments"
+            className="text-sm font-medium text-gray-700 mb-1"
+          >
+            Max Installments
+          </label>
+          <input
+            type="text"
+            id="numberOfInstallments"
+            {...register("numberOfInstallments")}
+            value={
+              selectedCourse
+                ? `₦${selectedCourse.courseAssignments[0]?.maxInstallments?.toLocaleString()}`
+                : ""
+            }
+            readOnly
+            className="w-full h-10 px-4 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none text-gray-600 cursor-not-allowed"
+          />
+          {errors.numberOfInstallments && (
+            <p className="text-red-500 text-sm">{errors.numberOfInstallments.message}</p>
+          )}
         </div>
 
         {/* Amount */}

@@ -13,9 +13,12 @@ export interface CreateStudent {
   guardianEmail: string | null;
   guardianAddress: string;
   courseFee: string | null;
+  amount: string | null;
   lumpSumFee: string | null;
   numberOfInstallments: string | null;
   paymentPlan: string;
+  paymentType: string;
+  paymentMethod: string;
   notes: string;
   courseId: string;
   batchId: string | null;
@@ -48,6 +51,8 @@ export interface CreateStudentPayment {
   studentId: string;
   courseId: string;
   amount: number;
+  courseFee: number;
+  numberOfInstallments: number;
   paymentPlan: string;
   paymentType: string;
   paymentMethod: string;

@@ -2,19 +2,18 @@
 
 import AddPaymentModal from "@/components/modals/academic/AddPaymentModal";
 import { getStudentCourses } from "@/lib/network";
-import { formatDate } from "@/lib/utils";
-import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
 import { useEffect, useState } from "react";
 import Card from "./Card";
 import InfoItem from "./InfoItem";
+import { formatDate } from "@/lib/utils";
 
 interface Props {
   data: Student;
 }
 
 const StudentCourses = ({ data }: Props) => {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
 
@@ -22,9 +21,9 @@ const StudentCourses = ({ data }: Props) => {
     const fetchCourses = async () => {
       try {
         const res = await getStudentCourses(data.id);
-        console.log("Courses:", res);
+        const formattedCourses = res.map((item: any) => item);
 
-        const formattedCourses = res.map((item: any) => item.course);
+        console.log("Courses:", formattedCourses);
         setCourses(formattedCourses);
       } catch (error) {
         console.error("Failed to fetch student courses:", error);
@@ -57,9 +56,11 @@ const StudentCourses = ({ data }: Props) => {
                 className="border border-gray-200 rounded-lg p-4 shadow-sm"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-gray-800">{course.name}</h3>
+                  <h3 className="font-semibold text-gray-800">
+                    {course.course.name}
+                  </h3>
                   <button
-                    onClick={() => setSelectedCourse({ course })}
+                    onClick={() => setSelectedCourse({ course: course })}
                     className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 transition"
                   >
                     Add Payment
@@ -70,36 +71,38 @@ const StudentCourses = ({ data }: Props) => {
                   <InfoItem
                     label="Total Fee"
                     value={
-                      course?.courseAssignments[0].baseFee
-                        ? `₦${course?.courseAssignments[0].baseFee.toLocaleString()}`
+                      course?.paymentPlans
+                        ? `₦${course?.paymentPlans[0].amount.toLocaleString()}`
                         : "N/A"
                     }
                   />
-                  {/* <InfoItem
+                  <InfoItem
                     label="Amount Paid"
                     value={
-                      payment?.paid ? `₦${payment.paid.toLocaleString()}` : "₦0"
+                      course?.paymentPlans
+                        ? `₦${course?.paymentPlans[0].paid.toLocaleString()}`
+                        : "N/A"
                     }
                     valueColor="text-green-600"
-                  /> */}
-                  {/* <InfoItem
+                  />
+                  <InfoItem
                     label="Balance Due"
                     value={
-                      payment?.pending
-                        ? `₦${payment.pending.toLocaleString()}`
-                        : "₦0"
+                      course?.paymentPlans
+                        ? `₦${course?.paymentPlans[0].pending.toLocaleString()}`
+                        : "N/A"
                     }
                     valueColor="text-red-600"
                   />
                   <InfoItem
                     label="Next Payment Due"
                     value={
-                      payment?.nextPaymentDate
-                        ? formatDate(payment.nextPaymentDate)
+                      course?.paymentPlans
+                        ? formatDate(course?.paymentPlans[0].nextPaymentDate)
                         : "N/A"
                     }
                     valueColor="text-gray-700"
-                  /> */}
+                  />
                 </div>
               </div>
             );
