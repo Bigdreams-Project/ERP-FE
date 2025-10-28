@@ -9,8 +9,6 @@ export default async function Student({ params }: any) {
   const centers = await getCenters();
   const leads = await getLeads();
 
-  console.log("Student Details:", student);
-
   return (
     <StudentDetails
       student={student}

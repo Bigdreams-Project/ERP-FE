@@ -146,7 +146,7 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
                 {Object.entries({
                   Name: center.name,
                   Address: center.address,
-                  Created: center.createdAt,
+                  Created: formatDate(center.createdAt),
                   Location: center.address,
                   "Center Manager": center?.manager?.fullname,
                   "Academic Head": center.academicHead?.fullname,
@@ -156,8 +156,9 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
                   "Faculty Count": center.faculties
                     ? center.faculties?.length
                     : "0",
-                  "Regional Manager":
-                    center.regionalManager ? center.regionalManager?.fullname : "N/A",
+                  "Regional Manager": center.regionalManager
+                    ? center.regionalManager?.fullname
+                    : "N/A",
                 }).map(([label, value]) => (
                   <div key={label} className="col-span-1">
                     <p className="text-gray-500 text-sm font-medium">

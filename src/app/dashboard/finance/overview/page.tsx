@@ -1,8 +1,11 @@
 import OverviewContent from "@/content/dashboard/finance/overview";
-import { getLoggedInUser } from "@/lib/network";
+import { getFinanceOverview, getLoggedInUser } from "@/lib/network";
 
 export default async function Overview() {
   const user = await getLoggedInUser();
+  const overview = await getFinanceOverview();
 
-  return <OverviewContent user={user} />;
+  console.log("Overview:", overview);
+
+  return <OverviewContent user={user} overview={overview} />;
 }

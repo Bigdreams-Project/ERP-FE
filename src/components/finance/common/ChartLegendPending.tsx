@@ -3,9 +3,9 @@ import { useState } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import { getPieChartBgColor } from "@/components/academic/utils/backgrounds";
 
-interface ChartLegendProps {
+interface ChartLegendPendingProps {
   data: { name: string; value: string | number; color: string }[];
-  totalRevenue: number;
+  totalPending: number;
 }
 
 const parseCurrencyToNumber = (v: string | number): number => {
@@ -35,7 +35,7 @@ const formatCurrency = (v: number) =>
     maximumFractionDigits: 0,
   });
 
-const ChartLegend = ({ data, totalRevenue }: ChartLegendProps) => {
+const ChartLegendPending = ({ data, totalPending }: ChartLegendPendingProps) => {
   const [hovered, setHovered] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null
@@ -102,9 +102,9 @@ const ChartLegend = ({ data, totalRevenue }: ChartLegendProps) => {
         />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center p-2 pointer-events-none">
-          <span className="text-sm font-bold">Total Revenue</span>
+          <span className="text-sm font-bold">Total Pending</span>
           <span className="text-sm text-gray-500">
-            ₦{formatCurrency(totalRevenue!)}
+            ₦{formatCurrency(totalPending!)}
           </span>
         </div>
       </div>
@@ -131,4 +131,4 @@ const ChartLegend = ({ data, totalRevenue }: ChartLegendProps) => {
   );
 };
 
-export default ChartLegend;
+export default ChartLegendPending;

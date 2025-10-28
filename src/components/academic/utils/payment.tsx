@@ -54,3 +54,4 @@ export const getPaymentType = (type: string) => {
 
   return paymentType;
 };
+
