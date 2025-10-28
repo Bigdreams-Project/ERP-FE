@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import OverviewContent from "@/content/dashboard/finance/overview";
 import { getFinanceOverview, getLoggedInUser } from "@/lib/network";
 
