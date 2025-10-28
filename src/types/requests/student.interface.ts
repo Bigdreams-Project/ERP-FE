@@ -21,6 +21,7 @@ export interface CreateStudent {
   paymentMethod: string;
   notes: string;
   courseId: string;
+  bankId: string;
   batchId: string | null;
 }
 

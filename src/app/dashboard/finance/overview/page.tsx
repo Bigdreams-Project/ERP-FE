@@ -5,7 +5,5 @@ export default async function Overview() {
   const user = await getLoggedInUser();
   const overview = await getFinanceOverview();
 
-  console.log("Overview:", overview);
-
   return <OverviewContent user={user} overview={overview} />;
 }

@@ -69,7 +69,7 @@ export const enrollmentSchema = yup.object().shape({
   notes: yup
     .string()
     .optional()
-    .nullable()
+    .nullable() 
     .notRequired() as yup.StringSchema<string>,
 });
 

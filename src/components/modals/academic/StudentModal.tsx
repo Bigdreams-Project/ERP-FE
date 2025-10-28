@@ -165,6 +165,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     setPlan(e.target.value);
   };
 
+  const handlePaymentType = (e: any) => {
+    setValue("paymentType", e.target.value);
+  };
+
+  const handlePaymentMethod = (e: any) => {
+    setValue("paymentMethod", e.target.value);
+  };
+
   const handleMaxInstallment = (e: any) => {
     setValue("numberOfInstallments", e.target.value);
     setMaxInstallment(e.target.value);
@@ -588,7 +596,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             </div>
 
             {/* Amount */}
-            <div className="flex flex-col sm:col-span-2">
+            <div className="flex flex-col relative">
               <label
                 htmlFor="amount"
                 className="text-sm font-medium text-gray-700 mb-1"
@@ -709,6 +717,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="paymentType"
+                onChange={handlePaymentType}
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
@@ -739,6 +748,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="paymentMethod"
+                onChange={handlePaymentMethod}
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
@@ -833,7 +843,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">
-            Total Deposit: ₦{amount}
+            Total Deposit: ₦{parseFloat(amount!).toLocaleString()}
           </p>
 
           {showBaseFeeError && (

@@ -94,7 +94,7 @@ const StudentContent = ({
     try {
       const newStudent = await createStudent(payload);
       showSuccess("Student enrolled successfully");
-      // setIsModalOpen(false);
+      setIsModalOpen(false);
       setStudentList((prev) => [newStudent, ...prev]);
     } catch (error) {
       console.error("Failed to save student:", error);

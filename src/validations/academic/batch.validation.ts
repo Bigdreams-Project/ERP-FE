@@ -11,7 +11,7 @@ export const batchSchema = yup.object().shape({
   >,
   schedules: yup
     .array()
-    .of(
+    .of( 
       yup
         .object()
         .shape({
@@ -24,7 +24,7 @@ export const batchSchema = yup.object().shape({
             .min(1, "Duration must be at least 1 hour"),
         })
         .required()
-    )
+    ) 
     .required()
     .min(1, "At least one class schedule is required"),
   facultyId: yup.string().required("Faculty is required"),

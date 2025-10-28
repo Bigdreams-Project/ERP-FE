@@ -73,15 +73,17 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
 
   const revenueDistribution = overview.topCenters.map((center, index) => ({
     name: center.center,
-    value: formatRevenue(parseFloat(center.revenue)),
+    value: formatRevenue(parseFloat(center.revenue) / 2),
     color: colorClasses[index % colorClasses.length],
   }));
 
-  const pendingCenterPayments = overview.topCenters.map((center, index) => ({
-    name: center.center,
-    value: formatRevenue(parseFloat(center.pending)),
-    color: colorClasses[index % colorClasses.length],
-  }));
+  const pendingCenterPayments = overview.topPendingCenters.map(
+    (center, index) => ({
+      name: center.center,
+      value: formatRevenue(parseFloat(center.pending)),
+      color: colorClasses[index % colorClasses.length],
+    })
+  );
 
   const handleSelect = (ranges: any) => {
     const { startDate, endDate } = ranges.selection;
