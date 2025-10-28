@@ -76,9 +76,11 @@ const CenterContent = ({
       <BreadCrumb paths={[{ name: "Centers" }]} />
 
       <div className="w-full flex items-center justify-between mt-4">
-        <AcademicTabs />
+        <div className="flex items-center mt-4">
+          <AcademicTabs />
+        </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center  gap-7 p-2">
           {/* Search Input */}
           <div className="w-[250px]">
             <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:border-indigo-500 transition-all duration-150">

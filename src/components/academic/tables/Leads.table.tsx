@@ -122,9 +122,6 @@ export default function LeadTable({
   const handleSave = async (payload: CreateLead) => {
     try {
       const response = await createLead(payload);
-
-      console.log("Lead created successfully:", response);
-
       setData((prev) => [...prev, response]);
       setIsModalOpen(false);
     } catch (error) {
@@ -135,7 +132,6 @@ export default function LeadTable({
   const handleEnrollSave = async (payload: CreateStudent) => {
     try {
       const response = await createStudent(payload);
-      console.log("Student enrolled successfully:", response);
       setIsEnrollModalOpen(false);
     } catch (error) {
       console.error("Failed to save student:", error);

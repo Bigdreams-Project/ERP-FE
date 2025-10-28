@@ -20,10 +20,9 @@ import {
   FileText,
   Home,
   MailIcon,
-  Percent,
   PhoneIcon,
   User,
-  Users,
+  Users
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -84,7 +83,6 @@ const StudentDetails = ({
 
   const handleEditToggle = () => {
     if (isEditing) {
-      console.log("Data:", formData);
       saveStudent(formData);
     } else {
       setIsEditing(true);
@@ -148,9 +146,11 @@ const StudentDetails = ({
                 Payment on {formatDate(payment.createdAt)}
               </span>
               <span className="text-sm text-gray-500">
-                {payment.pending === 0
-                  ? "Full Payment"
-                  : `Partial Payment (Pending: ₦${payment.pending.toLocaleString()})`}
+                {payment.paymentPlan && payment.paymentPlan.pending
+                  ? parseInt(payment.paymentPlan?.pending) === 0
+                    ? "Full Payment"
+                    : `Partial Payment (Pending: ₦${payment.paymentPlan?.pending.toLocaleString()})`
+                  : ""}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -260,7 +260,7 @@ const StudentDetails = ({
         </div>
 
         <h2 className="text-3xl font-extrabold mb-6 text-gray-900">
-          Student Profile: {student.fullName}
+          {student.fullName}
         </h2>
 
         <div className="bg-white rounded-lg w-full max-w-6xl py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -360,16 +360,20 @@ const StudentDetails = ({
                     <div className="text-sm text-gray-600 flex items-center justify-between">
                       <span>
                         {student.payments && student.payments.length > 0
-                          ? student.payments[student.payments.length - 1]
-                              .pending === 0
+                          ? parseFloat(
+                              student.payments[student.payments.length - 1]
+                                .paymentPlan?.pending
+                            ) === 0
                             ? "Paid"
                             : "Pending"
                           : "No payments found"}
                       </span>
                       <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
                         {student.payments && student.payments.length > 0
-                          ? student.payments[student.payments.length - 1]
-                              .pending === 0
+                          ? parseFloat(
+                              student.payments[student.payments.length - 1]
+                                .paymentPlan?.pending
+                            ) === 0
                             ? "Paid"
                             : "Pending"
                           : "N/A"}
@@ -377,7 +381,7 @@ const StudentDetails = ({
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-100 p-4 rounded-lg flex items-center">
+                {/* <div className="bg-gray-100 p-4 rounded-lg flex items-center">
                   <div className="text-xl mr-3 text-gray-500">
                     <Percent size={20} />
                   </div>
@@ -397,13 +401,13 @@ const StudentDetails = ({
                       <span>{2}%</span>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 {renderSection(
                   "Next Payment Due",
                   student.payments && student.payments.length > 0
                     ? formatDate(
                         student.payments[student.payments.length - 1]
-                          .nextPaymentDate
+                          .paymentPlan?.nextPaymentDate
                       )
                     : "No payments found",
                   CalendarDays

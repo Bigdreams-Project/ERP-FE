@@ -9,14 +9,18 @@ import {
   mainMetrics,
   overduePayments,
   revenueDistribution,
-  topCenters,
   topPerformingCenters,
 } from "@/data/mock/finance.data";
+import { User } from "@/types/auth/user.interface";
 import { Plus } from "lucide-react";
 import { BiHomeAlt2 } from "react-icons/bi";
 import { IoDocumentAttachOutline } from "react-icons/io5";
 
-export default function OverviewContent() {
+interface OverviewContentProps {
+  user: User;
+}
+
+const OverviewContent = ({ user }: OverviewContentProps) => {
   return (
     <div className="flex bg-white font-sans text-gray-800">
       <main className="flex-1 py-8 px-3">
@@ -27,14 +31,13 @@ export default function OverviewContent() {
           </h1>
           <div>
             <h1 className="text-2xl font-bold text-white">
-              Welcome, John Doe!
+              Welcome, {user.firstname} {user.lastname}!
             </h1>
             <p className="text-gray-300 mt-1">
-              Have a great morning today, let's dive into your financial
-              operations.
+              Have a great day today, let's dive into your financial operations.
             </p>
             <p className="text-sm font-medium text-white mt-2">
-              Role: COO/HQ Admin
+              Role: {user?.role?.toLocaleUpperCase()}
             </p>
           </div>
         </div>
@@ -62,7 +65,7 @@ export default function OverviewContent() {
         </div>
 
         {/* KPI Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           {kpiData.map((kpi, index) => (
             <div
               key={index}
@@ -85,10 +88,10 @@ export default function OverviewContent() {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Main Metrics (Revenue, Expenses, Profit, Cash Flow) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           {mainMetrics.map((metric, index) => (
             <div
               key={index}
@@ -104,7 +107,7 @@ export default function OverviewContent() {
               <div className="text-sm text-gray-500">{metric.trend}</div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Charts and Top Centers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -154,7 +157,7 @@ export default function OverviewContent() {
         </div>
 
         {/* Overdue Payments */}
-        <div className="bg-white p-6 rounded-2xl shadow-md mb-6">
+        {/* <div className="bg-white p-6 rounded-2xl shadow-md mb-6">
           <h3 className="text-lg font-semibold mb-4 flex justify-between items-center">
             Overdue Payments
             <span className="text-sm text-indigo-600 font-medium cursor-pointer">
@@ -240,10 +243,10 @@ export default function OverviewContent() {
               </tbody>
             </table>
           </div>
-        </div>
+        </div> */}
 
         {/* Franchise Payments Due */}
-        <div className="bg-white p-6 rounded-2xl shadow-md">
+        {/* <div className="bg-white p-6 rounded-2xl shadow-md">
           <h3 className="text-lg font-semibold mb-4 flex justify-between items-center">
             Franchise Payments Due
           </h3>
@@ -325,8 +328,10 @@ export default function OverviewContent() {
               </tbody>
             </table>
           </div>
-        </div>
+        </div> */}
       </main>
     </div>
   );
-}
+};
+
+export default OverviewContent;

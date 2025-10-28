@@ -83,7 +83,6 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      console.log("Data:", formData);
       saveCourse(formData);
     } else {
       setIsEditing(true);

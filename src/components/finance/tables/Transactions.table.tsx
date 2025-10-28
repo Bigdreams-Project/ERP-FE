@@ -82,7 +82,7 @@ export default function BanksTable({
                       {bank.accountNumber}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                      {bank.balance}
+                      ₦{bank.balance.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
@@ -98,9 +98,7 @@ export default function BanksTable({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:underline">
-                      <a
-                        href={`/dashboard/finance/banking/banks/${bank.id}`}
-                      >
+                      <a href={`/dashboard/finance/banking/banks/${bank.id}`}>
                         View Ledger
                       </a>
                     </td>

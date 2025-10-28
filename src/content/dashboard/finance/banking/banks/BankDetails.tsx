@@ -14,8 +14,6 @@ interface BankDetailsProps {
 const BankDetails = ({ bank }: BankDetailsProps) => {
   const [showPicker, setShowPicker] = useState(false);
   const [displayRange, setDisplayRange] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [range, setRange] = useState([
     {
       startDate: new Date(new Date().setDate(new Date().getDate() - 29)),
@@ -48,7 +46,7 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
         <div className="mb-8">
           <div className="flex items-center justify-between text-gray-400">
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
-              Savings Account - {bank.bankName}
+              Account - {bank.bankName}
             </h1>
             <p className="text-md">{formatDateRange(displayRange)}</p>
           </div>

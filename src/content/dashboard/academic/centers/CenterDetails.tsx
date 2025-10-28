@@ -36,7 +36,6 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      console.log("Data:", formData);
       saveCenter(formData);
     } else {
       setIsEditing(true);

@@ -39,7 +39,6 @@ const LeadDetails = ({ lead }: LeadDetailsProps) => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      console.log("Data:", formData);
       saveLead(formData);
     } else {
       setIsEditing(true);

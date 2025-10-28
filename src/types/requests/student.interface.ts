@@ -50,6 +50,7 @@ export interface UpdateStudent {
 export interface CreateStudentPayment {
   studentId: string;
   courseId: string;
+  bankId: string;
   amount: number;
   courseFee: number;
   numberOfInstallments: number;

@@ -86,23 +86,13 @@ const BatchModal: React.FC<IBatchModalProps> = ({
           "duration",
           parseInt(selectedCourse.duration.toString(), 10).toString()
         );
-        setValue("centerId", selectedCourse?.courseAssignments[0]?.centerId || "");
+        setValue(
+          "centerId",
+          selectedCourse?.courseAssignments[0]?.centerId || ""
+        );
       }
-
-      console.log("Selected Course:", selectedCourse?.courseAssignments[0]?.centerId);
     }
   }, [courseId, setValue]);
-
-  // useEffect(() => {
-  //   classSchedule.forEach((schedule, index) => {
-  //     if (schedule.startTime) {
-  //       const newEnd = addHoursToTime(schedule.startTime, 2);
-  //       if (newEnd !== schedule.endTime) {
-  //         setValue(`schedules.${index}.endTime`, newEnd);
-  //       }
-  //     }
-  //   });
-  // }, [classSchedule, setValue]);
 
   // Reset the form
   useEffect(() => {

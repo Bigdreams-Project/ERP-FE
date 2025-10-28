@@ -1,5 +1,10 @@
 import StudentContent from "@/content/dashboard/academic/students";
-import { getCenters, getCourses, getLeads, getStudents } from "@/lib/network";
+import {
+  getCenters,
+  getCourses,
+  getLeads,
+  getStudents
+} from "@/lib/network";
 
 export default async function Students() {
   const students = await getStudents();
@@ -8,6 +13,11 @@ export default async function Students() {
   const leads = await getLeads();
 
   return (
-    <StudentContent students={students} courses={courses} centers={centers} leads={leads} />
+    <StudentContent
+      students={students}
+      courses={courses}
+      centers={centers}
+      leads={leads}
+    />
   );
 }

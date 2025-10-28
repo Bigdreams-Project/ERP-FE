@@ -36,7 +36,6 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      console.log("Data:", formData);
       saveCourse(formData);
     } else {
       setIsEditing(true);

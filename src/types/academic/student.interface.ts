@@ -1,3 +1,4 @@
+import { Bank } from "../finance/bank.interface";
 import { Payment } from "../finance/payment.interface";
 import { CreateStudent, UpdateStudent } from "../requests/student.interface";
 import { StudentBatch } from "./batch.interface";
@@ -93,6 +94,7 @@ export interface IStudent {
   paymentMethod: string;
   notes: string;
   courseId: string;
+  bankId: string;
   batchId: string | null;
 }
 

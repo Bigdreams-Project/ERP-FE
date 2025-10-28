@@ -2,11 +2,11 @@
 
 import AddPaymentModal from "@/components/modals/academic/AddPaymentModal";
 import { getStudentCourses } from "@/lib/network";
+import { formatDate } from "@/lib/utils";
 import { Student } from "@/types/academic/student.interface";
 import { useEffect, useState } from "react";
 import Card from "./Card";
 import InfoItem from "./InfoItem";
-import { formatDate } from "@/lib/utils";
 
 interface Props {
   data: Student;
@@ -20,10 +20,8 @@ const StudentCourses = ({ data }: Props) => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await getStudentCourses(data.id);
-        const formattedCourses = res.map((item: any) => item);
-
-        console.log("Courses:", formattedCourses);
+        const response = await getStudentCourses(data.id);
+        const formattedCourses = response.map((item: any) => item);
         setCourses(formattedCourses);
       } catch (error) {
         console.error("Failed to fetch student courses:", error);

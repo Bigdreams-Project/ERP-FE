@@ -527,6 +527,17 @@ export const getBanks = async () => {
   }
 };
 
+export const getCenterBanks = async (centerId: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/banks/center/${centerId}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch center's banks:", err.message);
+    return [];
+  }
+};
+
 export const getBank = async (id: string) => {
   try {
     const api = await server();

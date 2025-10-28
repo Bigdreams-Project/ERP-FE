@@ -57,6 +57,7 @@ export const enrollmentSchema = yup.object().shape({
     .nullable()
     .notRequired() as yup.StringSchema<string | null>,
   courseId: yup.string().required("Course of interest is required"),
+  bankId: yup.string().required("Bank is required"),
   batchId: yup
     .string()
     .optional()
@@ -139,6 +140,7 @@ export const editStudentSchema = yup.object().shape({
 export const addStudentPaymentSchema = yup.object().shape({
   studentId: yup.string().required("Student ID is required"),
   courseId: yup.string().required("Course selection is required"),
+  bankId: yup.string().required("Bank selection is required"),
   amount: yup
     .number()
     .typeError("Amount must be a number")

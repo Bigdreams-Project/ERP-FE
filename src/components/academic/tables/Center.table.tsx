@@ -134,9 +134,6 @@ export default function CenterTable({
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
       const response = await createCenter(payload, isDraft);
-
-      console.log("Center created successfully:", response);
-
       setData((prev) => [...prev, response]);
       setIsModalOpen(false);
     } catch (error) {

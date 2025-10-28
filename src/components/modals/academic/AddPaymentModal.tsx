@@ -1,14 +1,14 @@
 "use client";
 import { updateStudentCoursePayment } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
-import { Course } from "@/types/academic/course.interface";
+import { Payment } from "@/types/finance/payment.interface";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 interface AddPaymentModalProps {
   course: any;
-  payment?: any;
+  payment?: Payment;
   studentId: string;
   onClose: () => void;
 }
@@ -22,8 +22,6 @@ const AddPaymentModal = ({
   const [amount, setAmount] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  console.log("Modal course:", course);
-
   const handleSubmit = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       toast.error("Please enter a valid amount");
@@ -33,10 +31,11 @@ const AddPaymentModal = ({
     const payload = {
       studentId,
       courseId: course.course.id!,
+      bankId: payment?.bankId!,
       amount: parseFloat(amount),
-      paymentPlan: "Installment",
-      paymentType: "Tuition",
-      paymentMethod: "Cash",
+      paymentPlan: payment?.paymentPlan?.name!,
+      paymentType: payment?.paymentType!,
+      paymentMethod: payment?.paymentMethod!,
       courseFee: course.course?.courseAssignments[0]?.lumpSumFee,
       numberOfInstallments:
         course.course?.courseAssignments[0]?.maxInstallments,
@@ -98,7 +97,7 @@ const AddPaymentModal = ({
             <div className="text-sm text-gray-600">
               <p>
                 <span className="font-semibold">Outstanding Balance:</span> ₦
-                {payment.pending?.toLocaleString() || 0}
+                {payment.paymentPlan.pending?.toLocaleString() || 0}
               </p>
             </div>
           )}

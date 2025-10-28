@@ -110,8 +110,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
     try {
       const response = await createCourse(payload, isDraft);
-      console.log("Course created successfully:", response);
-
       setData((prev) => [...prev, response]);
       setIsModalOpen(false);
     } catch (error) {

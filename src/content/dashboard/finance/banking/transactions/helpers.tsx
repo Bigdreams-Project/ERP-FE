@@ -1,13 +1,15 @@
+import {
+  getPaymentMethod,
+  getPaymentType,
+} from "@/components/academic/utils/payment";
 import { formatDate } from "@/lib/utils";
 import { Payment } from "@/types/finance/payment.interface";
 import {
   Book,
-  Box,
   Calendar,
   CheckCircle,
   Clock,
   CreditCard,
-  DollarSign,
   Download,
   Edit,
   Gavel,
@@ -42,13 +44,28 @@ export const DetailRow = ({
   </div>
 );
 
+export const DetailRow2 = ({
+  icon: Icon,
+  label,
+  value,
+  valueClassName = "font-medium text-gray-800",
+}: any) => (
+  <div className="flex items-start gap-4 justify-between py-2 border-b border-gray-100 last:border-b-0">
+    <div className="flex items-center text-gray-500">
+      <Icon className="w-4 h-4 mr-3 text-gray-400" />
+      <span className="text-sm">{label}</span>
+    </div>
+    <span className={valueClassName}>{value}</span>
+  </div>
+);
+
 export const PaymentSummary = ({ data }: Props) => {
   const getStatus = (pending: number) => {
     return pending === 0 ? "Paid" : "Pending";
   };
 
   const statusColor =
-    getStatus(data.pending) === "Paid"
+    getStatus(parseFloat(data.paymentPlan.pending)) === "Paid"
       ? "bg-green-100 text-green-700"
       : "bg-red-100 text-red-700";
 
@@ -66,7 +83,7 @@ export const PaymentSummary = ({ data }: Props) => {
         <span
           className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColor}`}
         >
-          {getStatus(data.pending)}
+          {getStatus(parseFloat(data.paymentPlan.pending))}
         </span>
       </div>
 
@@ -80,7 +97,7 @@ export const PaymentSummary = ({ data }: Props) => {
         <DetailRow
           icon={CreditCard}
           label="Payment Method"
-          value={data.paymentPlan}
+          value={getPaymentMethod(data.paymentMethod)}
         />
         <DetailRow icon={Hash} label="Reference ID" value={data.id} />
         <DetailRow icon={Landmark} label="Bank" value={data.bank?.bankName} />
@@ -98,20 +115,16 @@ export const PaymentDetails = ({ data }: Props) => {
       </h2>
 
       <div className="divide-y divide-gray-100 mb-6">
-        <DetailRow
+        <DetailRow2
           icon={Book}
           label="Course"
-          value={
-            data.student?.courses && data.student?.courses.length > 0
-              ? data.student?.courses[0]?.name
-              : "No enrolled courses"
-          }
+          value={data.course ? data.course?.name : "No enrolled course"}
         />
         {/* <DetailRow icon={Box} label="Batch" value={data.batch} /> */}
         <DetailRow
           icon={BiMoney}
           label="Payment Type"
-          value={data.paymentPlan}
+          value={getPaymentType(data.paymentType)}
         />
       </div>
 
@@ -119,19 +132,19 @@ export const PaymentDetails = ({ data }: Props) => {
         <DetailRow
           icon={Percent}
           label="Total Fee"
-          value={`₦${data.amount.toLocaleString()}`}
+          value={`₦${data.paymentPlan.amount.toLocaleString()}`}
           valueClassName="font-bold text-gray-900"
         />
         <DetailRow
           icon={CheckCircle}
           label="Paid So Far"
-          value={`₦${data.paid.toLocaleString()}`}
+          value={`₦${data.paymentPlan.paid.toLocaleString()}`}
           valueClassName="font-bold text-gray-900"
         />
         <DetailRow
           icon={Receipt}
           label="Balance"
-          value={`₦${(data.amount - data.paid).toLocaleString()}`}
+          value={`₦${parseFloat(data.paymentPlan.pending).toLocaleString()}`}
           valueClassName="font-extrabold text-red-600"
         />
       </div>
@@ -153,7 +166,7 @@ export const AdditionalActions = ({ data }: any) => {
             ? "bg-red-500 hover:bg-red-600 text-white shadow-md"
             : "text-gray-700 bg-gray-50 hover:bg-gray-100"
         }`}
-      onClick={() => console.log(`${label} clicked`)}
+      onClick={() => {}}
     >
       <Icon
         className={`w-4 h-4 mr-3 ${
@@ -230,11 +243,11 @@ export const PayerInformation = ({ data }: Props) => {
 export const ProofOfPayment = ({ data }: any) => {
   const UploadedInfo = ({ uploadedBy, uploadedDate, proofStatus }: any) => (
     <div className="my-4 text-sm text-gray-600">
-      <p>
-        Uploaded by{" "}
+      {/* <p>
+        Uploaded by
         <span className="font-semibold text-gray-800">{uploadedBy}</span> on{" "}
         {uploadedDate}
-      </p>
+      </p> */}
       <p className="text-xs text-gray-500 mt-1">{proofStatus}</p>
     </div>
   );
@@ -257,7 +270,7 @@ export const ProofOfPayment = ({ data }: any) => {
 
       <button
         className="flex items-center justify-center w-full px-4 py-3 bg-white border border-gray-300 text-sm font-medium rounded-xl text-gray-700 hover:bg-gray-50 transition duration-150 ease-in-out"
-        onClick={() => console.log("View Receipt clicked")}
+        onClick={() => {}}
       >
         <Receipt className="w-5 h-5 mr-3 text-blue-600" />
         View Receipt
@@ -269,17 +282,17 @@ export const ProofOfPayment = ({ data }: any) => {
         <SecondaryButton
           icon={Printer}
           label="Print Receipt"
-          onClick={() => console.log("Print Receipt clicked")}
+          onClick={() => {}}
         />
         <SecondaryButton
           icon={Share}
           label="Share on WhatsApp"
-          onClick={() => console.log("Share on WhatsApp clicked")}
+          onClick={() => {}}
         />
         <SecondaryButton
           icon={Download}
           label="Download PDF"
-          onClick={() => console.log("Download PDF clicked")}
+          onClick={() => {}}
         />
       </div>
     </div>

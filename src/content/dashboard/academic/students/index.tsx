@@ -4,12 +4,13 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/mock/academic.data";
-import { createStudent, getStudents } from "@/lib/network";
+import { createStudent } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
+import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent } from "@/types/requests/student.interface";
 import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
@@ -27,7 +28,7 @@ const StudentContent = ({
   students,
   courses,
   centers,
-  leads,
+  leads
 }: StudentContentProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 

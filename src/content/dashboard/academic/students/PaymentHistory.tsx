@@ -33,7 +33,7 @@ const PaymentHistory = ({ data }: Props) => (
                 ₦{item.amount.toLocaleString()}
               </td>
               <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                {item.paymentPlan}
+                {item.paymentPlan && item.paymentPlan.name}
               </td>
               <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
                 {item.id}

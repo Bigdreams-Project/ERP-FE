@@ -18,13 +18,29 @@ export function formatDate(dateString: string): string {
 export function formatDateRange(range: string): string {
   if (!range.includes("-")) return range;
 
-  const [start, end] = range.split("-").map((s) => s.trim());
+  const [startRaw, endRaw] = range.split("-").map((s) => s.trim());
 
-  const [startDay, startMonth, startYear] = start.split("/").map(Number);
-  const [endDay, endMonth, endYear] = end.split("/").map(Number);
+  const parseMMDDYYYY = (s: string): Date | null => {
+    const parts = s.split("/").map((p) => p.trim());
+    if (parts.length !== 3) return null;
 
-  const startDate = new Date(startYear, startMonth - 1, startDay);
-  const endDate = new Date(endYear, endMonth - 1, endDay);
+    const month = Number(parts[0]);
+    const day = Number(parts[1]);
+    let year = Number(parts[2]);
+
+    if (Number.isNaN(month) || Number.isNaN(day) || Number.isNaN(year)) return null;
+
+    if (year < 100) year = 2000 + year;
+
+    return new Date(year, month - 1, day);
+  };
+
+  const startDate = parseMMDDYYYY(startRaw);
+  const endDate = parseMMDDYYYY(endRaw);
+
+  if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return range;
+  }
 
   const formatter = new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -32,12 +48,8 @@ export function formatDateRange(range: string): string {
     year: "numeric",
   });
 
-  const formattedStart = formatter.format(startDate);
-  const formattedEnd = formatter.format(endDate);
-
-  return `${formattedStart} – ${formattedEnd}`;
+  return `${formatter.format(startDate)} – ${formatter.format(endDate)}`;
 }
-
 
 export function addHoursToTime(time: string, hours: number): string {
   if (!time) return "";

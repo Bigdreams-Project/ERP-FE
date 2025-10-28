@@ -1,10 +1,16 @@
-import { paymentMethods, paymentPlan, paymentTypes, statuses } from "@/data/view/student.data";
-import { getCourse } from "@/lib/network";
+import {
+  paymentMethods,
+  paymentPlan,
+  paymentTypes,
+  statuses,
+} from "@/data/view/student.data";
+import { getCenterBanks, getCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
 import {
   IStudent,
   IStudentModalProps,
 } from "@/types/academic/student.interface";
+import { Bank } from "@/types/finance/bank.interface";
 import { enrollmentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
@@ -22,6 +28,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   centers,
   leads,
 }) => {
+  const [banks, setBanks] = useState<Bank[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
   const {
     register,
@@ -47,12 +54,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       guardianEmail: "",
       guardianAddress: "",
       courseId: "",
+      bankId: "",
       batchId: "",
     },
   });
 
   const leadId = watch("leadId");
   const courseId = watch("courseId");
+  const centerId = watch("centerId");
   const paymentplan = watch("paymentPlan");
   const amount = watch("amount");
 
@@ -65,6 +74,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
   const [enrolledDate, setEnrolledDate] = useState<Date | null>(null);
   const [birthDate, setBirthDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const response = await getCenterBanks(centerId);
+        const formattedBanks = response.map((item: any) => item);
+        setBanks(formattedBanks);
+      } catch (error) {
+        console.error("Failed to fetch center's banks:", error);
+      }
+    };
+
+    if (centerId) fetchBanks();
+  }, [centerId]);
 
   useEffect(() => {
     if (plan === "lumpsum") {
@@ -111,7 +134,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       setValue("guardianAddress", lead.guardians[0]?.address);
       setValue("courseId", lead.courseId);
     }
-  }, [leadId, leads, setValue]); 
+  }, [leadId, leads, setValue]);
 
   useEffect(() => {
     if (!courseId) {
@@ -150,7 +173,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const onSubmit = (data: IStudent | any) => {
     if (showBaseFeeError) return;
     onSave(data);
-    console.log(data);
   };
 
   if (!isOpen) return null;
@@ -582,6 +604,36 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               {errors.amount && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.amount.message}
+                </p>
+              )}
+            </div>
+
+            {/* Bank  */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="bankId"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Bank
+              </label>
+              <select
+                id="bankId"
+                {...register("bankId")}
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Bank</option>
+                {banks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>
+                    {bank.bankName}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.bankId && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.bankId.message}
                 </p>
               )}
             </div>
