@@ -25,7 +25,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   initialData,
   onSave,
   courses,
-  centers,
+  centers, 
   leads,
 }) => {
   const [banks, setBanks] = useState<Bank[]>([]);

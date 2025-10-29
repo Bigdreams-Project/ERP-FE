@@ -1,4 +1,3 @@
-import { Bank } from "../finance/bank.interface";
 import { Payment } from "../finance/payment.interface";
 import { CreateStudent, UpdateStudent } from "../requests/student.interface";
 import { StudentBatch } from "./batch.interface";
@@ -33,7 +32,7 @@ export interface BatchStudent {
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
-  payments: any[];
+  payments: Payment[];
   createdAt: string;
 }
 
@@ -85,14 +84,14 @@ export interface IStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
-  amount: string | null;
+  amount: string | null; 
   courseFee: string | null;
   lumpSumFee: string | null;
   numberOfInstallments: string | null;
   paymentPlan: string;
   paymentType: string;
   paymentMethod: string;
-  notes: string;
+  notes: string | null;
   courseId: string;
   bankId: string;
   batchId: string | null;

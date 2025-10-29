@@ -69,16 +69,16 @@ const StudentCourses = ({ data }: Props) => {
                   <InfoItem
                     label="Total Fee"
                     value={
-                      course?.paymentPlans
-                        ? `₦${course?.paymentPlans[0].amount.toLocaleString()}`
+                      course?.paymentPlan
+                        ? `₦${course?.paymentPlan.amount.toLocaleString()}`
                         : "N/A"
                     }
                   />
                   <InfoItem
                     label="Amount Paid"
                     value={
-                      course?.paymentPlans
-                        ? `₦${course?.paymentPlans[0].paid.toLocaleString()}`
+                      course?.paymentPlan
+                        ? `₦${course?.paymentPlan.paid.toLocaleString()}`
                         : "N/A"
                     }
                     valueColor="text-green-600"
@@ -86,8 +86,8 @@ const StudentCourses = ({ data }: Props) => {
                   <InfoItem
                     label="Balance Due"
                     value={
-                      course?.paymentPlans
-                        ? `₦${course?.paymentPlans[0].pending.toLocaleString()}`
+                      course?.paymentPlan
+                        ? `₦${course?.paymentPlan.pending.toLocaleString()}`
                         : "N/A"
                     }
                     valueColor="text-red-600"
@@ -95,8 +95,8 @@ const StudentCourses = ({ data }: Props) => {
                   <InfoItem
                     label="Next Payment Due"
                     value={
-                      course?.paymentPlans
-                        ? formatDate(course?.paymentPlans[0].nextPaymentDate)
+                      course?.paymentPlan
+                        ? formatDate(course?.paymentPlan.nextPaymentDate)
                         : "N/A"
                     }
                     valueColor="text-gray-700"
@@ -111,7 +111,7 @@ const StudentCourses = ({ data }: Props) => {
       {selectedCourse && (
         <AddPaymentModal
           course={selectedCourse.course}
-          payment={selectedCourse.payment}
+          paymentPlan={selectedCourse.course.paymentPlan}
           studentId={data.id}
           onClose={() => setSelectedCourse(null)}
         />

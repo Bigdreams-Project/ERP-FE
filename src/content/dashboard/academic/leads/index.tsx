@@ -70,7 +70,6 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
       const newLead = await createLead(payload);
       showSuccess("Lead created successfully");
       setIsModalOpen(false);
-
       setLeadList((prev) => [newLead, ...prev]);
     } catch (error) {
       showError("Failed to save lead");

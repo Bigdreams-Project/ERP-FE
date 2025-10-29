@@ -2,6 +2,24 @@ import { Course } from "../academic/course.interface";
 import { Student } from "../academic/student.interface";
 import { Bank } from "./bank.interface";
 
+export interface IPayment {
+  id: string;
+  userId: string;
+  bankId: string;
+  amount: number;
+  balance: number;
+  message: string;
+  disclaimer: string;
+  paymentDate: string;
+  paymentType: string;
+  paymentMethod: string;
+  bank: Bank;
+  course: Course;
+  student: Student;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface PaymentPlan {
   id: string;
   userId: string;
@@ -17,6 +35,7 @@ export interface PaymentPlan {
   nextPaymentDate: string;
   regDate: string;
   course: Course;
+  payments: IPayment[];
   createdAt: string;
   updatedAt: string;
 }

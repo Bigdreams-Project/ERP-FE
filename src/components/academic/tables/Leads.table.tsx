@@ -1,21 +1,22 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
+import EnrollStudentModal from "@/components/modals/academic/StudentModal";
+import DeleteModal from "@/components/modals/common/Delete.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { createLead, createStudent, deleteLead } from "@/lib/network";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { CreateLead } from "@/types/requests/lead.interface";
+import { CreateStudent } from "@/types/requests/student.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import EnrollStudentModal from "@/components/modals/academic/StudentModal";
-import { CreateStudent } from "@/types/requests/student.interface";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   leads: Lead[];
@@ -132,9 +133,12 @@ export default function LeadTable({
   const handleEnrollSave = async (payload: CreateStudent) => {
     try {
       const response = await createStudent(payload);
+      showSuccess("Student enrolled successfully");
       setIsEnrollModalOpen(false);
+      router.push("/dashboard/academic/students");
     } catch (error) {
       console.error("Failed to save student:", error);
+      showError("Student enrollment failed");
     }
   };
 

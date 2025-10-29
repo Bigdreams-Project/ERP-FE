@@ -241,13 +241,13 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                           Name
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Attendance %
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Payment Status
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Amount Paid
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Balance
                         </th>
                       </tr>
                     </thead>
@@ -258,13 +258,19 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                             {student?.fullName}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {0}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {student?.payments[0].pending ? "Pending" : "Paid"}
+                            {parseFloat(
+                              student?.payments[0]?.paymentPlan?.pending
+                            ) !== 0
+                              ? "Pending"
+                              : "Paid"}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ₦{student?.payments[0].paid.toLocaleString()}
+                            ₦
+                            {student?.payments[0].paymentPlan?.paid.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ₦
+                            {student?.payments[0].paymentPlan?.pending.toLocaleString()}
                           </td>
                         </tr>
                       ))}

@@ -104,7 +104,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
       await enrollStudentCourse(payload);
       showSuccess("Payment recorded successfully!");
       queryClient.invalidateQueries(["students"]);
-      queryClient.invalidateQueries(["student", studentId]);
+      queryClient.invalidateQueries(["student", studentId]); 
       reset();
     } catch (error) {
       console.error("Failed to record payment:", error);
