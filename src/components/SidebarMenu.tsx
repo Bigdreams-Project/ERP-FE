@@ -127,15 +127,15 @@ const SidebarMenu = ({
         // { label: "Expenses", href: "/dashboard/finance/expenses" },
       ],
     },
-    {
-      label: "HR & Staffs",
-      icon: (props) => <StaffIcon {...props} />,
-      links: [
-        { label: "Overview", href: "/dashboard/hr-staff/overview" },
-        { label: "Invoices", href: "/dashboard/hr-staff/invoices" },
-        { label: "Payments", href: "/dashboard/hr-staff/payments" },
-      ],
-    },
+    // {
+    //   label: "HR & Staffs",
+    //   icon: (props) => <StaffIcon {...props} />,
+    //   links: [
+    //     { label: "Overview", href: "/dashboard/hr-staff/overview" },
+    //     { label: "Invoices", href: "/dashboard/hr-staff/invoices" },
+    //     { label: "Payments", href: "/dashboard/hr-staff/payments" },
+    //   ],
+    // },
     // {
     //   label: "Reporting",
     //   icon: (props) => <ChartBarAxisXIcon {...props} />,
