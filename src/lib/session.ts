@@ -16,7 +16,6 @@ export const createSession = async (payload: Session) => {
     .setExpirationTime(expiresAt)
     .sign(encodedKey);
 
-  console.log("Creating session with payload:", payload);
   const cookieStore = await cookies();
   cookieStore.set("session", session, {
     httpOnly: true,
@@ -25,7 +24,6 @@ export const createSession = async (payload: Session) => {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/",
   });
-  console.log("Session cookie set, cookie value:", cookieStore.get("session")?.value ? "set" : "not set");
 };
 
 export const getSession = async () => {
