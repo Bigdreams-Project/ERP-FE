@@ -16,7 +16,6 @@ export const loginUser = async (credentials: ILoginUser) => {
       throw new Error(`Login failed with status ${response.status}`);
     }
 
-    console.log("Backend response:", response.data);
     const { id, email: userEmail, accessToken, refreshToken } = response.data;
 
     await createSession({
