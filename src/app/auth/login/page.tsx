@@ -35,10 +35,14 @@ export default function Login() {
 
   const { mutate, isPending, isError, error, isSuccess } = useMutation({
     mutationFn: loginUser,
-    onSuccess: () => {
-      router.push(DashboardAcademicRoutes.OVERVIEW);
+    onSuccess: (data) => {
+      console.log("Login successful, redirecting...", data);
+      setTimeout(() => {
+        router.push(DashboardAcademicRoutes.OVERVIEW);
+      }, 500);
     },
-    onError: () => {
+    onError: (err) => {
+      console.error("Login error:", err);
       setApiError("Invalid email or password.");
     },
   });
