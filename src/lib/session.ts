@@ -29,19 +29,25 @@ export const createSession = async (payload: Session) => {
 };
 
 export const getSession = async () => {
-  const cookie = (await cookies()).get("session")?.value;
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get("session")?.value;
+  console.log("getSession - cookie exists:", !!cookie);
 
-  if (!cookie) return null;
+  if (!cookie) {
+    console.log("getSession - no cookie found, all cookies:", cookieStore.getAll().map(c => c.name));
+    return null;
+  }
 
   try {
     const { payload } = await jwtVerify(cookie, encodedKey, {
       algorithms: ["HS256"],
     });
-
+    console.log("getSession - verified session:", payload);
     return payload as Session;
   } catch (error) {
     console.error("Failed to verify the session", error);
-    return null;  }
+    return null;
+  }
 };
 
 export const deleteSession = async () => {
