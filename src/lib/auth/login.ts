@@ -16,14 +16,15 @@ export const loginUser = async (credentials: ILoginUser) => {
       throw new Error(`Login failed with status ${response.status}`);
     }
 
+    console.log("Backend response:", response.data);
     const { id, email: userEmail, accessToken, refreshToken } = response.data;
 
     await createSession({
-      user: { id, email: userEmail },
+      user: { id, email: userEmail || credentials.email },
       accessToken,
       refreshToken,
     });
-    return { user: { id, email: userEmail }, accessToken, refreshToken };
+    return { user: { id, email: userEmail || credentials.email }, accessToken, refreshToken };
   } catch (error: any) {
     if (error.response) {
       console.error(
