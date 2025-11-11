@@ -16,13 +16,16 @@ export const createSession = async (payload: Session) => {
     .setExpirationTime(expiresAt)
     .sign(encodedKey);
 
-  (await cookies()).set("session", session, {
+  console.log("Creating session with payload:", payload);
+  const cookieStore = await cookies();
+  cookieStore.set("session", session, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: expiresAt,
     sameSite: "lax",
     path: "/",
   });
+  console.log("Session cookie set, cookie value:", cookieStore.get("session")?.value ? "set" : "not set");
 };
 
 export const getSession = async () => {
