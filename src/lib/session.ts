@@ -20,9 +20,9 @@ export const createSession = async (payload: Session) => {
   const cookieStore = await cookies();
   cookieStore.set("session", session, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     expires: expiresAt,
-    sameSite: "lax",
+    sameSite: "none",
     path: "/",
   });
   console.log("Session cookie set, cookie value:", cookieStore.get("session")?.value ? "set" : "not set");
