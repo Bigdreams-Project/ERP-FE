@@ -324,14 +324,16 @@ const OverviewContent = ({
           </h1>
           <div>
             <h1 className="text-2xl font-bold text-white">
-              Welcome, {user.firstname} {user.lastname}!
+              Welcome, {user?.firstname || "User"} {user?.lastname || ""}!
             </h1>
             <p className="text-gray-300 mt-1">
               Here's what's happening today across your academic operations.
             </p>
-            <p className="text-sm font-medium text-white mt-2">
-              Role: {user?.role?.toLocaleUpperCase()}
-            </p>
+            {user?.role && (
+              <p className="text-sm font-medium text-white mt-2">
+                Role: {user.role.toLocaleUpperCase()}
+              </p>
+            )}
           </div>
         </div>
 
