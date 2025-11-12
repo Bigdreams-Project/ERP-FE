@@ -1,9 +1,5 @@
-import Overview from "./dashboard/academic/overview/page";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div>
-      <Overview />
-    </div>
-  );
+  redirect("/dashboard/academic/overview");
 }
