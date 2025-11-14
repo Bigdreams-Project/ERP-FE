@@ -1,7 +1,9 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createLead, createStudent, deleteLead } from "@/lib/network";
+import { createStudentClient, deleteLeadClient } from "@/lib/client-network";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -36,6 +38,7 @@ export default function LeadTable({
   filterOptions,
 }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [data, setData] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
@@ -47,6 +50,11 @@ export default function LeadTable({
 
   const [filteredData, setFilteredData] = useState(data);
   const itemsPerPage = 10;
+
+  // Update data when leads prop changes (from React Query)
+  useEffect(() => {
+    setData(leads);
+  }, [leads]);
 
   useEffect(() => {
     let result = data;
@@ -119,36 +127,63 @@ export default function LeadTable({
     }
   };
 
+  // Mutation for enrolling student from lead
+  const { mutate: enrollStudentMutation } = useMutation({
+    mutationFn: createStudentClient,
+    onSuccess: (newStudent) => {
+      showSuccess("Student enrolled successfully");
+      setIsEnrollModalOpen(false);
+      // Optimistically update caches
+      queryClient.setQueryData(["students"], (old: any[] = []) => [newStudent, ...old]);
+      // Remove the lead from the list (since it's now enrolled)
+      queryClient.setQueryData(["leads"], (old: Lead[] = []) => 
+        old.filter(lead => lead.id !== selectedLeadId)
+      );
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["students"], refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to save student:", error);
+      showError("Failed to enroll student");
+      // Revert optimistic updates on error
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+    },
+  });
+
+  // Mutation for deleting lead
+  const { mutate: deleteLeadMutation } = useMutation({
+    mutationFn: deleteLeadClient,
+    onSuccess: () => {
+      showSuccess("Lead deleted successfully");
+      setIsDeleteModalOpen(false);
+      // Optimistically remove from cache
+      queryClient.setQueryData(["leads"], (old: Lead[] = []) => 
+        old.filter(lead => lead.id !== selectedLeadId)
+      );
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to delete lead:", error);
+      showError("Failed to delete lead");
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+    },
+  });
+
   const handleSave = async (payload: CreateLead) => {
-    try {
-      const response = await createLead(payload);
-
-      console.log("Lead created successfully:", response);
-
-      setData((prev) => [...prev, response]);
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save lead:", error);
-    }
+    // This is handled by parent component, but keeping for compatibility
+    console.log("Lead save handled by parent");
   };
 
   const handleEnrollSave = async (payload: CreateStudent) => {
-    try {
-      const response = await createStudent(payload);
-      console.log("Student enrolled successfully:", response);
-      setIsEnrollModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save student:", error);
-    }
+    enrollStudentMutation(payload);
   };
 
   const handleDeleteLead = async (leadId: string) => {
-    try {
-      await deleteLead(leadId);
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to delete lead:", error);
-    }
+    deleteLeadMutation(leadId);
   };
 
   const handleEnroll = (leadId: string) => {

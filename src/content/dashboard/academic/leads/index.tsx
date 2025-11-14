@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useCenter } from "@/context/CenterContext";
-import { createLead } from "@/lib/network";
+import { createLeadClient, getLeadsClient, getCentersClient, getCoursesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface LeadContentProps {
   leads: Lead[];
@@ -27,10 +28,14 @@ interface LeadContentProps {
   courses: Course[];
 }
 
-const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
+const LeadContent = ({ 
+  leads: initialLeads, 
+  centers: initialCenters, 
+  courses: initialCourses 
+}: LeadContentProps) => {
+  const queryClient = useQueryClient();
   const { selectedCenter } = useCenter();
 
-  const [leadList, setLeadList] = useState<Lead[]>(leads);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -42,10 +47,56 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
     endDate: "",
   });
 
+  // Use React Query to fetch and cache leads
+  const { data: leads = initialLeads } = useQuery({
+    queryKey: ["leads"],
+    queryFn: getLeadsClient,
+    initialData: initialLeads,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache centers
+  const { data: centers = initialCenters } = useQuery({
+    queryKey: ["centers"],
+    queryFn: getCentersClient,
+    initialData: initialCenters,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache courses
+  const { data: courses = initialCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: getCoursesClient,
+    initialData: initialCourses,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Mutation for creating leads
+  const { mutate: createLeadMutation, isPending: isCreating } = useMutation({
+    mutationFn: createLeadClient,
+    onSuccess: (newLead) => {
+      showSuccess("Lead created successfully");
+      setIsModalOpen(false);
+      // Optimistically update the cache
+      queryClient.setQueryData(["leads"], (old: Lead[] = []) => [newLead, ...old]);
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to save lead:", error);
+      showError("Failed to save lead");
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+    },
+  });
+
   const filteredLeads =
     selectedCenter === "all"
-      ? leadList
-      : leadList.filter((lead) => lead.centerId === selectedCenter);
+      ? leads
+      : leads.filter((lead) => lead.centerId === selectedCenter);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -66,16 +117,7 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
   }, [searchInput]);
 
   const handleSave = async (payload: CreateLead) => {
-    try {
-      const newLead = await createLead(payload);
-      showSuccess("Lead created successfully");
-      setIsModalOpen(false);
-
-      setLeadList((prev) => [newLead, ...prev]);
-    } catch (error) {
-      showError("Failed to save lead");
-      console.error("Failed to save lead:", error);
-    }
+    createLeadMutation(payload);
   };
 
   const handleFilterChange = (newFilters: any) => {

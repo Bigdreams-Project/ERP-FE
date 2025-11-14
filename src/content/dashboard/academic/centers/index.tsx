@@ -2,11 +2,12 @@
 import { useState, useEffect } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CenterTable from "@/components/academic/tables/Center.table";
 import CenterModal from "@/components/modals/academic/Center.modal";
-import { createCenter, getCenters } from "@/lib/network";
+import { createCenterClient, getCentersClient, getManagersClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
@@ -18,15 +19,52 @@ interface CenterContentProps {
 
 const CenterContent = ({
   centers: initialCenters,
-  managers,
+  managers: initialManagers,
 }: CenterContentProps) => {
-  const [centers, setCenters] = useState<Center[]>(initialCenters);
+  const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  // Use React Query to fetch and cache centers
+  const { data: centers = initialCenters } = useQuery({
+    queryKey: ["centers"],
+    queryFn: getCentersClient,
+    initialData: initialCenters,
+    staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
+    refetchOnMount: false, // Don't refetch if data is fresh
+  });
+
+  // Use React Query to fetch and cache managers
+  const { data: managers = initialManagers } = useQuery({
+    queryKey: ["managers"],
+    queryFn: getManagersClient,
+    initialData: initialManagers,
+    enabled: false, // Only fetch if needed, using initial data for now
+  });
+
+  // Mutation for creating centers
+  const { mutate: createCenterMutation, isPending: isCreating } = useMutation({
+    mutationFn: async ({ payload, isDraft }: { payload: CreateCenter; isDraft: boolean }) => {
+      return await createCenterClient(payload, isDraft);
+    },
+    onSuccess: (newCenter) => {
+      showSuccess("Center created successfully");
+      setIsModalOpen(false);
+      // Optimistically update the cache
+      queryClient.setQueryData(["centers"], (old: Center[] = []) => [newCenter, ...old]);
+      // Invalidate to ensure we have the latest data (but won't refetch if component isn't mounted)
+      queryClient.invalidateQueries({ queryKey: ["centers"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to create center:", error);
+      showError("Failed to create center");
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["centers"] });
+    },
+  });
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) setIsTyping(true);
@@ -46,39 +84,20 @@ const CenterContent = ({
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const fetchCenters = async () => {
-    try {
-      setLoading(true);
-      const data = await getCenters();
-      setCenters(data);
-    } catch (error) {
-      console.error("Failed to fetch centers:", error);
-      showError("Failed to refresh centers");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
-    try {
-      await createCenter(payload, isDraft);
-      showSuccess("Center created successfully");
-      setIsModalOpen(false);
-      await fetchCenters();
-    } catch (error) {
-      console.error("Failed to create center:", error);
-      showError("Failed to create center");
-    }
+    createCenterMutation({ payload, isDraft });
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-hidden">
       <BreadCrumb paths={[{ name: "Centers" }]} />
 
-      <div className="w-full flex items-center justify-between mt-4">
-        <AcademicTabs />
+      <div className="w-full flex items-center">
+        <div className="flex items-center mt-4">
+          <AcademicTabs />
+        </div>
 
-        <div className="flex items-center gap-6">
+        <div className="w-full flex items-center justify-end gap-7 p-2">
           {/* Search Input */}
           <div className="w-[250px]">
             <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:border-indigo-500 transition-all duration-150">
@@ -111,7 +130,7 @@ const CenterContent = ({
       <CenterTable
         searchQuery={searchQuery}
         centers={centers}
-        managers={managers}
+        managers={initialManagers}
       />
 
       <CenterModal
