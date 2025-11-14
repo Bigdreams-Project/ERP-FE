@@ -4,7 +4,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/mock/academic.data";
-import { createStudent } from "@/lib/network";
+import { createStudentClient, getStudentsClient, getCentersClient, getCoursesClient, getLeadsClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface StudentContentProps {
   students: Student[];
@@ -25,14 +26,14 @@ interface StudentContentProps {
 }
 
 const StudentContent = ({
-  students,
-  courses,
-  centers,
-  leads
+  students: initialStudents,
+  courses: initialCourses,
+  centers: initialCenters,
+  leads: initialLeads,
 }: StudentContentProps) => {
+  const queryClient = useQueryClient();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [studentList, setStudentList] = useState<Student[]>(students);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -41,6 +42,61 @@ const StudentContent = ({
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<any>({
     status: [],
+  });
+
+  // Use React Query to fetch and cache students
+  const { data: students = initialStudents } = useQuery({
+    queryKey: ["students"],
+    queryFn: getStudentsClient,
+    initialData: initialStudents,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache courses
+  const { data: courses = initialCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: getCoursesClient,
+    initialData: initialCourses,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache centers
+  const { data: centers = initialCenters } = useQuery({
+    queryKey: ["centers"],
+    queryFn: getCentersClient,
+    initialData: initialCenters,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache leads
+  const { data: leads = initialLeads } = useQuery({
+    queryKey: ["leads"],
+    queryFn: getLeadsClient,
+    initialData: initialLeads,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Mutation for creating students
+  const { mutate: createStudentMutation, isPending: isCreating } = useMutation({
+    mutationFn: createStudentClient,
+    onSuccess: (newStudent) => {
+      showSuccess("Student enrolled successfully");
+      setIsModalOpen(false);
+      // Optimistically update the cache
+      queryClient.setQueryData(["students"], (old: Student[] = []) => [newStudent, ...old]);
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["students"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to save student:", error);
+      showError("Student enrollment failed");
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
   });
 
   useEffect(() => {
@@ -79,7 +135,7 @@ const StudentContent = ({
     setIsFilterDropdown(false);
   };
 
-  const filteredData = studentList.filter((student) => {
+  const filteredData = students.filter((student) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       student.fullName.toLowerCase().includes(query) ||
@@ -91,15 +147,7 @@ const StudentContent = ({
   });
 
   const handleSave = async (payload: CreateStudent) => {
-    try {
-      const newStudent = await createStudent(payload);
-      showSuccess("Student enrolled successfully");
-      setIsModalOpen(false);
-      setStudentList((prev) => [newStudent, ...prev]);
-    } catch (error) {
-      console.error("Failed to save student:", error);
-      showError("Student enrollment failed");
-    }
+    createStudentMutation(payload);
   };
 
   return (

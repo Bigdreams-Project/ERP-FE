@@ -30,9 +30,8 @@ module.exports = {
         "dropdown-in": "dropdown-open 200ms ease-out forwards",
         "dropdown-out": "dropdown-close 150ms ease-in forwards",
       },
-      plugins: [require("tailwind-scrollbar")],
     },
   },
   darkMode: "class", // Enables dark mode via a `.dark` class
-  plugins: [],
+  plugins: [require("tailwind-scrollbar")],
 };
