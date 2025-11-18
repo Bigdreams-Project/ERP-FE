@@ -8,7 +8,7 @@ import {
 import { enrollmentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
@@ -54,9 +54,11 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const leadId = watch("leadId");
   const courseId = watch("courseId");
   const paymentplan = watch("paymentPlan");
+  const courseFeeValue = watch("courseFee");
 
   const [selectedCourse, setSelectedCourse] = useState<Course>();
   const [showBaseFeeError, setShowBaseFeeError] = useState(false);
+  const [paymentType, setPaymentType] = useState<string>("");
 
   const [plan, setPlan] = useState<string>("lumpsum");
   const [maxInstallment, setMaxInstallment] = useState<number>(2);
@@ -65,32 +67,51 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const [enrolledDate, setEnrolledDate] = useState<Date | null>(null);
   const [birthDate, setBirthDate] = useState<Date | null>(null);
 
+  const getCurrentFee = useCallback(() => {
+    if (!selectedCourse) return 0;
+    const courseName = selectedCourse.name?.toLowerCase() || "";
+    const fees: { [key: string]: number } = {
+      graphic: 500000,
+      web: 750000,
+      data: 600000,
+    };
+    for (const [key, value] of Object.entries(fees)) {
+      if (courseName.includes(key)) return value;
+    }
+    return selectedCourse.courseAssignments[0]?.baseFee || 0;
+  }, [selectedCourse]);
+
   useEffect(() => {
-    if (plan === "lumpsum") {
-      setValue(
-        "lumpSumFee",
-        selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
-      );
-      setLumpSum(selectedCourse?.courseAssignments[0]?.baseFee!);
-      setMaxInstallment(2);
+    if (!selectedCourse) return;
+
+    // Get the effective fee: use courseFee if old price is entered, otherwise use baseFee
+    let effectiveFee: number;
+    if (paymentType === "old" && courseFeeValue) {
+      const customFee = parseFloat(courseFeeValue.toString().replace(/[^\d.]/g, ''));
+      effectiveFee = isNaN(customFee) ? selectedCourse.courseAssignments[0]?.baseFee! : customFee;
+    } else if (paymentType === "current") {
+      effectiveFee = getCurrentFee();
     } else {
-      setValue(
-        "lumpSumFee",
-        (
-          selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment!
-        ).toString()
-      );
-      setLumpSum(
-        selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment
-      );
+      effectiveFee = selectedCourse.courseAssignments[0]?.baseFee!;
     }
 
-    setValue(
-      "courseFee",
-      selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
-    );
+    if (plan === "lumpsum") {
+      setValue("lumpSumFee", effectiveFee.toString());
+      setLumpSum(effectiveFee);
+      setMaxInstallment(2);
+    } else {
+      const installmentAmount = effectiveFee / maxInstallment;
+      setValue("lumpSumFee", installmentAmount.toString());
+      setLumpSum(installmentAmount);
+    }
+
+    if (paymentType === "current") {
+      setValue("courseFee", getCurrentFee().toString());
+    } else if (!paymentType) {
+      setValue("courseFee", selectedCourse.courseAssignments[0]?.baseFee!.toString()!);
+    }
     setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse?.courseAssignments[0]?.baseFee!]);
+  }, [plan, maxInstallment, selectedCourse, paymentType, courseFeeValue, setValue, getCurrentFee]);
 
   useEffect(() => {
     if (!leadId) return;
@@ -115,6 +136,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   useEffect(() => {
     if (!courseId) {
       setSelectedCourse(undefined);
+      setPaymentType("");
       return;
     }
 
@@ -149,8 +171,71 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
   const onSubmit = (data: IStudent | any) => {
     if (showBaseFeeError) return;
+    
+    // Ensure courseFee is properly set based on payment type
+    if (paymentType === "old") {
+      // For old price, validate that a value was entered
+      if (data.courseFee && typeof data.courseFee === 'string') {
+        const numericValue = data.courseFee.replace(/[^\d.]/g, '');
+        if (numericValue && !isNaN(parseFloat(numericValue))) {
+          data.courseFee = numericValue;
+        } else {
+          // If invalid or empty, use baseFee as fallback
+          data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
+        }
+      } else if (!data.courseFee || data.courseFee === '') {
+        // If empty, use baseFee as fallback
+        data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
+      }
+    } else if (paymentType === "current") {
+      // For current price, ensure it's set to the current fee
+      data.courseFee = getCurrentFee().toString();
+    } else if (!data.courseFee && selectedCourse) {
+      // Fallback to baseFee if not set
+      data.courseFee = selectedCourse.courseAssignments[0]?.baseFee?.toString() || null;
+    }
+    
+    // Ensure courseFee is numeric string (remove any remaining formatting)
+    if (data.courseFee && typeof data.courseFee === 'string') {
+      data.courseFee = data.courseFee.replace(/[^\d.]/g, '');
+      // Convert empty string to null
+      if (data.courseFee === '' || isNaN(parseFloat(data.courseFee))) {
+        data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
+      }
+    }
+    
+    // Ensure lumpSumFee is also numeric
+    if (data.lumpSumFee && typeof data.lumpSumFee === 'string') {
+      data.lumpSumFee = data.lumpSumFee.replace(/[^\d.]/g, '');
+      if (data.lumpSumFee === '' || isNaN(parseFloat(data.lumpSumFee))) {
+        // Recalculate based on effective fee
+        const effectiveFee = paymentType === "old" && data.courseFee 
+          ? parseFloat(data.courseFee) 
+          : paymentType === "current" 
+          ? getCurrentFee() 
+          : selectedCourse?.courseAssignments[0]?.baseFee || 0;
+        
+        if (plan === "lumpsum") {
+          data.lumpSumFee = effectiveFee.toString();
+        } else {
+          data.lumpSumFee = (effectiveFee / (parseInt(data.numberOfInstallments || '2') || 2)).toString();
+        }
+      }
+    }
+    
+    // Ensure all numeric fields are strings (not numbers)
+    if (data.courseFee !== null && data.courseFee !== undefined) {
+      data.courseFee = String(data.courseFee);
+    }
+    if (data.lumpSumFee !== null && data.lumpSumFee !== undefined) {
+      data.lumpSumFee = String(data.lumpSumFee);
+    }
+    if (data.numberOfInstallments !== null && data.numberOfInstallments !== undefined) {
+      data.numberOfInstallments = String(data.numberOfInstallments);
+    }
+    
+    console.log("Submitting data:", data);
     onSave(data);
-    console.log(data);
   };
 
   if (!isOpen) return null;
@@ -543,27 +628,81 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
+            {/* Payment Type */}
+            {selectedCourse && (
+              <div className="flex flex-col relative">
+                <label
+                  htmlFor="paymentType"
+                  className="text-sm font-medium text-gray-700 mb-1"
+                >
+                  Payment Type
+                </label>
+                <select
+                  id="paymentType"
+                  value={paymentType}
+                  onChange={(e) => {
+                    setPaymentType(e.target.value);
+                    if (e.target.value === "old") {
+                      setValue("courseFee", "");
+                    } else if (e.target.value === "current") {
+                      const fee = getCurrentFee();
+                      setValue("courseFee", fee.toString());
+                    }
+                  }}
+                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                >
+                  <option value="">Select Payment Type</option>
+                  <option value="current">Current Price</option>
+                  <option value="old">Old Price</option>
+                </select>
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <ChevronDown size={18} />
+                </span>
+              </div>
+            )}
+
             {/* Course Fee */}
-            <div className="flex flex-col">
-              <label
-                htmlFor="courseFee"
-                className="text-sm font-medium text-gray-700 mb-1"
-              >
-                Course Fee
-              </label>
-              <input
-                type="text"
-                id="courseFee"
-                {...register("courseFee")}
-                value={
-                  selectedCourse
-                    ? `₦${selectedCourse.courseAssignments[0]?.baseFee?.toLocaleString()}`
-                    : ""
-                }
-                readOnly
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
-              />
-            </div>
+            {selectedCourse && paymentType && (
+              <div className="flex flex-col">
+                <label
+                  htmlFor="courseFee"
+                  className="text-sm font-medium text-gray-700 mb-1"
+                >
+                  Course Fee
+                </label>
+                {paymentType === "current" ? (
+                  <>
+                    <input
+                      type="text"
+                      id="courseFee-display"
+                      value={`₦${getCurrentFee().toLocaleString()}`}
+                      readOnly
+                      className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
+                    />
+                    <input
+                      type="hidden"
+                      {...register("courseFee")}
+                      value={getCurrentFee().toString()}
+                    />
+                  </>
+                ) : (
+                  <input
+                    type="text"
+                    id="courseFee"
+                    {...register("courseFee")}
+                    placeholder="Enter old fee..."
+                    className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                    onChange={(e) => {
+                      // Remove any non-numeric characters except decimal point
+                      const numericValue = e.target.value.replace(/[^\d.]/g, '');
+                      setValue("courseFee", numericValue, { shouldValidate: false });
+                      // Trigger recalculation by updating a dependency
+                      // The useEffect will pick up the change via courseFeeValue
+                    }}
+                  />
+                )}
+              </div>
+            )}
 
             {/* Batch */}
             <div className="flex flex-col relative">
