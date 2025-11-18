@@ -70,8 +70,8 @@ const CenterModal: React.FC<ICenterModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
-      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-3xl max-h-[95vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans overflow-y-auto">
+      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-3xl max-h-[95vh] overflow-hidden flex flex-col my-4">
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div className="flex flex-col">

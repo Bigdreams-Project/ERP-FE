@@ -4,7 +4,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import BatchTable from "@/components/academic/tables/Batches.table";
 import BatchModal from "@/components/modals/academic/Batch.modal";
 import { batchStatus } from "@/data/mock/academic.data";
-import { createBatch } from "@/lib/network";
+import { createBatchClient, getBatchesClient, getCoursesClient, getStudentsClient, getFacultiesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Batch, Faculty } from "@/types/academic/batch.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -18,6 +18,8 @@ import "react-day-picker/dist/style.css";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CreateBatch } from "@/types/requests/batch.interface";
 
 interface BatchesContentProps {
   batches: Batch[];
@@ -48,11 +50,12 @@ const filterItems = [
 ];
 
 const BatchesContent = ({
-  batches,
-  courses,
-  students,
-  faculties,
+  batches: initialBatches,
+  courses: initialCourses,
+  students: initialStudents,
+  faculties: initialFaculties,
 }: BatchesContentProps) => {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
@@ -63,6 +66,61 @@ const BatchesContent = ({
   const [filterOptions, setFilterOptions] = useState({
     startDate: "",
     endDate: "",
+  });
+
+  // Use React Query to fetch and cache batches
+  const { data: batches = initialBatches } = useQuery({
+    queryKey: ["batches"],
+    queryFn: getBatchesClient,
+    initialData: initialBatches,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache courses
+  const { data: courses = initialCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: getCoursesClient,
+    initialData: initialCourses,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache students
+  const { data: students = initialStudents } = useQuery({
+    queryKey: ["students"],
+    queryFn: getStudentsClient,
+    initialData: initialStudents,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache faculties
+  const { data: faculties = initialFaculties } = useQuery({
+    queryKey: ["faculties"],
+    queryFn: getFacultiesClient,
+    initialData: initialFaculties,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Mutation for creating batches
+  const { mutate: createBatchMutation, isPending: isCreating } = useMutation({
+    mutationFn: createBatchClient,
+    onSuccess: (newBatch) => {
+      showSuccess("Batch created successfully!");
+      setIsModalOpen(false);
+      // Optimistically update the cache
+      queryClient.setQueryData(["batches"], (old: Batch[] = []) => [newBatch, ...old]);
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["batches"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to save batch:", error);
+      showError("Failed to create batch. Please try again.");
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+    },
   });
 
   const [range, setRange] = useState([
@@ -112,16 +170,8 @@ const BatchesContent = ({
     setEndDate(endDate);
   };
 
-  const handleSave = async (payload: any) => {
-    try {
-      await createBatch(payload);
-      showSuccess("Batch created successfully!");
-      setIsModalOpen(false);
-      router.refresh();
-    } catch (error) {
-      console.error("Failed to save batch:", error);
-      showError("Failed to create batch. Please try again.");
-    }
+  const handleSave = async (payload: CreateBatch) => {
+    createBatchMutation(payload);
   };
 
   const handleFilterChange = (filterCategory: string, value: string) => {

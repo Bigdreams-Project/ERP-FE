@@ -342,8 +342,9 @@ export const getStudent = async (id: string) => {
     const res = await api.get(`/students/${id}`);
     return res.data;
   } catch (err: any) {
-    console.error("Failed to fetch students:", err.message);
-    return {};
+    console.error("Failed to fetch student:", err.message);
+    console.error("Error details:", err.response?.data || err);
+    throw err; // Re-throw to let the page handle the error
   }
 };
 
