@@ -33,6 +33,8 @@ import {
 } from "recharts";
 import ActivityItem from "../../../../components/academic/cards/ActivityItem.card";
 import { centerStatusEnum } from "@/data/view/center.data";
+import { useQuery } from "@tanstack/react-query";
+import { getStudentsClient, getCoursesClient, getCentersClient, getLeadsClient, getLoggedInUserClient } from "@/lib/client-network";
 
 interface OverviewContentProps {
   user: User;
@@ -43,12 +45,52 @@ interface OverviewContentProps {
 }
 
 const OverviewContent = ({
-  user,
-  students,
-  courses,
-  centers,
-  leads,
+  user: initialUser,
+  students: initialStudents,
+  courses: initialCourses,
+  centers: initialCenters,
+  leads: initialLeads,
 }: OverviewContentProps) => {
+  // Use React Query to fetch and cache all data
+  const { data: user = initialUser } = useQuery({
+    queryKey: ["user"],
+    queryFn: getLoggedInUserClient,
+    initialData: initialUser,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  const { data: students = initialStudents } = useQuery({
+    queryKey: ["students"],
+    queryFn: getStudentsClient,
+    initialData: initialStudents,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  const { data: courses = initialCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: getCoursesClient,
+    initialData: initialCourses,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  const { data: centers = initialCenters } = useQuery({
+    queryKey: ["centers"],
+    queryFn: getCentersClient,
+    initialData: initialCenters,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  const { data: leads = initialLeads } = useQuery({
+    queryKey: ["leads"],
+    queryFn: getLeadsClient,
+    initialData: initialLeads,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
   const [showPicker, setShowPicker] = useState(false);
   const [range, setRange] = useState([
     {

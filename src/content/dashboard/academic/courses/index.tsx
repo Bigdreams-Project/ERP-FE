@@ -5,7 +5,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import { courseStatus, courseTypes } from "@/data/mock/academic.data";
-import { createCourse, getCourses } from "@/lib/network";
+import { createCourseClient, getCoursesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Course } from "@/types/academic/course.interface";
 import { CreateCourse } from "@/types/requests/course.interface";
@@ -13,14 +13,15 @@ import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CoursesContentProps {
   courses: Course[];
 }
 
 const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
+  const queryClient = useQueryClient();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -31,7 +32,15 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
     status: [],
     courseType: [],
   });
-  const [loading, setLoading] = useState(false);
+
+  // Use React Query to fetch and cache courses
+  const { data: courses = initialCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: getCoursesClient,
+    initialData: initialCourses,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: any) => {
@@ -61,18 +70,26 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const fetchCourses = async () => {
-    try {
-      setLoading(true);
-      const data = await getCourses();
-      setCourses(data);
-    } catch (error) {
-      console.error("Failed to fetch courses:", error);
-      showError("Failed to refresh courses");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Mutation for creating courses
+  const { mutate: createCourseMutation, isPending: isCreating } = useMutation({
+    mutationFn: async ({ payload, isDraft }: { payload: CreateCourse; isDraft: boolean }) => {
+      return await createCourseClient(payload, isDraft);
+    },
+    onSuccess: (newCourse) => {
+      showSuccess("Course created successfully");
+      setIsModalOpen(false);
+      // Optimistically update the cache
+      queryClient.setQueryData(["courses"], (old: Course[] = []) => [newCourse, ...old]);
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["courses"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to save course:", error);
+      showError("Failed to create new course");
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+    },
+  });
 
   const handleFilterChange = (filterCategory: string, value: string) => {
     setAppliedFilters((prev: any) => {
@@ -104,15 +121,7 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
   });
 
   const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
-    try {
-      await createCourse(payload, isDraft);
-      showSuccess("Course created successfully");
-      setIsModalOpen(false);
-      await fetchCourses();
-    } catch (error) {
-      console.error("Failed to save course:", error);
-      showError("Failed to create new course");
-    }
+    createCourseMutation({ payload, isDraft });
   };
 
   return (
