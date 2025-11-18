@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check-deployment": "node scripts/check-deployment.js"
+    "check-deployment": "node scripts/check-deployment.js",
+    "verify-webhook": "node scripts/verify-webhook.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

@@ -42,21 +42,40 @@ vercel --prod
 
 ## Troubleshooting
 
+### Verify Webhook Configuration
+Run the webhook verification tool:
+```bash
+npm run verify-webhook
+```
+
+This will provide:
+- Direct links to check webhook status
+- Step-by-step verification instructions
+- Common issues and fixes
+- Manual testing options
+
 ### Check Webhook Status
 1. Go to GitHub repository → **Settings** → **Webhooks**
-2. Look for Vercel webhook
-3. Verify it's **Active** and receiving events
-4. Check recent deliveries for any errors
+   - Direct link: https://github.com/Tec-Terminal/Tec-Terminal-Frontend-2.0/settings/hooks
+2. Look for Vercel webhook (URL contains `vercel.com`)
+3. Verify it's **Active** (green checkmark)
+4. Check **Recent Deliveries** tab for recent activity
+5. Look for any failed deliveries (red X)
 
 ### Verify Branch Connection
 1. Go to Vercel Dashboard → Your Project → **Settings** → **Git**
 2. Verify `epic/academic-module` is listed and connected
 3. Check if it's set as the **Production Branch**
+4. Ensure repository connection is active
 
 ### Check Deployment Logs
 1. Go to Vercel Dashboard → **Deployments**
 2. Check for any failed deployments
 3. Review build logs for errors
+4. Verify latest commits triggered deployments
+
+### Fix Webhook Issues
+See detailed guide: `scripts/fix-webhook.md`
 
 ## Quick Commands
 
