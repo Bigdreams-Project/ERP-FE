@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   BookOpen,
+  Building2,
   CalendarDays,
   CircleUserRound,
   Clock,
@@ -28,7 +29,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BiMoney } from "react-icons/bi";
 import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
@@ -52,6 +53,23 @@ const StudentDetails = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [formData, setFormData] = useState<Student>(student);
+
+  // Debug: Log student data structure
+  useEffect(() => {
+    if (student?.courses) {
+      console.log("Student courses structure:", student.courses);
+      console.log("First course:", student.courses[0]);
+      console.log("All courses prop:", courses);
+    }
+    if (student?.batches) {
+      console.log("Student batches structure:", student.batches);
+      console.log("First batch:", student.batches[0]);
+      if (student.batches[0]) {
+        console.log("Batch startDate:", student.batches[0]?.startDate);
+        console.log("Batch endDate:", student.batches[0]?.endDate);
+      }
+    }
+  }, [student, courses]);
 
   const { mutate: saveStudent, isPending } = useMutation({
     mutationFn: async (updatedStudent: Student | any) => {
@@ -148,9 +166,9 @@ const StudentDetails = ({
                 Payment on {formatDate(payment.createdAt)}
               </span>
               <span className="text-sm text-gray-500">
-                {payment.pending === 0
+                {!payment.pending || payment.pending === 0 || isNaN(payment.pending)
                   ? "Full Payment"
-                  : `Partial Payment (Pending: ₦${payment.pending.toLocaleString()})`}
+                  : `Partial Payment (Pending: ₦${Number(payment.pending).toLocaleString()})`}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -298,13 +316,41 @@ const StudentDetails = ({
                   CalendarDays
                 )}
                 {renderSection(
+                  "Center",
+                  student.center?.name || "Not assigned",
+                  Building2
+                )}
+                {renderSection(
                   "Course",
-                  student.courses?.length > 0
-                    ? student.courses[0]?.name
-                    : "Not yet enrolled.",
+                  (() => {
+                    // Try multiple ways to get the course name
+                    if (student.courses && student.courses.length > 0) {
+                      const firstCourseItem = student.courses[0];
+                      
+                      // Check if it's nested in a course property (StudentOnCourse structure)
+                      if ((firstCourseItem as any)?.course?.name) {
+                        return (firstCourseItem as any).course.name;
+                      }
+                      
+                      // Check if it's a direct Course object with name
+                      if ((firstCourseItem as any)?.name) {
+                        return (firstCourseItem as any).name;
+                      }
+                      
+                      // Check if it has a courseId we can look up
+                      const courseId = (firstCourseItem as any)?.courseId || (firstCourseItem as any)?.course?.id || (firstCourseItem as any)?.id;
+                      if (courseId && courses && courses.length > 0) {
+                        const foundCourse = courses.find(c => c.id === courseId);
+                        if (foundCourse?.name) {
+                          return foundCourse.name;
+                        }
+                      }
+                    }
+                    return "Not yet enrolled.";
+                  })(),
                   BookOpen
                 )}
-                {renderSection("Batch", student.batches[0]?.code, Users)}
+                {renderSection("Batch", student.batches[0]?.code || "Not assigned", Users)}
                 {renderSection(
                   "Dates",
                   student.batches && student.batches.length > 0
@@ -395,10 +441,20 @@ const StudentDetails = ({
                 {renderSection(
                   "Next Payment Due",
                   student.payments && student.payments.length > 0
-                    ? formatDate(
-                        student.payments[student.payments.length - 1]
-                          .nextPaymentDate
-                      )
+                    ? (() => {
+                        const lastPayment = student.payments[student.payments.length - 1];
+                        const nextPaymentDate = 
+                          lastPayment.nextPaymentDate || 
+                          (lastPayment as any).paymentPlan?.nextPaymentDate;
+                        
+                        if (!nextPaymentDate) return "N/A";
+                        
+                        // Validate date before formatting
+                        const date = new Date(nextPaymentDate);
+                        if (isNaN(date.getTime())) return "N/A";
+                        
+                        return formatDate(nextPaymentDate);
+                      })()
                     : "No payments found",
                   CalendarDays
                 )}

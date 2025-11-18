@@ -95,31 +95,23 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
   const [birthDate, setBirthDate] = useState<Date | null>(null);
 
   useEffect(() => {
+    if (!selectedCourse?.courseAssignments?.[0]?.baseFee) return;
+    
+    const baseFee = selectedCourse.courseAssignments[0].baseFee;
+    
     if (plan === "lumpsum") {
-      setValue(
-        "lumpSumFee",
-        selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
-      );
-      setLumpSum(selectedCourse?.courseAssignments[0]?.baseFee!);
+      setValue("lumpSumFee", baseFee.toString());
+      setLumpSum(baseFee);
       setMaxInstallment(2);
     } else {
-      setValue(
-        "lumpSumFee",
-        (
-          selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment!
-        ).toString()
-      );
-      setLumpSum(
-        selectedCourse?.courseAssignments[0]?.baseFee! / maxInstallment
-      );
+      const installmentAmount = baseFee / maxInstallment;
+      setValue("lumpSumFee", installmentAmount.toString());
+      setLumpSum(installmentAmount);
     }
 
-    setValue(
-      "courseFee",
-      selectedCourse?.courseAssignments[0]?.baseFee!.toString()!
-    );
+    setValue("courseFee", baseFee.toString());
     setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse?.courseAssignments[0]?.baseFee!]);
+  }, [plan, maxInstallment, selectedCourse, setValue]);
 
   useEffect(() => {
     if (initialData?.courseId) {
@@ -520,11 +512,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="courseFee"
                 {...register("courseFee")}
-                value={
-                  selectedCourse
-                    ? `₦${selectedCourse.courseAssignments[0]?.baseFee?.toLocaleString()}`
-                    : ""
-                }
+                    value={
+                      selectedCourse?.courseAssignments?.[0]?.baseFee
+                        ? `₦${selectedCourse.courseAssignments[0].baseFee.toLocaleString()}`
+                        : ""
+                    }
                 readOnly
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
               />
@@ -661,7 +653,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
 
           <p className="text-sm font-medium text-gray-700 mt-6">
             Required base fee is ₦
-            {selectedCourse?.courseAssignments[0]?.baseFee.toLocaleString()} for
+            {selectedCourse?.courseAssignments?.[0]?.baseFee?.toLocaleString() || '0'} for
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">
