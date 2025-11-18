@@ -1,0 +1,37 @@
+name: Trigger Vercel Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'epic/academic-module'
+        type: choice
+        options:
+          - epic/academic-module
+          - dev
+          - main
+
+jobs:
+  trigger-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Display deployment info
+        run: |
+          echo "🚀 Triggering deployment for branch: ${{ inputs.branch }}"
+          echo "📝 Latest commit:"
+          git log -1 --oneline
+          echo ""
+          echo "✅ If Vercel webhook is configured, deployment should start automatically."
+          echo "📋 Check Vercel dashboard for deployment status."
+
+      - name: Verify branch
+        run: |
+          git branch -a | grep ${{ inputs.branch }} || echo "⚠️ Branch may not exist"
+
