@@ -844,21 +844,21 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
-            {/* Payment Type */}
+            {/* Payment Frequency */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="paymentType"
+                htmlFor="paymentFrequency"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Payment Type
+                Payment Frequency
               </label>
               <select
-                id="paymentType"
+                id="paymentFrequency"
                 onChange={handlePaymentType}
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
-                <option value="">Select Payment Plan</option>
+                <option value="">Select Payment Frequency</option>
                 {paymentTypes?.map((plan) => (
                   <option key={plan.name} value={plan.value}>
                     {plan.name}
