@@ -3,7 +3,7 @@ import LeadModal from "@/components/modals/academic/Lead.modal";
 import EnrollStudentModal from "@/components/modals/academic/StudentModal";
 import DeleteModal from "@/components/modals/common/Delete.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createStudentClient, deleteLeadClient } from "@/lib/client-network";
+import { createLeadClient, createStudentClient, deleteLeadClient } from "@/lib/client-network";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
@@ -152,6 +152,25 @@ export default function LeadTable({
     },
   });
 
+  // Mutation for creating leads
+  const { mutate: createLeadMutation } = useMutation({
+    mutationFn: createLeadClient,
+    onSuccess: (newLead) => {
+      showSuccess("Lead created successfully");
+      setIsModalOpen(false);
+      // Optimistically update the cache
+      queryClient.setQueryData(["leads"], (old: Lead[] = []) => [newLead, ...old]);
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
+    },
+    onError: (error: any) => {
+      console.error("Failed to save lead:", error);
+      showError("Failed to save lead");
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+    },
+  });
+
   // Mutation for deleting lead
   const { mutate: deleteLeadMutation } = useMutation({
     mutationFn: deleteLeadClient,
@@ -174,14 +193,7 @@ export default function LeadTable({
   });
 
   const handleSave = async (payload: CreateLead) => {
-<<<<<<< HEAD
-    try {
-      const response = await createLead(payload);
-      setData((prev) => [...prev, response]);
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save lead:", error);
-    }
+    createLeadMutation(payload);
   };
 
   const handleEnrollSave = async (payload: CreateStudent) => {
