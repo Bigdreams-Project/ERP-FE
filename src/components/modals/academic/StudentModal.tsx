@@ -905,9 +905,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 </p>
               )}
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-6">
             {/* Lump Sum */}
             <div className="flex flex-col">
               <label
@@ -980,7 +978,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">
-            Total Deposit: ₦{parseFloat(amount!).toLocaleString()}
+            Total Deposit: ₦{amount && !isNaN(parseFloat(amount)) ? parseFloat(amount).toLocaleString() : '0'}
           </p>
 
           {showBaseFeeError && (
