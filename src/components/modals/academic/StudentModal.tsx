@@ -659,17 +659,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
-            {/* Payment Type */}
+            {/* Price Type */}
             {selectedCourse && (
               <div className="flex flex-col relative">
                 <label
-                  htmlFor="paymentType"
+                  htmlFor="priceType"
                   className="text-sm font-medium text-gray-700 mb-1"
                 >
-                  Payment Type
+                  Price Type
                 </label>
                 <select
-                  id="paymentType"
+                  id="priceType"
                   value={paymentType}
                   onChange={(e) => {
                     setPaymentType(e.target.value);
@@ -682,7 +682,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   }}
                   className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
-                  <option value="">Select Payment Type</option>
+                  <option value="">Select Price Type</option>
                   <option value="current">Current Price</option>
                   <option value="old">Old Price</option>
                 </select>
@@ -858,7 +858,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
-                <option value="">Select Payment Plan</option>
+                <option value="">Select Payment Type</option>
                 {paymentTypes?.map((plan) => (
                   <option key={plan.name} value={plan.value}>
                     {plan.name}
@@ -881,7 +881,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 htmlFor="paymentMethod"
                 className="text-sm font-medium text-gray-700 mb-1"
               >
-                Payment Plan
+                Payment Method
               </label>
               <select
                 id="paymentMethod"
