@@ -449,9 +449,7 @@ const StudentDetails = ({
                   student.payments && student.payments.length > 0
                     ? (() => {
                         const lastPayment = student.payments[student.payments.length - 1];
-                        const nextPaymentDate = 
-                          lastPayment.nextPaymentDate || 
-                          (lastPayment as any).paymentPlan?.nextPaymentDate;
+                        const nextPaymentDate = lastPayment.paymentPlan?.nextPaymentDate;
                         
                         if (!nextPaymentDate) return "N/A";
                         
