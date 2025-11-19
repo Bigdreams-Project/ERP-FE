@@ -3,7 +3,8 @@ import StudentModal from "@/components/modals/academic/StudentModal";
 import DeleteModal from "@/components/modals/common/Delete.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { students } from "@/data/mock/academic.data";
-import { createStudent, deleteStudent } from "@/lib/network";
+import { deleteStudent } from "@/lib/network";
+import { createStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
@@ -93,7 +94,7 @@ export default function StudentTable({
 
   const handleSave = async (payload: CreateStudent) => {
     try {
-      const response = await createStudent(payload);
+      const response = await createStudentClient(payload);
       setData((prev) => [...prev, response]);
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);

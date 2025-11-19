@@ -4,7 +4,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/mock/academic.data";
-import { createStudent } from "@/lib/network";
+import { createStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -82,8 +82,8 @@ const StudentContent = ({
   const filteredData = studentList.filter((student: Student) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
-      student.fullName.toLowerCase().includes(query) ||
-      student.email.toLowerCase().includes(query);
+      (student.fullName?.toLowerCase() || "").includes(query) ||
+      (student.email?.toLowerCase() || "").includes(query);
     const matchesStatus =
       appliedFilters.status.length === 0 ||
       appliedFilters.status.includes(student.status);
@@ -92,7 +92,7 @@ const StudentContent = ({
 
   const handleSave = async (payload: CreateStudent) => {
     try {
-      const newStudent = await createStudent(payload);
+      const newStudent = await createStudentClient(payload);
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);
       setStudentList((prev) => [newStudent, ...prev]);

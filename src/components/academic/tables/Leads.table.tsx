@@ -3,7 +3,8 @@ import LeadModal from "@/components/modals/academic/Lead.modal";
 import EnrollStudentModal from "@/components/modals/academic/StudentModal";
 import DeleteModal from "@/components/modals/common/Delete.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createLead, createStudent, deleteLead } from "@/lib/network";
+import { createLead, deleteLead } from "@/lib/network";
+import { createStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
@@ -132,7 +133,7 @@ export default function LeadTable({
 
   const handleEnrollSave = async (payload: CreateStudent) => {
     try {
-      const response = await createStudent(payload);
+      const response = await createStudentClient(payload);
       showSuccess("Student enrolled successfully");
       setIsEnrollModalOpen(false);
       router.push("/dashboard/academic/students");

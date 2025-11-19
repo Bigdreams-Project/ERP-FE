@@ -121,8 +121,22 @@ export const getStudentClient = async (id: string) => {
 
 export const createStudentClient = async (payload: CreateStudent) => {
   try {
-    const res = await client.post(`/students`, payload);
-    return res.data;
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch(`/api/students`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to create student: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to create student:", err.message);
     throw err;
