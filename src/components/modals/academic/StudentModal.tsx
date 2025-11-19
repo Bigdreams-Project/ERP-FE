@@ -4,7 +4,8 @@ import {
   paymentTypes,
   statuses,
 } from "@/data/view/student.data";
-import { getCenterBanks, getCourse } from "@/lib/network";
+import { getCenterBanks } from "@/lib/network";
+import { getCourseClient } from "@/lib/client-network";
 import { Course } from "@/types/academic/course.interface";
 import {
   IStudent,
@@ -166,7 +167,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
     const fetchCourse = async () => {
       try {
-        const course = await getCourse(courseId);
+        const course = await getCourseClient(courseId);
         setSelectedCourse(course);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
