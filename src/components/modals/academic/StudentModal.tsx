@@ -191,6 +191,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     setValue("paymentType", e.target.value);
   };
 
+  const handlePaymentFrequency = (e: any) => {
+    setValue("paymentType", e.target.value);
+  };
+
   const handlePaymentMethod = (e: any) => {
     setValue("paymentMethod", e.target.value);
   };
@@ -854,7 +858,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="paymentFrequency"
-                onChange={handlePaymentType}
+                onChange={handlePaymentFrequency}
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
