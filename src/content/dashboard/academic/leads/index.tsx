@@ -45,7 +45,7 @@ const LeadContent = ({ leads, centers, courses }: LeadContentProps) => {
   const filteredLeads =
     selectedCenter === "all"
       ? leadList
-      : leadList.filter((lead) => lead.centerId === selectedCenter);
+      : leadList.filter((lead: Lead) => lead.centerId === selectedCenter);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {

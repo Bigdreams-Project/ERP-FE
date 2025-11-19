@@ -79,7 +79,7 @@ const StudentContent = ({
     setIsFilterDropdown(false);
   };
 
-  const filteredData = studentList.filter((student) => {
+  const filteredData = studentList.filter((student: Student) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       student.fullName.toLowerCase().includes(query) ||

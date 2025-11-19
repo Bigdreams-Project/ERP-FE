@@ -217,7 +217,7 @@ const OverviewContent = ({
       string,
       { id: string; name: string; leads: number; enrolls: number }
     >();
-    courses.forEach((c) => {
+    courses.forEach((c: Course) => {
       courseMap.set(c.id!, { id: c.id!, name: c.name, leads: 0, enrolls: 0 });
     });
 
@@ -244,9 +244,9 @@ const OverviewContent = ({
     });
 
     const courseStatsArray = Array.from(courseMap.values())
-      .sort((a, b) => b.leads - a.leads)
+      .sort((a: { id: string; name: string; leads: number; enrolls: number }, b: { id: string; name: string; leads: number; enrolls: number }) => b.leads - a.leads)
       .slice(0, 6)
-      .map((c) => ({
+      .map((c: { id: string; name: string; leads: number; enrolls: number }) => ({
         title: c.name,
         leads: c.leads,
         enrolls: c.enrolls,
@@ -308,10 +308,10 @@ const OverviewContent = ({
     }));
 
     const allActivity = [...leadActivity, ...studentActivity]
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .sort((a: { type: string; id: string; title: string; date: Date; meta: string }, b: { type: string; id: string; title: string; date: Date; meta: string }) => b.date.getTime() - a.date.getTime())
       .slice(0, 20);
 
-    const recentActivity = allActivity.map((a) => ({
+    const recentActivity = allActivity.map((a: { type: string; id: string; title: string; date: Date; meta: string }) => ({
       icon: a.type === "lead" ? UserPlus : GraduationCap,
       text: a.title,
       time: `${a.date.toLocaleDateString()} • ${a.meta}`,
