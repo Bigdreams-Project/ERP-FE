@@ -131,10 +131,10 @@ const OverviewContent = ({
     );
 
     // Filter leads and students by date (inclusive)
-    const leadsInRange = leads.filter((l) =>
+    const leadsInRange = leads.filter((l: Lead) =>
       includesDate(l.enquiryDate, start, end)
     );
-    const studentsInRange = students.filter((s) =>
+    const studentsInRange = students.filter((s: Student) =>
       includesDate(s.enrolledDate, start, end)
     );
 
@@ -144,26 +144,26 @@ const OverviewContent = ({
     const totalCenters = centers.length;
 
     // Funnel
-    const followUpScheduled = leadsInRange.filter((l) =>
+    const followUpScheduled = leadsInRange.filter((l: Lead) =>
       l.nextFollowUpDate ? includesDate(l.nextFollowUpDate, start, end) : false
     ).length;
 
     const leadsContacted = leadsInRange.filter(
-      (l) => l.status === leadStatusEnum.Contacted
+      (l: Lead) => l.status === leadStatusEnum.Contacted
     ).length;
 
     const leadsDeposited = leadsInRange.filter(
-      (l) => l.status === leadStatusEnum.Deposited
+      (l: Lead) => l.status === leadStatusEnum.Deposited
     ).length;
 
     const leadsEnrolled = leadsInRange.filter(
-      (l) => l.status === leadStatusEnum.Enrolled
+      (l: Lead) => l.status === leadStatusEnum.Enrolled
     ).length;
 
     // Conversions
-    const leadsInRangeIds = new Set(leadsInRange.map((l) => l.id));
+    const leadsInRangeIds = new Set(leadsInRange.map((l: Lead) => l.id));
     const convertedFromLeadsInRange = studentsInRange.filter(
-      (s) => s.leadId && leadsInRangeIds.has(s.leadId)
+      (s: Student) => s.leadId && leadsInRangeIds.has(s.leadId)
     ).length;
 
     // General conversion rate (students in range / leads in range)
@@ -198,7 +198,7 @@ const OverviewContent = ({
         title: "Active Courses",
         value: formatNumber(totalCourses),
         change: `${formatNumber(
-          courses.filter((c) => c.status === courseStatusEnum.Active).length
+          courses.filter((c: Course) => c.status === courseStatusEnum.Active).length
         )} active`,
         changeText,
       },
@@ -222,20 +222,20 @@ const OverviewContent = ({
     });
 
     // Count leads per course
-    leadsInRange.forEach((l) => {
+    leadsInRange.forEach((l: Lead) => {
       if (!l.courseId) return;
       const entry = courseMap.get(l.courseId);
       if (entry) entry.leads += 1;
     });
 
     // Count enrolls per course (students may have courses array)
-    studentsInRange.forEach((s) => {
+    studentsInRange.forEach((s: Student) => {
       (s.courses || []).forEach((sc: any) => {
         const entry = courseMap.get(sc.id);
         if (entry) entry.enrolls += 1;
       });
       if (s.leadId) {
-        const lead = leads.find((l) => l.id === s.leadId);
+        const lead = leads.find((l: Lead) => l.id === s.leadId);
         if (lead && lead.courseId) {
           const entry = courseMap.get(lead.courseId);
           if (entry) entry.enrolls += 0;
@@ -260,7 +260,7 @@ const OverviewContent = ({
         title: "Centers",
         value: formatNumber(totalCenters),
         subText: `${
-          centers.filter((ct) => ct.status === centerStatusEnum.Active).length
+          centers.filter((ct: Center) => ct.status === centerStatusEnum.Active).length
         } active`,
         icon: School,
       },
@@ -288,16 +288,16 @@ const OverviewContent = ({
     ];
 
     // Recent activity
-    const leadActivity = leadsInRange.map((l) => ({
+    const leadActivity = leadsInRange.map((l: Lead) => ({
       type: "lead",
       id: l.id,
       title: `New Lead: ${l.fullName}`,
       date: new Date(l.enquiryDate),
       meta: `${l.course?.name || "—"} • ${
-        l.centerId ? centers.find((c) => c.id === l.centerId)?.name : "—"
+        l.centerId ? centers.find((c: Center) => c.id === l.centerId)?.name : "—"
       }`,
     }));
-    const studentActivity = studentsInRange.map((s) => ({
+    const studentActivity = studentsInRange.map((s: Student) => ({
       type: "enroll",
       id: s.id,
       title: `New Enrollment: ${s.fullName}`,
