@@ -3,7 +3,7 @@ import {
   IEditCoursePricingModalProps,
 } from "@/types/academic/center.interface";
 import { X } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
@@ -17,16 +17,22 @@ const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isValid },
     reset,
   } = useForm<IEditCourseFeeAssignment>({
     mode: "onTouched",
   });
 
-  React.useEffect(() => {
+  const lumpSumFee = watch("lumpSumFee");
+  const maxInstallments = watch("maxInstallments");
+  const costPerInstallment = watch("costPerInstallment");
+
+  useEffect(() => {
     if (initialData) {
       reset({
-        centerId: initialData.centerId || "",
+        centerId: initialData.center?.name || "",
         lumpSumFee: initialData.lumpSumFee || 0,
         baseFee: initialData.baseFee || 0,
         maxInstallments: initialData.maxInstallments || 0,
@@ -34,6 +40,26 @@ const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
       });
     }
   }, [initialData, reset]);
+
+  useEffect(() => {
+    if (lumpSumFee > 0 && maxInstallments > 0) {
+      const newCost = Number((lumpSumFee / maxInstallments).toFixed(2));
+      if (newCost !== costPerInstallment) {
+        setValue("costPerInstallment", newCost, { shouldValidate: false });
+      }
+    }
+  }, [lumpSumFee, maxInstallments]);
+
+  const handleCostPerInstallmentChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = Number(e.target.value);
+    setValue("costPerInstallment", value);
+    if (maxInstallments > 0) {
+      const newBaseFee = Number((value * maxInstallments).toFixed(2));
+      setValue("baseFee", newBaseFee);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -85,36 +111,10 @@ const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
               type="text"
               id="centerId"
               value={initialData?.center?.name}
-              className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
-              {...register("centerId")}
+              className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border border-gray-300"
+              readOnly
             />
           </div>
-
-          {/* <div className="flex flex-col relative">
-            <label
-              htmlFor="centerId"
-              className="text-sm font-medium text-gray-700 mb-1"
-            >
-              Select Center
-            </label>
-            <select
-              id="centerId"
-              {...register("centerId", { required: "Center is required" })}
-              className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-            >
-              <option value="">Select Center</option>
-              {centers.map((center) => (
-                <option key={center.id} value={center.id}>
-                  {center.name}
-                </option>
-              ))}
-            </select>
-            {errors.centerId && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.centerId.message}
-              </p>
-            )}
-          </div> */}
 
           <h3 className="text-md font-bold text-gray-700 mt-2 border-b pb-2">
             Fee Structure
@@ -133,7 +133,7 @@ const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
                 type="number"
                 id="lumpSumFee"
                 {...register("lumpSumFee", { valueAsNumber: true })}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
             </div>
 
@@ -149,7 +149,7 @@ const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
                 type="number"
                 id="baseFee"
                 {...register("baseFee", { valueAsNumber: true })}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
             </div>
 
@@ -165,7 +165,7 @@ const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
                 type="number"
                 id="maxInstallments"
                 {...register("maxInstallments", { valueAsNumber: true })}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
             </div>
 
@@ -180,8 +180,9 @@ const EditCoursePricing: React.FC<IEditCoursePricingModalProps> = ({
               <input
                 type="number"
                 id="costPerInstallment"
-                {...register("costPerInstallment", { valueAsNumber: true })}
-                className="w-full h-10 px-3 text-sm rounded-lg bg-white border border-gray-300 focus:border-blue-500"
+                value={costPerInstallment || ""}
+                onChange={handleCostPerInstallmentChange}
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500"
               />
             </div>
           </div>

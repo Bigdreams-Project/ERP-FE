@@ -95,23 +95,31 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
   const [birthDate, setBirthDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    if (!selectedCourse?.courseAssignments?.[0]?.baseFee) return;
-    
-    const baseFee = selectedCourse.courseAssignments[0].baseFee;
-    
     if (plan === "lumpsum") {
-      setValue("lumpSumFee", baseFee.toString());
-      setLumpSum(baseFee);
+      setValue(
+        "lumpSumFee",
+        selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
+      );
+      setLumpSum(selectedCourse?.courseAssignments[0]?.lumpSumFee!);
       setMaxInstallment(2);
     } else {
-      const installmentAmount = baseFee / maxInstallment;
-      setValue("lumpSumFee", installmentAmount.toString());
-      setLumpSum(installmentAmount);
+      setValue(
+        "lumpSumFee",
+        (
+          selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment!
+        ).toString()
+      );
+      setLumpSum(
+        selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment
+      );
     }
 
-    setValue("courseFee", baseFee.toString());
+    setValue(
+      "courseFee",
+      selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
+    );
     setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse, setValue]);
+  }, [plan, maxInstallment, selectedCourse?.courseAssignments]);
 
   useEffect(() => {
     if (initialData?.courseId) {
@@ -196,7 +204,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="fullName"
                 {...register("fullName")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.fullName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -217,7 +225,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="tel"
                 id="phone"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.phone && (
                 <p className="text-red-500 text-xs mt-1">
@@ -238,7 +246,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="email"
                 id="email"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
@@ -259,7 +267,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="address"
                 {...register("address")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.address && (
                 <p className="text-red-500 text-xs mt-1">
@@ -279,7 +287,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               <select
                 id="status"
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Choose Status</option>
                 {statuses.map((status) => (
@@ -309,7 +317,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               <select
                 id="centerId"
                 {...register("centerId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
@@ -347,7 +355,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.enrolledDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -375,7 +383,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -396,7 +404,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="guardianName"
                 {...register("guardianName")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -417,7 +425,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="tel"
                 id="guardianPhone"
                 {...register("guardianPhone")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianPhone && (
                 <p className="text-red-500 text-xs mt-1">
@@ -438,7 +446,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="email"
                 id="guardianEmail"
                 {...register("guardianEmail")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianEmail && (
                 <p className="text-red-500 text-xs mt-1">
@@ -459,7 +467,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="guardianAddress"
                 {...register("guardianAddress")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.guardianAddress && (
                 <p className="text-red-500 text-xs mt-1">
@@ -481,7 +489,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               <select
                 id="courseId"
                 {...register("courseId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
                 {courses.map((course) => (
@@ -512,11 +520,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="courseFee"
                 {...register("courseFee")}
-                    value={
-                      selectedCourse?.courseAssignments?.[0]?.baseFee
-                        ? `₦${selectedCourse.courseAssignments[0].baseFee.toLocaleString()}`
-                        : ""
-                    }
+                value={
+                  selectedCourse
+                    ? `₦${selectedCourse.courseAssignments[0]?.lumpSumFee?.toLocaleString()}`
+                    : ""
+                }
                 readOnly
                 className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
               />
@@ -533,7 +541,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               <select
                 id="batchId"
                 {...register("batchId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
                 {selectedCourse?.batches.map((batch) => (
@@ -564,7 +572,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 id="paymentPlan"
                 onChange={handlePaymentPlan}
                 disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Payment Plan</option>
                 {paymentPlan?.map((plan) => (
@@ -598,7 +606,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 {...register("lumpSumFee")}
                 value={lumpSum ? `₦${lumpSum.toLocaleString()}` : ""}
                 readOnly
-                className={`w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
+                className={`w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
               />
               {errors.lumpSumFee && (
                 <p className="text-red-500 text-xs mt-1">
@@ -622,7 +630,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   disabled={
                     !selectedCourse?.courseAssignments[0]?.maxInstallments
                   }
-                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent 
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent 
              focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Installments</option>
@@ -653,7 +661,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
 
           <p className="text-sm font-medium text-gray-700 mt-6">
             Required base fee is ₦
-            {selectedCourse?.courseAssignments?.[0]?.baseFee?.toLocaleString() || '0'} for
+            {selectedCourse?.courseAssignments[0]?.baseFee.toLocaleString()} for
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">
@@ -678,7 +686,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               id="notes"
               {...register("notes")}
               rows={3}
-              className="w-full p-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
             ></textarea>
             {errors.notes && (
               <p className="text-red-500 text-xs mt-1">

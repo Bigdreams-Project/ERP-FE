@@ -7,7 +7,5 @@ export default async function Centers() {
   const centers = await getCenters();
   const managers = await getManagers();
 
-  console.log("Centers:", centers);
-
   return <CentersContent centers={centers} managers={managers} />;
 }

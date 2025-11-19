@@ -15,7 +15,7 @@ import { getSession } from "./session";
 
 // Users
 export const getLoggedInUser = async () => {
-  try {
+  try { 
     const api = await server();
     const session = await getSession();
     if (!session) {
@@ -359,7 +359,6 @@ export const getStudentCourses = async (studentId: string) => {
   }
 };
 
-
 export const createStudent = async (payload: CreateStudent) => {
   try {
     const api = await server();
@@ -529,6 +528,17 @@ export const getBanks = async () => {
   }
 };
 
+export const getCenterBanks = async (centerId: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/banks/center/${centerId}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch center's banks:", err.message);
+    return [];
+  }
+};
+
 export const getBank = async (id: string) => {
   try {
     const api = await server();
@@ -605,10 +615,26 @@ export const getAttendance = async (
 export const getAllPayments = async () => {
   try {
     const api = await server();
-    const res = await api.get("/payments");
+    const res = await api.get("/payment");
     return res.data;
   } catch (err: any) {
     console.error("Failed to fetch payments", err.message);
     throw new Error(err.message);
+  }
+};
+
+export const getFinanceOverview = async () => {
+  try {
+    const api = await server();
+    const res = await api.get(`/payment/overview`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch finance overview:", err.message);
+    return {
+      totalRevenue: 0,
+      totalPending: 0,
+      totalPayments: 0,
+      topCenters: [],
+    };
   }
 };

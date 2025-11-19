@@ -1,4 +1,9 @@
 "use client";
+import {
+  getPaymentMethod,
+  getPaymentPlan,
+  getPaymentType,
+} from "@/components/academic/utils/payment";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { formatDate } from "@/lib/utils";
 import { Payment } from "@/types/finance/payment.interface";
@@ -20,14 +25,14 @@ export default function TransactionDetailTable({
   transactions,
   searchQuery,
   filterOptions,
-}: Props) { 
+}: Props) {
   const router = useRouter();
   const [data, setData] = useState(transactions);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filteredData, setFilteredData] = useState(data);
   const itemsPerPage = 10;
-  const totalPages = 20;
+  const totalPages = 10;
 
   return (
     <div className="font-inter text-gray-200">
@@ -46,19 +51,22 @@ export default function TransactionDetailTable({
                     Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Description
+                    Method
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Debit (₦)
+                    Plan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Credit (₦)
+                    Amount (₦)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Balance (₦)
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Status
                   </th>
                 </tr>
               </thead>
@@ -79,27 +87,37 @@ export default function TransactionDetailTable({
                         : formatDate(transaction.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                      {transaction.disclaimer}
+                      {getPaymentMethod(transaction.paymentMethod)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                      {getPaymentType(transaction.paymentType)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                      {getPaymentPlan(transaction.paymentPlan.name)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      ₦{transaction.amount.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      ₦
+                      {transaction.paymentPlan &&
+                        transaction.paymentPlan.pending.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           transaction.message === "Inflow"
-                            ? "text-green-400"
-                            : "text-red-400"
+                            ? "text-green-400 bg-gray-100"
+                            : "text-red-400 bg-gray-100"
                         }`}
                       >
-                        {transaction.paymentPlan}
+                        {transaction.paymentPlan &&
+                        parseInt(
+                          transaction.paymentPlan.paid.toLocaleString()
+                        ) === 0
+                          ? "Paid"
+                          : "Pending"}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.amount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ₦{transaction.amount.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black font-bold">
-                      ₦{transaction.estimate.toLocaleString()}
                     </td>
                   </tr>
                 ))}

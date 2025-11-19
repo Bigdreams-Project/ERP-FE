@@ -32,7 +32,7 @@ export interface BatchStudent {
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
-  payments: any[];
+  payments: Payment[];
   createdAt: string;
 }
 
@@ -51,7 +51,7 @@ export interface Student {
   fullName: string;
   phone: string;
   email: string;
-  image: string; 
+  image: string;
   address: string;
   birthDate: string;
   centerId: string;
@@ -84,12 +84,16 @@ export interface IStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
+  amount: string | null; 
   courseFee: string | null;
   lumpSumFee: string | null;
   numberOfInstallments: string | null;
   paymentPlan: string;
-  notes: string;
+  paymentType: string;
+  paymentMethod: string;
+  notes: string | null;
   courseId: string;
+  bankId: string;
   batchId: string | null;
 }
 

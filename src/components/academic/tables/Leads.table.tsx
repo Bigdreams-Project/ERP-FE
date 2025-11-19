@@ -1,23 +1,22 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
+import EnrollStudentModal from "@/components/modals/academic/StudentModal";
+import DeleteModal from "@/components/modals/common/Delete.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createStudentClient, deleteLeadClient } from "@/lib/client-network";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createLead, createStudent, deleteLead } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { CreateLead } from "@/types/requests/lead.interface";
+import { CreateStudent } from "@/types/requests/student.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import EnrollStudentModal from "@/components/modals/academic/StudentModal";
-import { CreateStudent } from "@/types/requests/student.interface";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   leads: Lead[];
@@ -38,7 +37,6 @@ export default function LeadTable({
   filterOptions,
 }: Props) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [data, setData] = useState(leads);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
@@ -50,11 +48,6 @@ export default function LeadTable({
 
   const [filteredData, setFilteredData] = useState(data);
   const itemsPerPage = 10;
-
-  // Update data when leads prop changes (from React Query)
-  useEffect(() => {
-    setData(leads);
-  }, [leads]);
 
   useEffect(() => {
     let result = data;
@@ -127,63 +120,35 @@ export default function LeadTable({
     }
   };
 
-  // Mutation for enrolling student from lead
-  const { mutate: enrollStudentMutation } = useMutation({
-    mutationFn: createStudentClient,
-    onSuccess: (newStudent) => {
-      showSuccess("Student enrolled successfully");
-      setIsEnrollModalOpen(false);
-      // Optimistically update caches
-      queryClient.setQueryData(["students"], (old: any[] = []) => [newStudent, ...old]);
-      // Remove the lead from the list (since it's now enrolled)
-      queryClient.setQueryData(["leads"], (old: Lead[] = []) => 
-        old.filter(lead => lead.id !== selectedLeadId)
-      );
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["students"], refetchType: "active" });
-      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
-    },
-    onError: (error: any) => {
-      console.error("Failed to save student:", error);
-      showError("Failed to enroll student");
-      // Revert optimistic updates on error
-      queryClient.invalidateQueries({ queryKey: ["students"] });
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
-    },
-  });
-
-  // Mutation for deleting lead
-  const { mutate: deleteLeadMutation } = useMutation({
-    mutationFn: deleteLeadClient,
-    onSuccess: () => {
-      showSuccess("Lead deleted successfully");
-      setIsDeleteModalOpen(false);
-      // Optimistically remove from cache
-      queryClient.setQueryData(["leads"], (old: Lead[] = []) => 
-        old.filter(lead => lead.id !== selectedLeadId)
-      );
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
-    },
-    onError: (error: any) => {
-      console.error("Failed to delete lead:", error);
-      showError("Failed to delete lead");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
-    },
-  });
-
   const handleSave = async (payload: CreateLead) => {
-    // This is handled by parent component, but keeping for compatibility
-    console.log("Lead save handled by parent");
+    try {
+      const response = await createLead(payload);
+      setData((prev) => [...prev, response]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save lead:", error);
+    }
   };
 
   const handleEnrollSave = async (payload: CreateStudent) => {
-    enrollStudentMutation(payload);
+    try {
+      const response = await createStudent(payload);
+      showSuccess("Student enrolled successfully");
+      setIsEnrollModalOpen(false);
+      router.push("/dashboard/academic/students");
+    } catch (error) {
+      console.error("Failed to save student:", error);
+      showError("Student enrollment failed");
+    }
   };
 
   const handleDeleteLead = async (leadId: string) => {
-    deleteLeadMutation(leadId);
+    try {
+      await deleteLead(leadId);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete lead:", error);
+    }
   };
 
   const handleEnroll = (leadId: string) => {

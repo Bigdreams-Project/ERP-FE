@@ -1,5 +1,4 @@
 "use client";
-import PaymentReceiptModal from "@/components/modals/finance/PaymentRecipt.modal";
 import { Payment } from "@/types/finance/payment.interface";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -10,37 +9,6 @@ import {
   PaymentSummary,
   ProofOfPayment,
 } from "./helpers";
-
-// const transactionData = {
-//   // Summary
-//   amount: "₦240,000",
-//   status: "Paid",
-//   date: "Apr 5, 2025",
-//   paymentMethod: "Bank Transfer",
-//   referenceId: "TXN-KUBIWA-456789",
-//   bank: "Zenith Bank - XXXX-1234",
-//   centerInfo: "Kubwa",
-
-//   // Payment Details
-//   course: "Web Development",
-//   batch: "WD-101-B12 starting: Apr 10, 2025",
-//   paymentType: "Installment 2 of 6",
-//   totalFee: "₦240,000",
-//   paidSoFar: "₦80,000",
-//   balance: "₦160,000",
-
-//   // Payer Info
-//   payerName: "John Doe",
-//   relationship: "Student",
-//   contact: "johndoe@example.com",
-//   sponsor: "None",
-
-//   uploadedBy: "Mercy Abah (Finance Officer)",
-//   uploadedDate: "Apr 5, 2025",
-//   proofStatus: "Payment receipt uploaded and confirmed by finance.",
-
-//   actionStatus: "Inactive",
-// };
 
 interface TransactionDetailsProps {
   transaction: Payment;

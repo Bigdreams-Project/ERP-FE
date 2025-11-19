@@ -45,7 +45,6 @@ export default function Signup() {
 
   const onSubmit = (data: IRegisterUser) => {
     setApiError("");
-    console.log("Data:", data);
     mutate(data);
   };
 
