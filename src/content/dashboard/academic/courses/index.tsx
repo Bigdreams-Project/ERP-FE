@@ -4,7 +4,7 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
-import { courseStatus, courseTypes } from "@/data/mock/academic.data";
+import { courseStatus, courseTypes } from "@/data/constants/status.constants";
 import { createCourseClient, getCoursesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Course } from "@/types/academic/course.interface";

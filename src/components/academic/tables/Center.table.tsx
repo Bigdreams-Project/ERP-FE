@@ -1,15 +1,18 @@
 "use client";
 import CenterModal from "@/components/modals/academic/Center.modal";
+import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createCenter, deleteCenter } from "@/lib/network";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
+import { createCenter } from "@/lib/network";
+import { useQueryClient } from "@tanstack/react-query";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Pagination from "../common/Pagination";
 import Link from "next/link";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type CenterTableProps = {
   centers: Center[];
@@ -23,17 +26,30 @@ export default function CenterTable({
   searchQuery,
 }: CenterTableProps) {
   const router = useRouter();
-  const [data, setData] = useState(centers);
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "centers",
+  });
+  
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedCenterId, setSelectedCenterId] = useState<string | null>(null);
+  const [selectedCenter, setSelectedCenter] = useState<Center | null>(null);
   const itemsPerPage = 10;
 
-  const filteredData = data
+  // Use centers prop directly (which comes from React Query cache)
+  // Filter out soft-deleted centers
+  const activeCenters = useMemo(() => {
+    return centers.filter((center) => !center.deletedAt);
+  }, [centers]);
+
+  const filteredData = activeCenters
     .filter((center) => {
       const query = searchQuery.toLowerCase();
       return (
@@ -101,9 +117,9 @@ export default function CenterTable({
     setIsModalOpen(true);
   };
 
-  const handleDelete = (centerId: string) => {
+  const handleDelete = (center: Center) => {
     setOpenDropdown(null);
-    setSelectedCenterId(centerId);
+    setSelectedCenter(center);
     setIsDeleteModalOpen(true);
   };
 
@@ -133,21 +149,25 @@ export default function CenterTable({
 
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
-      const response = await createCenter(payload, isDraft);
-      setData((prev) => [...prev, response]);
+      await createCenter(payload, isDraft);
       setIsModalOpen(false);
+      // Invalidate React Query cache - parent component will update via React Query
+      queryClient.invalidateQueries({ queryKey: ["centers"], refetchType: "active" });
     } catch (error) {
-      console.error("Failed to save lead:", error);
+      console.error("Failed to save center:", error);
     }
   };
 
-  const handleDeleteCenter = async (leadId: string) => {
-    try {
-      await deleteCenter(leadId);
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to delete lead:", error);
-    }
+  const handleSoftDelete = async (centerId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedCenter(null);
+    await handleSoftDeleteEntity(centerId);
+  };
+
+  const handleHardDelete = async (centerId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedCenter(null);
+    await handleHardDeleteEntity(centerId);
   };
 
   return (
@@ -257,12 +277,14 @@ export default function CenterTable({
                           >
                             Edit
                           </button> */}
-                          {/* <button
-                            onClick={() => handleDelete(center.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {isAdmin && !isAdminLoading && (
+                            <button
+                              onClick={() => handleDelete(center)}
+                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -290,13 +312,19 @@ export default function CenterTable({
         mode={mode}
       />
 
-      <DeleteModal
-        title="Center"
-        subtitle="Are you sure you want to delete this center?"
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onDelete={handleDeleteCenter}
-      />
+      {selectedCenter && (
+        <EntityDeleteModal
+          entityType="Center"
+          entity={selectedCenter}
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setSelectedCenter(null);
+          }}
+          onSoftDelete={handleSoftDelete}
+          onHardDelete={handleHardDelete}
+        />
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
-import { studentStatus } from "@/data/mock/academic.data";
+import { studentStatus } from "@/data/constants/status.constants";
 import { createStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
@@ -12,7 +12,9 @@ import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent } from "@/types/requests/student.interface";
-import { useEffect, useRef, useState } from "react";
+import { User } from "@/types/auth/user.interface";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
@@ -22,14 +24,26 @@ interface StudentContentProps {
   courses: Course[];
   centers: Center[];
   leads: Lead[];
+  user: User;
 }
 
 const StudentContent = ({
   students,
   courses,
   centers,
-  leads
+  leads,
+  user: initialUser
 }: StudentContentProps) => {
+  // Pre-populate React Query cache with user data from server
+  const queryClient = useQueryClient();
+  
+  // Set user data in cache synchronously (before paint) so useIsAdmin hook can use it immediately
+  useLayoutEffect(() => {
+    if (initialUser) {
+      queryClient.setQueryData(["user"], initialUser);
+    }
+  }, [initialUser, queryClient]);
+  
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [studentList, setStudentList] = useState<Student[]>(students);
@@ -80,6 +94,10 @@ const StudentContent = ({
   };
 
   const filteredData = studentList.filter((student: Student) => {
+    // Filter out soft-deleted students
+    if (student.deletedAt) {
+      return false;
+    }
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       (student.fullName?.toLowerCase() || "").includes(query) ||
@@ -95,7 +113,10 @@ const StudentContent = ({
       const newStudent = await createStudentClient(payload);
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);
+      // Update local state immediately
       setStudentList((prev) => [newStudent, ...prev]);
+      // Invalidate React Query cache to sync with server
+      queryClient.invalidateQueries({ queryKey: ["students"], refetchType: "active" });
     } catch (error) {
       console.error("Failed to save student:", error);
       showError("Student enrollment failed");

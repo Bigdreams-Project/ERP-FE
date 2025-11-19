@@ -1,5 +1,11 @@
 "use client";
 import EditStudentModal from "@/components/modals/academic/StudentEditModal";
+import StudentDeleteModal from "@/components/modals/academic/StudentDeleteModal";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import {
+  softDeleteStudentClient,
+  hardDeleteStudentClient,
+} from "@/lib/client-network";
 import { updateStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
@@ -25,6 +31,7 @@ import {
   PhoneIcon,
   User,
   Users,
+  Archive,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,6 +40,7 @@ import { useEffect, useState } from "react";
 import { BiMoney } from "react-icons/bi";
 import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
+import { Trash2 } from "lucide-react";
 import AttendanceCalendar from "./AttendanceCalendar";
 
 interface StudentDetailsProps {
@@ -50,9 +58,12 @@ const StudentDetails = ({
 }: StudentDetailsProps) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const [isEditing, setIsEditing] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [formData, setFormData] = useState<Student>(student);
+  const isArchived = !!student.deletedAt;
 
   // Debug: Log student data structure
   useEffect(() => {
@@ -120,6 +131,33 @@ const StudentDetails = ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleSoftDelete = async (studentId: string) => {
+    try {
+      await softDeleteStudentClient(studentId);
+      showSuccess("Student archived successfully");
+      setIsDeleteModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["student", studentId] });
+      router.push("/dashboard/academic/students");
+    } catch (error: any) {
+      console.error("Failed to archive student:", error);
+      showError(error.message || "Failed to archive student");
+    }
+  };
+
+  const handleHardDelete = async (studentId: string) => {
+    try {
+      await hardDeleteStudentClient(studentId);
+      showSuccess("Student permanently deleted");
+      setIsDeleteModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      router.push("/dashboard/academic/students");
+    } catch (error: any) {
+      console.error("Failed to delete student:", error);
+      showError(error.message || "Failed to delete student");
+    }
   };
 
   const renderSection = (title: string, content: string, Icon: any) => (
@@ -256,7 +294,12 @@ const StudentDetails = ({
               <>
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  disabled={isArchived}
+                  className={`flex gap-2 items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isArchived
+                      ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
                 >
                   <MdEdit />
                   Edit
@@ -267,19 +310,43 @@ const StudentDetails = ({
                       `/dashboard/academic/students/enrollment/${student.id}`
                     )
                   }
-                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  disabled={isArchived}
+                  className={`flex gap-2 items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isArchived
+                      ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
                 >
                   <BiMoney />
                   Record Payment
                 </button>
+                {isAdmin && !isAdminLoading && (
+                  <button
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="flex gap-2 items-center px-4 py-2 bg-red-600 rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                )}
               </>
             )}
           </div>
         </div>
 
-        <h2 className="text-3xl font-extrabold mb-6 text-gray-900">
-          Student Profile: {student.fullName}
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            Student Profile: {student.fullName}
+          </h2>
+          {isArchived && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg">
+              <Archive className="text-yellow-700" size={18} />
+              <span className="text-sm font-semibold text-yellow-800">
+                Archived
+              </span>
+            </div>
+          )}
+        </div>
 
         <div className="bg-white rounded-lg w-full max-w-6xl py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-2 p-4 pt-6 border-t border-gray-300 rounded-lg shadow-md shadow-gray-400">
@@ -547,6 +614,14 @@ const StudentDetails = ({
         courses={courses}
         centers={centers}
         mode="edit"
+      />
+
+      <StudentDeleteModal
+        student={student}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onSoftDelete={handleSoftDelete}
+        onHardDelete={handleHardDelete}
       />
     </div>
   );

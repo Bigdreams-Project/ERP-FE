@@ -31,6 +31,7 @@ export interface Course {
   batches: Batch[];
   documents: Document[];
   paymentPlans: any[];
+  deletedAt: string | null;
   createdAt?: string;
 }
 

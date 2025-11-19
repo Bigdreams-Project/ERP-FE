@@ -150,8 +150,12 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                   Schedule: batch?.schedules[0]?.day,
                   Faculty: batch.faculty?.fullname,
                   "Faculty Phone": batch.faculty?.phone || "N/A",
-                  "Max Students": batch.students ? batch.students?.length : "0",
-                  Enrolled: batch.students ? batch.students?.length : "0",
+                  "Max Students": batch.students
+                    ? batch.students.filter((s: any) => !s.deletedAt).length
+                    : "0",
+                  Enrolled: batch.students
+                    ? batch.students.filter((s: any) => !s.deletedAt).length
+                    : "0",
                   // "Next Class": batch.regionalManager?.fullname,
                 }).map(([key, value]) => (
                   <div key={key} className="col-span-1">
@@ -252,7 +256,9 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {batch.students?.map((student, index) => (
+                      {batch.students
+                        ?.filter((s: any) => !s.deletedAt)
+                        ?.map((student, index) => (
                         <tr key={index}>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                             {student?.fullName}
@@ -297,7 +303,9 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                   />
                 </div>
                 <div className="border border-gray-300 p-1 pb-0 rounded-lg">
-                  {batch.students?.map((student, index) => (
+                  {batch.students
+                    ?.filter((s: any) => !s.deletedAt)
+                    ?.map((student, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between p-4 bg-white border-b border-gray-300"

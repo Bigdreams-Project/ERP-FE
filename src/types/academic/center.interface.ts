@@ -48,6 +48,7 @@ export interface Center {
   leads: Lead[];
   notes: CenterNote[];
   regionalManager: Manager;
+  deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

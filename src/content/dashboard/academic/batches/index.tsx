@@ -3,7 +3,7 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import BatchTable from "@/components/academic/tables/Batches.table";
 import BatchModal from "@/components/modals/academic/Batch.modal";
-import { batchStatus } from "@/data/mock/academic.data";
+import { batchStatus } from "@/data/constants/status.constants";
 import { createBatchClient, getBatchesClient, getCoursesClient, getStudentsClient, getFacultiesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Batch, Faculty } from "@/types/academic/batch.interface";

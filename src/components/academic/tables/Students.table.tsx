@@ -1,9 +1,10 @@
 "use client";
 import StudentModal from "@/components/modals/academic/StudentModal";
-import DeleteModal from "@/components/modals/common/Delete.modal";
+import StudentDeleteModal from "@/components/modals/academic/StudentDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { students } from "@/data/mock/academic.data";
-import { deleteStudent } from "@/lib/network";
+// Removed unused mock data import to speed up compilation
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
 import { createStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
@@ -16,7 +17,8 @@ import { CreateStudent } from "@/types/requests/student.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
 
@@ -36,18 +38,32 @@ export default function StudentTable({
   leads
 }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "students",
+    onSuccess: (id) => {
+      setData((prev) => prev.filter((s) => s.id !== id));
+    },
+  });
+  
   const [data, setData] = useState(filteredData);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
-    null
-  );
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const itemsPerPage = 10;
 
-  const sortedData = [...filteredData].sort(
+  // Filter out soft-deleted students
+  const activeStudents = useMemo(() => {
+    return filteredData.filter((student) => !student.deletedAt);
+  }, [filteredData]);
+
+  const sortedData = [...activeStudents].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
@@ -116,14 +132,14 @@ export default function StudentTable({
     setOpenDropdown(null);
   };
 
-  const handleDelete = (centerId: string) => {
+  const handleDelete = (student: Student) => {
     setOpenDropdown(null);
-    setSelectedStudentId(centerId);
+    setSelectedStudent(student);
     setIsDeleteModalOpen(true);
   };
 
   const handleEdit = (studentId: string) => {
-    const student = students.find((s) => s.id === studentId);
+    const student = filteredData.find((s) => s.id === studentId);
     if (student) {
       window.location.href = `mailto:${student.email}`;
     }
@@ -137,20 +153,23 @@ export default function StudentTable({
     );
   };
 
-  const handleDeleteStudent = async (studentId: string) => {
-    try {
-      await deleteStudent(studentId);
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to delete student:", error);
-    }
+  const handleSoftDelete = async (studentId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedStudent(null);
+    await handleSoftDeleteEntity(studentId);
+  };
+
+  const handleHardDelete = async (studentId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedStudent(null);
+    await handleHardDeleteEntity(studentId);
   };
 
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          {filteredData.length === 0 ? (
+          {activeStudents.length === 0 ? (
             <NotFoundComponent text="Student" setIsModalOpen={setIsModalOpen} />
           ) : (
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
@@ -272,12 +291,14 @@ export default function StudentTable({
                           >
                             Edit
                           </button> */}
-                          {/* <button
-                            onClick={() => handleDelete(student.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {isAdmin && !isAdminLoading && (
+                            <button
+                              onClick={() => handleDelete(student)}
+                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -307,13 +328,18 @@ export default function StudentTable({
         mode="enroll"
       />
 
-      <DeleteModal
-        title="Student"
-        subtitle="Are you sure you want to delete this student?"
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onDelete={handleDeleteStudent}
-      />
+      {selectedStudent && (
+        <StudentDeleteModal
+          student={selectedStudent}
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setSelectedStudent(null);
+          }}
+          onSoftDelete={handleSoftDelete}
+          onHardDelete={handleHardDelete}
+        />
+      )}
     </div>
   );
 }

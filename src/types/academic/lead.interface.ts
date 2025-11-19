@@ -38,6 +38,7 @@ export interface Lead {
   guardians: Guardian[];
   notes: LeadNote[];
   documents: Document[];
+  deletedAt: string | null;
   createdAt?: string;
 }
 

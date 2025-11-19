@@ -6,10 +6,11 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CenterTable from "@/components/academic/tables/Center.table";
 import CenterModal from "@/components/modals/academic/Center.modal";
-import { createCenter, getCenters } from "@/lib/network";
+import { createCenterClient, getCentersClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CenterContentProps {
   centers: Center[];
@@ -20,13 +21,21 @@ const CenterContent = ({
   centers: initialCenters,
   managers,
 }: CenterContentProps) => {
-  const [centers, setCenters] = useState<Center[]>(initialCenters);
+  const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  // Use React Query to fetch and cache centers
+  const { data: centers = initialCenters } = useQuery({
+    queryKey: ["centers"],
+    queryFn: getCentersClient,
+    initialData: initialCenters,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnMount: false,
+  });
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) setIsTyping(true);
@@ -46,29 +55,29 @@ const CenterContent = ({
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const fetchCenters = async () => {
-    try {
-      setLoading(true);
-      const data = await getCenters();
-      setCenters(data);
-    } catch (error) {
-      console.error("Failed to fetch centers:", error);
-      showError("Failed to refresh centers");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
-    try {
-      await createCenter(payload, isDraft);
+  // Mutation for creating centers with optimistic updates
+  const { mutate: createCenterMutation, isPending: isCreating } = useMutation({
+    mutationFn: async ({ payload, isDraft }: { payload: CreateCenter; isDraft: boolean }) => {
+      return await createCenterClient(payload, isDraft);
+    },
+    onSuccess: (newCenter) => {
       showSuccess("Center created successfully");
       setIsModalOpen(false);
-      await fetchCenters();
-    } catch (error) {
+      // Optimistically update the cache
+      queryClient.setQueryData(["centers"], (old: Center[] = []) => [newCenter, ...old]);
+      // Invalidate to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["centers"], refetchType: "active" });
+    },
+    onError: (error: any) => {
       console.error("Failed to create center:", error);
       showError("Failed to create center");
-    }
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["centers"] });
+    },
+  });
+
+  const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
+    createCenterMutation({ payload, isDraft });
   };
 
   return (

@@ -31,6 +31,7 @@ export interface Batch {
   schedules: IBatchSchedule[];
   students: BatchStudent[];
   notes: BatchNote[];
+  deletedAt: string | null;
 }
 
 export interface StudentBatch {

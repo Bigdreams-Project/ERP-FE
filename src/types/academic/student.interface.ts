@@ -67,6 +67,7 @@ export interface Student {
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
+  deletedAt: string | null;
   createdAt: string;
 }
 

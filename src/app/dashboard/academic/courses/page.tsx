@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+// Removed force-dynamic for better caching
 import CoursesContent from "@/content/dashboard/academic/courses";
 import { getCourses } from "@/lib/network";
 

@@ -1,16 +1,19 @@
 "use client";
 import CourseModal from "@/components/modals/academic/Course.modal";
+import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createCourse, deleteCourse } from "@/lib/network";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
+import { createCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
 import { CreateCourse } from "@/types/requests/course.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   searchQuery: string;
@@ -19,23 +22,34 @@ type Props = {
 
 export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const router = useRouter();
-  const [data, setData] = useState(filteredData);
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "courses",
+  });
+  
   const [selectedCourses, setSelectedCourses] = useState<any>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
-    null
-  );
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const itemsPerPage = 10;
+
+  // Use filteredData directly from props (which comes from React Query cache)
+  // Filter out soft-deleted courses
+  const activeCourses = useMemo(() => {
+    return filteredData.filter((course) => !course.deletedAt);
+  }, [filteredData]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const sortedData = [...filteredData].sort(
+  const sortedData = [...activeCourses].sort(
     (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
   );
 
@@ -63,9 +77,9 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (courseId: string) => {
+  const handleDelete = (course: Course) => {
     setOpenDropdown(null);
-    setSelectedStudentId(courseId);
+    setSelectedCourse(course);
     setIsDeleteModalOpen(true);
   };
 
@@ -109,21 +123,25 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
 
   const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
     try {
-      const response = await createCourse(payload, isDraft);
-      setData((prev) => [...prev, response]);
+      await createCourse(payload, isDraft);
       setIsModalOpen(false);
+      // Invalidate React Query cache - parent component will update via React Query
+      queryClient.invalidateQueries({ queryKey: ["courses"], refetchType: "active" });
     } catch (error) {
       console.error("Failed to save course:", error);
     }
   };
 
-  const handleDeleteCourse = async (courseId: string) => {
-    try {
-      await deleteCourse(courseId);
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to delete course:", error);
-    }
+  const handleSoftDelete = async (courseId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedCourse(null);
+    await handleSoftDeleteEntity(courseId);
+  };
+
+  const handleHardDelete = async (courseId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedCourse(null);
+    await handleHardDeleteEntity(courseId);
   };
 
   return (
@@ -224,18 +242,14 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                           >
                             View
                           </button>
-                          {/* <button
-                            onClick={() => handleEdit(course.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(course.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {isAdmin && !isAdminLoading && (
+                            <button
+                              onClick={() => handleDelete(course)}
+                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -261,13 +275,23 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
           mode={mode}
         />
 
-        <DeleteModal
-          title="Course"
-          subtitle="Are you sure you want to delete this course?"
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onDelete={handleDeleteCourse}
-        />
+        {selectedCourse && selectedCourse.id && (
+          <EntityDeleteModal
+            entityType="Course"
+            entity={{ ...selectedCourse, id: selectedCourse.id }}
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false);
+              setSelectedCourse(null);
+            }}
+            onSoftDelete={handleSoftDelete}
+            onHardDelete={handleHardDelete}
+            hasRelatedData={{
+              students: selectedCourse.students?.length || 0,
+              leads: selectedCourse.leads?.length || 0,
+            }}
+          />
+        )}
       </div>
     </div>
   );

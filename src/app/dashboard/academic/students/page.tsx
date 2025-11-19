@@ -3,14 +3,19 @@ import {
   getCenters,
   getCourses,
   getLeads,
+  getLoggedInUser,
   getStudents
 } from "@/lib/network";
 
 export default async function Students() {
-  const students = await getStudents();
-  const courses = await getCourses();
-  const centers = await getCenters();
-  const leads = await getLeads();
+  // Fetch all data in parallel for maximum speed
+  const [students, courses, centers, leads, user] = await Promise.all([
+    getStudents(),
+    getCourses(),
+    getCenters(),
+    getLeads(),
+    getLoggedInUser(),
+  ]);
 
   return (
     <StudentContent
@@ -18,6 +23,7 @@ export default async function Students() {
       courses={courses}
       centers={centers}
       leads={leads}
+      user={user}
     />
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 import BatchModal from "@/components/modals/academic/Batch.modal";
-import DeleteModal from "@/components/modals/common/Delete.modal";
+import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { batches } from "@/data/mock/academic.data";
-import { createBatch, deleteBatch } from "@/lib/network";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
+// Removed unused mock data import to speed up compilation
+import { createBatch } from "@/lib/network";
 import { formatDate } from "@/lib/utils";
 import { Batch, Faculty } from "@/types/academic/batch.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -11,7 +13,8 @@ import { Student } from "@/types/academic/student.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
 
@@ -31,17 +34,30 @@ export default function BatchTable({
   faculties,
 }: Props) {
   const router = useRouter();
-  const [data] = useState(batches);
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "batches",
+  });
+  
+  // Use filteredData prop directly (from React Query) - no local state needed
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const itemsPerPage = 10;
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const sortedData = [...filteredData].sort(
+  // Filter out soft-deleted batches
+  const activeBatches = useMemo(() => {
+    return filteredData.filter((batch) => !batch.deletedAt);
+  }, [filteredData]);
+
+  const totalPages = Math.ceil(activeBatches.length / itemsPerPage);
+  const sortedData = [...activeBatches].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
@@ -58,18 +74,23 @@ export default function BatchTable({
     try {
       await createBatch(payload);
       setIsModalOpen(false);
+      // Invalidate React Query cache to sync with server
+      queryClient.invalidateQueries({ queryKey: ["batches"], refetchType: "active" });
     } catch (error) {
       console.error("Failed to save batch:", error);
     }
   };
 
-  const handleDeleteBatch = async (leadId: string) => {
-    try {
-      await deleteBatch(leadId);
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to delete batch:", error);
-    }
+  const handleSoftDelete = async (batchId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedBatch(null);
+    await handleSoftDeleteEntity(batchId);
+  };
+
+  const handleHardDelete = async (batchId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedBatch(null);
+    await handleHardDeleteEntity(batchId);
   };
 
   const handleActivate = (batchId: string) => {
@@ -90,9 +111,9 @@ export default function BatchTable({
     setOpenDropdown(null);
   };
 
-  const handleDelete = (centerId: string) => {
+  const handleDelete = (batch: Batch) => {
     setOpenDropdown(null);
-    setSelectedBatchId(centerId);
+    setSelectedBatch(batch);
     setIsDeleteModalOpen(true);
   };
 
@@ -151,7 +172,9 @@ export default function BatchTable({
                       {batch.schedules ? batch.schedules.length : ""}
                     </td>
                     <td className="p-3">
-                      {batch.students ? batch.students.length : ""}
+                      {batch.students
+                        ? batch.students.filter((s: any) => !s.deletedAt).length
+                        : ""}
                     </td>
                     <td className="p-3">{formatDate(batch.createdAt)}</td>
                     <td className="p-3">{formatDate(batch.startDate)}</td>
@@ -197,12 +220,14 @@ export default function BatchTable({
                           >
                             Export
                           </button> */}
-                          {/* <button
-                            onClick={() => handleDelete(batch.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {isAdmin && !isAdminLoading && (
+                            <button
+                              onClick={() => handleDelete(batch)}
+                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -230,13 +255,22 @@ export default function BatchTable({
           mode="add"
         />
 
-        <DeleteModal
-          title="Batch"
-          subtitle="Are you sure you want to delete this batch?"
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onDelete={handleDeleteBatch}
-        />
+        {selectedBatch && selectedBatch.id && (
+          <EntityDeleteModal
+            entityType="Batch"
+            entity={{ ...selectedBatch, id: selectedBatch.id }}
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false);
+              setSelectedBatch(null);
+            }}
+            onSoftDelete={handleSoftDelete}
+            onHardDelete={handleHardDelete}
+            hasRelatedData={{
+              students: selectedBatch.students?.length || 0,
+            }}
+          />
+        )}
       </div>
     </div>
   );

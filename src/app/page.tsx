@@ -1,9 +1,6 @@
-import Overview from "./dashboard/academic/overview/page";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div>
-      <Overview />
-    </div>
-  );
+  // Redirect to dashboard overview - this ensures users always see the side nav
+  redirect("/dashboard/academic/overview");
 }

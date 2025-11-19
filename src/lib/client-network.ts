@@ -15,7 +15,9 @@ import {
 export const getCentersClient = async () => {
   try {
     const res = await client.get("/centers");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted centers
+    const centers = Array.isArray(res.data) ? res.data : [];
+    return centers.filter((center: any) => !center.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch centers:", err.message);
     throw err;
@@ -54,10 +56,57 @@ export const updateCenterClient = async (id: string, payload: UpdateCenter) => {
 
 export const deleteCenterClient = async (id: string) => {
   try {
-    const res = await client.delete(`/centers/${id}`);
+    const res = await client.patch(`/centers/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete center:", err.message);
+    throw err;
+  }
+};
+
+export const softDeleteCenterClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/centers/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ deletedAt: new Date().toISOString() }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to soft delete center: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to soft delete center:", err.message);
+    throw err;
+  }
+};
+
+export const hardDeleteCenterClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/centers/${id}?hard=true`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to hard delete center: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to hard delete center:", err.message);
     throw err;
   }
 };
@@ -98,11 +147,58 @@ export const createCourseClient = async (payload: CreateCourse, isDraft: boolean
   }
 };
 
+export const softDeleteCourseClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/courses/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ deletedAt: new Date().toISOString() }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to soft delete course: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to soft delete course:", err.message);
+    throw err;
+  }
+};
+
+export const hardDeleteCourseClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/courses/${id}?hard=true`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to hard delete course: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to hard delete course:", err.message);
+    throw err;
+  }
+};
+
 // Students - Client-side functions
 export const getStudentsClient = async () => {
   try {
     const res = await client.get("/students");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted students
+    const students = Array.isArray(res.data) ? res.data : [];
+    return students.filter((student: any) => !student.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch students:", err.message);
     throw err;
@@ -153,11 +249,58 @@ export const updateStudentClient = async (id: string, payload: UpdateStudent) =>
   }
 };
 
+export const softDeleteStudentClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/students/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ deletedAt: new Date().toISOString() }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to soft delete student: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to soft delete student:", err.message);
+    throw err;
+  }
+};
+
+export const hardDeleteStudentClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/students/${id}?hard=true`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to hard delete student: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to hard delete student:", err.message);
+    throw err;
+  }
+};
+
 // Leads - Client-side functions
 export const getLeadsClient = async () => {
   try {
     const res = await client.get("/leads/active");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted leads
+    const leads = Array.isArray(res.data) ? res.data : [];
+    return leads.filter((lead: any) => !lead.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch leads:", err.message);
     throw err;
@@ -196,10 +339,57 @@ export const updateLeadClient = async (id: string, payload: UpdateLead) => {
 
 export const deleteLeadClient = async (id: string) => {
   try {
-    const res = await client.delete(`/leads/${id}`);
+    const res = await client.patch(`/leads/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete lead:", err.message);
+    throw err;
+  }
+};
+
+export const softDeleteLeadClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/leads/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ deletedAt: new Date().toISOString() }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to soft delete lead: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to soft delete lead:", err.message);
+    throw err;
+  }
+};
+
+export const hardDeleteLeadClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/leads/${id}?hard=true`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to hard delete lead: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to hard delete lead:", err.message);
     throw err;
   }
 };
@@ -219,7 +409,9 @@ export const getManagersClient = async () => {
 export const getBatchesClient = async () => {
   try {
     const res = await client.get("/batches");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted batches
+    const batches = Array.isArray(res.data) ? res.data : [];
+    return batches.filter((batch: any) => !batch.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch batches:", err.message);
     throw err;
@@ -258,10 +450,57 @@ export const updateBatchClient = async (id: string, payload: UpdateBatch) => {
 
 export const deleteBatchClient = async (id: string) => {
   try {
-    const res = await client.delete(`/batches/${id}`);
+    const res = await client.patch(`/batches/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete batch:", err.message);
+    throw err;
+  }
+};
+
+export const softDeleteBatchClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/batches/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ deletedAt: new Date().toISOString() }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to soft delete batch: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to soft delete batch:", err.message);
+    throw err;
+  }
+};
+
+export const hardDeleteBatchClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/batches/${id}?hard=true`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to hard delete batch: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to hard delete batch:", err.message);
     throw err;
   }
 };
@@ -280,28 +519,21 @@ export const getFacultiesClient = async () => {
 // Users - Client-side function
 export const getLoggedInUserClient = async () => {
   try {
-    // Try /users/me endpoint first (common pattern)
-    try {
-      const res = await client.get("/users/me");
-      return res.data;
-    } catch (meError: any) {
-      // If /users/me doesn't exist, try to decode JWT token to get user ID
-      const accessToken = sessionStorage.getItem("accessToken");
-      if (accessToken) {
-        try {
-          // Decode JWT token (simple base64 decode, no verification needed for client-side)
-          const payload = JSON.parse(atob(accessToken.split('.')[1]));
-          if (payload.id || payload.userId || payload.sub) {
-            const userId = payload.id || payload.userId || payload.sub;
-            const res = await client.get(`/users/${userId}`);
-            return res.data;
-          }
-        } catch (decodeError) {
-          console.error("Failed to decode token:", decodeError);
-        }
-      }
-      throw meError;
+    // Use Next.js API route to get user (server-side session)
+    const res = await fetch(`/api/users/me`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch user: ${res.statusText}`);
     }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to fetch logged in user:", err.message);
     throw err;

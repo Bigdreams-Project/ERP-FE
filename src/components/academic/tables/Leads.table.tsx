@@ -1,12 +1,14 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
 import EnrollStudentModal from "@/components/modals/academic/StudentModal";
-import DeleteModal from "@/components/modals/common/Delete.modal";
+import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createLead, deleteLead } from "@/lib/network";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
+import { createLead } from "@/lib/network";
 import { createStudentClient } from "@/lib/client-network";
-import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
+import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
@@ -15,7 +17,8 @@ import { CreateStudent } from "@/types/requests/student.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
 
@@ -38,20 +41,33 @@ export default function LeadTable({
   filterOptions,
 }: Props) {
   const router = useRouter();
-  const [data, setData] = useState(leads);
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "leads",
+  });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-  const [filteredData, setFilteredData] = useState(data);
+  // Filter out soft-deleted leads
+  // Use leads prop directly (which comes from React Query cache)
+  const activeLeads = useMemo(() => {
+    return leads.filter((lead) => !lead.deletedAt);
+  }, [leads]);
+
+  const [filteredData, setFilteredData] = useState(activeLeads);
   const itemsPerPage = 10;
 
   useEffect(() => {
-    let result = data;
+    let result = activeLeads;
     const { startDate, endDate } = filterOptions;
     const query = searchQuery.toLowerCase();
 
@@ -95,7 +111,7 @@ export default function LeadTable({
 
     setFilteredData(result);
     setCurrentPage(1);
-  }, [searchQuery, filterOptions, data]);
+  }, [searchQuery, filterOptions, activeLeads]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
@@ -123,9 +139,10 @@ export default function LeadTable({
 
   const handleSave = async (payload: CreateLead) => {
     try {
-      const response = await createLead(payload);
-      setData((prev) => [...prev, response]);
+      await createLead(payload);
       setIsModalOpen(false);
+      // Invalidate React Query cache - parent component will update via React Query
+      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
     } catch (error) {
       console.error("Failed to save lead:", error);
     }
@@ -143,13 +160,16 @@ export default function LeadTable({
     }
   };
 
-  const handleDeleteLead = async (leadId: string) => {
-    try {
-      await deleteLead(leadId);
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to delete lead:", error);
-    }
+  const handleSoftDelete = async (leadId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedLead(null);
+    await handleSoftDeleteEntity(leadId);
+  };
+
+  const handleHardDelete = async (leadId: string) => {
+    setIsDeleteModalOpen(false);
+    setSelectedLead(null);
+    await handleHardDeleteEntity(leadId);
   };
 
   const handleEnroll = (leadId: string) => {
@@ -158,9 +178,9 @@ export default function LeadTable({
     setIsEnrollModalOpen(true);
   };
 
-  const handleDelete = (leadId: string) => {
+  const handleDelete = (lead: Lead) => {
     setOpenDropdown(null);
-    setSelectedLeadId(leadId);
+    setSelectedLead(lead);
     setIsDeleteModalOpen(true);
   };
 
@@ -271,12 +291,14 @@ export default function LeadTable({
                             Send an Email
                           </button> */}
 
-                          {/* <button
-                            onClick={() => handleDelete(lead.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {isAdmin && !isAdminLoading && (
+                            <button
+                              onClick={() => handleDelete(lead)}
+                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -315,13 +337,22 @@ export default function LeadTable({
           mode="enroll"
         />
 
-        <DeleteModal
-          title="Lead"
-          subtitle="Are you sure you want to delete this lead?"
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onDelete={handleDeleteLead}
-        />
+        {selectedLead && (
+          <EntityDeleteModal
+            entityType="Lead"
+            entity={selectedLead}
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false);
+              setSelectedLead(null);
+            }}
+            onSoftDelete={handleSoftDelete}
+            onHardDelete={handleHardDelete}
+            hasRelatedData={{
+              students: 0, // Could be enhanced to check actual related data
+            }}
+          />
+        )}
       </div>
     </div>
   );

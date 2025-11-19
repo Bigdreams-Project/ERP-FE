@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+// Removed force-dynamic for better caching
 import BatchesContent from "@/content/dashboard/academic/batches";
 import {
   getBatches,
@@ -8,10 +8,13 @@ import {
 } from "@/lib/network";
 
 export default async function Batches() {
-  const batches = await getBatches();
-  const courses = await getCourses();
-  const students = await getStudents();
-  const faculties = await getFaculties();
+  // Fetch all data in parallel for maximum speed
+  const [batches, courses, students, faculties] = await Promise.all([
+    getBatches(),
+    getCourses(),
+    getStudents(),
+    getFaculties(),
+  ]);
 
   return (
     <BatchesContent

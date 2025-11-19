@@ -1,7 +1,7 @@
 "use client";
 import AcademicStatCard from "@/components/academic/cards/AcademicStatCard.card";
 import StatCard from "@/components/academic/cards/StatCard.card";
-import { mockData } from "@/data/mock/academic.data";
+// Removed unused mockData import to speed up compilation
 import { courseStatusEnum } from "@/data/view/course.data";
 import { leadStatusEnum } from "@/data/view/lead.data";
 import {
@@ -16,7 +16,7 @@ import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { User } from "@/types/auth/user.interface";
 import { BookOpen, GraduationCap, School, UserPlus, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -101,35 +101,17 @@ const OverviewContent = ({
   ]);
   const [displayRange, setDisplayRange] = useState("");
 
-  const [stats, setStats] = useState<any[]>([]);
-  const [funnel, setFunnel] = useState<any[]>([]);
-  const [insights, setInsights] = useState<any[]>([]);
-  const [academicStats, setAcademicStats] = useState<any[]>([]);
-  const [courseStats, setCourseStats] = useState<any[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
-
   const handleSelect = (ranges: any) => {
     const { startDate, endDate } = ranges.selection;
     setRange([ranges.selection]);
-    setDisplayRange(
-      `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
-    );
-
-    const filteredInsights = mockData.insights.filter(
-      (_, index) => index % 2 === 0
-    );
-    setInsights(filteredInsights);
-
     setShowPicker(false);
   };
 
-  useEffect(() => {
+  // Memoize expensive computations - only recalculate when dependencies change
+  const computedData = useMemo(() => {
     const start = range[0].startDate!;
     const end = range[0].endDate!;
-    setDisplayRange(
-      `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
-    );
-
+    
     // Filter leads and students by date (inclusive)
     const leadsInRange = leads.filter((l: Lead) =>
       includesDate(l.enquiryDate, start, end)
@@ -144,10 +126,6 @@ const OverviewContent = ({
     const totalCenters = centers.length;
 
     // Funnel
-    const followUpScheduled = leadsInRange.filter((l: Lead) =>
-      l.nextFollowUpDate ? includesDate(l.nextFollowUpDate, start, end) : false
-    ).length;
-
     const leadsContacted = leadsInRange.filter(
       (l: Lead) => l.status === leadStatusEnum.Contacted
     ).length;
@@ -175,23 +153,29 @@ const OverviewContent = ({
     const changeText = getChangeText(start, end);
 
     // Stats cards
-    const newStats = [
+    const stats = [
       {
         title: "New Leads",
         value: formatNumber(totalLeads),
         change: `${percent(totalLeads, Math.max(1, leads.length))} of all`,
+        direction: "up",
+        icon: UserPlus,
         changeText,
       },
       {
         title: "New Enrollments",
         value: formatNumber(totalStudents),
         change: `${percent(totalStudents, Math.max(1, leads.length))} of all`,
+        direction: "up",
+        icon: GraduationCap,
         changeText,
       },
       {
         title: "Conversion Rate",
         value: `${conversionRate.toFixed(1)}%`,
         change: `${conversionFromLeads.toFixed(1)}% from leads in range`,
+        direction: conversionRate > 0 ? "up" : "down",
+        icon: BookOpen,
         changeText,
       },
       {
@@ -200,12 +184,14 @@ const OverviewContent = ({
         change: `${formatNumber(
           courses.filter((c: Course) => c.status === courseStatusEnum.Active).length
         )} active`,
+        direction: "up",
+        icon: School,
         changeText,
       },
     ];
 
     // Funnel data for chart
-    const newFunnel = [
+    const funnel = [
       { name: "Leads", value: totalLeads },
       { name: "Contacted", value: leadsContacted },
       { name: "Deposited", value: leadsDeposited },
@@ -243,7 +229,7 @@ const OverviewContent = ({
       }
     });
 
-    const courseStatsArray = Array.from(courseMap.values())
+    const courseStats = Array.from(courseMap.values())
       .sort((a: { id: string; name: string; leads: number; enrolls: number }, b: { id: string; name: string; leads: number; enrolls: number }) => b.leads - a.leads)
       .slice(0, 6)
       .map((c: { id: string; name: string; leads: number; enrolls: number }) => ({
@@ -255,7 +241,7 @@ const OverviewContent = ({
       }));
 
     // Academic summary cards
-    const newAcademicStats = [
+    const academicStats = [
       {
         title: "Centers",
         value: formatNumber(totalCenters),
@@ -317,7 +303,7 @@ const OverviewContent = ({
       time: `${a.date.toLocaleDateString()} • ${a.meta}`,
     }));
 
-    const newInsights = [
+    const insights = [
       {
         icon: <FiPieChart size={16} color="#FFC105FF" />,
         text: `You received ${totalLeads} lead${
@@ -334,27 +320,27 @@ const OverviewContent = ({
       },
       {
         icon: <BookOpen size={18} color="#16A34AFF" />,
-        text: `Top course: ${courseStatsArray[0]?.title || "—"} (${
-          courseStatsArray[0]?.leads || 0
+        text: `Top course: ${courseStats[0]?.title || "—"} (${
+          courseStats[0]?.leads || 0
         } leads)`,
       },
     ];
 
-    setStats(newStats);
-    setFunnel(newFunnel);
-    setInsights(newInsights);
-    setAcademicStats(newAcademicStats);
-    setCourseStats(courseStatsArray);
-    setRecentActivity(recentActivity);
+    return {
+      stats,
+      funnel,
+      insights,
+      academicStats,
+      courseStats,
+      recentActivity,
+      displayRange: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`,
+    };
   }, [range, leads, students, courses, centers]);
 
+  // Update display range when computed data changes
   useEffect(() => {
-    const start = range[0].startDate!;
-    const end = range[0].endDate!;
-    setDisplayRange(
-      `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
-    );
-  }, []);
+    setDisplayRange(computedData.displayRange);
+  }, [computedData.displayRange]);
 
   return (
     <div className="min-h-screen bg-white text-gray-100 p-4 md:py-8 md:px-3 font-inter">
@@ -405,7 +391,7 @@ const OverviewContent = ({
 
         {/* Top Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {stats.map((stat, index) => (
+          {computedData.stats.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}
         </div>
@@ -420,7 +406,7 @@ const OverviewContent = ({
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={funnel}
+                  data={computedData.funnel}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <XAxis dataKey="name" stroke="#6b7280" />
@@ -454,7 +440,7 @@ const OverviewContent = ({
 
             {/* Insights List */}
             <ul className="space-y-4 mt-4">
-              {insights.map((insight, index) => (
+              {computedData.insights.map((insight, index) => (
                 <li
                   key={index}
                   className="flex items-center gap-2 text-sm text-[#8C8D8BFF]"
@@ -469,14 +455,14 @@ const OverviewContent = ({
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {academicStats.map((stat, index) => (
+          {computedData.academicStats.map((stat, index) => (
             <AcademicStatCard key={index} {...stat} />
           ))}
         </div>
 
         {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {courseStats.map((stat, index) => (
+            {computedData.courseStats.map((stat, index) => (
               <AcademicStatCard key={index} {...stat} />
             ))}
           </div>
@@ -488,7 +474,7 @@ const OverviewContent = ({
             Recent Activity
           </h2>
           <div className="space-y-6">
-            {recentActivity.map((activity, index) => (
+            {computedData.recentActivity.map((activity, index) => (
               <ActivityItem key={index} {...activity} />
             ))}
           </div>
