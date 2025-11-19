@@ -194,7 +194,7 @@ const BatchesContent = ({
     setDateFilterName("");
   };
 
-  const filteredData = batches.filter((batch) => {
+  const filteredData = batches.filter((batch: Batch) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       batch.code.toLowerCase().includes(query) ||
