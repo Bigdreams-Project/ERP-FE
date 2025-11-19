@@ -297,8 +297,21 @@ export const getLoggedInUserClient = async () => {
 // Banks - Client-side functions
 export const getCenterBanksClient = async (centerId: string) => {
   try {
-    const res = await client.get(`/banks/center/${centerId}`);
-    return res.data;
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch(`/api/banks/center/${centerId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch banks: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to fetch center's banks:", err.message);
     return [];
