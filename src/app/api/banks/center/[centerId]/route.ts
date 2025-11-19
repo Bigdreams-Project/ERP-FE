@@ -5,7 +5,7 @@ import axios from "axios";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { centerId: string } }
+  { params }: { params: Promise<{ centerId: string }> }
 ) {
   try {
     const session = await getSession();
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { centerId } = params;
+    const { centerId } = await params;
     if (!centerId) {
       return NextResponse.json({ error: "Center ID is required" }, { status: 400 });
     }
