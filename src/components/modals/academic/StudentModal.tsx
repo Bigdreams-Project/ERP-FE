@@ -268,6 +268,22 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       }
     }
     
+    // Ensure amount (Amount Paid) is properly formatted - CRITICAL FOR PAYMENT RECORDING
+    if (data.amount !== null && data.amount !== undefined && data.amount !== '') {
+      // Convert to string and clean numeric value
+      const amountStr = String(data.amount);
+      const numericAmount = amountStr.replace(/[^\d.]/g, '');
+      if (numericAmount && !isNaN(parseFloat(numericAmount)) && parseFloat(numericAmount) > 0) {
+        data.amount = numericAmount;
+      } else {
+        // If invalid, set to null (no payment recorded)
+        data.amount = null;
+      }
+    } else {
+      // If empty or null, set to null (no payment recorded)
+      data.amount = null;
+    }
+    
     // Ensure all numeric fields are strings (not numbers)
     if (data.courseFee !== null && data.courseFee !== undefined) {
       data.courseFee = String(data.courseFee);
@@ -277,6 +293,9 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     }
     if (data.numberOfInstallments !== null && data.numberOfInstallments !== undefined) {
       data.numberOfInstallments = String(data.numberOfInstallments);
+    }
+    if (data.amount !== null && data.amount !== undefined) {
+      data.amount = String(data.amount);
     }
     
     console.log("Submitting data:", data);
