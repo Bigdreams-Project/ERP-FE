@@ -96,7 +96,7 @@ const AddPaymentModal = ({
             <div className="text-sm text-gray-600">
               <p>
                 <span className="font-semibold">Outstanding Balance:</span> ₦
-                {paymentPlan.pending && !isNaN(paymentPlan.pending) 
+                {paymentPlan.pending && !isNaN(Number(paymentPlan.pending)) 
                   ? Number(paymentPlan.pending).toLocaleString() 
                   : '0'}
               </p>
