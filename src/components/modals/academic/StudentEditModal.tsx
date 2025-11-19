@@ -1,5 +1,5 @@
 import { paymentPlan, statuses } from "@/data/view/student.data";
-import { getCourse } from "@/lib/network";
+import { getCourseClient } from "@/lib/client-network";
 import { Course } from "@/types/academic/course.interface";
 import {
   IEditStudent,
@@ -136,7 +136,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
     const fetchCourse = async () => {
       try {
         setLoadingCourse(true);
-        const course = await getCourse(courseId);
+        const course = await getCourseClient(courseId);
         setSelectedCourse(course);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
