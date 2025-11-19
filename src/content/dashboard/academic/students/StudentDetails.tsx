@@ -400,10 +400,13 @@ const StudentDetails = ({
                     <div className="text-sm text-gray-600 flex items-center justify-between">
                       <span>
                         {student.payments && student.payments.length > 0
-                          ? student.payments[student.payments.length - 1]
-                              .pending === 0
-                            ? "Paid"
-                            : "Pending"
+                          ? (() => {
+                              const lastPayment = student.payments[student.payments.length - 1];
+                              const pending = lastPayment.paymentPlan?.pending;
+                              return !pending || pending === "0" || (pending && isNaN(Number(pending)))
+                                ? "Paid"
+                                : "Pending";
+                            })()
                           : "No payments found"}
                       </span>
                       <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
