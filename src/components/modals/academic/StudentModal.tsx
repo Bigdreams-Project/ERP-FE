@@ -165,17 +165,26 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       return;
     }
 
+    // First try to find course from props (no API call needed)
+    const courseFromProps = courses.find(c => c.id === courseId);
+    if (courseFromProps) {
+      setSelectedCourse(courseFromProps);
+      return;
+    }
+
+    // If not found in props, fetch from API
     const fetchCourse = async () => {
       try {
         const course = await getCourseClient(courseId);
         setSelectedCourse(course);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
+        // Show error but don't break the UI
       }
     };
 
     fetchCourse();
-  }, [courseId]);
+  }, [courseId, courses]);
 
   useEffect(() => {
     if (initialData?.leadId) {
