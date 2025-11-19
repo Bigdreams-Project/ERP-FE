@@ -106,7 +106,7 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
 
   const handleApplyFilter = () => setIsFilterDropdown(false);
 
-  const filteredData = courses.filter((course) => {
+  const filteredData = courses.filter((course: Course) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       course.name.toLowerCase().includes(query) ||
