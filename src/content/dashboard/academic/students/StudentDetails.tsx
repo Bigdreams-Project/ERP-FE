@@ -1,6 +1,6 @@
 "use client";
 import EditStudentModal from "@/components/modals/academic/StudentEditModal";
-import { updateStudent } from "@/lib/network";
+import { updateStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
@@ -73,7 +73,7 @@ const StudentDetails = ({
 
   const { mutate: saveStudent, isPending } = useMutation({
     mutationFn: async (updatedStudent: Student | any) => {
-      return await updateStudent(updatedStudent.id!, updatedStudent);
+      return await updateStudentClient(updatedStudent.id!, updatedStudent);
     },
     onSuccess: () => {
       showSuccess("Student updated successfully");
@@ -89,7 +89,7 @@ const StudentDetails = ({
 
   const handleSave = async (payload: UpdateStudent) => {
     try {
-      const response = await updateStudent(student.id, payload);
+      const response = await updateStudentClient(student.id, payload);
       showSuccess("Student updated successfully!");
       queryClient.invalidateQueries(["students"]);
       queryClient.invalidateQueries(["student", student.id]);
