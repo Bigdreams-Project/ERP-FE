@@ -166,7 +166,7 @@ const StudentDetails = ({
                 Payment on {formatDate(payment.createdAt)}
               </span>
               <span className="text-sm text-gray-500">
-                {!payment.paymentPlan?.pending || payment.paymentPlan?.pending === 0 || (payment.paymentPlan?.pending && isNaN(Number(payment.paymentPlan.pending)))
+                {!payment.paymentPlan?.pending || payment.paymentPlan.pending === "0" || (payment.paymentPlan?.pending && isNaN(Number(payment.paymentPlan.pending)))
                   ? "Full Payment"
                   : `Partial Payment (Pending: ₦${Number(payment.paymentPlan.pending).toLocaleString()})`}
               </span>
