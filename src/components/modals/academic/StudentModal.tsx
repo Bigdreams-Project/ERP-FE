@@ -4,8 +4,7 @@ import {
   paymentTypes,
   statuses,
 } from "@/data/view/student.data";
-import { getCenterBanks } from "@/lib/network";
-import { getCourseClient } from "@/lib/client-network";
+import { getCourseClient, getCenterBanksClient } from "@/lib/client-network";
 import { Course } from "@/types/academic/course.interface";
 import {
   IStudent,
@@ -95,15 +94,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   useEffect(() => {
     const fetchBanks = async () => {
       try {
-        const response = await getCenterBanks(centerId);
+        const response = await getCenterBanksClient(centerId);
         const formattedBanks = response.map((item: any) => item);
         setBanks(formattedBanks);
       } catch (error) {
         console.error("Failed to fetch center's banks:", error);
+        setBanks([]);
       }
     };
 
-    if (centerId) fetchBanks();
+    if (centerId) {
+      fetchBanks();
+    } else {
+      setBanks([]);
+    }
   }, [centerId]);
 
   useEffect(() => {

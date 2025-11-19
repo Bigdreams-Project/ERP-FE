@@ -294,3 +294,14 @@ export const getLoggedInUserClient = async () => {
   }
 };
 
+// Banks - Client-side functions
+export const getCenterBanksClient = async (centerId: string) => {
+  try {
+    const res = await client.get(`/banks/center/${centerId}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch center's banks:", err.message);
+    return [];
+  }
+};
+
