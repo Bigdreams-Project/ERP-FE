@@ -43,13 +43,14 @@ export async function GET(request: NextRequest) {
  * Proxies request to backend to avoid CORS issues
  */
 export async function POST(request: NextRequest) {
+  let payload: CreateBatch | null = null;
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload: CreateBatch = await request.json();
+    payload = await request.json();
 
     const response = await axios.post(
       `${AuthRoutes.BASE_URL}/batches`,
@@ -65,7 +66,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error("Failed to create batch:", error);
-    console.error("Payload sent:", JSON.stringify(payload, null, 2));
+    if (payload) {
+      console.error("Payload sent:", JSON.stringify(payload, null, 2));
+    }
     if (error.response) {
       console.error("Backend error response:", error.response.data);
       return NextResponse.json(
