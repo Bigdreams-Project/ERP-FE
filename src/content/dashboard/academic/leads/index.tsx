@@ -80,11 +80,16 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
     mutationFn: async (payload: CreateLead) => {
       return await createLeadClient(payload);
     },
-    onSuccess: async () => {
+    onSuccess: async (newLead) => {
       showSuccess("Lead created successfully");
       setIsModalOpen(false);
-      // Refetch leads immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["leads"] });
+      // Optimistically add the new lead to cache before refetching
+      queryClient.setQueryData<Lead[]>(["leads"], (old = []) => {
+        // Add the new lead returned from server to the beginning of the list
+        return [newLead, ...old];
+      });
+      // Refetch in background to ensure data is in sync
+      queryClient.refetchQueries({ queryKey: ["leads"] });
     },
     onError: (error: any) => {
       console.error("Failed to save lead:", error);

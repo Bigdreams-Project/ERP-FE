@@ -4,7 +4,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/constants/status.constants";
-import { createStudentClient } from "@/lib/client-network";
+import { createStudentClient, getStudentsClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -14,7 +14,7 @@ import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent } from "@/types/requests/student.interface";
 import { User } from "@/types/auth/user.interface";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
@@ -28,7 +28,7 @@ interface StudentContentProps {
 }
 
 const StudentContent = ({
-  students,
+  students: initialStudents,
   courses,
   centers,
   leads,
@@ -44,9 +44,16 @@ const StudentContent = ({
     }
   }, [initialUser, queryClient]);
   
+  // Use React Query to fetch and cache students
+  const { data: students = initialStudents } = useQuery({
+    queryKey: ["students"],
+    queryFn: getStudentsClient,
+    initialData: initialStudents,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+  
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const [studentList, setStudentList] = useState<Student[]>(students);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -93,7 +100,7 @@ const StudentContent = ({
     setIsFilterDropdown(false);
   };
 
-  const filteredData = studentList.filter((student: Student) => {
+  const filteredData = students.filter((student: Student) => {
     // Filter out soft-deleted students
     if (student.deletedAt) {
       return false;
@@ -108,17 +115,30 @@ const StudentContent = ({
     return matchesSearch && matchesStatus;
   });
 
-  const handleSave = async (payload: CreateStudent) => {
-    try {
-      await createStudentClient(payload);
+  // Mutation for creating students
+  const { mutate: createStudentMutation, isPending: isCreating } = useMutation({
+    mutationFn: async (payload: CreateStudent) => {
+      return await createStudentClient(payload);
+    },
+    onSuccess: async (newStudent) => {
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);
-      // Refetch students immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["students"] });
-    } catch (error) {
+      // Optimistically add the new student to cache before refetching
+      queryClient.setQueryData<Student[]>(["students"], (old = []) => {
+        // Add the new student returned from server to the beginning of the list
+        return [newStudent, ...old];
+      });
+      // Refetch in background to ensure data is in sync
+      queryClient.refetchQueries({ queryKey: ["students"] });
+    },
+    onError: (error: any) => {
       console.error("Failed to save student:", error);
       showError("Student enrollment failed");
-    }
+    },
+  });
+
+  const handleSave = async (payload: CreateStudent) => {
+    createStudentMutation(payload);
   };
 
   return (

@@ -60,11 +60,16 @@ const CenterContent = ({
     mutationFn: async ({ payload, isDraft }: { payload: CreateCenter; isDraft: boolean }) => {
       return await createCenterClient(payload, isDraft);
     },
-    onSuccess: async () => {
+    onSuccess: async (newCenter) => {
       showSuccess("Center created successfully");
       setIsModalOpen(false);
-      // Refetch centers immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["centers"] });
+      // Optimistically add the new center to cache before refetching
+      queryClient.setQueryData<Center[]>(["centers"], (old = []) => {
+        // Add the new center returned from server to the beginning of the list
+        return [newCenter, ...old];
+      });
+      // Refetch in background to ensure data is in sync
+      queryClient.refetchQueries({ queryKey: ["centers"] });
     },
     onError: (error: any) => {
       console.error("Failed to create center:", error);

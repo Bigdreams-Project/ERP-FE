@@ -24,13 +24,6 @@ const SideNav = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) return null;
   const sidebarWidthClass = isMobile
     ? "w-[18%]"
     : sidebarExpanded

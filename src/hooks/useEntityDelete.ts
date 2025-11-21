@@ -55,28 +55,53 @@ export function useEntityDelete(
     errorMessages,
   } = options;
 
-  // Get entity name for messages (e.g., "students" -> "Student")
-  const entityName = entityType.slice(0, -1).charAt(0).toUpperCase() + entityType.slice(0, -1).slice(1);
+  // Get entity name for messages (e.g., "students" -> "Student", "batches" -> "Batch")
+  // Handle plural forms ending in "es" (batches, courses) vs "s" (students, leads, centers)
+  const getEntityName = (type: string): string => {
+    if (type.endsWith("es")) {
+      // Remove "es" for words like "batches" -> "batch", "courses" -> "course"
+      const singular = type.slice(0, -2);
+      return singular.charAt(0).toUpperCase() + singular.slice(1);
+    } else if (type.endsWith("s")) {
+      // Remove "s" for words like "students" -> "student", "leads" -> "lead", "centers" -> "center"
+      const singular = type.slice(0, -1);
+      return singular.charAt(0).toUpperCase() + singular.slice(1);
+    }
+    // If no plural ending, capitalize first letter
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+  const entityName = getEntityName(entityType);
 
   const handleSoftDelete = async (
     id: string,
     deleteOptions?: { deletedAt?: string }
   ): Promise<void> => {
     setIsDeleting(true);
+    
+    // Optimistically update the cache - mark item as deleted
+    queryClient.setQueryData([entityType], (old: any[] = []) => {
+      return old.map((item: any) =>
+        item.id === id ? { ...item, deletedAt: deleteOptions?.deletedAt || new Date().toISOString() } : item
+      );
+    });
+    
     try {
       await deleteEntity(entityType, id, "soft", deleteOptions);
       
       const message = successMessages?.soft || `${entityName} archived successfully`;
       showSuccess(message);
       
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: [entityType] });
+      // Refetch to ensure data is in sync with server
+      await queryClient.refetchQueries({ queryKey: [entityType] });
       
       // Call custom success handler if provided
       if (onSuccess) {
         onSuccess(id, "soft");
       }
     } catch (error: any) {
+      // Rollback optimistic update on error
+      await queryClient.refetchQueries({ queryKey: [entityType] });
+      
       const message = errorMessages?.soft || error.message || `Failed to archive ${entityName.toLowerCase()}`;
       showError(message);
       
@@ -91,20 +116,32 @@ export function useEntityDelete(
 
   const handleHardDelete = async (id: string): Promise<void> => {
     setIsDeleting(true);
+    
+    // Store current data for rollback
+    const previousData = queryClient.getQueryData([entityType]);
+    
+    // Optimistically remove the item from cache
+    queryClient.setQueryData([entityType], (old: any[] = []) => {
+      return old.filter((item: any) => item.id !== id);
+    });
+    
     try {
       await deleteEntity(entityType, id, "hard");
       
       const message = successMessages?.hard || `${entityName} permanently deleted`;
       showSuccess(message);
       
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: [entityType] });
+      // Refetch to ensure data is in sync with server
+      await queryClient.refetchQueries({ queryKey: [entityType] });
       
       // Call custom success handler if provided
       if (onSuccess) {
         onSuccess(id, "hard");
       }
     } catch (error: any) {
+      // Rollback optimistic update on error
+      queryClient.setQueryData([entityType], previousData);
+      
       const message = errorMessages?.hard || error.message || `Failed to delete ${entityName.toLowerCase()}`;
       showError(message);
       
