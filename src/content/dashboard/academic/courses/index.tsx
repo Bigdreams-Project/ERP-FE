@@ -75,16 +75,11 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
     mutationFn: async ({ payload, isDraft }: { payload: CreateCourse; isDraft: boolean }) => {
       return await createCourseClient(payload, isDraft);
     },
-    onSuccess: async (newCourse) => {
+    onSuccess: async () => {
       showSuccess("Course created successfully");
       setIsModalOpen(false);
-      // Optimistically add the new course to cache before refetching
-      queryClient.setQueryData<Course[]>(["courses"], (old = []) => {
-        // Add the new course returned from server to the beginning of the list
-        return [newCourse, ...old];
-      });
-      // Refetch in background to ensure data is in sync
-      queryClient.refetchQueries({ queryKey: ["courses"] });
+      // Refetch courses immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["courses"] });
     },
     onError: (error: any) => {
       console.error("Failed to save course:", error);

@@ -120,16 +120,11 @@ const StudentContent = ({
     mutationFn: async (payload: CreateStudent) => {
       return await createStudentClient(payload);
     },
-    onSuccess: async (newStudent) => {
+    onSuccess: async () => {
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);
-      // Optimistically add the new student to cache before refetching
-      queryClient.setQueryData<Student[]>(["students"], (old = []) => {
-        // Add the new student returned from server to the beginning of the list
-        return [newStudent, ...old];
-      });
-      // Refetch in background to ensure data is in sync
-      queryClient.refetchQueries({ queryKey: ["students"] });
+      // Refetch students immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["students"] });
     },
     onError: (error: any) => {
       console.error("Failed to save student:", error);

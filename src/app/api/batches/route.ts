@@ -65,9 +65,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error("Failed to create batch:", error);
+    console.error("Payload sent:", JSON.stringify(payload, null, 2));
     if (error.response) {
+      console.error("Backend error response:", error.response.data);
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to create batch" },
+        { error: error.response.data?.message || error.response.data || "Failed to create batch" },
         { status: error.response.status || 500 }
       );
     }

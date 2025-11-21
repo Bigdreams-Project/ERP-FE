@@ -544,6 +544,13 @@ export const getBatchClient = async (id: string) => {
 
 export const createBatchClient = async (payload: CreateBatch) => {
   try {
+    // Remove status before sending (backend validation requirements)
+    // centerId is required, so we always include it
+    const { status, ...rest } = payload;
+    const cleanPayload = {
+      ...rest,
+    };
+
     // Use Next.js API route to avoid CORS issues
     const res = await fetch("/api/batches", {
       method: "POST",
@@ -551,7 +558,7 @@ export const createBatchClient = async (payload: CreateBatch) => {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(cleanPayload),
     });
 
     if (!res.ok) {

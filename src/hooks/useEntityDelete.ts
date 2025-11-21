@@ -78,13 +78,6 @@ export function useEntityDelete(
   ): Promise<void> => {
     setIsDeleting(true);
     
-    // Optimistically update the cache - mark item as deleted
-    queryClient.setQueryData([entityType], (old: any[] = []) => {
-      return old.map((item: any) =>
-        item.id === id ? { ...item, deletedAt: deleteOptions?.deletedAt || new Date().toISOString() } : item
-      );
-    });
-    
     try {
       await deleteEntity(entityType, id, "soft", deleteOptions);
       
@@ -99,9 +92,6 @@ export function useEntityDelete(
         onSuccess(id, "soft");
       }
     } catch (error: any) {
-      // Rollback optimistic update on error
-      await queryClient.refetchQueries({ queryKey: [entityType] });
-      
       const message = errorMessages?.soft || error.message || `Failed to archive ${entityName.toLowerCase()}`;
       showError(message);
       
@@ -117,14 +107,6 @@ export function useEntityDelete(
   const handleHardDelete = async (id: string): Promise<void> => {
     setIsDeleting(true);
     
-    // Store current data for rollback
-    const previousData = queryClient.getQueryData([entityType]);
-    
-    // Optimistically remove the item from cache
-    queryClient.setQueryData([entityType], (old: any[] = []) => {
-      return old.filter((item: any) => item.id !== id);
-    });
-    
     try {
       await deleteEntity(entityType, id, "hard");
       
@@ -139,9 +121,6 @@ export function useEntityDelete(
         onSuccess(id, "hard");
       }
     } catch (error: any) {
-      // Rollback optimistic update on error
-      queryClient.setQueryData([entityType], previousData);
-      
       const message = errorMessages?.hard || error.message || `Failed to delete ${entityName.toLowerCase()}`;
       showError(message);
       

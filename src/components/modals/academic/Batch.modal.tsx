@@ -49,6 +49,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     mode: "onChange",
     defaultValues: {
       courseId: "",
+      centerId: "",
       startDate: "",
       endDate: "",
       schedules: [
@@ -82,17 +83,18 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     if (courseId) {
       const selectedCourse = courses.find((course) => course.id === courseId);
       if (selectedCourse) {
-        setValue(
-          "duration",
-          parseInt(selectedCourse.duration.toString(), 10).toString()
-        );
-        setValue(
-          "centerId",
-          selectedCourse?.courseAssignments[0]?.centerId || ""
-        );
+        const duration = parseInt(selectedCourse.duration.toString(), 10).toString();
+        const centerId = selectedCourse?.courseAssignments?.[0]?.centerId;
+        
+        setValue("duration", duration, { shouldValidate: true });
+        
+        // Only set centerId if it exists, don't set empty string
+        if (centerId) {
+          setValue("centerId", centerId, { shouldValidate: true });
+        }
       }
     }
-  }, [courseId, setValue]);
+  }, [courseId, setValue, courses]);
 
   // Reset the form
   useEffect(() => {
