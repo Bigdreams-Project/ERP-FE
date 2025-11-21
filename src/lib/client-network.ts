@@ -114,8 +114,23 @@ export const hardDeleteCenterClient = async (id: string) => {
 // Courses - Client-side functions
 export const getCoursesClient = async () => {
   try {
-    const res = await client.get("/courses");
-    return res.data;
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/courses", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch courses: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    // Frontend safety filter: exclude soft-deleted courses
+    const courses = Array.isArray(data) ? data : [];
+    return courses.filter((course: any) => !course.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch courses:", err.message);
     throw err;
@@ -134,13 +149,30 @@ export const getCourseClient = async (id: string) => {
 
 export const createCourseClient = async (payload: CreateCourse, isDraft: boolean) => {
   try {
-    const res = await client.post(`/courses`, {
-      name: payload.name,
-      type: payload.type as any,
-      duration: payload.duration,
-      isDraft,
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/courses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        payload: {
+          name: payload.name,
+          type: payload.type,
+          duration: payload.duration,
+        },
+        isDraft,
+      }),
     });
-    return res.data;
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to create course: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to create course:", err.message);
     throw err;
