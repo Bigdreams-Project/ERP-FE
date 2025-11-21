@@ -75,19 +75,15 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
     mutationFn: async ({ payload, isDraft }: { payload: CreateCourse; isDraft: boolean }) => {
       return await createCourseClient(payload, isDraft);
     },
-    onSuccess: (newCourse) => {
+    onSuccess: async () => {
       showSuccess("Course created successfully");
       setIsModalOpen(false);
-      // Optimistically update the cache
-      queryClient.setQueryData(["courses"], (old: Course[] = []) => [newCourse, ...old]);
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["courses"], refetchType: "active" });
+      // Refetch courses immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["courses"] });
     },
     onError: (error: any) => {
       console.error("Failed to save course:", error);
       showError("Failed to create new course");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["courses"] });
     },
   });
 

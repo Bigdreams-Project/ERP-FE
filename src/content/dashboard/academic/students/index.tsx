@@ -110,13 +110,11 @@ const StudentContent = ({
 
   const handleSave = async (payload: CreateStudent) => {
     try {
-      const newStudent = await createStudentClient(payload);
+      await createStudentClient(payload);
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);
-      // Update local state immediately
-      setStudentList((prev) => [newStudent, ...prev]);
-      // Invalidate React Query cache to sync with server
-      queryClient.invalidateQueries({ queryKey: ["students"], refetchType: "active" });
+      // Refetch students immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["students"] });
     } catch (error) {
       console.error("Failed to save student:", error);
       showError("Student enrollment failed");

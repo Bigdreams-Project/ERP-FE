@@ -14,9 +14,22 @@ import {
 // Centers - Client-side functions
 export const getCentersClient = async () => {
   try {
-    const res = await client.get("/centers");
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/centers", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch centers: ${res.statusText}`);
+    }
+
+    const data = await res.json();
     // Frontend safety filter: exclude soft-deleted centers
-    const centers = Array.isArray(res.data) ? res.data : [];
+    const centers = Array.isArray(data) ? data : [];
     return centers.filter((center: any) => !center.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch centers:", err.message);
@@ -36,8 +49,23 @@ export const getCenterClient = async (id: string) => {
 
 export const createCenterClient = async (payload: CreateCenter, isDraft: boolean) => {
   try {
-    const res = await client.post(`/centers`, payload);
-    return res.data;
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/centers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ payload, isDraft }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to create center: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to create center:", err.message);
     throw err;
@@ -227,9 +255,22 @@ export const hardDeleteCourseClient = async (id: string) => {
 // Students - Client-side functions
 export const getStudentsClient = async () => {
   try {
-    const res = await client.get("/students");
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/students", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch students: ${res.statusText}`);
+    }
+
+    const data = await res.json();
     // Frontend safety filter: exclude soft-deleted students
-    const students = Array.isArray(res.data) ? res.data : [];
+    const students = Array.isArray(data) ? data : [];
     return students.filter((student: any) => !student.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch students:", err.message);
@@ -329,9 +370,22 @@ export const hardDeleteStudentClient = async (id: string) => {
 // Leads - Client-side functions
 export const getLeadsClient = async () => {
   try {
-    const res = await client.get("/leads/active");
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/leads", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch leads: ${res.statusText}`);
+    }
+
+    const data = await res.json();
     // Frontend safety filter: exclude soft-deleted leads
-    const leads = Array.isArray(res.data) ? res.data : [];
+    const leads = Array.isArray(data) ? data : [];
     return leads.filter((lead: any) => !lead.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch leads:", err.message);
@@ -351,8 +405,23 @@ export const getLeadClient = async (id: string) => {
 
 export const createLeadClient = async (payload: CreateLead) => {
   try {
-    const res = await client.post(`/leads`, payload);
-    return res.data;
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/leads", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to create lead: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to create lead:", err.message);
     throw err;
@@ -440,9 +509,22 @@ export const getManagersClient = async () => {
 // Batches - Client-side functions
 export const getBatchesClient = async () => {
   try {
-    const res = await client.get("/batches");
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/batches", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch batches: ${res.statusText}`);
+    }
+
+    const data = await res.json();
     // Frontend safety filter: exclude soft-deleted batches
-    const batches = Array.isArray(res.data) ? res.data : [];
+    const batches = Array.isArray(data) ? data : [];
     return batches.filter((batch: any) => !batch.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch batches:", err.message);
@@ -462,8 +544,23 @@ export const getBatchClient = async (id: string) => {
 
 export const createBatchClient = async (payload: CreateBatch) => {
   try {
-    const res = await client.post(`/batches`, payload);
-    return res.data;
+    // Use Next.js API route to avoid CORS issues
+    const res = await fetch("/api/batches", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to create batch: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to create batch:", err.message);
     throw err;

@@ -107,19 +107,15 @@ const BatchesContent = ({
   // Mutation for creating batches
   const { mutate: createBatchMutation, isPending: isCreating } = useMutation({
     mutationFn: createBatchClient,
-    onSuccess: (newBatch) => {
+    onSuccess: async () => {
       showSuccess("Batch created successfully!");
       setIsModalOpen(false);
-      // Optimistically update the cache
-      queryClient.setQueryData(["batches"], (old: Batch[] = []) => [newBatch, ...old]);
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["batches"], refetchType: "active" });
+      // Refetch batches immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["batches"] });
     },
     onError: (error: any) => {
       console.error("Failed to save batch:", error);
       showError("Failed to create batch. Please try again.");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["batches"] });
     },
   });
 

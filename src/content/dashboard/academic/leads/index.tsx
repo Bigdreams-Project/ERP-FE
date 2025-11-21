@@ -75,24 +75,20 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  // Mutation for creating leads with optimistic updates
+  // Mutation for creating leads
   const { mutate: createLeadMutation, isPending: isCreating } = useMutation({
     mutationFn: async (payload: CreateLead) => {
       return await createLeadClient(payload);
     },
-    onSuccess: (newLead) => {
+    onSuccess: async () => {
       showSuccess("Lead created successfully");
       setIsModalOpen(false);
-      // Optimistically update the cache
-      queryClient.setQueryData(["leads"], (old: Lead[] = []) => [newLead, ...old]);
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
+      // Refetch leads immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["leads"] });
     },
     onError: (error: any) => {
       console.error("Failed to save lead:", error);
       showError("Failed to save lead");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
     },
   });
 

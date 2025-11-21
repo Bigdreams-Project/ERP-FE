@@ -55,24 +55,20 @@ const CenterContent = ({
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  // Mutation for creating centers with optimistic updates
+  // Mutation for creating centers
   const { mutate: createCenterMutation, isPending: isCreating } = useMutation({
     mutationFn: async ({ payload, isDraft }: { payload: CreateCenter; isDraft: boolean }) => {
       return await createCenterClient(payload, isDraft);
     },
-    onSuccess: (newCenter) => {
+    onSuccess: async () => {
       showSuccess("Center created successfully");
       setIsModalOpen(false);
-      // Optimistically update the cache
-      queryClient.setQueryData(["centers"], (old: Center[] = []) => [newCenter, ...old]);
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["centers"], refetchType: "active" });
+      // Refetch centers immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["centers"] });
     },
     onError: (error: any) => {
       console.error("Failed to create center:", error);
       showError("Failed to create center");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["centers"] });
     },
   });
 

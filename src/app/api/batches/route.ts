@@ -1,11 +1,11 @@
 import { AuthRoutes } from "@/constants/apiRoutes.constant";
 import { getSession } from "@/lib/session";
-import { CreateStudent } from "@/types/requests/student.interface";
+import { CreateBatch } from "@/types/requests/batch.interface";
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
 /**
- * GET handler - Fetch all students
+ * GET handler - Fetch all batches
  * Proxies request to backend to avoid CORS issues
  */
 export async function GET(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await axios.get(`${AuthRoutes.BASE_URL}/students`, {
+    const response = await axios.get(`${AuthRoutes.BASE_URL}/batches`, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
         "Content-Type": "application/json",
@@ -24,22 +24,22 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch students:", error);
+    console.error("Failed to fetch batches:", error);
     if (error.response) {
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to fetch students" },
+        { error: error.response.data?.message || "Failed to fetch batches" },
         { status: error.response.status || 500 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to fetch students" },
+      { error: "Failed to fetch batches" },
       { status: 500 }
     );
   }
 }
 
 /**
- * POST handler - Create a new student
+ * POST handler - Create a new batch
  * Proxies request to backend to avoid CORS issues
  */
 export async function POST(request: NextRequest) {
@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload: CreateStudent = await request.json();
+    const payload: CreateBatch = await request.json();
 
     const response = await axios.post(
-      `${AuthRoutes.BASE_URL}/students`,
+      `${AuthRoutes.BASE_URL}/batches`,
       payload,
       {
         headers: {
@@ -64,15 +64,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to create student:", error);
+    console.error("Failed to create batch:", error);
     if (error.response) {
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to create student" },
+        { error: error.response.data?.message || "Failed to create batch" },
         { status: error.response.status || 500 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to create student" },
+      { error: "Failed to create batch" },
       { status: 500 }
     );
   }
