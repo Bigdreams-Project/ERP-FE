@@ -1,0 +1,343 @@
+"use client";
+import AcademicTabs from "@/components/academic/common/AcademicTabs";
+import BreadCrumb from "@/components/academic/common/BreadCrumb";
+import ArchiveTable from "@/components/academic/tables/Archive.table";
+import ArchiveUploadModal from "@/components/modals/academic/ArchiveUpload.modal";
+import ArchiveCreateModal from "@/components/modals/academic/ArchiveCreate.modal";
+import { getArchiveRecordsClient, bulkUploadArchiveClient, createArchiveRecordClient, getCentersClient } from "@/lib/client-network";
+import { showError, showSuccess } from "@/lib/toast";
+import { Center } from "@/types/academic/center.interface";
+import { ArchiveRecord } from "@/types/academic/archive.interface";
+import { BulkUploadArchiveRequest, CreateArchiveRecord } from "@/types/requests/archive.interface";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BiSearchAlt } from "react-icons/bi";
+import { FaPlus } from "react-icons/fa6";
+import { IoFilter } from "react-icons/io5";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { User } from "@/types/auth/user.interface";
+
+interface ArchiveContentProps {
+  archiveRecords: ArchiveRecord[];
+  totalRecords: number;
+  centers: Center[];
+  user: User;
+}
+
+const ArchiveContent = ({
+  archiveRecords: initialArchiveRecords,
+  totalRecords: initialTotalRecords,
+  centers,
+  user: initialUser,
+}: ArchiveContentProps) => {
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Pre-populate React Query cache with user data from server
+  // This ensures useIsAdmin hook can use it immediately without loading state
+  useLayoutEffect(() => {
+    if (initialUser) {
+      queryClient.setQueryData(["user"], initialUser);
+    }
+  }, [initialUser, queryClient]);
+  
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [statusFilter, setStatusFilter] = useState<string>(""); // "Graduated" | "Owing" | "Dropout" | ""
+  const [isFilterDropdown, setIsFilterDropdown] = useState(false);
+
+  // Fetch centers using React Query
+  const { data: centersData = centers } = useQuery({
+    queryKey: ["centers"],
+    queryFn: getCentersClient,
+    initialData: centers,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Use React Query to fetch and cache archive records
+  const { data: archiveData } = useQuery({
+    queryKey: ["archive", currentPage, searchQuery],
+    queryFn: () => getArchiveRecordsClient({ 
+      page: currentPage, 
+      limit: itemsPerPage,
+      search: searchQuery || undefined,
+    }),
+    initialData: {
+      data: initialArchiveRecords,
+      total: initialTotalRecords,
+      page: 1,
+      limit: itemsPerPage,
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  const archiveRecords = archiveData?.data || [];
+  const totalRecords = archiveData?.total || 0;
+
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsFilterDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!isTyping && searchInput.length > 0) setIsTyping(true);
+
+    const handler = setTimeout(() => {
+      if (searchInput.length === 0) {
+        setSearchQuery("");
+        setError("");
+      } else if (searchInput.length < 3) {
+        setError("Please enter at least 3 characters");
+      } else {
+        setError("");
+        setSearchQuery(searchInput);
+        setCurrentPage(1); // Reset to first page on new search
+      }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchInput, isTyping]);
+
+  // Mutation for bulk upload
+  const { mutate: bulkUploadMutation, isPending: isUploading } = useMutation({
+    mutationFn: async (payload: BulkUploadArchiveRequest) => {
+      return await bulkUploadArchiveClient(payload);
+    },
+    onSuccess: async (data) => {
+      showSuccess(`Successfully uploaded ${data.success} archive record(s)`);
+      setIsUploadModalOpen(false);
+      // Invalidate all archive queries to refresh the list
+      await queryClient.invalidateQueries({ queryKey: ["archive"] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to upload archive records:", error);
+      showError(error.message || "Failed to upload archive records");
+    },
+  });
+
+  // Mutation for creating single archive record
+  const { mutate: createArchiveMutation, isPending: isCreating } = useMutation({
+    mutationFn: async (payload: CreateArchiveRecord) => {
+      return await createArchiveRecordClient(payload);
+    },
+    onSuccess: async () => {
+      showSuccess("Archive record created successfully!");
+      setIsCreateModalOpen(false);
+      // Invalidate all archive queries to refresh the list
+      await queryClient.invalidateQueries({ queryKey: ["archive"] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to create archive record:", error);
+      showError(error.message || "Failed to create archive record");
+    },
+  });
+
+  const handleUpload = async (payload: BulkUploadArchiveRequest) => {
+    bulkUploadMutation(payload);
+  };
+
+  const handleCreate = async (payload: CreateArchiveRecord) => {
+    createArchiveMutation(payload);
+  };
+
+  const filteredData = archiveRecords.filter((record: ArchiveRecord) => {
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = (
+      (record.fullname?.toLowerCase() || "").includes(query) ||
+      (record.email?.toLowerCase() || "").includes(query) ||
+      (record.phone?.toLowerCase() || "").includes(query) ||
+      (record.userOldId?.toLowerCase() || "").includes(query) ||
+      (record.oldStudentId?.toLowerCase() || "").includes(query)
+    );
+
+    // Status filter logic
+    let matchesStatus = true;
+    if (statusFilter === "Graduated") {
+      matchesStatus = 
+        record.source === "graduated" || 
+        record.status?.toLowerCase().includes("graduated") ||
+        record.pendingPayment === 0; // Include students with no pending payment
+    } else if (statusFilter === "Owing") {
+      matchesStatus = record.pendingPayment > 0;
+    } else if (statusFilter === "Dropout") {
+      matchesStatus = record.status?.toLowerCase().includes("dropout") || 
+                      record.status?.toLowerCase().includes("dropped");
+    }
+
+    return matchesSearch && matchesStatus;
+  });
+
+  return (
+    <div className="w-full">
+      <BreadCrumb paths={[{ name: "Archive" }]} />
+
+      <div className="w-full flex items-center">
+        <div className="flex items-center mt-4">
+          <AcademicTabs />
+        </div>
+
+        <div className="w-full flex items-center justify-end gap-7 p-2">
+          {/* Status Filter Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <div
+              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors border border-gray-300"
+              onClick={() => setIsFilterDropdown(!isFilterDropdown)}
+            >
+              <IoFilter size={20} />
+              <p className="font-medium text-gray-900">
+                {statusFilter || "Status"}
+              </p>
+            </div>
+            {isFilterDropdown && (
+              <div className="absolute right-0 mt-2 bg-white rounded-md w-[180px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400 border border-gray-200">
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      setStatusFilter("");
+                      setIsFilterDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                      statusFilter === ""
+                        ? "bg-blue-100 text-blue-700 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("Graduated");
+                      setIsFilterDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                      statusFilter === "Graduated"
+                        ? "bg-blue-100 text-blue-700 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Graduated
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("Owing");
+                      setIsFilterDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                      statusFilter === "Owing"
+                        ? "bg-blue-100 text-blue-700 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Owing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("Dropout");
+                      setIsFilterDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                      statusFilter === "Dropout"
+                        ? "bg-blue-100 text-blue-700 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    Dropout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Search */}
+          <div className="w-[250px]">
+            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
+              <BiSearchAlt size={18} className="ml-2" />
+              <input
+                type="text"
+                placeholder="Search"
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  if (!isTyping) setIsTyping(true);
+                }}
+                className="outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Add Archive Record Button - Admin Only */}
+          {isAdmin && !isAdminLoading && (
+            <button
+              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              onClick={() => setIsCreateModalOpen(true)}
+              disabled={isCreating}
+            >
+              <FaPlus className="text-white" size={16} />
+              <span className="text-white text-sm">
+                {isCreating ? "Creating..." : "Add Archive Record"}
+              </span>
+            </button>
+          )}
+
+          {/* Upload Archive Button - Admin Only */}
+          {isAdmin && !isAdminLoading && (
+            <button
+              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-amber-600 rounded-md shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+              onClick={() => setIsUploadModalOpen(true)}
+              disabled={isUploading}
+            >
+              <FaPlus className="text-white" size={16} />
+              <span className="text-white text-sm">
+                {isUploading ? "Uploading..." : "Upload Archive"}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      <ArchiveTable
+        searchQuery={searchQuery}
+        filteredData={filteredData}
+        totalRecords={totalRecords}
+        currentPage={currentPage}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+        centers={centersData}
+      />
+      
+      <ArchiveCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleCreate}
+        centers={centersData}
+      />
+
+      <ArchiveUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSave={handleUpload}
+        centers={centersData}
+      />
+    </div>
+  );
+};
+
+export default ArchiveContent;
+

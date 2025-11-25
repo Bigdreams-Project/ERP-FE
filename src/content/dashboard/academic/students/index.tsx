@@ -15,9 +15,12 @@ import { CreateStudent } from "@/types/requests/student.interface";
 import { User } from "@/types/auth/user.interface";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
+import { Archive } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface StudentContentProps {
   students: Student[];
@@ -36,6 +39,8 @@ const StudentContent = ({
 }: StudentContentProps) => {
   // Pre-populate React Query cache with user data from server
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   
   // Set user data in cache synchronously (before paint) so useIsAdmin hook can use it immediately
   useLayoutEffect(() => {
@@ -229,6 +234,17 @@ const StudentContent = ({
             <FaPlus className="text-white" size={16} />
             <span className="text-white text-sm">Enroll Student</span>
           </button>
+
+          {/* Archive Button - Admin Only */}
+          {isAdmin && !isAdminLoading && (
+            <button
+              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-amber-600 rounded-md shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors"
+              onClick={() => router.push("/dashboard/academic/archive")}
+            >
+              <Archive className="text-white" size={16} />
+              <span className="text-white text-sm">Archive</span>
+            </button>
+          )}
         </div>
       </div>
 
