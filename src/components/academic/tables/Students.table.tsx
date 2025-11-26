@@ -154,7 +154,8 @@ export default function StudentTable({
       setSelectedStudent(null);
       // Refresh both student list and archive list
       await queryClient.refetchQueries({ queryKey: ["students"] });
-      await queryClient.invalidateQueries({ queryKey: ["archive"] });
+      // ✅ Force refetch archive queries immediately (not just invalidate)
+      await queryClient.refetchQueries({ queryKey: ["archive"] });
     } catch (error: any) {
       console.error("Failed to archive student:", error);
       showError(error.message || "Failed to archive student");

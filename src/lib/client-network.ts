@@ -789,6 +789,11 @@ export const createArchiveRecordClient = async (payload: CreateArchiveRecord) =>
 
 export const bulkUploadArchiveClient = async (payload: BulkUploadArchiveRequest) => {
   try {
+    console.log("Uploading archive records:", payload.records.length);
+    if (payload.records.length > 0) {
+      console.log("First record sample:", JSON.stringify(payload.records[0], null, 2));
+    }
+    
     const res = await fetch("/api/archive", {
       method: "POST",
       headers: {
@@ -799,7 +804,10 @@ export const bulkUploadArchiveClient = async (payload: BulkUploadArchiveRequest)
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to upload archive records: ${res.statusText}`);
+      const errorData = await res.json().catch(() => ({ error: res.statusText }));
+      const errorMessage = errorData.error || `Failed to upload archive records: ${res.statusText}`;
+      console.error("Upload error response:", errorData);
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();

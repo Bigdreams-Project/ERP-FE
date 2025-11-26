@@ -7,6 +7,12 @@ import axios from "axios";
 /**
  * POST handler - Archive student (MOVE from Student table to Archive table)
  * Admin only - Moves student data to Archive and hard-deletes student
+ * 
+ * RBAC NOTE: 
+ * - Backend MUST capture student.centerId when creating archive record
+ * - Archive record MUST have centerId set from the original student record
+ * - This ensures proper center-scoped filtering for future RBAC implementation
+ * - Backend should map: archiveRecord.centerId = student.centerId
  */
 export async function POST(
   request: NextRequest,

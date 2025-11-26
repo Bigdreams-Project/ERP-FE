@@ -4,7 +4,7 @@ import { CreateArchiveRecord } from "@/types/requests/archive.interface";
 import { archiveRecordSchema } from "@/validations/academic/archive.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { X, ChevronDown } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface ArchiveCreateModalProps {
@@ -24,6 +24,8 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateArchiveRecord>({
     resolver: yupResolver(archiveRecordSchema as any),
@@ -47,6 +49,48 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
       source: null,
     },
   });
+
+  const fullname = watch("fullname");
+
+  /**
+   * Generate student ID in format: TT-{First2NameInitials}-{00001}
+   * Example: TT-JD-00001
+   */
+  const generateStudentId = (name: string): string => {
+    if (!name || name.trim() === "") {
+      return `TT-XX-00001`;
+    }
+
+    // Extract first 2 initials from full name
+    const nameParts = name.trim().split(/\s+/);
+    let initials = "";
+
+    if (nameParts.length >= 2) {
+      // Take first letter of first name and first letter of second name
+      initials = (nameParts[0][0] || "").toUpperCase() + (nameParts[1][0] || "").toUpperCase();
+    } else if (nameParts.length === 1) {
+      // If only one name, take first 2 letters
+      const name = nameParts[0];
+      initials = (name[0] || "").toUpperCase() + (name[1] || "X").toUpperCase();
+    }
+
+    // Ensure we have 2 characters
+    if (initials.length < 2) {
+      initials = initials.padEnd(2, "X");
+    }
+
+    // Format: TT-{INITIALS}-{00001}
+    // Note: For manual create, we use 00001 as default. Backend should handle sequential numbering.
+    return `TT-${initials}-00001`;
+  };
+
+  // Auto-generate oldStudentId when fullname changes
+  useEffect(() => {
+    if (fullname && fullname.trim() !== "") {
+      const generatedId = generateStudentId(fullname);
+      setValue("oldStudentId", generatedId);
+    }
+  }, [fullname, setValue]);
 
   useEffect(() => {
     if (isOpen) {
@@ -72,7 +116,19 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
   }, [isOpen, reset]);
 
   const onSubmit = (data: CreateArchiveRecord) => {
-    onSave(data);
+    // Auto-generate oldStudentId if not provided
+    if (!data.oldStudentId || data.oldStudentId.trim() === "") {
+      data.oldStudentId = generateStudentId(data.fullname);
+    }
+    
+    // Ensure userOldId is set (use oldStudentId as fallback)
+    if (!data.userOldId || data.userOldId.trim() === "") {
+      data.userOldId = data.oldStudentId;
+    }
+
+    // Remove newStudentId - backend will auto-generate
+    const { newStudentId, userNewId, ...submitData } = data;
+    onSave(submitData as CreateArchiveRecord);
   };
 
   if (!isOpen) return null;
@@ -119,36 +175,6 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
               )}
             </div>
 
-            {/* User OLD ID */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                User OLD ID *
-              </label>
-              <input
-                type="text"
-                {...register("userOldId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              />
-              {errors.userOldId && (
-                <p className="text-red-500 text-xs mt-1">{errors.userOldId.message}</p>
-              )}
-            </div>
-
-            {/* User New ID */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                User New ID
-              </label>
-              <input
-                type="text"
-                {...register("userNewId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              />
-              {errors.userNewId && (
-                <p className="text-red-500 text-xs mt-1">{errors.userNewId.message}</p>
-              )}
-            </div>
-
             {/* Full Name */}
             <div className="flex flex-col md:col-span-2">
               <label className="text-sm font-medium text-gray-700 mb-1">
@@ -161,6 +187,38 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
               />
               {errors.fullname && (
                 <p className="text-red-500 text-xs mt-1">{errors.fullname.message}</p>
+              )}
+            </div>
+
+            {/* Old Student ID (Legacy ID) */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Old Student ID (Legacy ID) *
+              </label>
+              <input
+                type="text"
+                {...register("oldStudentId")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                placeholder="Auto-generated from name"
+              />
+              {errors.oldStudentId && (
+                <p className="text-red-500 text-xs mt-1">{errors.oldStudentId.message}</p>
+              )}
+            </div>
+
+            {/* User OLD ID */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                User OLD ID *
+              </label>
+              <input
+                type="text"
+                {...register("userOldId")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                placeholder="Same as Old Student ID if not provided"
+              />
+              {errors.userOldId && (
+                <p className="text-red-500 text-xs mt-1">{errors.userOldId.message}</p>
               )}
             </div>
 
@@ -255,36 +313,6 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
               )}
             </div>
 
-            {/* Old Student ID */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Old Student ID *
-              </label>
-              <input
-                type="text"
-                {...register("oldStudentId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              />
-              {errors.oldStudentId && (
-                <p className="text-red-500 text-xs mt-1">{errors.oldStudentId.message}</p>
-              )}
-            </div>
-
-            {/* New Student ID */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                New Student ID
-              </label>
-              <input
-                type="text"
-                {...register("newStudentId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              />
-              {errors.newStudentId && (
-                <p className="text-red-500 text-xs mt-1">{errors.newStudentId.message}</p>
-              )}
-            </div>
-
             {/* Total Payment */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
@@ -318,15 +346,23 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
             </div>
 
             {/* Status */}
-            <div className="flex flex-col">
+            <div className="flex flex-col relative">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Status *
               </label>
-              <input
-                type="text"
+              <select
                 {...register("status")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              />
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Status</option>
+                <option value="Owing">Owing</option>
+                <option value="Graduated">Graduated</option>
+                <option value="Dropout">Dropout</option>
+                <option value="Active">Active</option>
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
               {errors.status && (
                 <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>
               )}

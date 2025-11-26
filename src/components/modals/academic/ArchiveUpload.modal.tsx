@@ -4,8 +4,8 @@ import { ArchiveRecord } from "@/types/academic/archive.interface";
 import { BulkUploadArchiveRequest } from "@/types/requests/archive.interface";
 import { archiveRecordSchema } from "@/validations/academic/archive.validation";
 import * as XLSX from "xlsx";
-import { X, Upload, AlertCircle } from "lucide-react";
-import React, { useState, useRef } from "react";
+import { X, Upload, AlertCircle, ChevronDown } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface ArchiveUploadModalProps {
@@ -13,6 +13,7 @@ interface ArchiveUploadModalProps {
   onClose: () => void;
   onSave: (data: BulkUploadArchiveRequest) => void;
   centers: Center[];
+  isUploading?: boolean; // Add upload state prop
 }
 
 const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
@@ -20,6 +21,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
   onClose,
   onSave,
   centers,
+  isUploading = false,
 }) => {
   const { isAdmin } = useIsAdmin();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,10 +33,123 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
   >([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewRows, setPreviewRows] = useState(10);
+  const [duplicateRecords, setDuplicateRecords] = useState<Array<{ row: number; oldStudentId: string }>>([]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      handleReset();
+    }
+  }, [isOpen]);
+
+  /**
+   * Check if a string matches TT format: TT-XX-XXXXX
+   */
+  const isTTFormat = (id: string): boolean => {
+    if (!id || typeof id !== "string") return false;
+    const ttFormatRegex = /^TT-[A-Z]{2}-\d{5}$/;
+    return ttFormatRegex.test(id.trim());
+  };
+
+  /**
+   * Generate student ID in format: TT-{First2NameInitials}-{00001}
+   * Checks for duplicates with same initials and increments accordingly
+   * Example: If "OC-00001" exists, next "OC" becomes "OC-00002"
+   */
+  const generateStudentIdWithCounter = (
+    fullname: string, 
+    initialsCounter: Map<string, number>
+  ): string => {
+    if (!fullname || fullname.trim() === "") {
+      const counter = initialsCounter.get("XX") || 0;
+      initialsCounter.set("XX", counter + 1);
+      return `TT-XX-${String(counter + 1).padStart(5, "0")}`;
+    }
+
+    // Extract first 2 initials from full name
+    const nameParts = fullname.trim().split(/\s+/);
+    let initials = "";
+
+    if (nameParts.length >= 2) {
+      // Take first letter of first name and first letter of second name
+      initials = (nameParts[0][0] || "").toUpperCase() + (nameParts[1][0] || "").toUpperCase();
+    } else if (nameParts.length === 1) {
+      // If only one name, take first 2 letters
+      const name = nameParts[0];
+      initials = (name[0] || "").toUpperCase() + (name[1] || "X").toUpperCase();
+    }
+
+    // Ensure we have 2 characters
+    if (initials.length < 2) {
+      initials = initials.padEnd(2, "X");
+    }
+
+    // Check if this initials combination already exists
+    const currentCount = initialsCounter.get(initials) || 0;
+    const nextCount = currentCount + 1;
+    initialsCounter.set(initials, nextCount);
+
+    // Format: TT-{INITIALS}-{00001}
+    return `TT-${initials}-${String(nextCount).padStart(5, "0")}`;
+  };
+
+  /**
+   * Format date from Excel - handles multiple formats:
+   * - "2011-08-22" (YYYY-MM-DD string)
+   * - Excel serial numbers
+   * - Other date formats
+   */
+  const formatDateForArchive = (dateValue: any): string => {
+    if (!dateValue) return "";
+
+    // Handle Excel date serial numbers
+    if (typeof dateValue === "number") {
+      const excelEpoch = new Date(1899, 11, 30);
+      const date = new Date(excelEpoch.getTime() + dateValue * 86400000);
+      return date.toISOString().split("T")[0];
+    }
+
+    // Handle string dates
+    if (typeof dateValue === "string") {
+      const trimmed = dateValue.trim();
+
+      // Handle YYYY-MM-DD format (e.g., "2011-08-22")
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        // Validate the date
+        const date = new Date(trimmed);
+        if (!isNaN(date.getTime())) {
+          return trimmed; // Return as-is if valid
+        }
+      }
+
+      // Handle other date formats
+      const date = new Date(trimmed);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split("T")[0];
+      }
+
+      // Try parsing as Excel date string (e.g., "8/22/2011")
+      const excelDate = new Date(trimmed);
+      if (!isNaN(excelDate.getTime())) {
+        return excelDate.toISOString().split("T")[0];
+      }
+    }
+
+    return "";
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Require center selection before file upload
+    if (!selectedCenterId) {
+      alert("Please select a center first before uploading a file.");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
 
     setSelectedFile(file);
     setIsProcessing(true);
@@ -44,12 +159,17 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
     try {
       const data = await readExcelFile(file);
       setParsedData(data);
-      
-      // Validate data
+
+      // Validate data with centerId assigned
       const errors: Array<{ row: number; errors: string[] }> = [];
       data.forEach((record, index) => {
         try {
-          archiveRecordSchema.validateSync(record, { abortEarly: false });
+          // Ensure centerId is set before validation
+          const recordWithCenter = {
+            ...record,
+            centerId: selectedCenterId,
+          };
+          archiveRecordSchema.validateSync(recordWithCenter, { abortEarly: false });
         } catch (error: any) {
           errors.push({
             row: index + 1,
@@ -58,6 +178,28 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
         }
       });
       setValidationErrors(errors);
+
+      // Detect duplicates based on oldStudentId
+      const duplicates: Array<{ row: number; oldStudentId: string }> = [];
+      const seenIds = new Map<string, number>(); // oldStudentId -> first row number
+      
+      data.forEach((record, index) => {
+        const rowNum = index + 1;
+        if (record.oldStudentId) {
+          if (seenIds.has(record.oldStudentId)) {
+            // This is a duplicate
+            duplicates.push({
+              row: rowNum,
+              oldStudentId: record.oldStudentId,
+            });
+          } else {
+            // First occurrence
+            seenIds.set(record.oldStudentId, rowNum);
+          }
+        }
+      });
+      
+      setDuplicateRecords(duplicates);
     } catch (error: any) {
       console.error("Failed to parse file:", error);
       alert(`Failed to parse file: ${error.message}`);
@@ -69,7 +211,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
   const readExcelFile = (file: File): Promise<ArchiveRecord[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (e) => {
         try {
           const data = e.target?.result;
@@ -79,6 +221,9 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
           // Map Excel columns to ArchiveRecord fields
+          // Track student IDs by initials for duplicate checking within this batch
+          const initialsCounter = new Map<string, number>(); // "OC" -> 2 (means OC-00001, OC-00002 exist)
+          
           const mappedData: ArchiveRecord[] = jsonData.map((row: any, index: number) => {
             // Try to map common column name variations
             const mapField = (excelName: string, variations: string[]) => {
@@ -89,26 +234,52 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
 
               for (const variation of variations) {
                 const lowerVar = variation.toLowerCase().trim();
-                if (lowerRow[lowerVar] !== undefined) {
-                  return lowerRow[lowerVar];
+                if (lowerRow[lowerVar] !== undefined && lowerRow[lowerVar] !== null && lowerRow[lowerVar] !== "") {
+                  return String(lowerRow[lowerVar]).trim(); // Convert to string and trim
                 }
               }
               return null;
             };
 
+            const fullname = mapField("fullname", ["fullname", "full name", "name", "student name"]) || "";
+            
+            // ✅ PRESERVE oldStudentId from Excel (legacy ID) - don't change it
+            let oldStudentId = mapField("oldStudentId", [
+              "oldstudentid",
+              "old student id",
+              "student old id",
+              "old_student_id",
+              "student id",
+              "studentid",
+            ]);
+            
+            // Only generate newStudentId (TT format) if oldStudentId is not provided
+            // oldStudentId should be preserved as-is from Excel (legacy ID)
+            let newStudentId: string | null = null;
+            if (!oldStudentId || oldStudentId.trim() === "") {
+              // Generate TT-format ID and use it as oldStudentId if missing
+              const generatedId = generateStudentIdWithCounter(fullname, initialsCounter);
+              oldStudentId = generatedId;
+              newStudentId = generatedId;
+            } else {
+              // oldStudentId exists - preserve it
+              // Generate newStudentId in TT format for new system
+              newStudentId = generateStudentIdWithCounter(fullname, initialsCounter);
+            }
+
             return {
-              centerId: selectedCenterId || "", // Will be assigned later if not in file
-              userOldId: mapField("userOldId", ["useroldid", "user old id", "old user id", "user_old_id"]) || "",
+              centerId: selectedCenterId, // Use selected center
+              userOldId: mapField("userOldId", ["useroldid", "user old id", "old user id", "user_old_id"]) || oldStudentId, // Use oldStudentId as fallback
               userNewId: mapField("userNewId", ["usernewid", "user new id", "new user id", "user_new_id"]) || null,
-              fullname: mapField("fullname", ["fullname", "full name", "name", "student name"]) || "",
+              fullname: fullname,
               email: mapField("email", ["email", "e-mail"]) || "",
               phone: mapField("phone", ["phone", "phone number", "mobile", "contact"]) || "",
               courseEnrolled: mapField("courseEnrolled", ["courseenrolled", "course enrolled", "course", "course name"]) || "",
               coursePrice: parseFloat(mapField("coursePrice", ["courseprice", "course price", "price", "fee"]) || "0") || 0,
-              enrollmentDate: formatDateForArchive(mapField("enrollmentDate", ["enrollmentdate", "enrollment date", "enrolled date", "enroll_date"]) || ""),
-              birthDate: formatDateForArchive(mapField("birthDate", ["birthdate", "birth date", "dob", "date of birth"]) || ""),
-              oldStudentId: mapField("oldStudentId", ["oldstudentid", "old student id", "student old id", "old_student_id"]) || "",
-              newStudentId: mapField("newStudentId", ["newstudentid", "new student id", "student new id", "new_student_id"]) || null,
+              enrollmentDate: formatDateForArchive(mapField("enrollmentDate", ["enrollmentdate", "enrollment date", "enrolled date", "enroll_date", "enrollment_date"]) || ""),
+              birthDate: formatDateForArchive(mapField("birthDate", ["birthdate", "birth date", "dob", "date of birth", "birth_date"]) || ""),
+              oldStudentId: oldStudentId, // ✅ Preserved from Excel (legacy ID)
+              newStudentId: newStudentId, // ✅ Generated TT-format ID for new system
               totalPayment: parseFloat(mapField("totalPayment", ["totalpayment", "total payment", "paid", "amount paid"]) || "0") || 0,
               pendingPayment: parseFloat(mapField("pendingPayment", ["pendingpayment", "pending payment", "balance", "outstanding"]) || "0") || 0,
               status: mapField("status", ["status", "student status"]) || "archived",
@@ -127,28 +298,12 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
     });
   };
 
-  const formatDateForArchive = (dateValue: any): string => {
-    if (!dateValue) return "";
-    
-    // Handle Excel date serial numbers
-    if (typeof dateValue === "number") {
-      const excelEpoch = new Date(1899, 11, 30);
-      const date = new Date(excelEpoch.getTime() + dateValue * 86400000);
-      return date.toISOString().split("T")[0];
-    }
-    
-    // Handle string dates
-    if (typeof dateValue === "string") {
-      const date = new Date(dateValue);
-      if (!isNaN(date.getTime())) {
-        return date.toISOString().split("T")[0];
-      }
-    }
-    
-    return "";
-  };
-
   const handleUpload = () => {
+    // Prevent double-click/duplicate uploads
+    if (isUploading) {
+      return;
+    }
+
     if (!selectedCenterId) {
       alert("Please select a center");
       return;
@@ -165,14 +320,40 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
       centerId: selectedCenterId, // Always use selected center
     }));
 
-    // Filter out records with validation errors
+    // Filter out records with validation errors AND duplicates
+    // Keep only the first occurrence of each oldStudentId
+    const seenIds = new Set<string>();
     const validRecords = recordsWithCenter.filter((record, index) => {
-      return !validationErrors.some((error) => error.row === index + 1);
+      const rowNum = index + 1;
+      
+      // Skip if has validation errors
+      if (validationErrors.some((error) => error.row === rowNum)) {
+        return false;
+      }
+      
+      // Skip if duplicate (keep first occurrence only)
+      if (record.oldStudentId && seenIds.has(record.oldStudentId)) {
+        return false;
+      }
+      
+      // Mark as seen
+      if (record.oldStudentId) {
+        seenIds.add(record.oldStudentId);
+      }
+      
+      return true;
     });
 
     if (validRecords.length === 0) {
       alert("No valid records to upload. Please fix the errors in your file.");
       return;
+    }
+
+    // Show warning if duplicates were found
+    if (duplicateRecords.length > 0) {
+      const duplicateCount = duplicateRecords.length;
+      const duplicateIds = duplicateRecords.map(d => d.oldStudentId).join(", ");
+      console.warn(`Found ${duplicateCount} duplicate record(s). Duplicates will be ignored.`, duplicateIds);
     }
 
     onSave({ records: validRecords });
@@ -182,6 +363,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
     setSelectedFile(null);
     setParsedData([]);
     setValidationErrors([]);
+    setDuplicateRecords([]);
     setSelectedCenterId("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -192,39 +374,57 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
 
   const validRecordsCount = parsedData.length - validationErrors.length;
   const errorRecordsCount = validationErrors.length;
+  const canUpload = selectedCenterId && parsedData.length > 0 && validRecordsCount > 0;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl my-8">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800">Upload Archive Records</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
+      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">Upload Archive Records</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            aria-label="Close modal"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="p-6">
+        {/* Modal Content - Scrollable */}
+        <div className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll">
           {/* Center Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select Center *
             </label>
-            <select
-              value={selectedCenterId}
-              onChange={(e) => setSelectedCenterId(e.target.value)}
-              className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              disabled={!isAdmin}
-            >
-              <option value="">Select Center</option>
-              {centers.map((center) => (
-                <option key={center.id} value={center.id}>
-                  {center.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedCenterId}
+                onChange={(e) => {
+                  setSelectedCenterId(e.target.value);
+                  // Reset file selection when center changes
+                  if (selectedFile) {
+                    handleReset();
+                  }
+                }}
+                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                disabled={!isAdmin}
+              >
+                <option value="">Select Center</option>
+                {centers.map((center) => (
+                  <option key={center.id} value={center.id}>
+                    {center.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+            </div>
+            {!selectedCenterId && (
+              <p className="text-xs text-red-500 mt-1">Please select a center before uploading a file</p>
+            )}
           </div>
 
           {/* File Upload */}
@@ -240,10 +440,15 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                 onChange={handleFileSelect}
                 className="hidden"
                 id="archive-file-input"
+                disabled={!selectedCenterId}
               />
               <label
                 htmlFor="archive-file-input"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                className={`flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer transition-colors ${
+                  selectedCenterId
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
               >
                 <Upload size={18} />
                 Choose File
@@ -278,11 +483,43 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                       Errors: {errorRecordsCount} record(s)
                     </span>
                   )}
+                  {duplicateRecords.length > 0 && (
+                    <span className="text-amber-600">
+                      Duplicates: {duplicateRecords.length} record(s)
+                    </span>
+                  )}
                 </div>
               </div>
               <p className="text-sm text-gray-600">
                 Center: {centers.find((c) => c.id === selectedCenterId)?.name || "Not selected"}
               </p>
+            </div>
+          )}
+
+          {/* Duplicate Records Warning */}
+          {duplicateRecords.length > 0 && (
+            <div className="mb-6 p-4 bg-amber-50 rounded-md border border-amber-200">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="text-amber-600" size={18} />
+                <h3 className="font-semibold text-amber-800">
+                  Duplicate Records Found ({duplicateRecords.length} row(s))
+                </h3>
+              </div>
+              <p className="text-sm text-amber-700 mb-2">
+                The following records have duplicate Student IDs. Only the first occurrence will be uploaded:
+              </p>
+              <div className="max-h-40 overflow-y-auto">
+                {duplicateRecords.slice(0, 10).map((dup, index) => (
+                  <div key={index} className="text-sm text-amber-700 mb-1">
+                    Row {dup.row}: Student ID "{dup.oldStudentId}" (duplicate - will be ignored)
+                  </div>
+                ))}
+                {duplicateRecords.length > 10 && (
+                  <p className="text-sm text-amber-600 mt-2">
+                    ... and {duplicateRecords.length - 10} more duplicate(s)
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -296,14 +533,14 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                 </h3>
               </div>
               <div className="max-h-40 overflow-y-auto">
-                {validationErrors.slice(0, 5).map((error, index) => (
+                {validationErrors.slice(0, 10).map((error, index) => (
                   <div key={index} className="text-sm text-red-700 mb-1">
                     Row {error.row}: {error.errors.join(", ")}
                   </div>
                 ))}
-                {validationErrors.length > 5 && (
+                {validationErrors.length > 10 && (
                   <p className="text-sm text-red-600 mt-2">
-                    ... and {validationErrors.length - 5} more error(s)
+                    ... and {validationErrors.length - 10} more error(s)
                   </p>
                 )}
               </div>
@@ -331,7 +568,9 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                 <table className="min-w-full text-sm">
                   <thead className="bg-gray-100 sticky top-0">
                     <tr>
-                      <th className="p-2 text-left border">User OLD ID</th>
+                      <th className="p-2 text-left border">Actions</th>
+                      <th className="p-2 text-left border">Student ID (New)</th>
+                      <th className="p-2 text-left border">Old Student ID (Legacy)</th>
                       <th className="p-2 text-left border">Full Name</th>
                       <th className="p-2 text-left border">Email</th>
                       <th className="p-2 text-left border">Phone</th>
@@ -341,13 +580,55 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                   </thead>
                   <tbody>
                     {parsedData.slice(0, previewRows).map((record, index) => {
-                      const hasError = validationErrors.some((e) => e.row === index + 1);
+                      const rowNum = index + 1;
+                      const hasError = validationErrors.some((e) => e.row === rowNum);
+                      const isDuplicate = duplicateRecords.some((d) => d.row === rowNum);
                       return (
                         <tr
                           key={index}
-                          className={hasError ? "bg-red-50" : ""}
+                          className={`${
+                            hasError
+                              ? "bg-red-50"
+                              : isDuplicate
+                              ? "bg-amber-50"
+                              : ""
+                          }`}
                         >
-                          <td className="p-2 border">{record.userOldId}</td>
+                          <td className="p-2 border">
+                            <button
+                              onClick={() => {
+                                const newData = parsedData.filter((_, i) => i !== index);
+                                setParsedData(newData);
+                                // Re-validate after removal (adjust row numbers)
+                                const newErrors = validationErrors
+                                  .filter((e) => e.row !== rowNum)
+                                  .map((e) => ({
+                                    ...e,
+                                    row: e.row > rowNum ? e.row - 1 : e.row,
+                                  }));
+                                setValidationErrors(newErrors);
+                                // Re-check duplicates (adjust row numbers)
+                                const newDuplicates = duplicateRecords
+                                  .filter((d) => d.row !== rowNum)
+                                  .map((d) => ({
+                                    ...d,
+                                    row: d.row > rowNum ? d.row - 1 : d.row,
+                                  }));
+                                setDuplicateRecords(newDuplicates);
+                              }}
+                              className="text-red-600 hover:text-red-800 hover:bg-red-100 px-2 py-1 rounded transition-colors"
+                              title="Remove this record"
+                            >
+                              <X size={16} />
+                            </button>
+                          </td>
+                          <td className="p-2 border">
+                            {record.newStudentId || record.oldStudentId}
+                            {isDuplicate && (
+                              <span className="ml-2 text-xs text-amber-600">(Duplicate)</span>
+                            )}
+                          </td>
+                          <td className="p-2 border">{record.oldStudentId}</td>
                           <td className="p-2 border">{record.fullname}</td>
                           <td className="p-2 border">{record.email}</td>
                           <td className="p-2 border">{record.phone}</td>
@@ -361,37 +642,58 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
               </div>
             </div>
           )}
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={() => {
+        {/* Footer - Sticky */}
+        <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 sticky bottom-0 bg-white">
+          <button
+            type="button"
+            onClick={() => {
+              if (!isUploading) {
                 handleReset();
                 onClose();
-              }}
-              className="px-6 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
-            {parsedData.length > 0 && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-6 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-              >
-                Reset
-              </button>
-            )}
+              }
+            }}
+            disabled={isUploading}
+            className={`px-6 py-2 text-gray-700 bg-gray-200 rounded-md transition-colors ${
+              isUploading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-300"
+            }`}
+          >
+            Cancel
+          </button>
+          {parsedData.length > 0 && !isUploading && (
             <button
               type="button"
-              onClick={handleUpload}
-              disabled={!selectedCenterId || parsedData.length === 0 || validRecordsCount === 0}
-              className="px-6 py-2 text-white bg-add-button rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              onClick={handleReset}
+              className="px-6 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
             >
-              Upload {validRecordsCount > 0 ? `${validRecordsCount} Record(s)` : ""}
+              Reset
             </button>
-          </div>
+          )}
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={!canUpload || isUploading}
+            className={`px-6 py-2 rounded-md transition-colors flex items-center gap-2 ${
+              canUpload && !isUploading
+                ? "text-white bg-add-button hover:bg-indigo-700"
+                : "bg-gray-400 text-gray-500 cursor-not-allowed"
+            }`}
+          >
+            {isUploading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <Upload size={16} />
+                <span>Upload {validRecordsCount > 0 ? `${validRecordsCount} Record(s)` : ""}</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -399,4 +701,3 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
 };
 
 export default ArchiveUploadModal;
-

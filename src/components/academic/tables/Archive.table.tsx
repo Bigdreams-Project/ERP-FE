@@ -233,17 +233,17 @@ export default function ArchiveTable({
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3">
-                      {record.oldStudentId ? (
+                      {record.newStudentId || record.oldStudentId ? (
                         <Link
                           href={`/dashboard/academic/archive/${record.id}`}
                           className="font-bold text-blue-700 hover:underline flex items-center gap-1"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {highlightMatch(record.oldStudentId, searchQuery)}
+                          {highlightMatch(record.newStudentId || record.oldStudentId || "-", searchQuery)}
                           <Link2Icon size={12} />
                         </Link>
                       ) : (
-                        highlightMatch(record.oldStudentId || "-", searchQuery)
+                        highlightMatch("-", searchQuery)
                       )}
                     </td>
                     <td className="p-3">{highlightMatch(record.userOldId, searchQuery)}</td>

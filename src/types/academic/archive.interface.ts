@@ -1,6 +1,6 @@
 export interface ArchiveRecord {
   id?: string;
-  centerId: string; // REQUIRED - for RBAC
+  centerId: string; // REQUIRED - for RBAC: Used to filter records by center for non-admin users
   userOldId: string;
   userNewId?: string | null;
   fullname: string;

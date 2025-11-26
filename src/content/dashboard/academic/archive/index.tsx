@@ -9,7 +9,7 @@ import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { ArchiveRecord } from "@/types/academic/archive.interface";
 import { BulkUploadArchiveRequest, CreateArchiveRecord } from "@/types/requests/archive.interface";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
@@ -35,7 +35,8 @@ const ArchiveContent = ({
   
   // Pre-populate React Query cache with user data from server
   // This ensures useIsAdmin hook can use it immediately without loading state
-  useLayoutEffect(() => {
+  // Use useEffect instead of useLayoutEffect to avoid hydration issues
+  useEffect(() => {
     if (initialUser) {
       queryClient.setQueryData(["user"], initialUser);
     }
@@ -63,11 +64,13 @@ const ArchiveContent = ({
   });
 
   // Use React Query to fetch and cache archive records
-  const { data: archiveData } = useQuery({
-    queryKey: ["archive", currentPage, searchQuery],
+  // Fetch all records (or large chunk) for client-side filtering and pagination
+  // This ensures pagination works correctly with filters
+  const { data: archiveData, isLoading: isArchiveLoading } = useQuery({
+    queryKey: ["archive", searchQuery, statusFilter], // Include statusFilter in queryKey
     queryFn: () => getArchiveRecordsClient({ 
-      page: currentPage, 
-      limit: itemsPerPage,
+      page: 1, // Always fetch from page 1
+      limit: 1000, // Fetch large chunk for client-side filtering/pagination
       search: searchQuery || undefined,
     }),
     initialData: {
@@ -77,7 +80,7 @@ const ArchiveContent = ({
       limit: itemsPerPage,
     },
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true, // ✅ Changed to true to refetch when navigating to page
   });
 
   const archiveRecords = archiveData?.data || [];
@@ -120,8 +123,8 @@ const ArchiveContent = ({
     onSuccess: async (data) => {
       showSuccess(`Successfully uploaded ${data.success} archive record(s)`);
       setIsUploadModalOpen(false);
-      // Invalidate all archive queries to refresh the list
-      await queryClient.invalidateQueries({ queryKey: ["archive"] });
+      // ✅ Force refetch archive queries immediately
+      await queryClient.refetchQueries({ queryKey: ["archive"] });
     },
     onError: (error: any) => {
       console.error("Failed to upload archive records:", error);
@@ -137,8 +140,8 @@ const ArchiveContent = ({
     onSuccess: async () => {
       showSuccess("Archive record created successfully!");
       setIsCreateModalOpen(false);
-      // Invalidate all archive queries to refresh the list
-      await queryClient.invalidateQueries({ queryKey: ["archive"] });
+      // ✅ Force refetch archive queries immediately
+      await queryClient.refetchQueries({ queryKey: ["archive"] });
     },
     onError: (error: any) => {
       console.error("Failed to create archive record:", error);
@@ -154,32 +157,41 @@ const ArchiveContent = ({
     createArchiveMutation(payload);
   };
 
-  const filteredData = archiveRecords.filter((record: ArchiveRecord) => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = (
-      (record.fullname?.toLowerCase() || "").includes(query) ||
-      (record.email?.toLowerCase() || "").includes(query) ||
-      (record.phone?.toLowerCase() || "").includes(query) ||
-      (record.userOldId?.toLowerCase() || "").includes(query) ||
-      (record.oldStudentId?.toLowerCase() || "").includes(query)
-    );
+  // Client-side filtering (search + status filter)
+  // This runs on all fetched records, then pagination happens in the table
+  const filteredData = useMemo(() => {
+    return (archiveRecords || []).filter((record: ArchiveRecord) => {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = (
+        (record.fullname?.toLowerCase() || "").includes(query) ||
+        (record.email?.toLowerCase() || "").includes(query) ||
+        (record.phone?.toLowerCase() || "").includes(query) ||
+        (record.userOldId?.toLowerCase() || "").includes(query) ||
+        (record.oldStudentId?.toLowerCase() || "").includes(query)
+      );
 
-    // Status filter logic
-    let matchesStatus = true;
-    if (statusFilter === "Graduated") {
-      matchesStatus = 
-        record.source === "graduated" || 
-        record.status?.toLowerCase().includes("graduated") ||
-        record.pendingPayment === 0; // Include students with no pending payment
-    } else if (statusFilter === "Owing") {
-      matchesStatus = record.pendingPayment > 0;
-    } else if (statusFilter === "Dropout") {
-      matchesStatus = record.status?.toLowerCase().includes("dropout") || 
-                      record.status?.toLowerCase().includes("dropped");
-    }
+      // Status filter logic
+      let matchesStatus = true;
+      if (statusFilter === "Graduated") {
+        matchesStatus = 
+          record.source === "graduated" || 
+          record.status?.toLowerCase().includes("graduated") ||
+          record.pendingPayment === 0; // Include students with no pending payment
+      } else if (statusFilter === "Owing") {
+        matchesStatus = record.pendingPayment > 0;
+      } else if (statusFilter === "Dropout") {
+        matchesStatus = record.status?.toLowerCase().includes("dropout") || 
+                        record.status?.toLowerCase().includes("dropped");
+      }
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    });
+  }, [archiveRecords, searchQuery, statusFilter]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
 
   return (
     <div className="w-full">
@@ -315,11 +327,12 @@ const ArchiveContent = ({
       <ArchiveTable
         searchQuery={searchQuery}
         filteredData={filteredData}
-        totalRecords={totalRecords}
+        totalRecords={filteredData.length} // ✅ Use filtered data length for pagination
         currentPage={currentPage}
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
         centers={centersData}
+        isLoading={isArchiveLoading}
       />
       
       <ArchiveCreateModal
@@ -334,6 +347,7 @@ const ArchiveContent = ({
         onClose={() => setIsUploadModalOpen(false)}
         onSave={handleUpload}
         centers={centersData}
+        isUploading={isUploading}
       />
     </div>
   );

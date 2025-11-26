@@ -8,6 +8,11 @@ import axios from "axios";
 /**
  * GET handler - Fetch all archive records
  * Admin only - Returns all records (no center filtering for admin)
+ * 
+ * RBAC NOTE: For future implementation, when non-admin users access this:
+ * - Filter records by user's centerId: WHERE centerId = user.centerId
+ * - Only return archive records that belong to the user's center
+ * - Admin users should continue to see all records across all centers
  */
 export async function GET(request: NextRequest) {
   try {
@@ -62,6 +67,12 @@ export async function GET(request: NextRequest) {
 /**
  * POST handler - Create single archive record or bulk upload archive records
  * Admin only - Can create/upload for any center
+ * 
+ * RBAC NOTE: For future implementation:
+ * - Non-admin users can only create records for their own center
+ * - Validate: payload.centerId must match user.centerId (for non-admin)
+ * - Admin can create for any center
+ * - All records MUST have centerId set (required field)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -80,12 +91,20 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await request.json();
+    console.log("Received payload:", JSON.stringify(payload, null, 2));
 
     // Check if it's a single record or bulk upload
     // Single record has centerId, bulk upload has records array
     if (payload.records && Array.isArray(payload.records)) {
       // Bulk upload
+      console.log(`Bulk upload: ${payload.records.length} records`);
       const bulkPayload: BulkUploadArchiveRequest = payload;
+      
+      // Log first record for debugging
+      if (bulkPayload.records.length > 0) {
+        console.log("First record sample:", JSON.stringify(bulkPayload.records[0], null, 2));
+      }
+      
       const response = await axios.post(
         `${AuthRoutes.BASE_URL}/archive/bulk-upload`,
         bulkPayload,
@@ -99,6 +118,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response.data);
     } else {
       // Single record creation
+      console.log("Single record creation");
       const singlePayload: CreateArchiveRecord = payload;
       const response = await axios.post(
         `${AuthRoutes.BASE_URL}/archive`,
@@ -115,13 +135,21 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Failed to create/upload archive records:", error);
     if (error.response) {
+      const errorMessage = error.response.data?.message || 
+                          error.response.data?.error || 
+                          error.response.data?.details ||
+                          (typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)) ||
+                          `Backend error: ${error.response.statusText}`;
+      console.error("Backend error status:", error.response.status);
+      console.error("Backend error data:", JSON.stringify(error.response.data, null, 2));
+      console.error("Request payload sent:", JSON.stringify(payload, null, 2));
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to create/upload archive records" },
+        { error: errorMessage },
         { status: error.response.status || 500 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to create/upload archive records" },
+      { error: error.message || "Failed to create/upload archive records" },
       { status: 500 }
     );
   }

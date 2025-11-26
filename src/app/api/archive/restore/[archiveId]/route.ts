@@ -7,6 +7,11 @@ import axios from "axios";
 /**
  * POST handler - Restore student from Archive (MOVE from Archive table to Student table)
  * Admin only - Moves archive record back to Student and hard-deletes archive record
+ * 
+ * RBAC NOTE:
+ * - Backend MUST preserve centerId when restoring: student.centerId = archiveRecord.centerId
+ * - This maintains center association for proper RBAC filtering
+ * - Archive record's centerId is the source of truth for the restored student
  */
 export async function POST(
   request: NextRequest,

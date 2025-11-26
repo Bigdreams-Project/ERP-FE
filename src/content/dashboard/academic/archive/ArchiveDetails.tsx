@@ -181,20 +181,14 @@ const ArchiveDetails = ({
                 Student IDs
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {renderSection("User OLD ID", archiveRecord.userOldId, User)}
                 {renderSection(
-                  "User New ID",
-                  archiveRecord.userNewId || "N/A",
+                  "Student ID",
+                  archiveRecord.newStudentId || archiveRecord.oldStudentId || "N/A",
                   User
                 )}
                 {renderSection(
                   "Old Student ID",
-                  archiveRecord.oldStudentId,
-                  User
-                )}
-                {renderSection(
-                  "New Student ID",
-                  archiveRecord.newStudentId || "N/A",
+                  archiveRecord.userOldId,
                   User
                 )}
               </div>
