@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
  * - All records MUST have centerId set (required field)
  */
 export async function POST(request: NextRequest) {
+  let payload: any = null;
   try {
     const session = await getSession();
     if (!session) {
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const payload = await request.json();
+    payload = await request.json();
     console.log("Received payload:", JSON.stringify(payload, null, 2));
 
     // Check if it's a single record or bulk upload
@@ -142,7 +143,9 @@ export async function POST(request: NextRequest) {
                           `Backend error: ${error.response.statusText}`;
       console.error("Backend error status:", error.response.status);
       console.error("Backend error data:", JSON.stringify(error.response.data, null, 2));
-      console.error("Request payload sent:", JSON.stringify(payload, null, 2));
+      if (payload) {
+        console.error("Request payload sent:", JSON.stringify(payload, null, 2));
+      }
       return NextResponse.json(
         { error: errorMessage },
         { status: error.response.status || 500 }
