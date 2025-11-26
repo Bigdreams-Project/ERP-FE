@@ -1,9 +1,12 @@
 "use client";
+import CenterModal from "@/components/modals/academic/Center.modal";
 import StatusBadge2 from "@/components/academic/common/StatusBadge2";
 import { updateCenter } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
+import { Manager } from "@/types/academic/manager.interface";
+import { CreateCenter } from "@/types/requests/center.interface";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
@@ -11,48 +14,24 @@ import { MdEdit } from "react-icons/md";
 
 interface CenterDetailsProps {
   center: Center;
+  managers: Manager[];
 }
 
-const CenterDetails = ({ center }: CenterDetailsProps) => {
+const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
   const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Center>(center);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const { mutate: saveCenter, isPending } = useMutation({
-    mutationFn: async (updatedCenter: Center | any) => {
-      return await updateCenter(updatedCenter.id, updatedCenter);
-    },
-    onSuccess: () => {
+  const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
+    try {
+      await updateCenter(center.id, payload);
       showSuccess("Center updated successfully");
-      setIsEditing(false);
       queryClient.invalidateQueries(["centers"]);
       queryClient.invalidateQueries(["center", center.id]);
-    },
-    onError: (error: any) => {
-      console.error(error);
-      showError("Failed to update lead");
-    },
-  });
-
-  const handleEditToggle = () => {
-    if (isEditing) {
-      saveCenter(formData);
-    } else {
-      setIsEditing(true);
+      setIsEditModalOpen(false);
+    } catch (error: any) {
+      console.error("Failed to update center:", error);
+      showError("Failed to update center");
     }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData(center);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
   };
 
   const getOverduePayment = (amount: string, status: string) => {
@@ -106,39 +85,20 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
             </a>
           </div>
           <div className="flex items-center space-x-4">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleEditToggle}
-                  className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                >
-                  Save
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleEditToggle}
-                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                >
-                  <MdEdit />
-                  Edit
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              <MdEdit />
+              Edit
+            </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           <div className="border-r-2 border-grey">
             {/* Center Details */}
-            <div className={isEditing ? `h-96` : `h-80`}>
+            <div className="h-80">
               <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 CENTER DETAILS
               </h2>
@@ -164,34 +124,23 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
                     <p className="text-gray-500 text-sm font-medium">
                       {label}:
                     </p>
-                    {isEditing &&
-                    !["createdAt", "updatedAt"].includes(label) ? (
-                      <input
-                        type="text"
-                        name={label.toLowerCase().replace(/ /g, "")}
-                        value={value}
-                        onChange={handleChange}
-                        className="w-full mt-1 p-1 border rounded-md text-gray-900"
-                      />
-                    ) : (
-                      <p className="mt-1 font-semibold text-gray-900">
-                        {label === "Status" ? (
-                          <span
-                            className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                              value === "New"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {value}
-                          </span>
-                        ) : label.includes("Date") || label === "createdAt" ? (
-                          formatDate(formData[label as keyof Center] as any)
-                        ) : (
-                          value
-                        )}
-                      </p>
-                    )}
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {label === "Status" ? (
+                        <span
+                          className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                            value === "New"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {value}
+                        </span>
+                      ) : label.includes("Date") || label === "createdAt" ? (
+                        formatDate(center.createdAt)
+                      ) : (
+                        value
+                      )}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -200,7 +149,7 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
 
           <div>
             {/* Accounting Information Section */}
-            <div className={isEditing ? `h-96` : `h-80`}>
+            <div className="h-80">
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 ACCOUNTING INFORMATION
               </h2>
@@ -255,6 +204,26 @@ const CenterDetails = ({ center }: CenterDetailsProps) => {
           </div>
         </div>
       </div>
+
+      <CenterModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSave}
+        managers={managers}
+        mode="edit"
+        initialData={{
+          id: center.id,
+          name: center.name,
+          location: center.location,
+          address: center.address,
+          managerId: center.managerId,
+          phone: center.phone,
+          email: center.email,
+          status: center.status,
+          type: center.type,
+          banks: center.banks && center.banks.length > 0 ? center.banks : [],
+        }}
+      />
     </div>
   );
 };

@@ -1,11 +1,12 @@
 "use client";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import StudentDeleteModal from "@/components/modals/academic/StudentDeleteModal";
+import ArchiveStudentConfirmModal from "@/components/modals/academic/ArchiveStudentConfirm.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
 // Removed unused mock data import to speed up compilation
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useEntityDelete } from "@/hooks/useEntityDelete";
-import { createStudentClient } from "@/lib/client-network";
+import { createStudentClient, archiveStudentToArchiveClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
@@ -14,7 +15,7 @@ import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent } from "@/types/requests/student.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { ChevronDown, Link2Icon, Archive } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -42,7 +43,7 @@ export default function StudentTable({
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   
   // Use reusable delete hook
-  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
     entityType: "students",
     onSuccess: (id) => {
       setData((prev) => prev.filter((s) => s.id !== id));
@@ -55,12 +56,13 @@ export default function StudentTable({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const itemsPerPage = 10;
 
-  // Filter out soft-deleted students
+  // All students are active (no soft delete filtering)
   const activeStudents = useMemo(() => {
-    return filteredData.filter((student) => !student.deletedAt);
+    return filteredData;
   }, [filteredData]);
 
   const sortedData = [...activeStudents].sort(
@@ -138,6 +140,30 @@ export default function StudentTable({
     setIsDeleteModalOpen(true);
   };
 
+  const handleArchive = (student: Student) => {
+    setOpenDropdown(null);
+    setSelectedStudent(student);
+    setIsArchiveModalOpen(true);
+  };
+
+  const handleArchiveConfirm = async (studentId: string) => {
+    try {
+      await archiveStudentToArchiveClient(studentId);
+      showSuccess("Student archived successfully!");
+      // Close modal after operation completes and toast is shown
+      setIsArchiveModalOpen(false);
+      setSelectedStudent(null);
+      // Refresh both student list and archive list
+      await queryClient.refetchQueries({ queryKey: ["students"] });
+      // ✅ Force refetch archive queries immediately (not just invalidate)
+      await queryClient.refetchQueries({ queryKey: ["archive"] });
+    } catch (error: any) {
+      console.error("Failed to archive student:", error);
+      showError(error.message || "Failed to archive student");
+      // Keep modal open on error so user can retry
+    }
+  };
+
   const handleEdit = (studentId: string) => {
     const student = filteredData.find((s) => s.id === studentId);
     if (student) {
@@ -153,16 +179,16 @@ export default function StudentTable({
     );
   };
 
-  const handleSoftDelete = async (studentId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedStudent(null);
-    await handleSoftDeleteEntity(studentId);
-  };
-
   const handleHardDelete = async (studentId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedStudent(null);
-    await handleHardDeleteEntity(studentId);
+    try {
+      await handleHardDeleteEntity(studentId);
+      // Close modal after operation completes and toast is shown
+      setIsDeleteModalOpen(false);
+      setSelectedStudent(null);
+    } catch (error) {
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
+    }
   };
 
   return (
@@ -292,12 +318,21 @@ export default function StudentTable({
                             Edit
                           </button> */}
                           {isAdmin && !isAdminLoading && (
-                            <button
-                              onClick={() => handleDelete(student)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                            >
-                              Delete
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleArchive(student)}
+                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-amber-600 hover:bg-gray-100"
+                              >
+                                <Archive size={16} />
+                                Archive
+                              </button>
+                              <button
+                                onClick={() => handleDelete(student)}
+                                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              >
+                                Delete
+                              </button>
+                            </>
                           )}
                         </div>
                       )}
@@ -329,6 +364,18 @@ export default function StudentTable({
       />
 
       {selectedStudent && (
+        <ArchiveStudentConfirmModal
+          student={selectedStudent}
+          isOpen={isArchiveModalOpen}
+          onClose={() => {
+            setIsArchiveModalOpen(false);
+            setSelectedStudent(null);
+          }}
+          onConfirm={handleArchiveConfirm}
+        />
+      )}
+
+      {selectedStudent && (
         <StudentDeleteModal
           student={selectedStudent}
           isOpen={isDeleteModalOpen}
@@ -336,7 +383,6 @@ export default function StudentTable({
             setIsDeleteModalOpen(false);
             setSelectedStudent(null);
           }}
-          onSoftDelete={handleSoftDelete}
           onHardDelete={handleHardDelete}
         />
       )}

@@ -38,7 +38,7 @@ export default function BatchTable({
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   
   // Use reusable delete hook
-  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
     entityType: "batches",
   });
   
@@ -51,9 +51,9 @@ export default function BatchTable({
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const itemsPerPage = 10;
 
-  // Filter out soft-deleted batches
+  // All batches are active (no soft delete filtering)
   const activeBatches = useMemo(() => {
-    return filteredData.filter((batch) => !batch.deletedAt);
+    return filteredData;
   }, [filteredData]);
 
   const totalPages = Math.ceil(activeBatches.length / itemsPerPage);
@@ -173,7 +173,7 @@ export default function BatchTable({
                     </td>
                     <td className="p-3">
                       {batch.students
-                        ? batch.students.filter((s: any) => !s.deletedAt).length
+                        ? batch.students.length
                         : ""}
                     </td>
                     <td className="p-3">{formatDate(batch.createdAt)}</td>
@@ -264,7 +264,6 @@ export default function BatchTable({
               setIsDeleteModalOpen(false);
               setSelectedBatch(null);
             }}
-            onSoftDelete={handleSoftDelete}
             onHardDelete={handleHardDelete}
             hasRelatedData={{
               students: selectedBatch.students?.length || 0,

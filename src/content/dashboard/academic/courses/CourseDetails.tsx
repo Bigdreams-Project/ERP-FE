@@ -1,4 +1,5 @@
 "use client";
+import CourseModal from "@/components/modals/academic/Course.modal";
 import CoursePricingModal from "@/components/modals/academic/CoursePricing.modal";
 import EditCoursePricing from "@/components/modals/academic/EditCoursePricing.modal";
 import { assignCenterFee, updateCenterFee, updateCourse } from "@/lib/network";
@@ -11,6 +12,7 @@ import {
   IEditCourseFeeAssignment,
 } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
+import { CreateCourse } from "@/types/requests/course.interface";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import Link from "next/link";
@@ -27,26 +29,22 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
   const queryClient = useQueryClient();
   const [selectedCourseAssignment, setSelectedCourseAssignment] =
     useState<CourseFeeAssignment>();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCenterModalOpen, setIsCenterModalOpen] = useState(false);
   const [isEditCenterModalOpen, setEditCenterModalOpen] = useState(false);
-  const [formData, setFormData] = useState<Course>(course);
 
-  const { mutate: saveCourse, isPending } = useMutation({
-    mutationFn: async (updatedCourse: Course) => {
-      return await updateCourse(updatedCourse.id!, updatedCourse);
-    },
-    onSuccess: () => {
+  const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
+    try {
+      await updateCourse(course.id!, payload);
       showSuccess("Course updated successfully");
-      setIsEditing(false);
       queryClient.invalidateQueries(["courses"]);
       queryClient.invalidateQueries(["course", course.id]);
-    },
-    onError: (error: any) => {
-      console.error(error);
+      setIsEditModalOpen(false);
+    } catch (error: any) {
+      console.error("Failed to update course:", error);
       showError("Failed to update course");
-    },
-  });
+    }
+  };
 
   const { mutate: addCenterFee, isPending: isSavingCourseFee } = useMutation({
     mutationFn: async (assignmentData: ICourseFeeAssignment) => {
@@ -81,14 +79,6 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
       },
     });
 
-  const handleEditToggle = () => {
-    if (isEditing) {
-      saveCourse(formData);
-    } else {
-      setIsEditing(true);
-    }
-  };
-
   const handleCenterToggle = () => {
     setIsCenterModalOpen(true);
   };
@@ -112,19 +102,6 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
   const handleOpenEditModal = (assignment: CourseFeeAssignment | any) => {
     setSelectedCourseAssignment(assignment);
     setEditCenterModalOpen(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData(course);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
   };
 
   return (
@@ -174,40 +151,21 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
             </a>
           </div>
           <div className="flex items-center space-x-4">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleEditToggle}
-                  className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                >
-                  Save
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleEditToggle}
-                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                >
-                  <MdEdit />
-                  Edit
-                </button>
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              <MdEdit />
+              Edit
+            </button>
 
-                <button
-                  onClick={handleCenterToggle}
-                  className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                >
-                  <MdAdd />
-                  Add Center
-                </button>
-              </>
-            )}
+            <button
+              onClick={handleCenterToggle}
+              className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              <MdAdd />
+              Add Center
+            </button>
           </div>
         </div>
 
@@ -215,7 +173,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2">
           <div className="border-r-2 border-grey">
             {/* Course Details */}
-            <div className={isEditing ? `h-96` : `h-96`}>
+            <div className="h-96">
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 COURSE DETAILS
               </h2>
@@ -231,44 +189,30 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                     <p className="text-gray-500 text-sm font-medium">
                       {label}:
                     </p>
-                    {isEditing && key !== "createdAt" ? (
-                      <input
-                        type="text"
-                        name={key}
-                        value={
-                          key === "createdAt"
-                            ? formatDate(formData[key]!)
-                            : formData[key as keyof Course] ?? ""
-                        }
-                        onChange={handleChange}
-                        className="w-full mt-1 p-1 border rounded-md text-gray-900"
-                      />
-                    ) : (
-                      <p className="mt-1 font-semibold text-gray-900">
-                        {key === "status" ? (
-                          <span
-                            className={`py-0.5 text-md font-semibold rounded-full ${
-                              formData.status === "New"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {formData.status}
-                          </span>
-                        ) : key === "createdAt" ? (
-                          formatDate(formData.createdAt!)
-                        ) : (
-                          formData[key as keyof Course]
-                        )}
-                      </p>
-                    )}
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {key === "status" ? (
+                        <span
+                          className={`py-0.5 text-md font-semibold rounded-full ${
+                            course.status === "New"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {course.status}
+                        </span>
+                      ) : key === "createdAt" ? (
+                        formatDate(course.createdAt!)
+                      ) : (
+                        course[key as keyof Course]
+                      )}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Batches */}
-            <div className={isEditing ? "mt-14" : ""}>
+            <div>
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 BATCHES
               </h2>
@@ -293,7 +237,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
 
           <div>
             {/* Pricing by Center */}
-            <div className={isEditing ? `h96` : `h96`}>
+            <div className="h96">
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 PRICING BY CENTER
               </h2>
@@ -375,6 +319,19 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
           </div>
         </div>
       </main>
+
+      <CourseModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSave}
+        mode="edit"
+        initialData={{
+          id: course.id,
+          name: course.name,
+          type: course.type,
+          duration: course.duration,
+        }}
+      />
 
       <CoursePricingModal
         isOpen={isCenterModalOpen}

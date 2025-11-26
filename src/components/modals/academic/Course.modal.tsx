@@ -64,7 +64,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <div className="flex flex-col">
             <h2 className="text-xl font-bold text-gray-800">
-              Create New Course
+              {mode === "edit" ? "Edit Course" : "Create New Course"}
             </h2>
           </div>
           <button

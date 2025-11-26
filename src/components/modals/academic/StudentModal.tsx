@@ -15,8 +15,6 @@ import { enrollmentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
 
 const EnrollStudentModal: React.FC<IStudentModalProps> = ({
@@ -27,6 +25,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   courses,
   centers, 
   leads,
+  mode = "enroll",
 }) => {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -74,9 +73,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const [maxInstallment, setMaxInstallment] = useState<number>(2);
   const [lumpSum, setLumpSum] = useState<number>(0);
 
-  const [enrolledDate, setEnrolledDate] = useState<Date | null>(null);
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-
   const getCurrentFee = useCallback(() => {
     if (!selectedCourse) return 0;
     const courseName = selectedCourse.name?.toLowerCase() || "";
@@ -114,14 +110,21 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     if (!selectedCourse) return;
 
     // Get the effective fee: use courseFee if old price is entered, otherwise use baseFee
-    let effectiveFee: number;
+    let effectiveFee: number = 0;
+    const baseFee = selectedCourse.courseAssignments?.[0]?.baseFee || 0;
+    
     if (paymentType === "old" && courseFeeValue) {
       const customFee = parseFloat(courseFeeValue.toString().replace(/[^\d.]/g, ''));
-      effectiveFee = isNaN(customFee) ? selectedCourse.courseAssignments[0]?.baseFee! : customFee;
+      effectiveFee = isNaN(customFee) ? baseFee : customFee;
     } else if (paymentType === "current") {
       effectiveFee = getCurrentFee();
     } else {
-      effectiveFee = selectedCourse.courseAssignments[0]?.baseFee!;
+      effectiveFee = baseFee;
+    }
+
+    // Ensure effectiveFee is a valid number
+    if (isNaN(effectiveFee) || effectiveFee < 0) {
+      effectiveFee = baseFee;
     }
 
     if (plan === "lumpsum") {
@@ -137,7 +140,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     if (paymentType === "current") {
       setValue("courseFee", getCurrentFee().toString());
     } else if (!paymentType) {
-      setValue("courseFee", selectedCourse.courseAssignments[0]?.baseFee!.toString()!);
+      setValue("courseFee", baseFee.toString());
     }
     setValue("numberOfInstallments", maxInstallment?.toString());
   }, [plan, maxInstallment, selectedCourse, paymentType, courseFeeValue, setValue, getCurrentFee]);
@@ -195,6 +198,74 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       setValue("leadId", initialData.leadId);
     }
   }, [initialData, setValue]);
+
+  // Pre-fill form when in edit mode with initialData
+  useEffect(() => {
+    if (isOpen && mode === "edit" && initialData) {
+      reset({
+        leadId: initialData.leadId || null,
+        fullName: initialData.fullName || "",
+        phone: initialData.phone || "",
+        email: initialData.email || "",
+        address: initialData.address || "",
+        status: initialData.status || "",
+        centerId: initialData.centerId || "",
+        enrolledDate: initialData.enrolledDate || "",
+        birthDate: initialData.birthDate || "",
+        guardianName: initialData.guardianName || "",
+        guardianPhone: initialData.guardianPhone || "",
+        guardianEmail: initialData.guardianEmail || null,
+        guardianAddress: initialData.guardianAddress || "",
+        courseId: initialData.courseId || "",
+        bankId: initialData.bankId || "",
+        batchId: initialData.batchId || null,
+        paymentPlan: initialData.paymentPlan || "",
+        paymentType: initialData.paymentType || "",
+        paymentMethod: initialData.paymentMethod || "",
+        courseFee: initialData.courseFee || null,
+        lumpSumFee: initialData.lumpSumFee || null,
+        numberOfInstallments: initialData.numberOfInstallments || null,
+        amount: initialData.amount || null,
+        notes: initialData.notes || null,
+      });
+      
+      // Set payment plan state
+      if (initialData.paymentPlan) {
+        setPlan(initialData.paymentPlan);
+      }
+      
+      // Set payment type state
+      if (initialData.paymentType) {
+        setPaymentType(initialData.paymentType);
+      }
+      
+      // Set max installment if provided
+      if (initialData.numberOfInstallments) {
+        setMaxInstallment(parseInt(initialData.numberOfInstallments) || 2);
+      }
+    } else if (isOpen && mode === "enroll") {
+      // Reset form for new enrollment
+      reset({
+        fullName: "",
+        phone: "",
+        email: "",
+        address: "",
+        centerId: "",
+        enrolledDate: "",
+        birthDate: "",
+        guardianName: "",
+        guardianPhone: "",
+        guardianEmail: "",
+        guardianAddress: "",
+        courseId: "",
+        bankId: "",
+        batchId: "",
+      });
+      setPlan("lumpsum");
+      setPaymentType("");
+      setMaxInstallment(2);
+    }
+  }, [isOpen, mode, initialData, reset, setValue]);
 
   const handlePaymentPlan = (e: any) => {
     setValue("paymentPlan", e.target.value);
@@ -310,7 +381,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
-            Enroll New Student
+            {mode === "edit" ? "Edit Student" : "Enroll New Student"}
           </h2>
           <button
             onClick={onClose}
@@ -528,18 +599,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               >
                 Enquiry Date
               </label>
-              <DatePicker
-                selected={enrolledDate}
-                onChange={(date) => {
-                  if (date) {
-                    setEnrolledDate(date);
-                    setValue("enrolledDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              <input
+                type="date"
+                {...register("enrolledDate")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.enrolledDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -556,18 +619,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               >
                 Birth Date
               </label>
-              <DatePicker
-                selected={birthDate}
-                onChange={(date) => {
-                  if (date) {
-                    setBirthDate(date);
-                    setValue("birthDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              <input
+                type="date"
+                {...register("birthDate")}
+                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
                 <p className="text-red-500 text-xs mt-1">
@@ -830,7 +885,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
-                {selectedCourse?.batches.map((batch) => (
+                {(selectedCourse?.batches || []).map((batch) => (
                   <option key={batch.id} value={batch.id}>
                     {batch?.faculty?.fullname} - {batch?.code}
                   </option>
@@ -1007,7 +1062,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
           <p className="text-sm font-medium text-gray-700 mt-6">
             Required base fee is ₦
-            {selectedCourse?.courseAssignments[0]?.baseFee.toLocaleString()} for
+            {(selectedCourse?.courseAssignments?.[0]?.baseFee || 0).toLocaleString()} for
             enrollment
           </p>
           <p className="text-sm font-medium text-gray-700 mt-1">

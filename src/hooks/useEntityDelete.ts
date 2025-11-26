@@ -3,8 +3,10 @@
  * Provides standardized delete functionality for all entity types
  * Handles: loading states, error handling, cache invalidation, toast notifications
  * 
+ * NOTE: Soft delete has been removed - use Archive feature instead
+ * 
  * Usage:
- *   const { handleSoftDelete, handleHardDelete, isDeleting } = useEntityDelete('students');
+ *   const { handleHardDelete, isDeleting } = useEntityDelete({ entityType: 'students' });
  */
 
 "use client";
@@ -16,20 +18,13 @@ import { deleteEntity } from "@/services/client/DeleteClientService";
 
 export interface UseEntityDeleteOptions {
   entityType: EntityType;
-  onSuccess?: (id: string, type: "soft" | "hard") => void;
-  onError?: (error: Error, id: string, type: "soft" | "hard") => void;
-  successMessages?: {
-    soft?: string;
-    hard?: string;
-  };
-  errorMessages?: {
-    soft?: string;
-    hard?: string;
-  };
+  onSuccess?: (id: string) => void;
+  onError?: (error: Error, id: string) => void;
+  successMessage?: string;
+  errorMessage?: string;
 }
 
 export interface UseEntityDeleteReturn {
-  handleSoftDelete: (id: string, options?: { deletedAt?: string }) => Promise<void>;
   handleHardDelete: (id: string) => Promise<void>;
   isDeleting: boolean;
 }
@@ -51,8 +46,8 @@ export function useEntityDelete(
     entityType,
     onSuccess,
     onError,
-    successMessages,
-    errorMessages,
+    successMessage,
+    errorMessage,
   } = options;
 
   // Get entity name for messages (e.g., "students" -> "Student", "batches" -> "Batch")
@@ -72,45 +67,13 @@ export function useEntityDelete(
   };
   const entityName = getEntityName(entityType);
 
-  const handleSoftDelete = async (
-    id: string,
-    deleteOptions?: { deletedAt?: string }
-  ): Promise<void> => {
-    setIsDeleting(true);
-    
-    try {
-      await deleteEntity(entityType, id, "soft", deleteOptions);
-      
-      const message = successMessages?.soft || `${entityName} archived successfully`;
-      showSuccess(message);
-      
-      // Refetch to ensure data is in sync with server
-      await queryClient.refetchQueries({ queryKey: [entityType] });
-      
-      // Call custom success handler if provided
-      if (onSuccess) {
-        onSuccess(id, "soft");
-      }
-    } catch (error: any) {
-      const message = errorMessages?.soft || error.message || `Failed to archive ${entityName.toLowerCase()}`;
-      showError(message);
-      
-      // Call custom error handler if provided
-      if (onError) {
-        onError(error, id, "soft");
-      }
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const handleHardDelete = async (id: string): Promise<void> => {
     setIsDeleting(true);
     
     try {
       await deleteEntity(entityType, id, "hard");
       
-      const message = successMessages?.hard || `${entityName} permanently deleted`;
+      const message = successMessage || `${entityName} permanently deleted`;
       showSuccess(message);
       
       // Refetch to ensure data is in sync with server
@@ -118,15 +81,15 @@ export function useEntityDelete(
       
       // Call custom success handler if provided
       if (onSuccess) {
-        onSuccess(id, "hard");
+        onSuccess(id);
       }
     } catch (error: any) {
-      const message = errorMessages?.hard || error.message || `Failed to delete ${entityName.toLowerCase()}`;
+      const message = errorMessage || error.message || `Failed to delete ${entityName.toLowerCase()}`;
       showError(message);
       
       // Call custom error handler if provided
       if (onError) {
-        onError(error, id, "hard");
+        onError(error, id);
       }
     } finally {
       setIsDeleting(false);
@@ -134,7 +97,6 @@ export function useEntityDelete(
   };
 
   return {
-    handleSoftDelete,
     handleHardDelete,
     isDeleting,
   };

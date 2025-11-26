@@ -123,12 +123,12 @@ export interface IEditStudent {
 export interface IStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (payload: CreateStudent) => void;
+  onSave: (payload: CreateStudent | UpdateStudent) => void;
   courses: Course[];
   centers: Center[];
   leads: Lead[];
   initialData?: Partial<IStudent>;
-  mode: "enroll";
+  mode: "enroll" | "edit";
 }
 
 export interface IStudentEditModalProps {
