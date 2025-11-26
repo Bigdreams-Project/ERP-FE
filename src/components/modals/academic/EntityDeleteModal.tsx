@@ -1,5 +1,5 @@
 "use client";
-import { AlertTriangle, Archive, Trash2, X } from "lucide-react";
+import { AlertTriangle, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
 
 interface EntityDeleteModalProps {
@@ -14,7 +14,6 @@ interface EntityDeleteModalProps {
   };
   isOpen: boolean;
   onClose: () => void;
-  onSoftDelete: (entityId: string) => Promise<void>;
   onHardDelete: (entityId: string) => Promise<void>;
   hasRelatedData?: {
     students?: number;
@@ -25,19 +24,14 @@ interface EntityDeleteModalProps {
   };
 }
 
-type DeleteType = "soft" | "hard" | null;
-
 const EntityDeleteModal: React.FC<EntityDeleteModalProps> = ({
   entityType,
   entity,
   isOpen,
   onClose,
-  onSoftDelete,
   onHardDelete,
   hasRelatedData = {},
 }) => {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [deleteType, setDeleteType] = useState<DeleteType>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen) return null;
@@ -52,32 +46,22 @@ const EntityDeleteModal: React.FC<EntityDeleteModalProps> = ({
     return testPatterns.some((pattern) => pattern.test(email));
   };
 
-  const handleTypeSelection = (type: "soft" | "hard") => {
-    setDeleteType(type);
-    setStep(2);
-  };
-
   const handleConfirm = async () => {
-    if (!deleteType || !entity.id) return;
+    if (!entity.id) return;
 
     setIsDeleting(true);
     try {
-      if (deleteType === "soft") {
-        await onSoftDelete(entity.id);
-      } else {
-        await onHardDelete(entity.id);
-      }
-      handleClose();
+      await onHardDelete(entity.id);
+      // Don't close modal here - let parent handle closing after toast is shown
+      // Parent will close modal after operation completes
     } catch (error) {
       console.error(`Failed to delete ${entityType}:`, error);
-    } finally {
       setIsDeleting(false);
     }
+    // Note: isDeleting will be reset by parent when modal closes
   };
 
   const handleClose = () => {
-    setStep(1);
-    setDeleteType(null);
     setIsDeleting(false);
     onClose();
   };
@@ -97,9 +81,7 @@ const EntityDeleteModal: React.FC<EntityDeleteModalProps> = ({
       <div className="relative bg-white px-6 pt-6 rounded-xl shadow-xl w-1/2 max-w-2xl max-h-[95vh] overflow-y-auto flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">
-            {step === 1 ? `Delete ${entityType}` : "Confirm Deletion"}
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800">Delete {entityType}</h2>
           <button
             onClick={handleClose}
             className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
@@ -112,168 +94,60 @@ const EntityDeleteModal: React.FC<EntityDeleteModalProps> = ({
 
         {/* Content */}
         <div className="py-6">
-          {step === 1 ? (
-            // Step 1: Choose delete type
-            <div className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="text-blue-600 mt-0.5" size={20} />
-                  <div>
-                    <p className="font-semibold text-blue-900 mb-1">
-                      {entityType} Information
-                    </p>
-                    <p className="text-sm text-blue-800">
-                      <strong>Name:</strong> {entityName}
-                    </p>
-                    {entity.code && (
-                      <p className="text-sm text-blue-800">
-                        <strong>Code:</strong> {entity.code}
+          <div className="space-y-6">
+            <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="text-red-600 mt-0.5" size={20} />
+                <div>
+                  <p className="font-semibold text-red-900 mb-2">
+                    ⚠️ Permanent Deletion Warning
+                  </p>
+                  <p className="text-sm text-red-800 mb-2">
+                    You are about to <strong>permanently delete</strong>{" "}
+                    <strong>{entityName}</strong>. This action
+                    cannot be undone.
+                  </p>
+                  {hasRelatedRecords && (
+                    <div className="bg-red-100 border border-red-300 rounded p-2 mt-2">
+                      <p className="text-sm font-semibold text-red-900">
+                        ⚠️ This {entityType.toLowerCase()} has related records. Hard delete
+                        is not recommended.
                       </p>
-                    )}
-                    {entityEmail && (
-                      <p className="text-sm text-blue-800">
-                        <strong>Email:</strong> {entityEmail}
+                    </div>
+                  )}
+                  {isTest && entityEmail && (
+                    <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mt-2">
+                      <p className="text-sm text-yellow-900">
+                        ℹ️ This appears to be a test account ({entityEmail}).
                       </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-gray-700 mb-4">
-                  Choose how you want to delete this {entityType.toLowerCase()}:
-                </p>
-
-                <div className="space-y-3">
-                  {/* Soft Delete Option */}
-                  <button
-                    onClick={() => handleTypeSelection("soft")}
-                    className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <Archive className="text-blue-600 mt-1" size={24} />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1">
-                          Archive (Soft Delete)
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Mark the {entityType.toLowerCase()} as deleted but retain all records.
-                          This preserves financial, academic, and audit data.
-                          The {entityType.toLowerCase()} will be hidden from active views.
-                        </p>
-                      </div>
                     </div>
-                  </button>
-
-                  {/* Hard Delete Option */}
-                  <button
-                    onClick={() => handleTypeSelection("hard")}
-                    className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <Trash2 className="text-red-600 mt-1" size={24} />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1">
-                          Permanently Remove (Hard Delete)
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Permanently delete the {entityType.toLowerCase()} record. This action
-                          cannot be undone. Only use for confirmed test data
-                          with no related records.
-                        </p>
-                      </div>
-                    </div>
-                  </button>
+                  )}
+                  {!isTest && !hasRelatedRecords && (
+                    <p className="text-sm text-red-800 mt-2">
+                      This {entityType.toLowerCase()} has no related records. Hard delete may be appropriate for test
+                      data.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
-          ) : (
-            // Step 2: Confirmation
-            <div className="space-y-6">
-              {deleteType === "soft" ? (
-                // Soft Delete Confirmation
-                <div>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                      <Archive className="text-blue-600 mt-0.5" size={20} />
-                      <div>
-                        <p className="font-semibold text-blue-900 mb-2">
-                          Archive {entityType}
-                        </p>
-                        <p className="text-sm text-blue-800 mb-2">
-                          You are about to archive <strong>{entityName}</strong>.
-                        </p>
-                        <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                          <li>{entityType} will be marked as deleted</li>
-                          {hasStudents && <li>All student records will be preserved</li>}
-                          {hasBatches && <li>All batch records will be retained</li>}
-                          {hasLeads && <li>All lead records will remain intact</li>}
-                          {hasFinancialActivity && <li>All payment records will be retained</li>}
-                          <li>{entityType} will be hidden from active views</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                // Hard Delete Confirmation
-                <div>
-                  <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="text-red-600 mt-0.5" size={20} />
-                      <div>
-                        <p className="font-semibold text-red-900 mb-2">
-                          ⚠️ Permanent Deletion Warning
-                        </p>
-                        <p className="text-sm text-red-800 mb-2">
-                          You are about to <strong>permanently delete</strong>{" "}
-                          <strong>{entityName}</strong>. This action
-                          cannot be undone.
-                        </p>
-                        {hasRelatedRecords && (
-                          <div className="bg-red-100 border border-red-300 rounded p-2 mt-2">
-                            <p className="text-sm font-semibold text-red-900">
-                              ⚠️ This {entityType.toLowerCase()} has related records. Hard delete
-                              is not recommended.
-                            </p>
-                          </div>
-                        )}
-                        {isTest && entityEmail && (
-                          <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mt-2">
-                            <p className="text-sm text-yellow-900">
-                              ℹ️ This appears to be a test account ({entityEmail}).
-                            </p>
-                          </div>
-                        )}
-                        {!isTest && !hasRelatedRecords && (
-                          <p className="text-sm text-red-800 mt-2">
-                            This {entityType.toLowerCase()} has no related records. Hard delete may be appropriate for test
-                            data.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p className="text-sm text-gray-700">
+                <strong>{entityType}:</strong> {entityName}
+              </p>
+              {entity.code && (
                 <p className="text-sm text-gray-700">
-                  <strong>{entityType}:</strong> {entityName}
+                  <strong>Code:</strong> {entity.code}
                 </p>
-                {entity.code && (
-                  <p className="text-sm text-gray-700">
-                    <strong>Code:</strong> {entity.code}
-                  </p>
-                )}
-                {entityEmail && (
-                  <p className="text-sm text-gray-700">
-                    <strong>Email:</strong> {entityEmail}
-                  </p>
-                )}
-              </div>
+              )}
+              {entityEmail && (
+                <p className="text-sm text-gray-700">
+                  <strong>Email:</strong> {entityEmail}
+                </p>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Footer */}
@@ -281,30 +155,22 @@ const EntityDeleteModal: React.FC<EntityDeleteModalProps> = ({
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={step === 1 ? handleClose : () => setStep(1)}
+              onClick={handleClose}
               className="flex-1 px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
               disabled={isDeleting}
             >
-              {step === 1 ? "Cancel" : "Back"}
+              Cancel
             </button>
-            {step === 2 && (
-              <button
-                type="button"
-                onClick={handleConfirm}
-                disabled={isDeleting}
-                className={`flex-1 px-6 py-2 text-white font-medium rounded-lg transition-colors ${
-                  deleteType === "hard"
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-blue-600 hover:bg-blue-700"
-                } ${isDeleting ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {isDeleting
-                  ? "Processing..."
-                  : deleteType === "hard"
-                  ? "Delete Permanently"
-                  : `Archive ${entityType}`}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={isDeleting}
+              className={`flex-1 px-6 py-2 text-white font-medium rounded-lg transition-colors bg-red-600 hover:bg-red-700 ${
+                isDeleting ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              {isDeleting ? "Deleting Permanently..." : "Delete Permanently"}
+            </button>
           </div>
         </div>
       </div>

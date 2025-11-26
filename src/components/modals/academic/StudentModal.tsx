@@ -25,6 +25,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   courses,
   centers, 
   leads,
+  mode = "enroll",
 }) => {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -198,6 +199,74 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     }
   }, [initialData, setValue]);
 
+  // Pre-fill form when in edit mode with initialData
+  useEffect(() => {
+    if (isOpen && mode === "edit" && initialData) {
+      reset({
+        leadId: initialData.leadId || null,
+        fullName: initialData.fullName || "",
+        phone: initialData.phone || "",
+        email: initialData.email || "",
+        address: initialData.address || "",
+        status: initialData.status || "",
+        centerId: initialData.centerId || "",
+        enrolledDate: initialData.enrolledDate || "",
+        birthDate: initialData.birthDate || "",
+        guardianName: initialData.guardianName || "",
+        guardianPhone: initialData.guardianPhone || "",
+        guardianEmail: initialData.guardianEmail || null,
+        guardianAddress: initialData.guardianAddress || "",
+        courseId: initialData.courseId || "",
+        bankId: initialData.bankId || "",
+        batchId: initialData.batchId || null,
+        paymentPlan: initialData.paymentPlan || "",
+        paymentType: initialData.paymentType || "",
+        paymentMethod: initialData.paymentMethod || "",
+        courseFee: initialData.courseFee || null,
+        lumpSumFee: initialData.lumpSumFee || null,
+        numberOfInstallments: initialData.numberOfInstallments || null,
+        amount: initialData.amount || null,
+        notes: initialData.notes || null,
+      });
+      
+      // Set payment plan state
+      if (initialData.paymentPlan) {
+        setPlan(initialData.paymentPlan);
+      }
+      
+      // Set payment type state
+      if (initialData.paymentType) {
+        setPaymentType(initialData.paymentType);
+      }
+      
+      // Set max installment if provided
+      if (initialData.numberOfInstallments) {
+        setMaxInstallment(parseInt(initialData.numberOfInstallments) || 2);
+      }
+    } else if (isOpen && mode === "enroll") {
+      // Reset form for new enrollment
+      reset({
+        fullName: "",
+        phone: "",
+        email: "",
+        address: "",
+        centerId: "",
+        enrolledDate: "",
+        birthDate: "",
+        guardianName: "",
+        guardianPhone: "",
+        guardianEmail: "",
+        guardianAddress: "",
+        courseId: "",
+        bankId: "",
+        batchId: "",
+      });
+      setPlan("lumpsum");
+      setPaymentType("");
+      setMaxInstallment(2);
+    }
+  }, [isOpen, mode, initialData, reset, setValue]);
+
   const handlePaymentPlan = (e: any) => {
     setValue("paymentPlan", e.target.value);
     setPlan(e.target.value);
@@ -312,7 +381,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
-            Enroll New Student
+            {mode === "edit" ? "Edit Student" : "Enroll New Student"}
           </h2>
           <button
             onClick={onClose}
@@ -816,7 +885,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
-                {selectedCourse?.batches.map((batch) => (
+                {(selectedCourse?.batches || []).map((batch) => (
                   <option key={batch.id} value={batch.id}>
                     {batch?.faculty?.fullname} - {batch?.code}
                   </option>

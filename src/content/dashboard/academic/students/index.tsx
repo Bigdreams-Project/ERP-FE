@@ -106,10 +106,7 @@ const StudentContent = ({
   };
 
   const filteredData = students.filter((student: Student) => {
-    // Filter out soft-deleted students
-    if (student.deletedAt) {
-      return false;
-    }
+    // All students are active (no soft delete filtering)
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       (student.fullName?.toLowerCase() || "").includes(query) ||

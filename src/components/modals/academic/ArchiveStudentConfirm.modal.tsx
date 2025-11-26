@@ -26,12 +26,13 @@ const ArchiveStudentConfirmModal: React.FC<ArchiveStudentConfirmModalProps> = ({
     setIsArchiving(true);
     try {
       await onConfirm(student.id);
-      handleClose();
+      // Don't close modal here - let parent handle closing after toast is shown
+      // Parent will close modal after operation completes
     } catch (error) {
       console.error("Failed to archive student:", error);
-    } finally {
       setIsArchiving(false);
     }
+    // Note: isArchiving will be reset by parent when modal closes
   };
 
   const handleClose = () => {

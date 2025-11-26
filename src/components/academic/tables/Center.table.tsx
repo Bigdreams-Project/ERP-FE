@@ -30,7 +30,7 @@ export default function CenterTable({
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   
   // Use reusable delete hook
-  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
     entityType: "centers",
   });
   
@@ -44,9 +44,9 @@ export default function CenterTable({
   const itemsPerPage = 10;
 
   // Use centers prop directly (which comes from React Query cache)
-  // Filter out soft-deleted centers
+  // All centers are active (no soft delete filtering)
   const activeCenters = useMemo(() => {
-    return centers.filter((center) => !center.deletedAt);
+    return centers;
   }, [centers]);
 
   const filteredData = activeCenters
@@ -158,16 +158,16 @@ export default function CenterTable({
     }
   };
 
-  const handleSoftDelete = async (centerId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedCenter(null);
-    await handleSoftDeleteEntity(centerId);
-  };
-
   const handleHardDelete = async (centerId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedCenter(null);
-    await handleHardDeleteEntity(centerId);
+    try {
+      await handleHardDeleteEntity(centerId);
+      // Close modal after operation completes and toast is shown
+      setIsDeleteModalOpen(false);
+      setSelectedCenter(null);
+    } catch (error) {
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
+    }
   };
 
   return (
@@ -321,7 +321,6 @@ export default function CenterTable({
             setIsDeleteModalOpen(false);
             setSelectedCenter(null);
           }}
-          onSoftDelete={handleSoftDelete}
           onHardDelete={handleHardDelete}
         />
       )}

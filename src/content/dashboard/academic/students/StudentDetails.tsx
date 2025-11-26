@@ -1,9 +1,8 @@
 "use client";
-import EditStudentModal from "@/components/modals/academic/StudentEditModal";
+import StudentModal from "@/components/modals/academic/StudentModal";
 import StudentDeleteModal from "@/components/modals/academic/StudentDeleteModal";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
-  softDeleteStudentClient,
   hardDeleteStudentClient,
 } from "@/lib/client-network";
 import { updateStudentClient } from "@/lib/client-network";
@@ -14,7 +13,7 @@ import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Payment } from "@/types/finance/payment.interface";
-import { UpdateStudent } from "@/types/requests/student.interface";
+import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -59,11 +58,8 @@ const StudentDetails = ({
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [formData, setFormData] = useState<Student>(student);
-  const isArchived = !!student.deletedAt;
 
   // Debug: Log student data structure
   useEffect(() => {
@@ -82,68 +78,40 @@ const StudentDetails = ({
     }
   }, [student, courses]);
 
-  const { mutate: saveStudent, isPending } = useMutation({
-    mutationFn: async (updatedStudent: Student | any) => {
-      return await updateStudentClient(updatedStudent.id!, updatedStudent);
-    },
-    onSuccess: () => {
-      showSuccess("Student updated successfully");
-      setIsEditing(false);
-      queryClient.invalidateQueries(["students"]);
-      queryClient.invalidateQueries(["student", student.id]);
-    },
-    onError: (error: any) => {
-      console.error(error);
-      showError("Failed to update student");
-    },
-  });
-
-  const handleSave = async (payload: UpdateStudent) => {
+  const handleSave = async (payload: CreateStudent | UpdateStudent) => {
     try {
-      const response = await updateStudentClient(student.id, payload);
+      // Convert CreateStudent payload to UpdateStudent format
+      const updatePayload: UpdateStudent = {
+        id: student.id,
+        fullName: payload.fullName,
+        phone: payload.phone,
+        email: payload.email,
+        address: payload.address,
+        status: payload.status,
+        centerId: payload.centerId,
+        enrolledDate: payload.enrolledDate,
+        birthDate: payload.birthDate,
+        guardianName: payload.guardianName,
+        guardianPhone: payload.guardianPhone,
+        guardianEmail: payload.guardianEmail,
+        guardianAddress: payload.guardianAddress,
+        courseFee: payload.courseFee,
+        lumpSumFee: payload.lumpSumFee,
+        numberOfInstallments: payload.numberOfInstallments,
+        paymentPlan: payload.paymentPlan,
+        notes: payload.notes || "",
+        courseId: payload.courseId,
+        batchId: payload.batchId,
+      };
+      
+      await updateStudentClient(student.id, updatePayload);
       showSuccess("Student updated successfully!");
       queryClient.invalidateQueries(["students"]);
       queryClient.invalidateQueries(["student", student.id]);
-      setIsEditModalOpen(false);
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Failed to save student:", error);
       showError("Failed to update student.");
-    }
-  };
-
-  const handleEditToggle = () => {
-    if (isEditing) {
-      console.log("Data:", formData);
-      saveStudent(formData);
-    } else {
-      setIsEditing(true);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData(student);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSoftDelete = async (studentId: string) => {
-    try {
-      await softDeleteStudentClient(studentId);
-      showSuccess("Student archived successfully");
-      setIsDeleteModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["students"] });
-      queryClient.invalidateQueries({ queryKey: ["student", studentId] });
-      router.push("/dashboard/academic/students");
-    } catch (error: any) {
-      console.error("Failed to archive student:", error);
-      showError(error.message || "Failed to archive student");
     }
   };
 
@@ -275,61 +243,32 @@ const StudentDetails = ({
             </a>
           </div>
           <div className="flex items-center space-x-4">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleEditToggle}
-                  className="flex items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                >
-                  Save
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => setIsEditModalOpen(true)}
-                  disabled={isArchived}
-                  className={`flex gap-2 items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isArchived
-                      ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  <MdEdit />
-                  Edit
-                </button>
-                <button
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/academic/students/enrollment/${student.id}`
-                    )
-                  }
-                  disabled={isArchived}
-                  className={`flex gap-2 items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isArchived
-                      ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  <BiMoney />
-                  Record Payment
-                </button>
-                {isAdmin && !isAdminLoading && (
-                  <button
-                    onClick={() => setIsDeleteModalOpen(true)}
-                    className="flex gap-2 items-center px-4 py-2 bg-red-600 rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </button>
-                )}
-              </>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex gap-2 items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <MdEdit />
+              Edit
+            </button>
+            <button
+              onClick={() =>
+                router.push(
+                  `/dashboard/academic/students/enrollment/${student.id}`
+                )
+              }
+              className="flex gap-2 items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <BiMoney />
+              Record Payment
+            </button>
+            {isAdmin && !isAdminLoading && (
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="flex gap-2 items-center px-4 py-2 bg-red-600 rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              >
+                <Trash2 size={16} />
+                Delete
+              </button>
             )}
           </div>
         </div>
@@ -338,7 +277,7 @@ const StudentDetails = ({
           <h2 className="text-3xl font-extrabold text-gray-900">
             Student Profile: {student.fullName}
           </h2>
-          {isArchived && (
+          {false && (
             <div className="flex items-center gap-2 px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg">
               <Archive className="text-yellow-700" size={18} />
               <span className="text-sm font-semibold text-yellow-800">
@@ -606,21 +545,39 @@ const StudentDetails = ({
         </div>
       </div>
 
-      <EditStudentModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+      <StudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
-        student={student}
         courses={courses}
         centers={centers}
+        leads={leads}
         mode="edit"
+        initialData={{
+          leadId: student.leadId,
+          fullName: student.fullName,
+          phone: student.phone,
+          email: student.email,
+          address: student.address,
+          status: student.status,
+          centerId: student.centerId,
+          enrolledDate: student.enrolledDate,
+          birthDate: student.birthDate,
+          guardianName: student.guardians?.[0]?.fullname || "",
+          guardianPhone: student.guardians?.[0]?.phone || "",
+          guardianEmail: student.guardians?.[0]?.email || null,
+          guardianAddress: student.guardians?.[0]?.address || "",
+          courseId: student.courses?.[0]?.id || "",
+          batchId: student.batches?.[0]?.id || null,
+          paymentPlan: student.paymentPlan,
+          notes: student.comments || null,
+        }}
       />
 
       <StudentDeleteModal
         student={student}
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        onSoftDelete={handleSoftDelete}
         onHardDelete={handleHardDelete}
       />
     </div>

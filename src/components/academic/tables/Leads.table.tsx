@@ -45,7 +45,7 @@ export default function LeadTable({
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   
   // Use reusable delete hook
-  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
     entityType: "leads",
   });
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -57,10 +57,10 @@ export default function LeadTable({
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-  // Filter out soft-deleted leads
+  // All leads are active (no soft delete filtering)
   // Use leads prop directly (which comes from React Query cache)
   const activeLeads = useMemo(() => {
-    return leads.filter((lead) => !lead.deletedAt);
+    return leads;
   }, [leads]);
 
   const [filteredData, setFilteredData] = useState(activeLeads);
@@ -160,16 +160,16 @@ export default function LeadTable({
     }
   };
 
-  const handleSoftDelete = async (leadId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedLead(null);
-    await handleSoftDeleteEntity(leadId);
-  };
-
   const handleHardDelete = async (leadId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedLead(null);
-    await handleHardDeleteEntity(leadId);
+    try {
+      await handleHardDeleteEntity(leadId);
+      // Close modal after operation completes and toast is shown
+      setIsDeleteModalOpen(false);
+      setSelectedLead(null);
+    } catch (error) {
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
+    }
   };
 
   const handleEnroll = (leadId: string) => {
@@ -346,7 +346,6 @@ export default function LeadTable({
               setIsDeleteModalOpen(false);
               setSelectedLead(null);
             }}
-            onSoftDelete={handleSoftDelete}
             onHardDelete={handleHardDelete}
             hasRelatedData={{
               students: 0, // Could be enhanced to check actual related data

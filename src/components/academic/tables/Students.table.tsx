@@ -43,7 +43,7 @@ export default function StudentTable({
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   
   // Use reusable delete hook
-  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
     entityType: "students",
     onSuccess: (id) => {
       setData((prev) => prev.filter((s) => s.id !== id));
@@ -60,9 +60,9 @@ export default function StudentTable({
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const itemsPerPage = 10;
 
-  // Filter out soft-deleted students
+  // All students are active (no soft delete filtering)
   const activeStudents = useMemo(() => {
-    return filteredData.filter((student) => !student.deletedAt);
+    return filteredData;
   }, [filteredData]);
 
   const sortedData = [...activeStudents].sort(
@@ -150,6 +150,7 @@ export default function StudentTable({
     try {
       await archiveStudentToArchiveClient(studentId);
       showSuccess("Student archived successfully!");
+      // Close modal after operation completes and toast is shown
       setIsArchiveModalOpen(false);
       setSelectedStudent(null);
       // Refresh both student list and archive list
@@ -159,6 +160,7 @@ export default function StudentTable({
     } catch (error: any) {
       console.error("Failed to archive student:", error);
       showError(error.message || "Failed to archive student");
+      // Keep modal open on error so user can retry
     }
   };
 
@@ -177,16 +179,16 @@ export default function StudentTable({
     );
   };
 
-  const handleSoftDelete = async (studentId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedStudent(null);
-    await handleSoftDeleteEntity(studentId);
-  };
-
   const handleHardDelete = async (studentId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedStudent(null);
-    await handleHardDeleteEntity(studentId);
+    try {
+      await handleHardDeleteEntity(studentId);
+      // Close modal after operation completes and toast is shown
+      setIsDeleteModalOpen(false);
+      setSelectedStudent(null);
+    } catch (error) {
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
+    }
   };
 
   return (
@@ -381,7 +383,6 @@ export default function StudentTable({
             setIsDeleteModalOpen(false);
             setSelectedStudent(null);
           }}
-          onSoftDelete={handleSoftDelete}
           onHardDelete={handleHardDelete}
         />
       )}

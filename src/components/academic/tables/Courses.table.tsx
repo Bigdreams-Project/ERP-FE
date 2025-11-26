@@ -26,7 +26,7 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   
   // Use reusable delete hook
-  const { handleSoftDelete: handleSoftDeleteEntity, handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
     entityType: "courses",
   });
   
@@ -40,9 +40,9 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
   const itemsPerPage = 10;
 
   // Use filteredData directly from props (which comes from React Query cache)
-  // Filter out soft-deleted courses
+  // All courses are active (no soft delete filtering)
   const activeCourses = useMemo(() => {
-    return filteredData.filter((course) => !course.deletedAt);
+    return filteredData;
   }, [filteredData]);
 
   useEffect(() => {
@@ -132,16 +132,16 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     }
   };
 
-  const handleSoftDelete = async (courseId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedCourse(null);
-    await handleSoftDeleteEntity(courseId);
-  };
-
   const handleHardDelete = async (courseId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedCourse(null);
-    await handleHardDeleteEntity(courseId);
+    try {
+      await handleHardDeleteEntity(courseId);
+      // Close modal after operation completes and toast is shown
+      setIsDeleteModalOpen(false);
+      setSelectedCourse(null);
+    } catch (error) {
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
+    }
   };
 
   return (
@@ -284,7 +284,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
               setIsDeleteModalOpen(false);
               setSelectedCourse(null);
             }}
-            onSoftDelete={handleSoftDelete}
             onHardDelete={handleHardDelete}
             hasRelatedData={{
               students: selectedCourse.students?.length || 0,

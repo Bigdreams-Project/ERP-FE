@@ -46,6 +46,7 @@ export default function ArchiveTable({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<ArchiveRecord | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const sortedData = [...filteredData].sort(
     (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
@@ -158,6 +159,7 @@ export default function ArchiveTable({
   const handleDeleteConfirm = async () => {
     if (!selectedRecord?.id) return;
     
+    setIsDeleting(true);
     try {
       await deleteArchiveRecordClient(selectedRecord.id);
       showSuccess("Archive record deleted successfully");
@@ -168,6 +170,8 @@ export default function ArchiveTable({
     } catch (error: any) {
       console.error("Failed to delete archive record:", error);
       showError(error.message || "Failed to delete archive record");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -356,15 +360,19 @@ export default function ArchiveTable({
                       setIsDeleteModalOpen(false);
                       setSelectedRecord(null);
                     }}
-                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                    disabled={isDeleting}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleDeleteConfirm}
-                    className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700"
+                    disabled={isDeleting}
+                    className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
+                      isDeleting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   >
-                    Delete
+                    {isDeleting ? "Deleting..." : "Delete"}
                   </button>
                 </div>
               </div>

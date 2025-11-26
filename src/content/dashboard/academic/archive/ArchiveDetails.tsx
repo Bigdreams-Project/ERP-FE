@@ -1,6 +1,5 @@
 "use client";
 import ArchiveEditModal from "@/components/modals/academic/ArchiveEdit.modal";
-import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { deleteArchiveRecordClient, updateArchiveRecordClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
@@ -82,7 +81,7 @@ const ArchiveDetails = ({
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (archiveRecord.id) {
       deleteRecord(archiveRecord.id);
     }
@@ -313,16 +312,33 @@ const ArchiveDetails = ({
 
       {/* Delete Modal */}
       {isDeleteModalOpen && (
-        <EntityDeleteModal
-          entityType="Archive Record"
-          entityName={archiveRecord.fullname}
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onSoftDelete={() => {}}
-          onHardDelete={handleConfirmDelete}
-          hasRelatedData={{}}
-          isHardDeleteOnly={true}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Delete Archive Record</h2>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete the archive record for{" "}
+              <strong>{archiveRecord.fullname}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
+                  isDeleting ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -4,9 +4,10 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import ArchiveTable from "@/components/academic/tables/Archive.table";
 import ArchiveUploadModal from "@/components/modals/academic/ArchiveUpload.modal";
 import ArchiveCreateModal from "@/components/modals/academic/ArchiveCreate.modal";
-import { getArchiveRecordsClient, bulkUploadArchiveClient, createArchiveRecordClient, getCentersClient } from "@/lib/client-network";
+import { getArchiveRecordsClient, bulkUploadArchiveClient, createArchiveRecordClient, getCentersClient, getCoursesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
+import { Course } from "@/types/academic/course.interface";
 import { ArchiveRecord } from "@/types/academic/archive.interface";
 import { BulkUploadArchiveRequest, CreateArchiveRecord } from "@/types/requests/archive.interface";
 import { useEffect, useRef, useState, useMemo } from "react";
@@ -21,6 +22,7 @@ interface ArchiveContentProps {
   archiveRecords: ArchiveRecord[];
   totalRecords: number;
   centers: Center[];
+  courses: Course[];
   user: User;
 }
 
@@ -28,6 +30,7 @@ const ArchiveContent = ({
   archiveRecords: initialArchiveRecords,
   totalRecords: initialTotalRecords,
   centers,
+  courses: initialCourses,
   user: initialUser,
 }: ArchiveContentProps) => {
   const queryClient = useQueryClient();
@@ -59,6 +62,15 @@ const ArchiveContent = ({
     queryKey: ["centers"],
     queryFn: getCentersClient,
     initialData: centers,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Fetch courses using React Query
+  const { data: coursesData = initialCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: getCoursesClient,
+    initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
   });
@@ -340,6 +352,7 @@ const ArchiveContent = ({
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreate}
         centers={centersData}
+        courses={coursesData}
       />
 
       <ArchiveUploadModal
