@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/auth/role-check";
 import { redirect, notFound } from "next/navigation";
 
 export default async function ArchiveRecord({ params }: any) {
+  let archiveId: string | undefined;
   try {
     // Check admin access server-side
     const adminCheck = await isAdmin();
@@ -11,7 +12,8 @@ export default async function ArchiveRecord({ params }: any) {
       redirect("/dashboard/academic/archive");
     }
 
-    const { id: archiveId } = await params;
+    const resolvedParams = await params;
+    archiveId = resolvedParams.id;
 
     if (!archiveId) {
       notFound();
@@ -36,7 +38,9 @@ export default async function ArchiveRecord({ params }: any) {
     );
   } catch (error: any) {
     console.error("Error loading archive record:", error);
-    console.error("Archive ID:", archiveId);
+    if (archiveId) {
+      console.error("Archive ID:", archiveId);
+    }
     console.error("Error response:", error.response?.data);
     console.error("Error status:", error.response?.status);
     
