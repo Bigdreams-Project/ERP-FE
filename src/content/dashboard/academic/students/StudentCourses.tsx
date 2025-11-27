@@ -95,8 +95,8 @@ const StudentCourses = ({ data }: Props) => {
                   <InfoItem
                     label="Next Payment Due"
                     value={
-                      course?.paymentPlan
-                        ? formatDate(course?.paymentPlan.nextPaymentDate)
+                      course?.paymentPlan?.nextPaymentDate
+                        ? formatDate(course.paymentPlan.nextPaymentDate)
                         : "N/A"
                     }
                     valueColor="text-gray-700"

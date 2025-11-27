@@ -285,12 +285,12 @@ const ArchiveDetails = ({
                 )}
                 {renderSection(
                   "Archived Date",
-                  formatDate(archiveRecord.createdAt),
+                  archiveRecord.createdAt ? formatDate(archiveRecord.createdAt) : "N/A",
                   CalendarDays
                 )}
                 {renderSection(
                   "Last Updated",
-                  formatDate(archiveRecord.updatedAt),
+                  archiveRecord.updatedAt ? formatDate(archiveRecord.updatedAt) : "N/A",
                   CalendarDays
                 )}
               </div>

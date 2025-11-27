@@ -359,10 +359,10 @@ const StudentDetails = ({
                 {renderSection("Batch", student.batches[0]?.code || "Not assigned", Users)}
                 {renderSection(
                   "Dates",
-                  student.batches && student.batches.length > 0
+                  student.batches && student.batches.length > 0 && student.batches[0]
                     ? `Start on ${formatDate(
-                        student.batches[0]?.startDate
-                      )} - End on ${formatDate(student.batches[0]?.endDate)}`
+                        student.batches[0].startDate
+                      )} - End on ${formatDate(student.batches[0].endDate)}`
                     : "Start and end dates not available",
                   Clock
                 )}
@@ -523,7 +523,7 @@ const StudentDetails = ({
                       <div key={note?.id!} className="mb-4">
                         <p className="text-sm text-gray-400 font-medium mb-1">
                           <span className="font-medium">
-                            {formatDate(note.createdAt || note.updatedAt)}
+                            {note.createdAt || note.updatedAt ? formatDate(note.createdAt || note.updatedAt) : "N/A"}
                           </span>
                         </p>
                         <p className="text-gray-800">{note.note}</p>

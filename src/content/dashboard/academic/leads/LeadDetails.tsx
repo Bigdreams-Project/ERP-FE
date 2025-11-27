@@ -236,7 +236,7 @@ const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
                       note.note && (
                         <p key={index} className="text-sm text-gray-700">
                           <span className="font-semibold">
-                            {formatDate(note.createdAt || note.updatedAt)}
+                            {note.createdAt || note.updatedAt ? formatDate(note.createdAt || note.updatedAt) : "N/A"}
                           </span>{" "}
                           - {note.note}
                         </p>
