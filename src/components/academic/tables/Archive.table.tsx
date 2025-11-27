@@ -1,7 +1,7 @@
 "use client";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { deleteArchiveRecordClient, updateArchiveRecordClient, restoreStudentFromArchiveClient } from "@/lib/client-network";
+import { deleteArchiveRecordClient, updateArchiveRecordClient, restoreStudentFromArchiveClient, bulkDeleteArchiveRecordsClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { ArchiveRecord } from "@/types/academic/archive.interface";
@@ -47,6 +47,8 @@ export default function ArchiveTable({
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<ArchiveRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const sortedData = [...filteredData].sort(
     (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
@@ -175,6 +177,34 @@ export default function ArchiveTable({
     }
   };
 
+  const handleBulkDelete = () => {
+    if (selectedRecords.length === 0) return;
+    setIsBulkDeleteModalOpen(true);
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    if (selectedRecords.length === 0) return;
+    
+    setIsBulkDeleting(true);
+    try {
+      const result = await bulkDeleteArchiveRecordsClient(selectedRecords);
+      if (result.failed === 0) {
+        showSuccess(`Successfully deleted ${result.successful} archive record(s)`);
+      } else {
+        showError(`Deleted ${result.successful} record(s), but ${result.failed} failed`);
+      }
+      setIsBulkDeleteModalOpen(false);
+      setSelectedRecords([]); // Clear selection
+      // Invalidate all archive queries to refresh the list
+      await queryClient.invalidateQueries({ queryKey: ["archive"] });
+    } catch (error: any) {
+      console.error("Failed to bulk delete archive records:", error);
+      showError(error.message || "Failed to delete archive records");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
@@ -182,8 +212,43 @@ export default function ArchiveTable({
     }).format(amount);
   };
 
+  const selectedCount = selectedRecords.length;
+  const isAllSelected = paginatedData.length > 0 && paginatedData.every((record) => selectedRecords.includes(record.id!));
+
   return (
     <div className="font-inter text-gray-200">
+      {/* Bulk Actions Bar - Show when records are selected */}
+      {selectedCount > 0 && isAdmin && !isAdminLoading && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-blue-900">
+              {selectedCount} record{selectedCount !== 1 ? "s" : ""} selected
+            </span>
+            <button
+              onClick={() => setSelectedRecords([])}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+              disabled={isBulkDeleting}
+            >
+              Clear Selection
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+              className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors ${
+                isBulkDeleting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-red-600 hover:bg-red-700"
+              }`}
+            >
+              <Trash2 size={16} />
+              {isBulkDeleting ? "Deleting..." : `Delete All (${selectedCount})`}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
@@ -373,6 +438,39 @@ export default function ArchiveTable({
                     }`}
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bulk Delete Confirmation Modal */}
+          {isBulkDeleteModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h2 className="text-xl font-bold mb-4">Delete Multiple Archive Records</h2>
+                <p className="text-gray-700 mb-6">
+                  Are you sure you want to delete <strong>{selectedCount} archive record{selectedCount !== 1 ? "s" : ""}</strong>? 
+                  This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setIsBulkDeleteModalOpen(false);
+                    }}
+                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                    disabled={isBulkDeleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBulkDeleteConfirm}
+                    disabled={isBulkDeleting}
+                    className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
+                      isBulkDeleting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isBulkDeleting ? "Deleting..." : `Delete ${selectedCount} Record${selectedCount !== 1 ? "s" : ""}`}
                   </button>
                 </div>
               </div>

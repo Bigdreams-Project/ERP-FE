@@ -827,3 +827,24 @@ export const deleteArchiveRecordClient = async (id: string) => {
   }
 };
 
+export const bulkDeleteArchiveRecordsClient = async (ids: string[]) => {
+  try {
+    // Delete records sequentially to avoid overwhelming the server
+    const results = await Promise.allSettled(
+      ids.map((id) => deleteArchiveRecordClient(id))
+    );
+
+    const successful = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+
+    return {
+      successful,
+      failed,
+      total: ids.length,
+    };
+  } catch (err: any) {
+    console.error("Failed to bulk delete archive records:", err.message);
+    throw err;
+  }
+};
+
