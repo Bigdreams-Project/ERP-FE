@@ -14,7 +14,7 @@ import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
-import { CreateStudent } from "@/types/requests/student.interface";
+import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
 import { ChevronDown, Link2Icon, Archive } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -110,16 +110,19 @@ export default function StudentTable({
     }
   };
 
-  const handleSave = async (payload: CreateStudent) => {
-    try {
-      const response = await createStudentClient(payload);
-      setData((prev) => [...prev, response]);
-      showSuccess("Student enrolled successfully");
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save student:", error);
-      showError("Student enrollment failed");
-    }
+  const handleSave = (payload: CreateStudent | UpdateStudent) => {
+    // In enroll mode, payload is always CreateStudent
+    const createPayload = payload as CreateStudent;
+    createStudentClient(createPayload)
+      .then((response) => {
+        setData((prev) => [...prev, response]);
+        showSuccess("Student enrolled successfully");
+        setIsModalOpen(false);
+      })
+      .catch((error) => {
+        console.error("Failed to save student:", error);
+        showError("Student enrollment failed");
+      });
   };
 
   const toggleDropdown = (id: string) => {

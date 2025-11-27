@@ -13,7 +13,7 @@ import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { CreateLead } from "@/types/requests/lead.interface";
-import { CreateStudent } from "@/types/requests/student.interface";
+import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
 import { ChevronDown, Link2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -148,16 +148,19 @@ export default function LeadTable({
     }
   };
 
-  const handleEnrollSave = async (payload: CreateStudent) => {
-    try {
-      const response = await createStudentClient(payload);
-      showSuccess("Student enrolled successfully");
-      setIsEnrollModalOpen(false);
-      router.push("/dashboard/academic/students");
-    } catch (error) {
-      console.error("Failed to save student:", error);
-      showError("Student enrollment failed");
-    }
+  const handleEnrollSave = (payload: CreateStudent | UpdateStudent) => {
+    // In enroll mode, payload is always CreateStudent
+    const createPayload = payload as CreateStudent;
+    createStudentClient(createPayload)
+      .then(() => {
+        showSuccess("Student enrolled successfully");
+        setIsEnrollModalOpen(false);
+        router.push("/dashboard/academic/students");
+      })
+      .catch((error) => {
+        console.error("Failed to save student:", error);
+        showError("Student enrollment failed");
+      });
   };
 
   const handleHardDelete = async (leadId: string) => {

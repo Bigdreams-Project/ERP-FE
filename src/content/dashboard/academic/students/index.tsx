@@ -11,7 +11,7 @@ import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
-import { CreateStudent } from "@/types/requests/student.interface";
+import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
 import { User } from "@/types/auth/user.interface";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -134,8 +134,10 @@ const StudentContent = ({
     },
   });
 
-  const handleSave = async (payload: CreateStudent) => {
-    createStudentMutation(payload);
+  const handleSave = (payload: CreateStudent | UpdateStudent) => {
+    // In enroll mode, payload is always CreateStudent
+    const createPayload = payload as CreateStudent;
+    createStudentMutation(createPayload);
   };
 
   return (
