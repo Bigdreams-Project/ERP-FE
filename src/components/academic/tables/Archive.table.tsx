@@ -444,39 +444,40 @@ export default function ArchiveTable({
             </div>
           )}
 
-          {/* Bulk Delete Confirmation Modal */}
-          {isBulkDeleteModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                <h2 className="text-xl font-bold mb-4">Delete Multiple Archive Records</h2>
-                <p className="text-gray-700 mb-6">
-                  Are you sure you want to delete <strong>{selectedCount} archive record{selectedCount !== 1 ? "s" : ""}</strong>? 
-                  This action cannot be undone.
-                </p>
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => {
-                      setIsBulkDeleteModalOpen(false);
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-                    disabled={isBulkDeleting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleBulkDeleteConfirm}
-                    disabled={isBulkDeleting}
-                    className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
-                      isBulkDeleting ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {isBulkDeleting ? "Deleting..." : `Delete ${selectedCount} Record${selectedCount !== 1 ? "s" : ""}`}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </>
+      )}
+
+      {/* Bulk Delete Confirmation Modal - Outside selectedRecord block */}
+      {isBulkDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Delete Multiple Archive Records</h2>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete <strong>{selectedCount} archive record{selectedCount !== 1 ? "s" : ""}</strong>? 
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsBulkDeleteModalOpen(false);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                disabled={isBulkDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDeleteConfirm}
+                disabled={isBulkDeleting}
+                className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
+                  isBulkDeleting ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {isBulkDeleting ? "Deleting..." : `Delete ${selectedCount} Record${selectedCount !== 1 ? "s" : ""}`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
