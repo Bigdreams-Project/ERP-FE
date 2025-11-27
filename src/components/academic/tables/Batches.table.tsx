@@ -81,12 +81,6 @@ export default function BatchTable({
     }
   };
 
-  const handleSoftDelete = async (batchId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedBatch(null);
-    await handleSoftDeleteEntity(batchId);
-  };
-
   const handleHardDelete = async (batchId: string) => {
     setIsDeleteModalOpen(false);
     setSelectedBatch(null);

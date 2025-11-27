@@ -43,13 +43,14 @@ export async function GET(request: NextRequest) {
  * Proxies request to backend to avoid CORS issues
  */
 export async function POST(request: NextRequest) {
+  let payload: CreateLead | null = null;
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload: CreateLead = await request.json();
+    payload = await request.json();
 
     const response = await axios.post(
       `${AuthRoutes.BASE_URL}/leads`,
@@ -66,6 +67,9 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Failed to create lead:", error);
     if (error.response) {
+      if (payload) {
+        console.error("Payload sent:", JSON.stringify(payload, null, 2));
+      }
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to create lead" },
         { status: error.response.status || 500 }

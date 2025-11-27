@@ -74,6 +74,8 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let id: string | undefined;
+  let payload: UpdateArchiveRecord | null = null;
   try {
     const session = await getSession();
     if (!session) {
@@ -89,8 +91,9 @@ export async function PATCH(
       );
     }
 
-    const { id } = await params;
-    const payload: UpdateArchiveRecord = await request.json();
+    const resolvedParams = await params;
+    id = resolvedParams.id;
+    payload = await request.json();
 
     if (!id) {
       return NextResponse.json(
@@ -120,6 +123,12 @@ export async function PATCH(
                           error.response.data?.details ||
                           `Backend error: ${error.response.statusText}`;
       console.error("Backend error details:", error.response.data);
+      if (id) {
+        console.error("Archive ID:", id);
+      }
+      if (payload) {
+        console.error("Payload:", JSON.stringify(payload, null, 2));
+      }
       return NextResponse.json(
         { error: errorMessage },
         { status: error.response.status || 500 }
@@ -140,6 +149,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let id: string | undefined;
   try {
     const session = await getSession();
     if (!session) {
@@ -155,7 +165,8 @@ export async function DELETE(
       );
     }
 
-    const { id } = await params;
+    const resolvedParams = await params;
+    id = resolvedParams.id;
 
     if (!id) {
       return NextResponse.json(
@@ -180,6 +191,9 @@ export async function DELETE(
                           error.response.data?.details ||
                           `Backend error: ${error.response.statusText}`;
       console.error("Backend error details:", error.response.data);
+      if (id) {
+        console.error("Archive ID:", id);
+      }
       return NextResponse.json(
         { error: errorMessage },
         { status: error.response.status || 500 }
