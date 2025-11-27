@@ -198,11 +198,53 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
 
               for (const variation of variations) {
                 const lowerVar = variation.toLowerCase().trim();
-                if (lowerRow[lowerVar] !== undefined && lowerRow[lowerVar] !== null && lowerRow[lowerVar] !== "") {
-                  return String(lowerRow[lowerVar]).trim(); // Convert to string and trim
+                const value = lowerRow[lowerVar];
+                if (value !== undefined && value !== null && value !== "") {
+                  // Handle both string and numeric values
+                  if (typeof value === "number") {
+                    return String(value);
+                  }
+                  return String(value).trim(); // Convert to string and trim
                 }
               }
               return null;
+            };
+
+            // Helper function to parse numeric values (handles currency, commas, etc.)
+            const parseNumericField = (variations: string[]): number => {
+              // Create lowercase row mapping for field lookup
+              const lowerRow = Object.keys(row).reduce((acc, key) => {
+                acc[key.toLowerCase().trim()] = row[key];
+                return acc;
+              }, {} as any);
+
+              // Find the field value
+              let rawValue: any = null;
+              for (const variation of variations) {
+                const lowerVar = variation.toLowerCase().trim();
+                const value = lowerRow[lowerVar];
+                if (value !== undefined && value !== null && value !== "") {
+                  rawValue = value;
+                  break;
+                }
+              }
+
+              if (rawValue === null || rawValue === undefined || rawValue === "") {
+                return 0;
+              }
+
+              // Handle numeric values directly from Excel
+              if (typeof rawValue === "number") {
+                return isNaN(rawValue) ? 0 : rawValue;
+              }
+
+              // Remove currency symbols, commas, and whitespace from string values
+              const cleaned = String(rawValue)
+                .replace(/[₦$€£¥,\s]/g, "")
+                .trim();
+
+              const parsed = parseFloat(cleaned);
+              return isNaN(parsed) ? 0 : parsed;
             };
 
             const fullname = mapField("fullname", ["fullname", "full name", "name", "student name"]) || "";
@@ -230,13 +272,13 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
               email: mapField("email", ["email", "e-mail"]) || "",
               phone: mapField("phone", ["phone", "phone number", "mobile", "contact"]) || "",
               courseEnrolled: mapField("courseEnrolled", ["courseenrolled", "course enrolled", "course", "course name"]) || "",
-              coursePrice: parseFloat(mapField("coursePrice", ["courseprice", "course price", "price", "fee"]) || "0") || 0,
+              coursePrice: parseNumericField(["courseprice", "course price", "price", "fee", "courseprice", "course_price"]),
               enrollmentDate: formatDateForArchive(mapField("enrollmentDate", ["enrollmentdate", "enrollment date", "enrolled date", "enroll_date", "enrollment_date"]) || ""),
               birthDate: formatDateForArchive(mapField("birthDate", ["birthdate", "birth date", "dob", "date of birth", "birth_date"]) || ""),
               oldStudentId: oldStudentId, // Preserved exactly from Excel, or "" if not provided (backend generates)
               newStudentId: newStudentId, // Always null - backend generates
-              totalPayment: parseFloat(mapField("totalPayment", ["totalpayment", "total payment", "paid", "amount paid"]) || "0") || 0,
-              pendingPayment: parseFloat(mapField("pendingPayment", ["pendingpayment", "pending payment", "balance", "outstanding"]) || "0") || 0,
+              totalPayment: parseNumericField(["totalpayment", "total payment", "paid", "amount paid", "total_payment", "totalpaid", "amountpaid", "total paid"]),
+              pendingPayment: parseNumericField(["pendingpayment", "pending payment", "balance", "outstanding", "pending_payment", "pendingbalance", "outstanding balance"]),
               status: mapField("status", ["status", "student status"]) || "archived",
               source: (mapField("source", ["source", "archive source"]) || "legacy_erp") as "legacy_erp" | "graduated",
             };
