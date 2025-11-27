@@ -48,7 +48,7 @@ const ArchiveEditModal: React.FC<ArchiveEditModalProps> = ({
       totalPayment: initialData.totalPayment,
       pendingPayment: initialData.pendingPayment,
       status: initialData.status,
-      source: initialData.source || null,
+      source: initialData.source || undefined,
     },
   });
 
@@ -71,7 +71,7 @@ const ArchiveEditModal: React.FC<ArchiveEditModalProps> = ({
         totalPayment: initialData.totalPayment,
         pendingPayment: initialData.pendingPayment,
         status: initialData.status,
-        source: initialData.source || null,
+        source: initialData.source || undefined,
       });
     }
   }, [isOpen, initialData, reset]);

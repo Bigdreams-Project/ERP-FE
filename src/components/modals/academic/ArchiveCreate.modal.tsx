@@ -47,7 +47,7 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
       totalPayment: 0,
       pendingPayment: 0,
       status: "",
-      source: null,
+      source: undefined,
     },
   });
 
@@ -78,7 +78,7 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
         totalPayment: 0,
         pendingPayment: 0,
         status: "",
-        source: null,
+        source: undefined,
       });
     }
   }, [isOpen, reset]);
