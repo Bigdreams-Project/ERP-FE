@@ -344,7 +344,6 @@ const ArchiveContent = ({
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
         centers={centersData}
-        isLoading={isArchiveLoading}
       />
       
       <ArchiveCreateModal

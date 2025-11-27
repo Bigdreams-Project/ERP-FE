@@ -4,9 +4,8 @@ import StatusBadge2 from "@/components/academic/common/StatusBadge2";
 import { updateCenter } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
-import { Center } from "@/types/academic/center.interface";
-import { Manager } from "@/types/academic/manager.interface";
-import { CreateCenter } from "@/types/requests/center.interface";
+import { Center, Manager } from "@/types/academic/center.interface";
+import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
@@ -23,7 +22,11 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
 
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
-      await updateCenter(center.id, payload);
+      const updatePayload: UpdateCenter = {
+        ...payload,
+        id: center.id,
+      };
+      await updateCenter(center.id, updatePayload);
       showSuccess("Center updated successfully");
       queryClient.invalidateQueries(["centers"]);
       queryClient.invalidateQueries(["center", center.id]);
@@ -212,16 +215,15 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
         managers={managers}
         mode="edit"
         initialData={{
-          id: center.id,
           name: center.name,
-          location: center.location,
+          location: center.address, // Use address as location
           address: center.address,
-          managerId: center.managerId,
+          managerId: center.manager?.id || "",
           phone: center.phone,
           email: center.email,
-          status: center.status,
-          type: center.type,
-          banks: center.banks && center.banks.length > 0 ? center.banks : [],
+          status: center.status as "" | "ACTIVE" | "IN_SETUP" | "SUSPENDED" | "CLOSED" || "",
+          type: center.type as "" | "OWNED" | "PARTNERED" || "",
+          banks: [], // Banks not available in Center interface
         }}
       />
     </div>

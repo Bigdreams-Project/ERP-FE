@@ -261,26 +261,23 @@ const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
         centers={centers}
         mode="edit"
         initialData={{
-          id: lead.id,
           fullName: lead.fullName,
           email: lead.email,
           phone: lead.phone,
           address: lead.address,
-          birthDate: lead.birthDate,
-          guardianName: lead.guardianName,
-          guardianEmail: lead.guardianEmail,
-          guardianPhone: lead.guardianPhone,
-          guardianAddress: lead.guardianAddress,
+          parentName: lead.guardians && lead.guardians.length > 0 ? lead.guardians[0].fullname : "",
+          parentPhone: lead.guardians && lead.guardians.length > 0 ? lead.guardians[0].phone : "",
+          parentEmail: lead.guardians && lead.guardians.length > 0 ? lead.guardians[0].email : "",
           courseId: lead.courseId,
           centerId: lead.centerId,
           enquiryDate: lead.enquiryDate,
           nextFollowUpDate: lead.nextFollowUpDate,
-          lastFollowUpDate: lead.lastFollowUpDate,
-          note: lead.note,
+          lastFollowUpDate: lead.nextFollowUpDate, // Use nextFollowUpDate as fallback
+          note: lead.notes && lead.notes.length > 0 ? lead.notes[lead.notes.length - 1].note : "",
           source: lead.source,
           status: lead.status,
           studyType: lead.studyType,
-          assignedTo: lead.assignedTo,
+          assignedTo: "", // assignedTo doesn't exist on Lead interface
         }}
       />
     </div>
