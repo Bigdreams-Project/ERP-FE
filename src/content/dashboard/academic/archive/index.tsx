@@ -77,12 +77,12 @@ const ArchiveContent = ({
 
   // Use React Query to fetch and cache archive records
   // Fetch all records (or large chunk) for client-side filtering and pagination
-  // This ensures pagination works correctly with filters
+  // Use backend pagination - fetch data based on current page
   const { data: archiveData, isLoading: isArchiveLoading } = useQuery({
-    queryKey: ["archive", searchQuery, statusFilter], // Include statusFilter in queryKey
+    queryKey: ["archive", currentPage, itemsPerPage, searchQuery, statusFilter],
     queryFn: () => getArchiveRecordsClient({ 
-      page: 1, // Always fetch from page 1
-      limit: 1000, // Fetch large chunk for client-side filtering/pagination
+      page: currentPage,
+      limit: itemsPerPage,
       search: searchQuery || undefined,
     }),
     initialData: {
@@ -92,7 +92,7 @@ const ArchiveContent = ({
       limit: itemsPerPage,
     },
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: true, // ✅ Changed to true to refetch when navigating to page
+    refetchOnMount: true,
   });
 
   const archiveRecords = archiveData?.data || [];
@@ -133,14 +133,23 @@ const ArchiveContent = ({
       return await bulkUploadArchiveClient(payload);
     },
     onSuccess: async (data) => {
-      showSuccess(`Successfully uploaded ${data.success} archive record(s)`);
-      setIsUploadModalOpen(false);
-      // ✅ Force refetch archive queries immediately
+      if (data.failed > 0) {
+        showError(`${data.success} record(s) uploaded successfully, but ${data.failed} record(s) failed. Check the upload modal for details.`);
+      } else {
+        showSuccess(`Successfully uploaded ${data.success} archive record(s)`);
+        setIsUploadModalOpen(false);
+      }
+      // ✅ Always refetch archive queries to show newly uploaded records
+      // Reset to page 1 to see the new records
+      setCurrentPage(1);
+      await queryClient.invalidateQueries({ queryKey: ["archive"] });
       await queryClient.refetchQueries({ queryKey: ["archive"] });
     },
     onError: (error: any) => {
       console.error("Failed to upload archive records:", error);
       showError(error.message || "Failed to upload archive records");
+      // Still refetch in case some records were uploaded before the error
+      queryClient.invalidateQueries({ queryKey: ["archive"] });
     },
   });
 
@@ -153,6 +162,8 @@ const ArchiveContent = ({
       showSuccess("Archive record created successfully!");
       setIsCreateModalOpen(false);
       // ✅ Force refetch archive queries immediately
+      setCurrentPage(1);
+      await queryClient.invalidateQueries({ queryKey: ["archive"] });
       await queryClient.refetchQueries({ queryKey: ["archive"] });
     },
     onError: (error: any) => {
@@ -162,7 +173,35 @@ const ArchiveContent = ({
   });
 
   const handleUpload = async (payload: BulkUploadArchiveRequest) => {
-    return await bulkUploadArchiveClient(payload);
+    // Call the API directly to get the result for the modal to display errors
+    const result = await bulkUploadArchiveClient(payload);
+    
+    // After upload completes (success or partial), refetch the archive data
+    // Reset to page 1 to see newly uploaded records
+    setCurrentPage(1);
+    // Invalidate all archive queries to force fresh data
+    queryClient.invalidateQueries({ queryKey: ["archive"] });
+    // Refetch the current query immediately
+    await queryClient.refetchQueries({ 
+      queryKey: ["archive", 1, itemsPerPage, searchQuery, statusFilter],
+      exact: false 
+    });
+    
+    // Show success/error message
+    if (result.failed > 0) {
+      showError(`${result.success} record(s) uploaded successfully, but ${result.failed} record(s) failed.`);
+    } else {
+      showSuccess(`Successfully uploaded ${result.success} archive record(s)`);
+    }
+    
+    return result;
+  };
+
+  // Handle modal close - refetch data if upload was successful
+  const handleUploadModalClose = () => {
+    setIsUploadModalOpen(false);
+    // Refetch archive data when modal closes to ensure fresh data
+    queryClient.invalidateQueries({ queryKey: ["archive"] });
   };
 
   const handleCreate = async (payload: CreateArchiveRecord) => {
@@ -224,6 +263,17 @@ const ArchiveContent = ({
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, statusFilter]);
+  
+  // Calculate total pages from backend response
+  // Always use backend total for pagination (backend handles search)
+  // Status filter only affects current page display, not total pages
+  const totalPages = useMemo(() => {
+    // Use backend total - it knows the total count after search filtering
+    const calculatedPages = Math.ceil(totalRecords / itemsPerPage);
+    
+    // Ensure at least 1 page if there's any data, or 0 if no data
+    return calculatedPages > 0 ? calculatedPages : (totalRecords > 0 ? 1 : 0);
+  }, [totalRecords, itemsPerPage]);
 
   return (
     <div className="w-full">
@@ -359,9 +409,9 @@ const ArchiveContent = ({
       <ArchiveTable
         searchQuery={searchQuery}
         filteredData={filteredData}
-        totalRecords={filteredData.length} // ✅ Use filtered data length for pagination
         currentPage={currentPage}
         itemsPerPage={itemsPerPage}
+        totalPages={totalPages}
         onPageChange={setCurrentPage}
         centers={centersData}
       />
@@ -376,7 +426,7 @@ const ArchiveContent = ({
 
       <ArchiveUploadModal
         isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
+        onClose={handleUploadModalClose}
         onSave={handleUpload}
         centers={centersData}
         isUploading={isUploading}

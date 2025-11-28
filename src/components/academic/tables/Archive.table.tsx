@@ -20,9 +20,9 @@ import { Center } from "@/types/academic/center.interface";
 type Props = {
   searchQuery: string;
   filteredData: ArchiveRecord[];
-  totalRecords: number;
   currentPage: number;
   itemsPerPage: number;
+  totalPages: number;
   onPageChange: (page: number) => void;
   centers?: Center[];
 };
@@ -30,9 +30,9 @@ type Props = {
 export default function ArchiveTable({
   searchQuery,
   filteredData,
-  totalRecords,
   currentPage,
   itemsPerPage,
+  totalPages,
   onPageChange,
   centers = [],
 }: Props) {
@@ -50,22 +50,14 @@ export default function ArchiveTable({
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
+  // Backend already provides paginated data, but we may need to sort it
+  // If status filter is applied, we need to handle pagination client-side for filtered data
   const sortedData = [...filteredData].sort(
     (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
   );
 
-  // Calculate totalPages based on filtered data length
-  // Always show all page numbers when there's more than 1 page
-  const calculatedTotalPages = Math.ceil(totalRecords / itemsPerPage);
-  const totalPages = calculatedTotalPages > 0 ? calculatedTotalPages : 1;
-  const paginatedData = sortedData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Ensure totalPages is at least 1, but use actual calculated value when > 1
-  // This ensures all pages are shown when there's more than 1 page
-  const finalTotalPages = totalPages;
+  // Use filtered data directly (backend already paginated, but status filter may reduce it)
+  const paginatedData = sortedData;
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
@@ -386,10 +378,10 @@ export default function ArchiveTable({
         </div>
 
         {/* Pagination - Always visible */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 z-10 w-full">
+        <div className="sticky w-full bottom-0 z-10 bg-white">
           <Pagination
             currentPage={currentPage}
-            totalPages={finalTotalPages}
+            totalPages={totalPages}
             onPageChange={onPageChange}
           />
         </div>
