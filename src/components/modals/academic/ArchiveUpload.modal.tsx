@@ -11,7 +11,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 interface ArchiveUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: BulkUploadArchiveRequest) => void;
+  onSave: (data: BulkUploadArchiveRequest) => Promise<{ success: number; failed: number; errors?: Array<{ row: number; error: string }> }>;
   centers: Center[];
   isUploading?: boolean; // Add upload state prop
 }
@@ -34,6 +34,8 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewRows, setPreviewRows] = useState(10);
   const [duplicateRecords, setDuplicateRecords] = useState<Array<{ row: number; oldStudentId: string }>>([]);
+  const [uploadResult, setUploadResult] = useState<{ success: number; failed: number; errors?: Array<{ row: number; error: string }> } | null>(null);
+  const [showFailedRecords, setShowFailedRecords] = useState(false);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -187,6 +189,40 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
+          // Debug: Log column names and first row from Excel
+          if (jsonData.length > 0 && jsonData[0]) {
+            const firstRow = jsonData[0] as Record<string, any>;
+            const columnNames = Object.keys(firstRow);
+            const lowercaseColumns = columnNames.map(k => k.toLowerCase().trim());
+            console.log("=== Excel File Debug Info ===");
+            console.log("Total rows in Excel:", jsonData.length);
+            console.log("Excel column names (original):", JSON.stringify(columnNames, null, 2));
+            console.log("Excel column names (lowercase):", JSON.stringify(lowercaseColumns, null, 2));
+            console.log("First row sample (raw):", JSON.stringify(firstRow, null, 2));
+            // Show all column values to identify totalPayment field
+            console.log("--- All column values from first row ---");
+            const columnInfo: any = {};
+            columnNames.forEach(col => {
+              const value = firstRow[col];
+              const lowerCol = col.toLowerCase().trim();
+              columnInfo[col] = {
+                lowercase: lowerCol,
+                value: value,
+                type: typeof value,
+                stringValue: String(value)
+              };
+              console.log(`Column: "${col}"`);
+              console.log(`  Lowercase: "${lowerCol}"`);
+              console.log(`  Value:`, value);
+              console.log(`  Type: ${typeof value}`);
+              console.log(`  String representation: "${String(value)}"`);
+              console.log("---");
+            });
+            // Also log as table for better visibility
+            console.table(columnInfo);
+            console.log("=============================");
+          }
+
           // Map Excel columns to ArchiveRecord fields
           const mappedData: ArchiveRecord[] = jsonData.map((row: any, index: number) => {
             // Try to map common column name variations
@@ -211,7 +247,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
             };
 
             // Helper function to parse numeric values (handles currency, commas, etc.)
-            const parseNumericField = (variations: string[]): number => {
+            const parseNumericField = (variations: string[], fieldName: string = ""): number => {
               // Create lowercase row mapping for field lookup
               const lowerRow = Object.keys(row).reduce((acc, key) => {
                 acc[key.toLowerCase().trim()] = row[key];
@@ -220,22 +256,41 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
 
               // Find the field value
               let rawValue: any = null;
+              let matchedVariation: string | null = null;
               for (const variation of variations) {
                 const lowerVar = variation.toLowerCase().trim();
                 const value = lowerRow[lowerVar];
                 if (value !== undefined && value !== null && value !== "") {
                   rawValue = value;
+                  matchedVariation = variation;
                   break;
                 }
               }
 
+              // Debug logging for first row
+              if (index === 0 && fieldName) {
+                console.log(`--- Parsing ${fieldName} ---`);
+                console.log(`  Variations tried:`, JSON.stringify(variations, null, 2));
+                console.log(`  Matched variation:`, matchedVariation || "NONE");
+                console.log(`  Raw value found:`, rawValue, `(type: ${typeof rawValue})`);
+                console.log(`  Available lowercase keys:`, JSON.stringify(Object.keys(lowerRow), null, 2));
+                console.log(`  Full lowerRow mapping:`, JSON.stringify(lowerRow, null, 2));
+              }
+
               if (rawValue === null || rawValue === undefined || rawValue === "") {
+                if (index === 0 && fieldName) {
+                  console.log(`  Result: 0 (no value found)`);
+                }
                 return 0;
               }
 
               // Handle numeric values directly from Excel
               if (typeof rawValue === "number") {
-                return isNaN(rawValue) ? 0 : rawValue;
+                const result = isNaN(rawValue) ? 0 : rawValue;
+                if (index === 0 && fieldName) {
+                  console.log(`  Result: ${result} (from number)`);
+                }
+                return result;
               }
 
               // Remove currency symbols, commas, and whitespace from string values
@@ -244,7 +299,12 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                 .trim();
 
               const parsed = parseFloat(cleaned);
-              return isNaN(parsed) ? 0 : parsed;
+              const result = isNaN(parsed) ? 0 : parsed;
+              if (index === 0 && fieldName) {
+                console.log(`  Cleaned string: "${cleaned}"`);
+                console.log(`  Result: ${result} (from string)`);
+              }
+              return result;
             };
 
             const fullname = mapField("fullname", ["fullname", "full name", "name", "student name"]) || "";
@@ -264,6 +324,54 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
             // Backend always generates newStudentId - never send from frontend
             const newStudentId: string | null = null;
 
+            // Parse all fields first (to avoid calling functions multiple times)
+            // Try many variations for totalPayment - common Excel column names
+            // NOTE: Excel column is "Total Payments" (lowercase: "total payments")
+            const parsedTotalPayment = parseNumericField([
+              "total payments",  // ✅ This matches the Excel column name!
+              "totalpayment", 
+              "total payment", 
+              "total_payment",
+              "total_payments",
+              "paid", 
+              "amount paid", 
+              "amountpaid",
+              "amount_paid",
+              "total paid",
+              "totalpaid",
+              "payments",
+              "payment",
+              "amount",
+              "paid amount",
+              "paidamount",
+              "paid_amount",
+              "totalamount",
+              "total amount",
+              "total_amount",
+              "sum paid",
+              "sumpaid",
+              "sum_paid"
+            ], "totalPayment");
+            const parsedPendingPayment = parseNumericField(["pendingpayment", "pending payment", "balance", "outstanding", "pending_payment", "pendingbalance", "outstanding balance"], "pendingPayment");
+            const parsedStatus = mapField("status", ["status", "student status"]) || "archived";
+            const parsedSource = (mapField("source", ["source", "archive source"]) || "legacy_erp") as "legacy_erp" | "graduated";
+
+            // Debug: Log parsed values for first row to see what was extracted
+            if (index === 0) {
+              console.log("=== First Row Parsed Values ===");
+              console.log("totalPayment parsed value:", parsedTotalPayment);
+              console.log("pendingPayment parsed value:", parsedPendingPayment);
+              console.log("status parsed value:", parsedStatus);
+              console.log("Full mapped record sample:", {
+                fullname,
+                totalPayment: parsedTotalPayment,
+                pendingPayment: parsedPendingPayment,
+                status: parsedStatus,
+                source: parsedSource,
+              });
+              console.log("===============================");
+            }
+
             return {
               centerId: selectedCenterId, // Use selected center
               userOldId: mapField("userOldId", ["useroldid", "user old id", "old user id", "user_old_id"]) || oldStudentId, // Use oldStudentId as fallback
@@ -277,10 +385,10 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
               birthDate: formatDateForArchive(mapField("birthDate", ["birthdate", "birth date", "dob", "date of birth", "birth_date"]) || ""),
               oldStudentId: oldStudentId, // Preserved exactly from Excel, or "" if not provided (backend generates)
               newStudentId: newStudentId, // Always null - backend generates
-              totalPayment: parseNumericField(["totalpayment", "total payment", "paid", "amount paid", "total_payment", "totalpaid", "amountpaid", "total paid"]),
-              pendingPayment: parseNumericField(["pendingpayment", "pending payment", "balance", "outstanding", "pending_payment", "pendingbalance", "outstanding balance"]),
-              status: mapField("status", ["status", "student status"]) || "archived",
-              source: (mapField("source", ["source", "archive source"]) || "legacy_erp") as "legacy_erp" | "graduated",
+              totalPayment: parsedTotalPayment,
+              pendingPayment: parsedPendingPayment,
+              status: parsedStatus,
+              source: parsedSource,
             };
           });
 
@@ -295,7 +403,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
     });
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     // Prevent double-click/duplicate uploads
     if (isUploading) {
       return;
@@ -316,6 +424,15 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
       ...record,
       centerId: selectedCenterId, // Always use selected center
     }));
+
+    // Debug: Log first record after center assignment
+    if (recordsWithCenter.length > 0) {
+      console.log("=== After Center Assignment ===");
+      console.log("First record totalPayment:", recordsWithCenter[0].totalPayment);
+      console.log("First record pendingPayment:", recordsWithCenter[0].pendingPayment);
+      console.log("First record (full):", JSON.stringify(recordsWithCenter[0], null, 2));
+      console.log("=================================");
+    }
 
     // Filter out records with validation errors AND duplicates
     // Keep only the first occurrence of each oldStudentId
@@ -353,7 +470,25 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
       console.warn(`Found ${duplicateCount} duplicate record(s). Duplicates will be ignored.`, duplicateIds);
     }
 
-    onSave({ records: validRecords });
+    // Debug: Log final payload before sending
+    console.log("=== Final Payload Before Sending ===");
+    console.log("Total records:", validRecords.length);
+    if (validRecords.length > 0) {
+      console.log("First record totalPayment:", validRecords[0].totalPayment);
+      console.log("First record pendingPayment:", validRecords[0].pendingPayment);
+      console.log("First record (full):", JSON.stringify(validRecords[0], null, 2));
+    }
+    console.log("====================================");
+
+    // Call onSave and handle the response
+    try {
+      const result = await onSave({ records: validRecords });
+      setUploadResult(result);
+      // Keep failed records collapsed by default - user can click "Show Details" to expand
+      setShowFailedRecords(false);
+    } catch (error) {
+      console.error("Upload error:", error);
+    }
   };
 
   const handleReset = () => {
@@ -362,6 +497,8 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
     setValidationErrors([]);
     setDuplicateRecords([]);
     setSelectedCenterId("");
+    setUploadResult(null);
+    setShowFailedRecords(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -544,6 +681,49 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
             </div>
           )}
 
+          {/* Failed Uploads Section - Show before preview table, collapsed by default */}
+          {uploadResult && uploadResult.failed > 0 && uploadResult.errors && uploadResult.errors.length > 0 && (
+            <div className="mb-6 p-4 bg-red-50 rounded-md border border-red-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="text-red-600" size={18} />
+                  <h3 className="font-semibold text-red-800">
+                    Failed Uploads ({uploadResult.failed} record(s))
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowFailedRecords(!showFailedRecords)}
+                  className="text-sm text-red-600 hover:text-red-800 underline"
+                >
+                  {showFailedRecords ? "Hide Details" : "Show Details"}
+                </button>
+              </div>
+              <p className="text-sm text-red-700 mb-2">
+                {uploadResult.success} record(s) uploaded successfully, but {uploadResult.failed} record(s) failed.
+              </p>
+              {showFailedRecords && (
+                <div className="mt-4 max-h-60 overflow-y-auto border border-red-200 rounded bg-white">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-red-100 sticky top-0">
+                      <tr>
+                        <th className="p-2 text-left border">Row #</th>
+                        <th className="p-2 text-left border">Error Message</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {uploadResult.errors.map((error, index) => (
+                        <tr key={index} className="hover:bg-red-50">
+                          <td className="p-2 border font-medium text-gray-700">{error.row}</td>
+                          <td className="p-2 border text-red-700">{error.error}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Preview Table */}
           {parsedData.length > 0 && (
             <div className="mb-6">
@@ -565,6 +745,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                 <table className="min-w-full text-sm">
                   <thead className="bg-gray-100 sticky top-0">
                     <tr>
+                      <th className="p-2 text-left border">#</th>
                       <th className="p-2 text-left border">Actions</th>
                       <th className="p-2 text-left border">Student ID (New)</th>
                       <th className="p-2 text-left border">Old Student ID (Legacy)</th>
@@ -591,6 +772,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                               : ""
                           }`}
                         >
+                          <td className="p-2 border font-medium text-gray-600">{rowNum}</td>
                           <td className="p-2 border">
                             <button
                               onClick={() => {

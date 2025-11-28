@@ -702,10 +702,14 @@ export const createArchiveRecordClient = async (payload: CreateArchiveRecord) =>
 
 export const bulkUploadArchiveClient = async (payload: BulkUploadArchiveRequest) => {
   try {
+    console.log("=== bulkUploadArchiveClient - Before API Call ===");
     console.log("Uploading archive records:", payload.records.length);
     if (payload.records.length > 0) {
-      console.log("First record sample:", JSON.stringify(payload.records[0], null, 2));
+      console.log("First record totalPayment:", payload.records[0].totalPayment);
+      console.log("First record pendingPayment:", payload.records[0].pendingPayment);
+      console.log("First record sample (full):", JSON.stringify(payload.records[0], null, 2));
     }
+    console.log("================================================");
     
     const res = await fetch("/api/archive", {
       method: "POST",

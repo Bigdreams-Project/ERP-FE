@@ -162,7 +162,7 @@ const ArchiveContent = ({
   });
 
   const handleUpload = async (payload: BulkUploadArchiveRequest) => {
-    bulkUploadMutation(payload);
+    return await bulkUploadArchiveClient(payload);
   };
 
   const handleCreate = async (payload: CreateArchiveRecord) => {
@@ -173,13 +173,33 @@ const ArchiveContent = ({
   // This runs on all fetched records, then pagination happens in the table
   const filteredData = useMemo(() => {
     return (archiveRecords || []).filter((record: ArchiveRecord) => {
-      const query = searchQuery.toLowerCase();
+      // If no search query, show all records
+      if (!searchQuery || searchQuery.trim() === "") {
+        // Only apply status filter when no search
+        let matchesStatus = true;
+        if (statusFilter === "Graduated") {
+          matchesStatus = 
+            record.source === "graduated" || 
+            record.status?.toLowerCase().includes("graduated") ||
+            record.pendingPayment === 0;
+        } else if (statusFilter === "Owing") {
+          matchesStatus = record.pendingPayment > 0;
+        } else if (statusFilter === "Dropout") {
+          matchesStatus = record.status?.toLowerCase().includes("dropout") || 
+                          record.status?.toLowerCase().includes("dropped");
+        }
+        return matchesStatus;
+      }
+
+      const query = searchQuery.toLowerCase().trim();
       const matchesSearch = (
         (record.fullname?.toLowerCase() || "").includes(query) ||
         (record.email?.toLowerCase() || "").includes(query) ||
         (record.phone?.toLowerCase() || "").includes(query) ||
         (record.userOldId?.toLowerCase() || "").includes(query) ||
-        (record.oldStudentId?.toLowerCase() || "").includes(query)
+        (record.oldStudentId?.toLowerCase() || "").includes(query) ||
+        (record.newStudentId?.toLowerCase() || "").includes(query) ||
+        (record.courseEnrolled?.toLowerCase() || "").includes(query)
       );
 
       // Status filter logic

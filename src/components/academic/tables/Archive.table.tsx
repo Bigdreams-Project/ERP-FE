@@ -54,11 +54,18 @@ export default function ArchiveTable({
     (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
   );
 
-  const totalPages = Math.ceil(totalRecords / itemsPerPage);
+  // Calculate totalPages based on filtered data length
+  // Always show all page numbers when there's more than 1 page
+  const calculatedTotalPages = Math.ceil(totalRecords / itemsPerPage);
+  const totalPages = calculatedTotalPages > 0 ? calculatedTotalPages : 1;
   const paginatedData = sortedData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Ensure totalPages is at least 1, but use actual calculated value when > 1
+  // This ensures all pages are shown when there's more than 1 page
+  const finalTotalPages = totalPages;
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
@@ -378,10 +385,11 @@ export default function ArchiveTable({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white">
+        {/* Pagination - Always visible */}
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 z-10 w-full">
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPages}
+            totalPages={finalTotalPages}
             onPageChange={onPageChange}
           />
         </div>
