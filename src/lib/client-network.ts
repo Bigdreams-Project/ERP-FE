@@ -382,7 +382,10 @@ export const createLeadClient = async (payload: CreateLead) => {
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to create lead: ${res.statusText}`);
+      // Include validation details in error message if available
+      const errorMessage = errorData.error || `Failed to create lead: ${res.statusText}`;
+      const details = errorData.details ? ` Details: ${JSON.stringify(errorData.details)}` : "";
+      throw new Error(errorMessage + details);
     }
 
     const data = await res.json();

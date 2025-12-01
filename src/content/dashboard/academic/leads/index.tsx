@@ -92,8 +92,46 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
     },
   });
 
-  const handleSave = async (payload: CreateLead) => {
-    createLeadMutation(payload);
+  const handleSave = async (payload: any) => {
+    // Backend requirements:
+    // - Remove: id, status, createdAt, updatedAt, studyType
+    // - parentEmail must be valid email or omitted (not empty string)
+    // - Don't send empty strings for required fields
+    const transformedPayload: any = {
+      fullName: payload.fullName,
+      email: payload.email,
+      phone: payload.phone,
+      address: payload.address,
+      birthDate: payload.birthDate,
+      parentName: payload.guardianName,
+      parentPhone: payload.guardianPhone,
+      // Only include parentEmail if it's a valid email, otherwise omit it
+      ...(payload.guardianEmail && payload.guardianEmail.trim() !== "" && {
+        parentEmail: payload.guardianEmail
+      }),
+      courseId: payload.courseId,
+      centerId: payload.centerId,
+      enquiryDate: payload.enquiryDate,
+      source: payload.source,
+      // Optional fields - only include if they have values
+      ...(payload.nextFollowUpDate && payload.nextFollowUpDate.trim() !== "" && { 
+        nextFollowUpDate: payload.nextFollowUpDate 
+      }),
+      ...(payload.lastFollowUpDate && payload.lastFollowUpDate.trim() !== "" && { 
+        lastFollowUpDate: payload.lastFollowUpDate 
+      }),
+      ...(payload.assignedTo && payload.assignedTo.trim() !== "" && { 
+        assignedTo: payload.assignedTo 
+      }),
+      ...(payload.note && payload.note.trim() !== "" && { 
+        note: payload.note 
+      }),
+    };
+    
+    // Log the payload for debugging
+    console.log("Transformed payload being sent:", JSON.stringify(transformedPayload, null, 2));
+    
+    createLeadMutation(transformedPayload);
   };
 
   const handleFilterChange = (newFilters: any) => {

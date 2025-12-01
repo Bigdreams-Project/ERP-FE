@@ -70,13 +70,26 @@ export async function POST(request: NextRequest) {
       if (payload) {
         console.error("Payload sent:", JSON.stringify(payload, null, 2));
       }
+      // Log the full error response for debugging
+      console.error("Backend error response:", JSON.stringify(error.response.data, null, 2));
+      console.error("Backend error status:", error.response.status);
+      console.error("Backend error headers:", error.response.headers);
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to create lead" },
+        { 
+          error: error.response.data?.message || error.response.data?.error || "Failed to create lead",
+          details: error.response.data?.errors || error.response.data?.details || error.response.data || null
+        },
         { status: error.response.status || 500 }
       );
     }
+    // Handle network errors or other non-response errors
+    if (error.request) {
+      console.error("No response received from backend:", error.request);
+    } else {
+      console.error("Error setting up request:", error.message);
+    }
     return NextResponse.json(
-      { error: "Failed to create lead" },
+      { error: "Failed to create lead", details: error.message },
       { status: 500 }
     );
   }
