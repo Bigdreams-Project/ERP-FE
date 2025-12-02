@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
 /**
- * GET handler - Fetch user center context
- * Checks if user can switch centers and returns current center info
+ * GET handler - Get unread notification count
+ * Proxies request to backend to avoid CORS issues
  */
 export async function GET(request: NextRequest) {
   try {
@@ -14,24 +14,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await axios.get(`${AuthRoutes.BASE_URL}/auth/user/center-context`, {
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    };
+
+    const response = await axios.get(
+      `${AuthRoutes.BASE_URL}/notifications/unread-count`,
+      { headers }
+    );
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch center context:", error);
+    console.error("Failed to fetch unread count:", error);
     if (error.response) {
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to fetch center context" },
+        { error: error.response.data?.message || "Failed to fetch unread count" },
         { status: error.response.status || 500 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to fetch center context" },
+      { error: "Failed to fetch unread count" },
       { status: 500 }
     );
   }

@@ -1065,3 +1065,107 @@ export const bulkDeleteArchiveRecordsClient = async (ids: string[]) => {
     throw err;
   }
 };
+
+// Notifications - Client-side functions
+export const getNotificationsClient = async (params?: {
+  read?: boolean;
+  limit?: number;
+  offset?: number;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.read !== undefined) {
+      queryParams.append("read", String(params.read));
+    }
+    if (params?.limit) {
+      queryParams.append("limit", String(params.limit));
+    }
+    if (params?.offset) {
+      queryParams.append("offset", String(params.offset));
+    }
+
+    const res = await fetch(`/api/notifications?${queryParams.toString()}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch notifications: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch notifications:", err.message);
+    throw err;
+  }
+};
+
+export const getUnreadCountClient = async (): Promise<number> => {
+  try {
+    const res = await fetch("/api/notifications/unread-count", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch unread count: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data.count || 0;
+  } catch (err: any) {
+    console.error("Failed to fetch unread count:", err.message);
+    return 0;
+  }
+};
+
+export const markNotificationAsReadClient = async (notificationId: string) => {
+  try {
+    const res = await fetch(`/api/notifications/${notificationId}/read`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to mark notification as read: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to mark notification as read:", err.message);
+    throw err;
+  }
+};
+
+export const markAllNotificationsAsReadClient = async () => {
+  try {
+    const res = await fetch("/api/notifications/read-all", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to mark all as read: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to mark all as read:", err.message);
+    throw err;
+  }
+};

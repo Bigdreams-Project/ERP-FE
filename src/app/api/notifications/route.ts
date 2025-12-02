@@ -4,9 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
 /**
- * GET handler - Fetch finance overview
+ * GET handler - Fetch all notifications
  * Proxies request to backend to avoid CORS issues
- * Supports X-Center-Id header for center-specific filtering
  */
 export async function GET(request: NextRequest) {
   try {
@@ -15,34 +14,43 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get X-Center-Id header from request if provided
-    const centerId = request.headers.get("X-Center-Id");
-    
+    const { searchParams } = new URL(request.url);
+    const read = searchParams.get("read");
+    const limit = searchParams.get("limit");
+    const offset = searchParams.get("offset");
+
     const headers: Record<string, string> = {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
     };
 
-    // Only add X-Center-Id header if it's provided and not "all"
-    if (centerId && centerId !== "all") {
-      headers["X-Center-Id"] = centerId;
+    const params: Record<string, string> = {};
+    if (read !== null) {
+      params.read = read;
+    }
+    if (limit) {
+      params.limit = limit;
+    }
+    if (offset) {
+      params.offset = offset;
     }
 
-    const response = await axios.get(`${AuthRoutes.BASE_URL}/payment/overview`, {
+    const response = await axios.get(`${AuthRoutes.BASE_URL}/notifications`, {
       headers,
+      params,
     });
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch finance overview:", error);
+    console.error("Failed to fetch notifications:", error);
     if (error.response) {
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to fetch finance overview" },
+        { error: error.response.data?.message || "Failed to fetch notifications" },
         { status: error.response.status || 500 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to fetch finance overview" },
+      { error: "Failed to fetch notifications" },
       { status: 500 }
     );
   }
