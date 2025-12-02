@@ -70,6 +70,12 @@ export interface TopPerformingCenter {
   status: string;
 }
 
+export interface TopPerformingCourse {
+  courseName: string;
+  enrollments: number;
+  revenue: number;
+}
+
 export interface ActivityItem {
   type: "enrollment" | "payment" | "lead" | "batch";
   id: string;
@@ -98,6 +104,7 @@ export interface DashboardData {
   trendData: TrendDataPoint[];
   paymentStatusDistribution: PaymentStatusDistribution;
   topPerformingCenters: TopPerformingCenter[];
+  topPerformingCourses: TopPerformingCourse[];
   recentActivity: ActivityItem[];
   insights: DashboardInsight[];
 }

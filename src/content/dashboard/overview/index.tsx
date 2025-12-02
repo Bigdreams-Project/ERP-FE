@@ -31,6 +31,7 @@ import {
   TrendDataPoint,
   PaymentStatusDistribution,
   TopPerformingCenter,
+  TopPerformingCourse,
   ActivityItem,
   DashboardInsight,
 } from "@/types/dashboard/overview.interface";
@@ -40,6 +41,7 @@ import KPICard from "@/components/dashboard/overview/KPICard";
 import TrendChart from "@/components/dashboard/overview/TrendChart";
 import StatusDistribution from "@/components/dashboard/overview/StatusDistribution";
 import TopCentersChart from "@/components/dashboard/overview/TopCentersChart";
+import TopPerformingCourses from "@/components/dashboard/overview/TopPerformingCourses";
 import ConversionFunnel from "@/components/dashboard/overview/ConversionFunnel";
 import CenterPerformanceTable from "@/components/dashboard/overview/CenterPerformanceTable";
 import ActivityFeed from "@/components/dashboard/overview/ActivityFeed";
@@ -324,6 +326,47 @@ const DashboardOverview = ({
         status: cp.status,
       }));
 
+    // Top performing courses
+    const coursePerformanceMap = new Map<string, { enrollments: number; revenue: number }>();
+    
+    filteredStudents.forEach((student) => {
+      if (student.courses && student.courses.length > 0) {
+        const course = student.courses[0];
+        const courseName = course.name || "Unknown Course";
+        const courseId = course.id || courseName;
+        
+        // Count enrollments
+        const current = coursePerformanceMap.get(courseId) || { enrollments: 0, revenue: 0 };
+        current.enrollments += 1;
+        
+        // Calculate revenue from student payments
+        const studentRevenue = (student.payments || []).reduce(
+          (sum, p) => sum + (p.amount || 0),
+          0
+        );
+        current.revenue += studentRevenue;
+        
+        coursePerformanceMap.set(courseId, current);
+      }
+    });
+
+    const topPerformingCourses: TopPerformingCourse[] = Array.from(coursePerformanceMap.entries())
+      .map(([courseId, data]) => {
+        // Get course name from the first student who has this course
+        const studentWithCourse = filteredStudents.find(
+          (s) => s.courses?.[0]?.id === courseId || s.courses?.[0]?.name
+        );
+        const courseName = studentWithCourse?.courses?.[0]?.name || "Unknown Course";
+        
+        return {
+          courseName,
+          enrollments: data.enrollments,
+          revenue: data.revenue,
+        };
+      })
+      .sort((a, b) => b.enrollments - a.enrollments)
+      .slice(0, 5);
+
     // Payment status distribution
     const paidAmount = totalRevenue;
     const pendingAmount = totalPending;
@@ -444,6 +487,7 @@ const DashboardOverview = ({
       trendData,
       paymentStatusDistribution,
       topPerformingCenters,
+      topPerformingCourses,
       conversionFunnel,
       activities,
       insights,
@@ -795,7 +839,7 @@ const DashboardOverview = ({
             />
           </div>
 
-          <div className="space-y-6">
+          <div className="flex flex-col space-y-6">
             {isAllCentersView ? (
               <>
                 <TopCentersChart
@@ -849,34 +893,18 @@ const DashboardOverview = ({
                     </div>
                   </div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md">
-                      <Users className="text-white" size={18} />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-800">Quick Stats</h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-white rounded-xl border-2 border-gray-200">
-                      <p className="text-xs text-gray-500 mb-1">Total Enrollments</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {dashboardData.metrics.totalEnrollments}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-white rounded-xl border-2 border-gray-200">
-                      <p className="text-xs text-gray-500 mb-1">Total Leads</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {dashboardData.metrics.newLeads}
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
             <ConversionFunnel
               data={dashboardData.conversionFunnel}
               title={`Lead Conversion Funnel${!isAllCentersView ? ` - ${selectedCenterName}` : ""}`}
             />
+            {!isAllCentersView && (
+              <TopPerformingCourses
+                data={dashboardData.topPerformingCourses}
+                title={`Top Performing Courses - ${selectedCenterName}`}
+              />
+            )}
           </div>
         </div>
 
