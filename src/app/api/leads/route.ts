@@ -7,6 +7,7 @@ import axios from "axios";
 /**
  * GET handler - Fetch all leads
  * Proxies request to backend to avoid CORS issues
+ * Supports X-Center-Id header for center-specific filtering
  */
 export async function GET(request: NextRequest) {
   try {
@@ -15,11 +16,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get X-Center-Id header from request if provided
+    const centerId = request.headers.get("X-Center-Id");
+    
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    };
+
+    // Only add X-Center-Id header if it's provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const response = await axios.get(`${AuthRoutes.BASE_URL}/leads/active`, {
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-        "Content-Type": "application/json",
-      },
+      headers,
     });
 
     return NextResponse.json(response.data);
@@ -41,6 +52,7 @@ export async function GET(request: NextRequest) {
 /**
  * POST handler - Create a new lead
  * Proxies request to backend to avoid CORS issues
+ * Supports X-Center-Id header for center-specific operations
  */
 export async function POST(request: NextRequest) {
   let payload: CreateLead | null = null;
@@ -52,14 +64,24 @@ export async function POST(request: NextRequest) {
 
     payload = await request.json();
 
+    // Get X-Center-Id header from request if provided
+    const centerId = request.headers.get("X-Center-Id");
+    
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    };
+
+    // Only add X-Center-Id header if it's provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const response = await axios.post(
       `${AuthRoutes.BASE_URL}/leads`,
       payload,
       {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-          "Content-Type": "application/json",
-        },
+        headers,
       }
     );
 

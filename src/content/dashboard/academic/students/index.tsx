@@ -21,6 +21,7 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { Archive } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useCenter } from "@/context/CenterContext";
 
 interface StudentContentProps {
   students: Student[];
@@ -41,6 +42,7 @@ const StudentContent = ({
   const queryClient = useQueryClient();
   const router = useRouter();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
   
   // Set user data in cache synchronously (before paint) so useIsAdmin hook can use it immediately
   useLayoutEffect(() => {
@@ -50,13 +52,32 @@ const StudentContent = ({
   }, [initialUser, queryClient]);
   
   // Use React Query to fetch and cache students
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
   const { data: students = initialStudents } = useQuery({
-    queryKey: ["students"],
-    queryFn: getStudentsClient,
+    queryKey: ["students", selectedCenter],
+    queryFn: () => getStudentsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialStudents,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
+
+  // Refetch students when center context loads and selectedCenter changes
+  useEffect(() => {
+    if (
+      !isCenterLoading &&
+      selectedCenter !== "all" &&
+      centerContext?.currentCenterId
+    ) {
+      if (selectedCenter === centerContext.currentCenterId) {
+        queryClient.refetchQueries({ queryKey: ["students", selectedCenter] });
+      }
+    }
+  }, [
+    isCenterLoading,
+    selectedCenter,
+    centerContext?.currentCenterId,
+    queryClient,
+  ]);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
@@ -105,8 +126,8 @@ const StudentContent = ({
     setIsFilterDropdown(false);
   };
 
+  // Backend handles center filtering, so we only filter by search and status
   const filteredData = students.filter((student: Student) => {
-    // All students are active (no soft delete filtering)
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       (student.fullName?.toLowerCase() || "").includes(query) ||
@@ -120,13 +141,14 @@ const StudentContent = ({
   // Mutation for creating students
   const { mutate: createStudentMutation, isPending: isCreating } = useMutation({
     mutationFn: async (payload: CreateStudent) => {
-      return await createStudentClient(payload);
+      // Pass selectedCenter to ensure center context is maintained
+      return await createStudentClient(payload, selectedCenter === "all" ? null : selectedCenter);
     },
     onSuccess: async () => {
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);
       // Refetch students immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["students"] });
+      await queryClient.refetchQueries({ queryKey: ["students", selectedCenter] });
     },
     onError: (error: any) => {
       console.error("Failed to save student:", error);

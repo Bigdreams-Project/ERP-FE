@@ -106,12 +106,15 @@ const BatchesContent = ({
 
   // Mutation for creating batches
   const { mutate: createBatchMutation, isPending: isCreating } = useMutation({
-    mutationFn: createBatchClient,
+    mutationFn: (payload: CreateBatch) => {
+      // Pass selectedCenter to ensure center context is maintained
+      return createBatchClient(payload, selectedCenter === "all" ? null : selectedCenter);
+    },
     onSuccess: async () => {
       showSuccess("Batch created successfully!");
       setIsModalOpen(false);
       // Refetch batches immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["batches"] });
+      await queryClient.refetchQueries({ queryKey: ["batches", selectedCenter] });
     },
     onError: (error: any) => {
       console.error("Failed to save batch:", error);
@@ -190,6 +193,7 @@ const BatchesContent = ({
     setDateFilterName("");
   };
 
+  // Backend handles center filtering, so we only filter by search, status, and date
   const filteredData = batches.filter((batch: Batch) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =

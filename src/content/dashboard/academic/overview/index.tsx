@@ -35,6 +35,7 @@ import ActivityItem from "../../../../components/academic/cards/ActivityItem.car
 import { centerStatusEnum } from "@/data/view/center.data";
 import { useQuery } from "@tanstack/react-query";
 import { getStudentsClient, getCoursesClient, getCentersClient, getLeadsClient, getLoggedInUserClient } from "@/lib/client-network";
+import { useCenter } from "@/context/CenterContext";
 
 interface OverviewContentProps {
   user: User;
@@ -51,7 +52,10 @@ const OverviewContent = ({
   centers: initialCenters,
   leads: initialLeads,
 }: OverviewContentProps) => {
+  const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
+
   // Use React Query to fetch and cache all data
+  // Backend handles center filtering via X-Center-Id header
   const { data: user = initialUser } = useQuery({
     queryKey: ["user"],
     queryFn: getLoggedInUserClient,
@@ -61,35 +65,35 @@ const OverviewContent = ({
   });
 
   const { data: students = initialStudents } = useQuery({
-    queryKey: ["students"],
-    queryFn: getStudentsClient,
+    queryKey: ["students", selectedCenter],
+    queryFn: () => getStudentsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialStudents,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const { data: courses = initialCourses } = useQuery({
-    queryKey: ["courses"],
-    queryFn: getCoursesClient,
+    queryKey: ["courses", selectedCenter],
+    queryFn: () => getCoursesClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const { data: centers = initialCenters } = useQuery({
-    queryKey: ["centers"],
-    queryFn: getCentersClient,
+    queryKey: ["centers", selectedCenter],
+    queryFn: () => getCentersClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialCenters,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const { data: leads = initialLeads } = useQuery({
-    queryKey: ["leads"],
-    queryFn: getLeadsClient,
+    queryKey: ["leads", selectedCenter],
+    queryFn: () => getLeadsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialLeads,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
   const [showPicker, setShowPicker] = useState(false);
   const [range, setRange] = useState([

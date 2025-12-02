@@ -1,5 +1,6 @@
 "use client";
 import { useUser } from "@/context/UserContext";
+import { useCenter } from "@/context/CenterContext";
 import { logoutUser } from "@/lib/auth/login";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -34,6 +35,7 @@ const SidebarMenu = ({
 }) => {
   const router = useRouter();
   const { user } = useUser();
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
   // const userPermissions = permissions[user?.role ?? "staff"];
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -91,6 +93,9 @@ const SidebarMenu = ({
     router.push(AuthRoutes.LOGIN)
   }
 
+  // Determine if user can switch centers (admin/high executives)
+  const canSwitch = centerContext?.canSwitch ?? false;
+  
   // Sidebar Menu
   const sidebarMenu: SidebarSection[] = [
     {
@@ -99,7 +104,8 @@ const SidebarMenu = ({
       links: [
         { label: "Overview", href: "/dashboard/academic/overview" },
         { label: "Leads", href: "/dashboard/academic/leads" },
-        { label: "Centers", href: "/dashboard/academic/centers" },
+        // Only show Centers link if user can switch centers
+        ...(canSwitch || isCenterLoading ? [{ label: "Centers", href: "/dashboard/academic/centers" }] : []),
         { label: "Students", href: "/dashboard/academic/students" },
         { label: "Courses", href: "/dashboard/academic/courses" },
         { label: "Batches", href: "/dashboard/academic/batches" },

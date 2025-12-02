@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
@@ -11,6 +12,7 @@ import { showError, showSuccess } from "@/lib/toast";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCenter } from "@/context/CenterContext";
 
 interface CenterContentProps {
   centers: Center[];
@@ -22,6 +24,21 @@ const CenterContent = ({
   managers,
 }: CenterContentProps) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
+
+  // Redirect center managers away from centers page
+  useEffect(() => {
+    if (!isCenterLoading && centerContext && !centerContext.canSwitch) {
+      // User is a center manager, redirect to overview
+      router.push("/dashboard/academic/overview");
+    }
+  }, [centerContext, isCenterLoading, router]);
+
+  // Don't render anything if user is a center manager
+  if (!isCenterLoading && centerContext && !centerContext.canSwitch) {
+    return null;
+  }
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");

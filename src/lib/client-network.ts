@@ -1,6 +1,9 @@
 "use client";
 import client from "@/lib/client";
-import { ICourseFeeAssignment, IEditCourseFeeAssignment } from "@/types/academic/center.interface";
+import {
+  ICourseFeeAssignment,
+  IEditCourseFeeAssignment,
+} from "@/types/academic/center.interface";
 import { CreateBatch, UpdateBatch } from "@/types/requests/batch.interface";
 import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
 import { CreateCourse, UpdateCourse } from "@/types/requests/course.interface";
@@ -18,14 +21,21 @@ import {
 import { ArchiveRecord } from "@/types/academic/archive.interface";
 
 // Centers - Client-side functions
-export const getCentersClient = async () => {
+export const getCentersClient = async (centerId?: string | null) => {
   try {
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch("/api/centers", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
     });
 
@@ -53,7 +63,10 @@ export const getCenterClient = async (id: string) => {
   }
 };
 
-export const createCenterClient = async (payload: CreateCenter, isDraft: boolean) => {
+export const createCenterClient = async (
+  payload: CreateCenter,
+  isDraft: boolean
+) => {
   try {
     // Use Next.js API route to avoid CORS issues
     const res = await fetch("/api/centers", {
@@ -67,7 +80,9 @@ export const createCenterClient = async (payload: CreateCenter, isDraft: boolean
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to create center: ${res.statusText}`);
+      throw new Error(
+        errorData.error || `Failed to create center: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
@@ -100,7 +115,6 @@ export const deleteCenterClient = async (id: string) => {
   }
 };
 
-
 export const hardDeleteCenterClient = async (id: string) => {
   try {
     const res = await fetch(`/api/centers/${id}?hard=true`, {
@@ -124,14 +138,21 @@ export const hardDeleteCenterClient = async (id: string) => {
 };
 
 // Courses - Client-side functions
-export const getCoursesClient = async () => {
+export const getCoursesClient = async (centerId?: string | null) => {
   try {
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch("/api/courses", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
     });
 
@@ -159,7 +180,10 @@ export const getCourseClient = async (id: string) => {
   }
 };
 
-export const createCourseClient = async (payload: CreateCourse, isDraft: boolean) => {
+export const createCourseClient = async (
+  payload: CreateCourse,
+  isDraft: boolean
+) => {
   try {
     // Use Next.js API route to avoid CORS issues
     const res = await fetch("/api/courses", {
@@ -180,7 +204,9 @@ export const createCourseClient = async (payload: CreateCourse, isDraft: boolean
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to create course: ${res.statusText}`);
+      throw new Error(
+        errorData.error || `Failed to create course: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
@@ -214,14 +240,21 @@ export const hardDeleteCourseClient = async (id: string) => {
 };
 
 // Students - Client-side functions
-export const getStudentsClient = async () => {
+export const getStudentsClient = async (centerId?: string | null) => {
   try {
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch("/api/students", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
     });
 
@@ -249,14 +282,24 @@ export const getStudentClient = async (id: string) => {
   }
 };
 
-export const createStudentClient = async (payload: CreateStudent) => {
+export const createStudentClient = async (
+  payload: CreateStudent,
+  centerId?: string | null
+) => {
   try {
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch(`/api/students`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
       body: JSON.stringify(payload),
     });
@@ -273,7 +316,10 @@ export const createStudentClient = async (payload: CreateStudent) => {
   }
 };
 
-export const updateStudentClient = async (id: string, payload: UpdateStudent) => {
+export const updateStudentClient = async (
+  id: string,
+  payload: UpdateStudent
+) => {
   try {
     const res = await client.patch(`/students/${id}`, payload);
     return res.data;
@@ -299,7 +345,9 @@ export const restoreAllSoftDeletedStudentsClient = async () => {
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to restore soft-deleted students: ${res.statusText}`);
+      throw new Error(
+        `Failed to restore soft-deleted students: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
@@ -333,14 +381,21 @@ export const hardDeleteStudentClient = async (id: string) => {
 };
 
 // Leads - Client-side functions
-export const getLeadsClient = async () => {
+export const getLeadsClient = async (centerId?: string | null) => {
   try {
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch("/api/leads", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
     });
 
@@ -368,14 +423,24 @@ export const getLeadClient = async (id: string) => {
   }
 };
 
-export const createLeadClient = async (payload: CreateLead) => {
+export const createLeadClient = async (
+  payload: CreateLead,
+  centerId?: string | null
+) => {
   try {
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch("/api/leads", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
       body: JSON.stringify(payload),
     });
@@ -383,8 +448,11 @@ export const createLeadClient = async (payload: CreateLead) => {
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       // Include validation details in error message if available
-      const errorMessage = errorData.error || `Failed to create lead: ${res.statusText}`;
-      const details = errorData.details ? ` Details: ${JSON.stringify(errorData.details)}` : "";
+      const errorMessage =
+        errorData.error || `Failed to create lead: ${res.statusText}`;
+      const details = errorData.details
+        ? ` Details: ${JSON.stringify(errorData.details)}`
+        : "";
       throw new Error(errorMessage + details);
     }
 
@@ -452,14 +520,21 @@ export const getManagersClient = async () => {
 };
 
 // Batches - Client-side functions
-export const getBatchesClient = async () => {
+export const getBatchesClient = async (centerId?: string | null) => {
   try {
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch("/api/batches", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
     });
 
@@ -487,7 +562,10 @@ export const getBatchClient = async (id: string) => {
   }
 };
 
-export const createBatchClient = async (payload: CreateBatch) => {
+export const createBatchClient = async (
+  payload: CreateBatch,
+  centerId?: string | null
+) => {
   try {
     // Remove status before sending (backend validation requirements)
     // centerId is required, so we always include it
@@ -497,18 +575,27 @@ export const createBatchClient = async (payload: CreateBatch) => {
     };
 
     // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
     const res = await fetch("/api/batches", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
       body: JSON.stringify(cleanPayload),
     });
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to create batch: ${res.statusText}`);
+      throw new Error(
+        errorData.error || `Failed to create batch: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
@@ -598,7 +685,72 @@ export const getLoggedInUserClient = async () => {
   }
 };
 
+// Center Context - Client-side function
+export const getCenterContextClient = async () => {
+  try {
+    const res = await fetch(`/api/auth/user/center-context`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch center context: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch center context:", err.message);
+    throw err;
+  }
+};
+
 // Banks - Client-side functions
+export const getBanksClient = async (centerId?: string | null) => {
+  try {
+    // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+      console.log("getBanksClient: Sending X-Center-Id header:", centerId);
+    } else {
+      console.log(
+        "getBanksClient: No X-Center-Id header (centerId:",
+        centerId,
+        ")"
+      );
+    }
+
+    const res = await fetch("/api/banks", {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch banks: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    console.log("getBanksClient: Received banks:", data.length, "banks");
+    console.log(
+      "getBanksClient: Bank centers:",
+      data.map((b: any) => b.center?.name || b.center?.id)
+    );
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch banks:", err.message);
+    throw err;
+  }
+};
+
 export const getCenterBanksClient = async (centerId: string) => {
   try {
     // Use Next.js API route to avoid CORS issues
@@ -622,6 +774,37 @@ export const getCenterBanksClient = async (centerId: string) => {
   }
 };
 
+// Finance - Client-side functions
+export const getFinanceOverviewClient = async (centerId?: string | null) => {
+  try {
+    // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header if centerId is provided and not "all"
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/payment/overview", {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch finance overview: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch finance overview:", err.message);
+    throw err;
+  }
+};
+
 // Archive - Client-side functions
 export const getArchiveRecordsClient = async (options?: {
   page?: number;
@@ -633,10 +816,10 @@ export const getArchiveRecordsClient = async (options?: {
     if (options?.page) params.append("page", options.page.toString());
     if (options?.limit) params.append("limit", options.limit.toString());
     if (options?.search) params.append("search", options.search);
-    
+
     const queryString = params.toString();
     const url = `/api/archive${queryString ? `?${queryString}` : ""}`;
-    
+
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -668,8 +851,12 @@ export const getArchiveRecordClient = async (id: string) => {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      throw new Error(errorData.error || `Failed to fetch archive record: ${res.statusText}`);
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: res.statusText }));
+      throw new Error(
+        errorData.error || `Failed to fetch archive record: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
@@ -680,7 +867,9 @@ export const getArchiveRecordClient = async (id: string) => {
   }
 };
 
-export const createArchiveRecordClient = async (payload: CreateArchiveRecord) => {
+export const createArchiveRecordClient = async (
+  payload: CreateArchiveRecord
+) => {
   try {
     const res = await fetch("/api/archive", {
       method: "POST",
@@ -703,17 +892,28 @@ export const createArchiveRecordClient = async (payload: CreateArchiveRecord) =>
   }
 };
 
-export const bulkUploadArchiveClient = async (payload: BulkUploadArchiveRequest) => {
+export const bulkUploadArchiveClient = async (
+  payload: BulkUploadArchiveRequest
+) => {
   try {
     console.log("=== bulkUploadArchiveClient - Before API Call ===");
     console.log("Uploading archive records:", payload.records.length);
     if (payload.records.length > 0) {
-      console.log("First record totalPayment:", payload.records[0].totalPayment);
-      console.log("First record pendingPayment:", payload.records[0].pendingPayment);
-      console.log("First record sample (full):", JSON.stringify(payload.records[0], null, 2));
+      console.log(
+        "First record totalPayment:",
+        payload.records[0].totalPayment
+      );
+      console.log(
+        "First record pendingPayment:",
+        payload.records[0].pendingPayment
+      );
+      console.log(
+        "First record sample (full):",
+        JSON.stringify(payload.records[0], null, 2)
+      );
     }
     console.log("================================================");
-    
+
     const res = await fetch("/api/archive", {
       method: "POST",
       headers: {
@@ -724,8 +924,12 @@ export const bulkUploadArchiveClient = async (payload: BulkUploadArchiveRequest)
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      const errorMessage = errorData.error || `Failed to upload archive records: ${res.statusText}`;
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: res.statusText }));
+      const errorMessage =
+        errorData.error ||
+        `Failed to upload archive records: ${res.statusText}`;
       console.error("Upload error response:", errorData);
       throw new Error(errorMessage);
     }
@@ -775,8 +979,11 @@ export const archiveStudentToArchiveClient = async (studentId: string) => {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      const errorMessage = errorData.error || `Failed to archive student: ${res.statusText}`;
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: res.statusText }));
+      const errorMessage =
+        errorData.error || `Failed to archive student: ${res.statusText}`;
       console.error("Archive error response:", errorData);
       throw new Error(errorMessage);
     }
@@ -800,8 +1007,12 @@ export const restoreStudentFromArchiveClient = async (archiveId: string) => {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      throw new Error(errorData.error || `Failed to restore student: ${res.statusText}`);
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: res.statusText }));
+      throw new Error(
+        errorData.error || `Failed to restore student: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
@@ -854,4 +1065,3 @@ export const bulkDeleteArchiveRecordsClient = async (ids: string[]) => {
     throw err;
   }
 };
-

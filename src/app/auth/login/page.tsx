@@ -38,8 +38,8 @@ export default function Login() {
     onSuccess: () => {
       router.push(DashboardAcademicRoutes.OVERVIEW);
     },
-    onError: () => {
-      setApiError("Invalid email or password.");
+    onError: (error: Error) => {
+      setApiError(error.message || "Invalid email or password.");
     },
   });
 

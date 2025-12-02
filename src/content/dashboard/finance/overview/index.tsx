@@ -6,12 +6,15 @@ import TopPerformingCenter from "@/components/finance/TopPerformingCenter";
 import { Center } from "@/types/academic/center.interface";
 import { User } from "@/types/auth/user.interface";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { BiHomeAlt2 } from "react-icons/bi";
 import { IoDocumentAttachOutline } from "react-icons/io5";
+import { useQuery } from "@tanstack/react-query";
+import { getFinanceOverviewClient } from "@/lib/client-network";
+import { useCenter } from "@/context/CenterContext";
 
 interface OverviewContentProps {
   user: User;
@@ -35,7 +38,59 @@ interface OverviewContentProps {
   };
 }
 
-const OverviewContent = ({ user, overview }: OverviewContentProps) => {
+const OverviewContent = ({ user, overview: initialOverview }: OverviewContentProps) => {
+  const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
+
+  // Determine the center ID to use for filtering
+  // For center managers, always use their center ID, even if selectedCenter is "all" initially
+  // Use useMemo to ensure it updates when centerContext changes
+  const centerIdForQuery = useMemo(() => {
+    // If center context is loaded and user cannot switch, use their center ID
+    if (!isCenterLoading && centerContext && !centerContext.canSwitch && centerContext.currentCenterId) {
+      return centerContext.currentCenterId;
+    }
+    // Otherwise, use selectedCenter (which might be "all" for admins)
+    return selectedCenter === "all" ? null : selectedCenter;
+  }, [isCenterLoading, centerContext, selectedCenter]);
+
+  // Use React Query to fetch and cache finance overview
+  // Backend handles center filtering via X-Center-Id header
+  const { data: overview } = useQuery({
+    queryKey: ["financeOverview", centerIdForQuery],
+    queryFn: () => getFinanceOverviewClient(centerIdForQuery),
+    // Only use initialData if we're an admin (can switch centers) or if center context hasn't loaded yet
+    // For center managers, don't use initialData to avoid showing all centers' data
+    initialData: (centerContext?.canSwitch || isCenterLoading) ? initialOverview : undefined,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnMount: true,
+    enabled: !isCenterLoading, // Wait for center context to load before fetching
+  });
+
+  // Use overview data or fallback to empty structure if loading
+  const overviewData = overview || {
+    totalRevenue: 0,
+    totalPending: 0,
+    totalPayments: 0,
+    topCenters: [],
+    topPendingCenters: [],
+    topPerformingCenter: {} as Center,
+  };
+
+  // Refetch overview when center context loads and selectedCenter changes
+  useEffect(() => {
+    if (!isCenterLoading && centerContext) {
+      // If user cannot switch centers, ensure we refetch with their center ID
+      if (!centerContext.canSwitch && centerContext.currentCenterId) {
+        // Refetch will happen automatically via React Query when centerIdForQuery changes
+      } else if (selectedCenter !== "all") {
+        // Refetch will happen automatically via React Query when selectedCenter changes
+      }
+    }
+  }, [
+    isCenterLoading,
+    selectedCenter,
+    centerContext,
+  ]);
   const [showPicker, setShowPicker] = useState(false);
   const [range, setRange] = useState([
     {
@@ -71,16 +126,16 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
     return `N${amount}`;
   };
 
-  const revenueDistribution = overview.topCenters.map((center, index) => ({
+  const revenueDistribution = overviewData.topCenters.map((center, index) => ({
     name: center.center,
-    value: formatRevenue(parseFloat(center.revenue) / 2),
+    value: parseFloat(center.revenue) || 0, // Pass numeric value directly
     color: colorClasses[index % colorClasses.length],
   }));
 
-  const pendingCenterPayments = overview.topPendingCenters.map(
+  const pendingCenterPayments = overviewData.topPendingCenters.map(
     (center, index) => ({
       name: center.center,
-      value: formatRevenue(parseFloat(center.pending)),
+      value: parseFloat(center.pending) || 0, // Pass numeric value directly
       color: colorClasses[index % colorClasses.length],
     })
   );
@@ -189,7 +244,7 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
             <div className="flex items-center space-x-4">
               <ChartLegend
                 data={revenueDistribution}
-                totalRevenue={overview.totalRevenue}
+                totalRevenue={overviewData.totalRevenue}
               />
             </div>
           </div>
@@ -205,7 +260,7 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
             <div className="flex items-center space-x-4">
               <ChartLegendPending
                 data={pendingCenterPayments}
-                totalPending={overview.totalPending}
+                totalPending={overviewData.totalPending}
               />
             </div>
           </div>
@@ -216,7 +271,7 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
               Top Performing Centers
             </h2>
             <ul className="space-y-4">
-              {overview.topCenters?.map((center, index) => (
+              {overviewData.topCenters?.map((center, index) => (
                 <TopPerformingCenter
                   key={index}
                   number={index + 1}
