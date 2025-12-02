@@ -10,6 +10,7 @@ import GraduationCapIcon from "./svg/GraduationCapIcon";
 import MoneyIcon from "./svg/MoneyIcon";
 import SettingsIcon from "./svg/SettingsIcon";
 import StaffIcon from "./svg/StaffIcon";
+import HouseIcon from "./svg/HouseIcon";
 import { AuthRoutes } from "@/constants/apiRoutes.constant";
 
 interface SidebarLink {
@@ -161,7 +162,7 @@ const SidebarMenu = ({
   return (
     <div className="h-full flex flex-col flex-1 mt-8">
       <div className="flex-1">
-        {/* <Link
+        <Link
           href={"/dashboard"}
           className={`flex items-center px-[1.5rem] py-[0.4rem] ${
             sidebarExpanded ? "" : "items-start !px-[2rem]"
@@ -188,7 +189,7 @@ const SidebarMenu = ({
           >
             Dashboard
           </div>
-        </Link> */}
+        </Link>
 
         {/* Sidebar Sections */}
         <div className="w-full flex flex-col justify-between">

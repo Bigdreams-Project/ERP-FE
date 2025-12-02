@@ -62,7 +62,20 @@ export const createCenterClient = async (payload: CreateCenter, isDraft: boolean
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({ payload, isDraft }),
+      body: JSON.stringify({
+        payload: {
+          name: payload.name,
+          email: payload.email,
+          phone: payload.phone,
+          address: payload.address,
+          status: payload.status,
+          type: payload.type,
+          managerId: payload.managerId,
+          academicHeadId: payload.academicHeadId,
+          regionalManagerId: payload.regionalManagerId,
+        },
+        isDraft,
+      }),
     });
 
     if (!res.ok) {
@@ -88,14 +101,24 @@ export const updateCenterClient = async (id: string, payload: UpdateCenter) => {
   }
 };
 
-export const deleteCenterClient = async (id: string) => {
+export const softDeleteCenterClient = async (id: string) => {
   try {
-    const res = await client.patch(`/centers/${id}`, {
-      deletedAt: new Date().toISOString(),
+    const res = await fetch(`/api/centers/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
     });
-    return res.data;
+
+    if (!res.ok) {
+      throw new Error(`Failed to soft delete center: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
-    console.error("Failed to delete center:", err.message);
+    console.error("Failed to soft delete center:", err.message);
     throw err;
   }
 };
@@ -213,121 +236,12 @@ export const hardDeleteCourseClient = async (id: string) => {
   }
 };
 
-// Students - Client-side functions
-export const getStudentsClient = async () => {
+export const updateCourseClient = async (id: string, payload: UpdateCourse) => {
   try {
-    // Use Next.js API route to avoid CORS issues
-    const res = await fetch("/api/students", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch students: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    // Frontend safety filter: exclude soft-deleted students
-    const students = Array.isArray(data) ? data : [];
-    return students.filter((student: any) => !student.deletedAt);
-  } catch (err: any) {
-    console.error("Failed to fetch students:", err.message);
-    throw err;
-  }
-};
-
-export const getStudentClient = async (id: string) => {
-  try {
-    const res = await client.get(`/students/${id}`);
+    const res = await client.patch(`/courses/${id}`, payload);
     return res.data;
   } catch (err: any) {
-    console.error("Failed to fetch student:", err.message);
-    throw err;
-  }
-};
-
-export const createStudentClient = async (payload: CreateStudent) => {
-  try {
-    // Use Next.js API route to avoid CORS issues
-    const res = await fetch(`/api/students`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to create student: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to create student:", err.message);
-    throw err;
-  }
-};
-
-export const updateStudentClient = async (id: string, payload: UpdateStudent) => {
-  try {
-    const res = await client.patch(`/students/${id}`, payload);
-    return res.data;
-  } catch (err: any) {
-    console.error("Failed to update student:", err.message);
-    throw err;
-  }
-};
-
-/**
- * Restore all soft-deleted students (set deletedAt to null)
- * NOTE: This function should be called once to restore all soft-deleted records
- * After calling this, soft delete functionality is removed - use Archive instead
- */
-export const restoreAllSoftDeletedStudentsClient = async () => {
-  try {
-    const res = await fetch(`/api/students/restore-all`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to restore soft-deleted students: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to restore soft-deleted students:", err.message);
-    throw err;
-  }
-};
-
-export const hardDeleteStudentClient = async (id: string) => {
-  try {
-    const res = await fetch(`/api/students/${id}?hard=true`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to hard delete student: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to hard delete student:", err.message);
+    console.error("Failed to update course:", err.message);
     throw err;
   }
 };
@@ -335,8 +249,7 @@ export const hardDeleteStudentClient = async (id: string) => {
 // Leads - Client-side functions
 export const getLeadsClient = async () => {
   try {
-    // Use Next.js API route to avoid CORS issues
-    const res = await fetch("/api/leads", {
+    const res = await fetch("/api/leads/active", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -349,9 +262,8 @@ export const getLeadsClient = async () => {
     }
 
     const data = await res.json();
-    // Frontend safety filter: exclude soft-deleted leads
     const leads = Array.isArray(data) ? data : [];
-    return leads.filter((lead: any) => !lead.deletedAt);
+    return leads;
   } catch (err: any) {
     console.error("Failed to fetch leads:", err.message);
     throw err;
@@ -370,26 +282,8 @@ export const getLeadClient = async (id: string) => {
 
 export const createLeadClient = async (payload: CreateLead) => {
   try {
-    // Use Next.js API route to avoid CORS issues
-    const res = await fetch("/api/leads", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      // Include validation details in error message if available
-      const errorMessage = errorData.error || `Failed to create lead: ${res.statusText}`;
-      const details = errorData.details ? ` Details: ${JSON.stringify(errorData.details)}` : "";
-      throw new Error(errorMessage + details);
-    }
-
-    const data = await res.json();
-    return data;
+    const res = await client.post("/leads", payload);
+    return res.data;
   } catch (err: any) {
     console.error("Failed to create lead:", err.message);
     throw err;
@@ -408,9 +302,7 @@ export const updateLeadClient = async (id: string, payload: UpdateLead) => {
 
 export const deleteLeadClient = async (id: string) => {
   try {
-    const res = await client.patch(`/leads/${id}`, {
-      deletedAt: new Date().toISOString(),
-    });
+    const res = await client.delete(`/leads/${id}`);
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete lead:", err.message);
@@ -418,10 +310,11 @@ export const deleteLeadClient = async (id: string) => {
   }
 };
 
-export const hardDeleteLeadClient = async (id: string) => {
+// Students - Client-side functions
+export const getStudentsClient = async () => {
   try {
-    const res = await fetch(`/api/leads/${id}?hard=true`, {
-      method: "DELETE",
+    const res = await fetch("/api/students", {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
@@ -429,24 +322,203 @@ export const hardDeleteLeadClient = async (id: string) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to hard delete lead: ${res.statusText}`);
+      throw new Error(`Failed to fetch students: ${res.statusText}`);
     }
 
     const data = await res.json();
-    return data;
+    const students = Array.isArray(data) ? data : [];
+    return students;
   } catch (err: any) {
-    console.error("Failed to hard delete lead:", err.message);
+    console.error("Failed to fetch students:", err.message);
     throw err;
   }
 };
 
-// Managers - Client-side function
-export const getManagersClient = async () => {
+export const getStudentClient = async (id: string) => {
   try {
-    const res = await client.get("/managers");
+    const res = await client.get(`/students/${id}`);
     return res.data;
   } catch (err: any) {
-    console.error("Failed to fetch managers:", err.message);
+    console.error("Failed to fetch student:", err.message);
+    throw err;
+  }
+};
+
+export const createStudentClient = async (payload: CreateStudent) => {
+  try {
+    const res = await client.post("/students", payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create student:", err.message);
+    throw err;
+  }
+};
+
+export const updateStudentClient = async (id: string, payload: UpdateStudent) => {
+  try {
+    const res = await client.patch(`/students/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update student:", err.message);
+    throw err;
+  }
+};
+
+export const deleteStudentClient = async (id: string) => {
+  try {
+    const res = await client.delete(`/students/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete student:", err.message);
+    throw err;
+  }
+};
+
+export const createStudentPaymentClient = async (payload: CreateStudentPayment) => {
+  try {
+    const res = await client.post("/payment", payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create student payment:", err.message);
+    throw err;
+  }
+};
+
+// Users - Client-side functions
+export const getLoggedInUserClient = async () => {
+  try {
+    const res = await client.get("/users/me");
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch logged in user:", err.message);
+    throw err;
+  }
+};
+
+// Finance - Client-side functions
+export const getFinanceOverviewClient = async () => {
+  try {
+    const res = await client.get("/payment/overview");
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch finance overview:", err.message);
+    return {
+      totalRevenue: 0,
+      totalPending: 0,
+      totalPayments: 0,
+      topCenters: [],
+      topPendingCenters: [],
+    };
+  }
+};
+
+// Archive - Client-side functions
+export const getArchiveRecordsClient = async (options?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}) => {
+  try {
+    const params = new URLSearchParams();
+    if (options?.page) params.append("page", options.page.toString());
+    if (options?.limit) params.append("limit", options.limit.toString());
+    if (options?.search) params.append("search", options.search);
+
+    const queryString = params.toString();
+    const url = `/archive${queryString ? `?${queryString}` : ""}`;
+
+    const res = await client.get(url);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch archive records:", err.message);
+    throw err;
+  }
+};
+
+export const getArchiveRecordClient = async (id: string) => {
+  try {
+    const res = await client.get(`/archive/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch archive record:", err.message);
+    throw err;
+  }
+};
+
+export const createArchiveRecordClient = async (payload: CreateArchiveRecord) => {
+  try {
+    const res = await client.post("/archive", payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create archive record:", err.message);
+    throw err;
+  }
+};
+
+export const updateArchiveRecordClient = async (
+  id: string,
+  payload: UpdateArchiveRecord
+) => {
+  try {
+    const res = await client.patch(`/archive/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update archive record:", err.message);
+    throw err;
+  }
+};
+
+export const deleteArchiveRecordClient = async (id: string) => {
+  try {
+    const res = await client.delete(`/archive/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete archive record:", err.message);
+    throw err;
+  }
+};
+
+export const bulkUploadArchiveClient = async (payload: BulkUploadArchiveRequest) => {
+  try {
+    const res = await client.post("/archive/bulk-upload", payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to bulk upload archive:", err.message);
+    throw err;
+  }
+};
+
+// Course Fee Assignments - Client-side functions
+export const createCourseFeeAssignmentClient = async (
+  payload: ICourseFeeAssignment
+) => {
+  try {
+    const res = await client.post("/course-fee-assignment", payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create course fee assignment:", err.message);
+    throw err;
+  }
+};
+
+export const updateCourseFeeAssignmentClient = async (
+  payload: IEditCourseFeeAssignment
+) => {
+  try {
+    const res = await client.patch(`/course-fee-assignment/${payload.id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update course fee assignment:", err.message);
+    throw err;
+  }
+};
+
+export const deleteCourseFeeAssignmentClient = async (id: string) => {
+  try {
+    const res = await client.delete(`/course-fee-assignment/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete course fee assignment:", err.message);
     throw err;
   }
 };
@@ -454,7 +526,6 @@ export const getManagersClient = async () => {
 // Batches - Client-side functions
 export const getBatchesClient = async () => {
   try {
-    // Use Next.js API route to avoid CORS issues
     const res = await fetch("/api/batches", {
       method: "GET",
       headers: {
@@ -468,9 +539,8 @@ export const getBatchesClient = async () => {
     }
 
     const data = await res.json();
-    // Frontend safety filter: exclude soft-deleted batches
     const batches = Array.isArray(data) ? data : [];
-    return batches.filter((batch: any) => !batch.deletedAt);
+    return batches;
   } catch (err: any) {
     console.error("Failed to fetch batches:", err.message);
     throw err;
@@ -489,30 +559,8 @@ export const getBatchClient = async (id: string) => {
 
 export const createBatchClient = async (payload: CreateBatch) => {
   try {
-    // Remove status before sending (backend validation requirements)
-    // centerId is required, so we always include it
-    const { status, ...rest } = payload;
-    const cleanPayload = {
-      ...rest,
-    };
-
-    // Use Next.js API route to avoid CORS issues
-    const res = await fetch("/api/batches", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(cleanPayload),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to create batch: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
+    const res = await client.post("/batches", payload);
+    return res.data;
   } catch (err: any) {
     console.error("Failed to create batch:", err.message);
     throw err;
@@ -531,327 +579,10 @@ export const updateBatchClient = async (id: string, payload: UpdateBatch) => {
 
 export const deleteBatchClient = async (id: string) => {
   try {
-    const res = await client.patch(`/batches/${id}`, {
-      deletedAt: new Date().toISOString(),
-    });
+    const res = await client.delete(`/batches/${id}`);
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete batch:", err.message);
     throw err;
   }
 };
-
-export const hardDeleteBatchClient = async (id: string) => {
-  try {
-    const res = await fetch(`/api/batches/${id}?hard=true`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to hard delete batch: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to hard delete batch:", err.message);
-    throw err;
-  }
-};
-
-// Faculties - Client-side function
-export const getFacultiesClient = async () => {
-  try {
-    const res = await client.get("/faculties");
-    return res.data;
-  } catch (err: any) {
-    console.error("Failed to fetch faculties:", err.message);
-    throw err;
-  }
-};
-
-// Users - Client-side function
-export const getLoggedInUserClient = async () => {
-  try {
-    // Use Next.js API route to get user (server-side session)
-    const res = await fetch(`/api/users/me`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch user: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to fetch logged in user:", err.message);
-    throw err;
-  }
-};
-
-// Banks - Client-side functions
-export const getCenterBanksClient = async (centerId: string) => {
-  try {
-    // Use Next.js API route to avoid CORS issues
-    const res = await fetch(`/api/banks/center/${centerId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch banks: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to fetch center's banks:", err.message);
-    return [];
-  }
-};
-
-// Archive - Client-side functions
-export const getArchiveRecordsClient = async (options?: {
-  page?: number;
-  limit?: number;
-  search?: string;
-}) => {
-  try {
-    const params = new URLSearchParams();
-    if (options?.page) params.append("page", options.page.toString());
-    if (options?.limit) params.append("limit", options.limit.toString());
-    if (options?.search) params.append("search", options.search);
-    
-    const queryString = params.toString();
-    const url = `/api/archive${queryString ? `?${queryString}` : ""}`;
-    
-    const res = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch archive records: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to fetch archive records:", err.message);
-    throw err;
-  }
-};
-
-export const getArchiveRecordClient = async (id: string) => {
-  try {
-    const res = await fetch(`/api/archive/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      throw new Error(errorData.error || `Failed to fetch archive record: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to fetch archive record:", err.message);
-    throw err;
-  }
-};
-
-export const createArchiveRecordClient = async (payload: CreateArchiveRecord) => {
-  try {
-    const res = await fetch("/api/archive", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to create archive record: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to create archive record:", err.message);
-    throw err;
-  }
-};
-
-export const bulkUploadArchiveClient = async (payload: BulkUploadArchiveRequest) => {
-  try {
-    console.log("=== bulkUploadArchiveClient - Before API Call ===");
-    console.log("Uploading archive records:", payload.records.length);
-    if (payload.records.length > 0) {
-      console.log("First record totalPayment:", payload.records[0].totalPayment);
-      console.log("First record pendingPayment:", payload.records[0].pendingPayment);
-      console.log("First record sample (full):", JSON.stringify(payload.records[0], null, 2));
-    }
-    console.log("================================================");
-    
-    const res = await fetch("/api/archive", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      const errorMessage = errorData.error || `Failed to upload archive records: ${res.statusText}`;
-      console.error("Upload error response:", errorData);
-      throw new Error(errorMessage);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to upload archive records:", err.message);
-    throw err;
-  }
-};
-
-export const updateArchiveRecordClient = async (
-  id: string,
-  payload: UpdateArchiveRecord
-) => {
-  try {
-    const res = await fetch(`/api/archive/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to update archive record: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to update archive record:", err.message);
-    throw err;
-  }
-};
-
-export const archiveStudentToArchiveClient = async (studentId: string) => {
-  try {
-    const res = await fetch(`/api/archive/from-student/${studentId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      const errorMessage = errorData.error || `Failed to archive student: ${res.statusText}`;
-      console.error("Archive error response:", errorData);
-      throw new Error(errorMessage);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to archive student:", err.message);
-    throw err;
-  }
-};
-
-export const restoreStudentFromArchiveClient = async (archiveId: string) => {
-  try {
-    const res = await fetch(`/api/archive/restore/${archiveId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      throw new Error(errorData.error || `Failed to restore student: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to restore student:", err.message);
-    throw err;
-  }
-};
-
-export const deleteArchiveRecordClient = async (id: string) => {
-  try {
-    const res = await fetch(`/api/archive/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to delete archive record: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data;
-  } catch (err: any) {
-    console.error("Failed to delete archive record:", err.message);
-    throw err;
-  }
-};
-
-export const bulkDeleteArchiveRecordsClient = async (ids: string[]) => {
-  try {
-    // Delete records sequentially to avoid overwhelming the server
-    const results = await Promise.allSettled(
-      ids.map((id) => deleteArchiveRecordClient(id))
-    );
-
-    const successful = results.filter((r) => r.status === "fulfilled").length;
-    const failed = results.filter((r) => r.status === "rejected").length;
-
-    return {
-      successful,
-      failed,
-      total: ids.length,
-    };
-  } catch (err: any) {
-    console.error("Failed to bulk delete archive records:", err.message);
-    throw err;
-  }
-};
-
