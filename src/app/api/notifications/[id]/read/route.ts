@@ -4,49 +4,45 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
 /**
- * GET handler - Fetch finance overview
+ * PATCH handler - Mark notification as read
  * Proxies request to backend to avoid CORS issues
- * Supports X-Center-Id header for center-specific filtering
  */
-export async function GET(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get X-Center-Id header from request if provided
-    const centerId = request.headers.get("X-Center-Id");
-    
+    const resolvedParams = await params;
+
     const headers: Record<string, string> = {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
     };
 
-    // Only add X-Center-Id header if it's provided and not "all"
-    if (centerId && centerId !== "all") {
-      headers["X-Center-Id"] = centerId;
-    }
-
-    const response = await axios.get(`${AuthRoutes.BASE_URL}/payment/overview`, {
-      headers,
-    });
+    const response = await axios.patch(
+      `${AuthRoutes.BASE_URL}/notifications/${resolvedParams.id}/read`,
+      {},
+      { headers }
+    );
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch finance overview:", error);
+    console.error("Failed to mark notification as read:", error);
     if (error.response) {
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to fetch finance overview" },
+        { error: error.response.data?.message || "Failed to mark notification as read" },
         { status: error.response.status || 500 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to fetch finance overview" },
+      { error: "Failed to mark notification as read" },
       { status: 500 }
     );
   }
 }
-
-
 

@@ -37,9 +37,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     setValue,
     formState: { errors, isValid },
     getValues,
+    trigger,
   } = useForm<IStudent>({
     resolver: yupResolver(enrollmentSchema),
-    mode: "onTouched",
+    mode: "onChange",
     defaultValues: {
       fullName: "",
       phone: "",
@@ -150,20 +151,25 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
     const lead = leads.find((l) => l.id === leadId);
     if (lead) {
-      setValue("fullName", lead.fullName);
-      setValue("phone", lead.phone);
-      setValue("email", lead.email);
-      setValue("address", lead.address);
-      setValue("centerId", lead.centerId);
-      setValue("enrolledDate", lead.enquiryDate);
-      setValue("birthDate", lead.birthDate);
-      setValue("guardianName", lead.guardians[0]?.fullname);
-      setValue("guardianPhone", lead.guardians[0]?.phone);
-      setValue("guardianEmail", lead.guardians[0]?.email);
-      setValue("guardianAddress", lead.guardians[0]?.address);
-      setValue("courseId", lead.courseId);
+      setValue("fullName", lead.fullName, { shouldValidate: true });
+      setValue("phone", lead.phone, { shouldValidate: true });
+      setValue("email", lead.email, { shouldValidate: true });
+      setValue("address", lead.address, { shouldValidate: true });
+      setValue("centerId", lead.centerId, { shouldValidate: true });
+      setValue("enrolledDate", lead.enquiryDate, { shouldValidate: true });
+      setValue("birthDate", lead.birthDate, { shouldValidate: true });
+      setValue("guardianName", lead.guardians[0]?.fullname || "", { shouldValidate: true });
+      setValue("guardianPhone", lead.guardians[0]?.phone || "", { shouldValidate: true });
+      setValue("guardianEmail", lead.guardians[0]?.email || "", { shouldValidate: true });
+      setValue("guardianAddress", lead.guardians[0]?.address || "", { shouldValidate: true });
+      setValue("courseId", lead.courseId, { shouldValidate: true });
+      
+      // Trigger validation for all fields after setting values
+      setTimeout(() => {
+        trigger();
+      }, 100);
     }
-  }, [leadId, leads, setValue]);
+  }, [leadId, leads, setValue, trigger]);
 
   useEffect(() => {
     if (!courseId) {
@@ -268,20 +274,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   }, [isOpen, mode, initialData, reset, setValue]);
 
   const handlePaymentPlan = (e: any) => {
-    setValue("paymentPlan", e.target.value);
+    setValue("paymentPlan", e.target.value, { shouldValidate: true });
     setPlan(e.target.value);
   };
 
   const handlePaymentType = (e: any) => {
-    setValue("paymentType", e.target.value);
+    setValue("paymentType", e.target.value, { shouldValidate: true });
   };
 
   const handlePaymentMethod = (e: any) => {
-    setValue("paymentMethod", e.target.value);
+    setValue("paymentMethod", e.target.value, { shouldValidate: true });
   };
 
   const handleMaxInstallment = (e: any) => {
-    setValue("numberOfInstallments", e.target.value);
+    setValue("numberOfInstallments", e.target.value, { shouldValidate: true });
     setMaxInstallment(e.target.value);
   };
 
@@ -762,10 +768,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   onChange={(e) => {
                     setPaymentType(e.target.value);
                     if (e.target.value === "old") {
-                      setValue("courseFee", "");
+                      setValue("courseFee", "", { shouldValidate: true });
                     } else if (e.target.value === "current") {
                       const fee = getCurrentFee();
-                      setValue("courseFee", fee.toString());
+                      setValue("courseFee", fee.toString(), { shouldValidate: true });
                     }
                   }}
                   className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
@@ -813,7 +819,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                     className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
                     onChange={(e) => {
                       const numericValue = e.target.value.replace(/[^\d.]/g, '');
-                      setValue("courseFee", numericValue, { shouldValidate: false });
+                      setValue("courseFee", numericValue, { shouldValidate: true });
                     }}
                   />
                 )}
@@ -911,7 +917,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="paymentPlan"
-                onChange={handlePaymentPlan}
+                {...register("paymentPlan")}
+                onChange={(e) => {
+                  handlePaymentPlan(e);
+                }}
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
@@ -942,7 +951,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="paymentType"
-                onChange={handlePaymentType}
+                {...register("paymentType")}
+                onChange={(e) => {
+                  handlePaymentType(e);
+                }}
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
@@ -973,7 +985,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               </label>
               <select
                 id="paymentMethod"
-                onChange={handlePaymentMethod}
+                {...register("paymentMethod")}
+                onChange={(e) => {
+                  handlePaymentMethod(e);
+                }}
                 disabled={!selectedCourse}
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
