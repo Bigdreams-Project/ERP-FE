@@ -12,7 +12,7 @@ export function useIsAdmin() {
   // Use the same query key as overview page to share cache
   const queryOptions: UseQueryOptions<User> = {
     queryKey: ["user"],
-    queryFn: getLoggedInUserClient,
+    queryFn: () => getLoggedInUserClient(),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     retry: 1,
     refetchOnWindowFocus: false,

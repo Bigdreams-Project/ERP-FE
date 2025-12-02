@@ -58,7 +58,7 @@ const OverviewContent = ({
   // Backend handles center filtering via X-Center-Id header
   const { data: user = initialUser } = useQuery({
     queryKey: ["user"],
-    queryFn: getLoggedInUserClient,
+    queryFn: () => getLoggedInUserClient(),
     initialData: initialUser,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,

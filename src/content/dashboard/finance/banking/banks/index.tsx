@@ -87,7 +87,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
       centerIdForQuery,
       isCenterManager,
       banksCount: banks.length,
-      banks: banks.map(b => ({ name: b.bankName, center: b.center?.name })),
+      banks: banks.map((b: Bank) => ({ name: b.bankName, center: b.center?.name })),
     });
   }, [isCenterLoading, centerContext, selectedCenter, centerIdForQuery, isCenterManager, banks]);
 

@@ -20,6 +20,7 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateBatch } from "@/types/requests/batch.interface";
+import { useCenter } from "@/context/CenterContext";
 
 interface BatchesContentProps {
   batches: Batch[];
@@ -55,6 +56,7 @@ const BatchesContent = ({
   students: initialStudents,
   faculties: initialFaculties,
 }: BatchesContentProps) => {
+  const { selectedCenter } = useCenter();
   const queryClient = useQueryClient();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -71,7 +73,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache batches
   const { data: batches = initialBatches } = useQuery({
     queryKey: ["batches"],
-    queryFn: getBatchesClient,
+    queryFn: () => getBatchesClient(),
     initialData: initialBatches,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -80,7 +82,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache courses
   const { data: courses = initialCourses } = useQuery({
     queryKey: ["courses"],
-    queryFn: getCoursesClient,
+    queryFn: () => getCoursesClient(),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -89,7 +91,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache students
   const { data: students = initialStudents } = useQuery({
     queryKey: ["students"],
-    queryFn: getStudentsClient,
+    queryFn: () => getStudentsClient(),
     initialData: initialStudents,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -98,7 +100,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache faculties
   const { data: faculties = initialFaculties } = useQuery({
     queryKey: ["faculties"],
-    queryFn: getFacultiesClient,
+    queryFn: () => getFacultiesClient(),
     initialData: initialFaculties,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,

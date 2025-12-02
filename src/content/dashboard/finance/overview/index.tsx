@@ -126,14 +126,14 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
     return `N${amount}`;
   };
 
-  const revenueDistribution = overviewData.topCenters.map((center, index) => ({
+  const revenueDistribution = overviewData.topCenters.map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => ({
     name: center.center,
     value: parseFloat(center.revenue) || 0, // Pass numeric value directly
     color: colorClasses[index % colorClasses.length],
   }));
 
   const pendingCenterPayments = overviewData.topPendingCenters.map(
-    (center, index) => ({
+    (center: { center: string; status: string; pending: string; revenue: string }, index: number) => ({
       name: center.center,
       value: parseFloat(center.pending) || 0, // Pass numeric value directly
       color: colorClasses[index % colorClasses.length],
@@ -271,7 +271,7 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
               Top Performing Centers
             </h2>
             <ul className="space-y-4">
-              {overviewData.topCenters?.map((center, index) => (
+              {overviewData.topCenters?.map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => (
                 <TopPerformingCenter
                   key={index}
                   number={index + 1}

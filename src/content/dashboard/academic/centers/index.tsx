@@ -48,7 +48,7 @@ const CenterContent = ({
   // Use React Query to fetch and cache centers
   const { data: centers = initialCenters } = useQuery({
     queryKey: ["centers"],
-    queryFn: getCentersClient,
+    queryFn: () => getCentersClient(),
     initialData: initialCenters,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     refetchOnMount: false,
