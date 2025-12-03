@@ -14,7 +14,7 @@ import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Payment } from "@/types/finance/payment.interface";
 import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BookOpen,
@@ -31,16 +31,19 @@ import {
   User,
   Users,
   Archive,
+  Upload,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BiMoney } from "react-icons/bi";
 import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
 import { Trash2 } from "lucide-react";
 import AttendanceCalendar from "./AttendanceCalendar";
+import { uploadFileClient, getStudentFilesClient } from "@/lib/client-network";
 
 interface StudentDetailsProps {
   student: Student;
@@ -60,6 +63,15 @@ const StudentDetails = ({
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch profile image
+  const { data: profileImageFile } = useQuery({
+    queryKey: ["student-profile-image", student.id],
+    queryFn: () => getStudentFilesClient(student.id, "profile_image"),
+    select: (files) => files?.[0] || null,
+  });
 
   // Debug: Log student data structure
   useEffect(() => {
@@ -127,6 +139,48 @@ const StudentDetails = ({
       showError(error.message || "Failed to delete student");
     }
   };
+
+  const handleImageUpload = async (file: File) => {
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      showError("Invalid file type. Only JPG and PNG are accepted.");
+      return;
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showError("File size exceeds 5MB limit.");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      await uploadFileClient(file, student.id, "profile_image");
+      showSuccess("Profile image uploaded successfully!");
+      queryClient.invalidateQueries({ queryKey: ["student-profile-image", student.id] });
+      queryClient.invalidateQueries({ queryKey: ["student", student.id] });
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    } catch (error: any) {
+      showError(error.message || "Failed to upload image");
+    } finally {
+      setIsUploadingImage(false);
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  };
+
+  // Get the image URL - prefer uploaded profile image, fallback to student.image
+  const displayImageUrl = profileImageFile?.fileUrl || student.image;
 
   const renderSection = (title: string, content: string, Icon: any) => (
     <div className="bg-white px-2 py-4 rounded-lg flex items-center mb-4">
@@ -290,20 +344,43 @@ const StudentDetails = ({
         <div className="bg-white rounded-lg w-full max-w-6xl py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-2 p-4 pt-6 border-t border-gray-300 rounded-lg shadow-md shadow-gray-400">
             <div className="flex flex-col items-center">
-              {student.image ? (
-                <Image
-                  src={student.image}
-                  alt="action"
-                  width={128}
-                  height={128}
-                  priority
-                  className="rounded-full object-cover"
+              <div className="relative">
+                {displayImageUrl ? (
+                  <Image
+                    src={displayImageUrl}
+                    alt={student.fullName}
+                    width={128}
+                    height={128}
+                    priority
+                    className="rounded-full object-cover border-4 border-gray-200"
+                  />
+                ) : (
+                  <div className="relative w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-gray-200">
+                    <CircleUserRound className="w-full h-full text-gray-400" />
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    imageInputRef.current?.click();
+                  }}
+                  className="absolute bottom-2 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+                  title="Upload profile image"
+                >
+                  {isUploadingImage ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                  ) : (
+                    <Upload size={14} />
+                  )}
+                </button>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={handleImageInputChange}
+                  disabled={isUploadingImage}
                 />
-              ) : (
-                <div className="relative w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-gray-200">
-                  <CircleUserRound className="w-full h-full text-gray-400" />
-                </div>
-              )}
+              </div>
 
               <div className="text-xl font-semibold text-gray-800">
                 {student.fullName}

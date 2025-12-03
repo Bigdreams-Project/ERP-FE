@@ -25,13 +25,21 @@ export async function GET(request: NextRequest) {
     };
 
     // Only add X-Center-Id header if it's provided and not "all"
+    // When centerId is null or "all", we don't send the header to get all records
     if (centerId && centerId !== "all") {
       headers["X-Center-Id"] = centerId;
+      console.log(`[API /students] Forwarding request with X-Center-Id: ${centerId}`);
+    } else {
+      console.log(`[API /students] Forwarding request WITHOUT X-Center-Id header (requesting all students)`);
     }
+
+    console.log(`[API /students] Request headers being sent to backend:`, Object.keys(headers).join(", "));
 
     const response = await axios.get(`${AuthRoutes.BASE_URL}/students`, {
       headers,
     });
+
+    console.log(`[API /students] Backend returned ${Array.isArray(response.data) ? response.data.length : 0} students`);
 
     return NextResponse.json(response.data);
   } catch (error: any) {

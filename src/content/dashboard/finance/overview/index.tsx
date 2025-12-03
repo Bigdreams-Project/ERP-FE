@@ -12,7 +12,7 @@ import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { BiHomeAlt2 } from "react-icons/bi";
 import { IoDocumentAttachOutline } from "react-icons/io5";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFinanceOverviewClient } from "@/lib/client-network";
 import { useCenter } from "@/context/CenterContext";
 import { userRoles } from "@/data/common/roles.data";
@@ -42,29 +42,33 @@ interface OverviewContentProps {
 const OverviewContent = ({ user, overview: initialOverview }: OverviewContentProps) => {
   const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
 
+  const queryClient = useQueryClient();
+  
   // Determine the center ID to use for filtering
-  // For center managers, always use their center ID, even if selectedCenter is "all" initially
-  // Use useMemo to ensure it updates when centerContext changes
-  const centerIdForQuery = useMemo(() => {
-    // If center context is loaded and user cannot switch, use their center ID
-    if (!isCenterLoading && centerContext && !centerContext.canSwitch && centerContext.currentCenterId) {
-      return centerContext.currentCenterId;
-    }
-    // Otherwise, use selectedCenter (which might be "all" for admins)
-    return selectedCenter === "all" ? null : selectedCenter;
-  }, [isCenterLoading, centerContext, selectedCenter]);
+  // For non-center-managers: when selectedCenter is "all", pass null to get all records
+  // For center-managers: selectedCenter will be their center ID, so they only see their center's records
+  const centerIdForFetch = selectedCenter === "all" ? null : selectedCenter;
+  
+  // Debug logging
+  useEffect(() => {
+    console.log("Finance Overview page - selectedCenter:", selectedCenter, "centerIdForFetch:", centerIdForFetch, "isCenterLoading:", isCenterLoading);
+  }, [selectedCenter, centerIdForFetch, isCenterLoading]);
 
   // Use React Query to fetch and cache finance overview
-  // Backend handles center filtering via X-Center-Id header
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
   const { data: overview } = useQuery({
-    queryKey: ["financeOverview", centerIdForQuery],
-    queryFn: () => getFinanceOverviewClient(centerIdForQuery),
-    // Only use initialData if we're an admin (can switch centers) or if center context hasn't loaded yet
-    // For center managers, don't use initialData to avoid showing all centers' data
-    initialData: (centerContext?.canSwitch || isCenterLoading) ? initialOverview : undefined,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    refetchOnMount: true,
-    enabled: !isCenterLoading, // Wait for center context to load before fetching
+    queryKey: ["financeOverview", selectedCenter],
+    queryFn: async () => {
+      console.log("Fetching finance overview with centerId:", centerIdForFetch);
+      const result = await getFinanceOverviewClient(centerIdForFetch);
+      console.log("Received finance overview data");
+      return result;
+    },
+    // Don't use initialData - always fetch fresh data based on selectedCenter
+    // This ensures we get the correct data for the selected center
+    staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
+    refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
+    enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
   });
 
   // Use overview data or fallback to empty structure if loading
@@ -91,21 +95,19 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
       .join(" ");
   }, [user?.role]);
 
-  // Refetch overview when center context loads and selectedCenter changes
+  // Refetch finance overview whenever selectedCenter changes
+  // This ensures data is filtered correctly when user selects a different center from dropdown
   useEffect(() => {
-    if (!isCenterLoading && centerContext) {
-      // If user cannot switch centers, ensure we refetch with their center ID
-      if (!centerContext.canSwitch && centerContext.currentCenterId) {
-        // Refetch will happen automatically via React Query when centerIdForQuery changes
-      } else if (selectedCenter !== "all") {
-        // Refetch will happen automatically via React Query when selectedCenter changes
-      }
+    if (!isCenterLoading && selectedCenter) {
+      console.log("Refetching finance overview for selectedCenter:", selectedCenter);
+      // Invalidate cache to ensure fresh data, then refetch
+      queryClient.invalidateQueries({ queryKey: ["financeOverview"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["financeOverview", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
     }
-  }, [
-    isCenterLoading,
-    selectedCenter,
-    centerContext,
-  ]);
+  }, [selectedCenter, isCenterLoading, queryClient]);
   const [showPicker, setShowPicker] = useState(false);
   const [range, setRange] = useState([
     {

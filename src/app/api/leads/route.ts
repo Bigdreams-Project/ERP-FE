@@ -10,6 +10,7 @@ import axios from "axios";
  * Supports X-Center-Id header for center-specific filtering
  */
 export async function GET(request: NextRequest) {
+  let headers: Record<string, string> = {};
   try {
     const session = await getSession();
     if (!session) {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Get X-Center-Id header from request if provided
     const centerId = request.headers.get("X-Center-Id");
     
-    const headers: Record<string, string> = {
+    headers = {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
     };
@@ -27,16 +28,23 @@ export async function GET(request: NextRequest) {
     // Only add X-Center-Id header if it's provided and not "all"
     if (centerId && centerId !== "all") {
       headers["X-Center-Id"] = centerId;
+      console.log(`[API /leads] Forwarding request with X-Center-Id: ${centerId}`);
+    } else {
+      console.log(`[API /leads] Forwarding request WITHOUT X-Center-Id header (requesting all leads)`);
     }
 
     const response = await axios.get(`${AuthRoutes.BASE_URL}/leads/active`, {
       headers,
     });
 
+    console.log(`[API /leads] Backend returned ${Array.isArray(response.data) ? response.data.length : 0} leads`);
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch leads:", error);
+    console.error("[API /leads] Failed to fetch leads:", error);
     if (error.response) {
+      console.error(`[API /leads] Backend error status: ${error.response.status}`);
+      console.error(`[API /leads] Backend error data:`, JSON.stringify(error.response.data, null, 2));
+      console.error(`[API /leads] Request headers sent:`, Object.keys(headers).join(", "));
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch leads" },
         { status: error.response.status || 500 }

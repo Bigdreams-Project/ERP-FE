@@ -247,9 +247,13 @@ export const getStudentsClient = async (centerId?: string | null) => {
       "Content-Type": "application/json",
     };
 
-    // Add X-Center-Id header if centerId is provided and not "all"
-    if (centerId && centerId !== "all") {
+    // Add X-Center-Id header ONLY if centerId is provided and not "all" or null
+    // When centerId is null or "all", we don't send the header to get all records
+    if (centerId && centerId !== "all" && centerId !== null) {
       headers["X-Center-Id"] = centerId;
+      console.log("Fetching students for center:", centerId);
+    } else {
+      console.log("Fetching ALL students (no center filter)");
     }
 
     const res = await fetch("/api/students", {
@@ -265,7 +269,9 @@ export const getStudentsClient = async (centerId?: string | null) => {
     const data = await res.json();
     // Frontend safety filter: exclude soft-deleted students
     const students = Array.isArray(data) ? data : [];
-    return students.filter((student: any) => !student.deletedAt);
+    const filteredStudents = students.filter((student: any) => !student.deletedAt);
+    console.log(`getStudentsClient: Received ${students.length} total students, ${filteredStudents.length} after filtering deleted`);
+    return filteredStudents;
   } catch (err: any) {
     console.error("Failed to fetch students:", err.message);
     throw err;
@@ -400,7 +406,16 @@ export const getLeadsClient = async (centerId?: string | null) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch leads: ${res.statusText}`);
+      const errorText = await res.text();
+      let errorMessage = `Failed to fetch leads: ${res.statusText}`;
+      
+      if (res.status === 403) {
+        errorMessage = "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
+        console.error("403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers.");
+      }
+      
+      console.error(`getLeadsClient error: ${res.status} ${res.statusText}`, errorText);
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
@@ -527,9 +542,13 @@ export const getBatchesClient = async (centerId?: string | null) => {
       "Content-Type": "application/json",
     };
 
-    // Add X-Center-Id header if centerId is provided and not "all"
-    if (centerId && centerId !== "all") {
+    // Add X-Center-Id header ONLY if centerId is provided and not "all" or null
+    // When centerId is null or "all", we don't send the header to get all records
+    if (centerId && centerId !== "all" && centerId !== null) {
       headers["X-Center-Id"] = centerId;
+      console.log("Fetching batches for center:", centerId);
+    } else {
+      console.log("Fetching ALL batches (no center filter)");
     }
 
     const res = await fetch("/api/batches", {
@@ -716,16 +735,13 @@ export const getBanksClient = async (centerId?: string | null) => {
       "Content-Type": "application/json",
     };
 
-    // Add X-Center-Id header if centerId is provided and not "all"
-    if (centerId && centerId !== "all") {
+    // Add X-Center-Id header ONLY if centerId is provided and not "all" or null
+    // When centerId is null or "all", we don't send the header to get all records
+    if (centerId && centerId !== "all" && centerId !== null) {
       headers["X-Center-Id"] = centerId;
-      console.log("getBanksClient: Sending X-Center-Id header:", centerId);
+      console.log("Fetching banks for center:", centerId);
     } else {
-      console.log(
-        "getBanksClient: No X-Center-Id header (centerId:",
-        centerId,
-        ")"
-      );
+      console.log("Fetching ALL banks (no center filter)");
     }
 
     const res = await fetch("/api/banks", {
@@ -735,16 +751,22 @@ export const getBanksClient = async (centerId?: string | null) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch banks: ${res.statusText}`);
+      const errorText = await res.text();
+      let errorMessage = `Failed to fetch banks: ${res.statusText}`;
+      
+      if (res.status === 403) {
+        errorMessage = "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
+        console.error("403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers.");
+      }
+      
+      console.error(`getBanksClient error: ${res.status} ${res.statusText}`, errorText);
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
-    console.log("getBanksClient: Received banks:", data.length, "banks");
-    console.log(
-      "getBanksClient: Bank centers:",
-      data.map((b: any) => b.center?.name || b.center?.id)
-    );
-    return data;
+    const banks = Array.isArray(data) ? data : [];
+    console.log(`getBanksClient: Received ${banks.length} banks`);
+    return banks;
   } catch (err: any) {
     console.error("Failed to fetch banks:", err.message);
     throw err;
@@ -782,9 +804,13 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
       "Content-Type": "application/json",
     };
 
-    // Add X-Center-Id header if centerId is provided and not "all"
-    if (centerId && centerId !== "all") {
+    // Add X-Center-Id header ONLY if centerId is provided and not "all" or null
+    // When centerId is null or "all", we don't send the header to get all records
+    if (centerId && centerId !== "all" && centerId !== null) {
       headers["X-Center-Id"] = centerId;
+      console.log("Fetching finance overview for center:", centerId);
+    } else {
+      console.log("Fetching ALL finance overview (no center filter)");
     }
 
     const res = await fetch("/api/payment/overview", {
@@ -794,7 +820,16 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch finance overview: ${res.statusText}`);
+      const errorText = await res.text();
+      let errorMessage = `Failed to fetch finance overview: ${res.statusText}`;
+      
+      if (res.status === 403) {
+        errorMessage = "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
+        console.error("403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers.");
+      }
+      
+      console.error(`getFinanceOverviewClient error: ${res.status} ${res.statusText}`, errorText);
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
@@ -1597,6 +1632,69 @@ export const addTicketCommentClient = async (
     return data;
   } catch (err: any) {
     console.error("Failed to add comment:", err.message);
+    throw err;
+  }
+};
+
+// File Upload - Client-side functions
+export const uploadFileClient = async (
+  file: File,
+  studentId: string,
+  fileType: "payment_receipt" | "profile_image"
+) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("studentId", studentId);
+    formData.append("fileType", fileType);
+
+    const res = await fetch("/api/files/upload", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to upload file: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to upload file:", err.message);
+    throw err;
+  }
+};
+
+export const getStudentFilesClient = async (
+  studentId: string,
+  fileType?: "payment_receipt" | "profile_image"
+) => {
+  try {
+    let url = `/api/files/student/${studentId}`;
+    if (fileType) {
+      url += `?fileType=${fileType}`;
+    }
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch files: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    console.error("Failed to fetch files:", err.message);
     throw err;
   }
 };

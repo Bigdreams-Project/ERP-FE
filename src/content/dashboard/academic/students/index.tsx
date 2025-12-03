@@ -53,31 +53,47 @@ const StudentContent = ({
   
   // Use React Query to fetch and cache students
   // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
-  const { data: students = initialStudents } = useQuery({
+  // For non-center-managers: when selectedCenter is "all", pass null to get all records
+  // For center-managers: selectedCenter will be their center ID, so they only see their center's records
+  const centerIdForFetch = selectedCenter === "all" ? null : selectedCenter;
+  
+  // Debug logging
+  useEffect(() => {
+    console.log("Students page - selectedCenter:", selectedCenter, "centerIdForFetch:", centerIdForFetch, "isCenterLoading:", isCenterLoading);
+  }, [selectedCenter, centerIdForFetch, isCenterLoading]);
+  
+  const { data: students, isLoading: isLoadingStudents } = useQuery({
     queryKey: ["students", selectedCenter],
-    queryFn: () => getStudentsClient(selectedCenter === "all" ? null : selectedCenter),
-    initialData: initialStudents,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: true,
+    queryFn: async () => {
+      console.log("Fetching students with centerId:", centerIdForFetch);
+      const result = await getStudentsClient(centerIdForFetch);
+      console.log("Received students:", result?.length || 0, "students");
+      return result;
+    },
+    // Don't use initialData - always fetch fresh data based on selectedCenter
+    // This ensures we get the correct data for the selected center
+    staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
+    refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
+    enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
   });
 
-  // Refetch students when center context loads and selectedCenter changes
+  // Use fetched data - don't fallback to initialStudents as it might be filtered from server-side
+  // When selectedCenter is "all", we want fresh data from the API, not cached server data
+  const displayStudents = students ?? [];
+
+  // Refetch students when selectedCenter changes
+  // This ensures non-center-managers see all records when selectedCenter is "all"
   useEffect(() => {
-    if (
-      !isCenterLoading &&
-      selectedCenter !== "all" &&
-      centerContext?.currentCenterId
-    ) {
-      if (selectedCenter === centerContext.currentCenterId) {
-        queryClient.refetchQueries({ queryKey: ["students", selectedCenter] });
-      }
+    if (!isCenterLoading && selectedCenter) {
+      console.log("Refetching students for selectedCenter:", selectedCenter);
+      // Invalidate all student queries to clear cache, then refetch
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["students", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
     }
-  }, [
-    isCenterLoading,
-    selectedCenter,
-    centerContext?.currentCenterId,
-    queryClient,
-  ]);
+  }, [selectedCenter, isCenterLoading, queryClient]);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
@@ -127,7 +143,8 @@ const StudentContent = ({
   };
 
   // Backend handles center filtering, so we only filter by search and status
-  const filteredData = students.filter((student: Student) => {
+  // Use displayStudents which is the fetched data, not initialStudents
+  const filteredData = displayStudents.filter((student: Student) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       (student.fullName?.toLowerCase() || "").includes(query) ||
