@@ -8,7 +8,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import { formatDate } from "@/lib/utils";
 import { Payment } from "@/types/finance/payment.interface";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   transactions: Payment[];
@@ -30,15 +30,19 @@ export default function TransactionDetailTable({
   const [data, setData] = useState(transactions);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filteredData, setFilteredData] = useState(data);
   const itemsPerPage = 10;
   const totalPages = 10;
+
+  // Update data when transactions prop changes
+  useEffect(() => {
+    setData(transactions);
+  }, [transactions]);
 
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          {filteredData.length === 0 ? (
+          {data.length === 0 ? (
             <NotFoundComponent
               text="Transaction"
               setIsModalOpen={setIsModalOpen}

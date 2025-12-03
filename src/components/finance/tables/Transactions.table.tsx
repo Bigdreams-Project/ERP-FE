@@ -2,7 +2,7 @@
 import NotFoundComponent from "@/components/NotFoundComponent";
 import { Bank } from "@/types/finance/bank.interface";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   banks: Bank[];
@@ -25,13 +25,17 @@ export default function BanksTable({
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filteredData, setFilteredData] = useState(data);
+
+  // Update data when banks prop changes
+  useEffect(() => {
+    setData(banks);
+  }, [banks]);
 
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          {filteredData.length === 0 ? (
+          {data.length === 0 ? (
             <NotFoundComponent
               text="Transactions"
               setIsModalOpen={setIsModalOpen}
