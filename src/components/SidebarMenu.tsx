@@ -90,12 +90,12 @@ const SidebarMenu = ({
 
   const logout = () => {
     logoutUser();
-    router.push(AuthRoutes.LOGIN)
-  }
+    router.push(AuthRoutes.LOGIN);
+  };
 
   // Determine if user can switch centers (admin/high executives)
   const canSwitch = centerContext?.canSwitch ?? false;
-  
+
   // Sidebar Menu
   const sidebarMenu: SidebarSection[] = [
     {
@@ -105,7 +105,9 @@ const SidebarMenu = ({
         { label: "Overview", href: "/dashboard/academic/overview" },
         { label: "Leads", href: "/dashboard/academic/leads" },
         // Only show Centers link if user can switch centers
-        ...(canSwitch || isCenterLoading ? [{ label: "Centers", href: "/dashboard/academic/centers" }] : []),
+        ...(canSwitch || isCenterLoading
+          ? [{ label: "Centers", href: "/dashboard/academic/centers" }]
+          : []),
         { label: "Students", href: "/dashboard/academic/students" },
         { label: "Courses", href: "/dashboard/academic/courses" },
         { label: "Batches", href: "/dashboard/academic/batches" },
@@ -119,6 +121,10 @@ const SidebarMenu = ({
         {
           label: "Transactions",
           href: "/dashboard/finance/banking/banks",
+        },
+        {
+          label: "Refunds",
+          href: "/dashboard/finance/refunds",
         },
         // { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
         // {
@@ -157,6 +163,10 @@ const SidebarMenu = ({
         {
           label: "User Management",
           href: "/dashboard/settings/users",
+        },
+        {
+          label: "Support Tickets",
+          href: "/dashboard/settings/tickets",
         },
       ],
     },

@@ -15,7 +15,14 @@ import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { User } from "@/types/auth/user.interface";
-import { BookOpen, GraduationCap, School, UserPlus, Users } from "lucide-react";
+import {
+  BookOpen,
+  GraduationCap,
+  School,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
@@ -34,8 +41,15 @@ import {
 import ActivityItem from "../../../../components/academic/cards/ActivityItem.card";
 import { centerStatusEnum } from "@/data/view/center.data";
 import { useQuery } from "@tanstack/react-query";
-import { getStudentsClient, getCoursesClient, getCentersClient, getLeadsClient, getLoggedInUserClient } from "@/lib/client-network";
+import {
+  getStudentsClient,
+  getCoursesClient,
+  getCentersClient,
+  getLeadsClient,
+  getLoggedInUserClient,
+} from "@/lib/client-network";
 import { useCenter } from "@/context/CenterContext";
+import { userRoles } from "@/data/common/roles.data";
 
 interface OverviewContentProps {
   user: User;
@@ -52,7 +66,11 @@ const OverviewContent = ({
   centers: initialCenters,
   leads: initialLeads,
 }: OverviewContentProps) => {
-  const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
+  const {
+    selectedCenter,
+    isLoading: isCenterLoading,
+    centerContext,
+  } = useCenter();
 
   // Use React Query to fetch and cache all data
   // Backend handles center filtering via X-Center-Id header
@@ -66,7 +84,8 @@ const OverviewContent = ({
 
   const { data: students = initialStudents } = useQuery({
     queryKey: ["students", selectedCenter],
-    queryFn: () => getStudentsClient(selectedCenter === "all" ? null : selectedCenter),
+    queryFn: () =>
+      getStudentsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialStudents,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
@@ -74,7 +93,8 @@ const OverviewContent = ({
 
   const { data: courses = initialCourses } = useQuery({
     queryKey: ["courses", selectedCenter],
-    queryFn: () => getCoursesClient(selectedCenter === "all" ? null : selectedCenter),
+    queryFn: () =>
+      getCoursesClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
@@ -82,7 +102,8 @@ const OverviewContent = ({
 
   const { data: centers = initialCenters } = useQuery({
     queryKey: ["centers", selectedCenter],
-    queryFn: () => getCentersClient(selectedCenter === "all" ? null : selectedCenter),
+    queryFn: () =>
+      getCentersClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialCenters,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
@@ -90,12 +111,14 @@ const OverviewContent = ({
 
   const { data: leads = initialLeads } = useQuery({
     queryKey: ["leads", selectedCenter],
-    queryFn: () => getLeadsClient(selectedCenter === "all" ? null : selectedCenter),
+    queryFn: () =>
+      getLeadsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialLeads,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
   });
   const [showPicker, setShowPicker] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
   const [range, setRange] = useState([
     {
       startDate: new Date(new Date().setDate(new Date().getDate() - 29)),
@@ -115,7 +138,7 @@ const OverviewContent = ({
   const computedData = useMemo(() => {
     const start = range[0].startDate!;
     const end = range[0].endDate!;
-    
+
     // Filter leads and students by date (inclusive)
     const leadsInRange = leads.filter((l: Lead) =>
       includesDate(l.enquiryDate, start, end)
@@ -186,7 +209,8 @@ const OverviewContent = ({
         title: "Active Courses",
         value: formatNumber(totalCourses),
         change: `${formatNumber(
-          courses.filter((c: Course) => c.status === courseStatusEnum.Active).length
+          courses.filter((c: Course) => c.status === courseStatusEnum.Active)
+            .length
         )} active`,
         direction: "up",
         icon: School,
@@ -234,15 +258,24 @@ const OverviewContent = ({
     });
 
     const courseStats = Array.from(courseMap.values())
-      .sort((a: { id: string; name: string; leads: number; enrolls: number }, b: { id: string; name: string; leads: number; enrolls: number }) => b.leads - a.leads)
+      .sort(
+        (
+          a: { id: string; name: string; leads: number; enrolls: number },
+          b: { id: string; name: string; leads: number; enrolls: number }
+        ) => b.leads - a.leads
+      )
       .slice(0, 6)
-      .map((c: { id: string; name: string; leads: number; enrolls: number }) => ({
-        title: c.name,
-        leads: c.leads,
-        enrolls: c.enrolls,
-        conversion:
-          c.leads === 0 ? "0%" : `${((c.enrolls / c.leads) * 100).toFixed(1)}%`,
-      }));
+      .map(
+        (c: { id: string; name: string; leads: number; enrolls: number }) => ({
+          title: c.name,
+          leads: c.leads,
+          enrolls: c.enrolls,
+          conversion:
+            c.leads === 0
+              ? "0%"
+              : `${((c.enrolls / c.leads) * 100).toFixed(1)}%`,
+        })
+      );
 
     // Academic summary cards
     const academicStats = [
@@ -250,7 +283,8 @@ const OverviewContent = ({
         title: "Centers",
         value: formatNumber(totalCenters),
         subText: `${
-          centers.filter((ct: Center) => ct.status === centerStatusEnum.Active).length
+          centers.filter((ct: Center) => ct.status === centerStatusEnum.Active)
+            .length
         } active`,
         icon: School,
       },
@@ -284,7 +318,9 @@ const OverviewContent = ({
       title: `New Lead: ${l.fullName}`,
       date: new Date(l.enquiryDate),
       meta: `${l.course?.name || "—"} • ${
-        l.centerId ? centers.find((c: Center) => c.id === l.centerId)?.name : "—"
+        l.centerId
+          ? centers.find((c: Center) => c.id === l.centerId)?.name
+          : "—"
       }`,
     }));
     const studentActivity = studentsInRange.map((s: Student) => ({
@@ -297,15 +333,63 @@ const OverviewContent = ({
       }`,
     }));
 
-    const allActivity = [...leadActivity, ...studentActivity]
-      .sort((a: { type: string; id: string; title: string; date: Date; meta: string }, b: { type: string; id: string; title: string; date: Date; meta: string }) => b.date.getTime() - a.date.getTime())
-      .slice(0, 20);
+    const allActivity = [...leadActivity, ...studentActivity].sort(
+      (
+        a: {
+          type: string;
+          id: string;
+          title: string;
+          date: Date;
+          meta: string;
+        },
+        b: { type: string; id: string; title: string; date: Date; meta: string }
+      ) => b.date.getTime() - a.date.getTime()
+    );
 
-    const recentActivity = allActivity.map((a: { type: string; id: string; title: string; date: Date; meta: string }) => ({
-      icon: a.type === "lead" ? UserPlus : GraduationCap,
-      text: a.title,
-      time: `${a.date.toLocaleDateString()} • ${a.meta}`,
-    }));
+    // Activities for last 30 days (for modal)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const activitiesLast30Days = allActivity.filter(
+      (a: {
+        type: string;
+        id: string;
+        title: string;
+        date: Date;
+        meta: string;
+      }) => a.date >= thirtyDaysAgo
+    );
+
+    // Recent activity (first 10 for display)
+    const recentActivity = allActivity
+      .slice(0, 10)
+      .map(
+        (a: {
+          type: string;
+          id: string;
+          title: string;
+          date: Date;
+          meta: string;
+        }) => ({
+          icon: a.type === "lead" ? UserPlus : GraduationCap,
+          text: a.title,
+          time: `${a.date.toLocaleDateString()} • ${a.meta}`,
+        })
+      );
+
+    // Activities for modal (last 30 days)
+    const modalActivities = activitiesLast30Days.map(
+      (a: {
+        type: string;
+        id: string;
+        title: string;
+        date: Date;
+        meta: string;
+      }) => ({
+        icon: a.type === "lead" ? UserPlus : GraduationCap,
+        text: a.title,
+        time: `${a.date.toLocaleDateString()} • ${a.meta}`,
+      })
+    );
 
     const insights = [
       {
@@ -337,6 +421,7 @@ const OverviewContent = ({
       academicStats,
       courseStats,
       recentActivity,
+      modalActivities,
       displayRange: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`,
     };
   }, [range, leads, students, courses, centers]);
@@ -345,6 +430,20 @@ const OverviewContent = ({
   useEffect(() => {
     setDisplayRange(computedData.displayRange);
   }, [computedData.displayRange]);
+
+  // Format role to user-friendly display name
+  const userRoleDisplay = useMemo(() => {
+    if (!user?.role) return "User";
+    const roleUpper = user.role.toUpperCase();
+    const roleData = userRoles.find((r) => r.value === roleUpper);
+    if (roleData) {
+      return roleData.label;
+    }
+    return roleUpper
+      .split("_")
+      .map((word: string) => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(" ");
+  }, [user?.role]);
 
   return (
     <div className="min-h-screen bg-white text-gray-100 p-4 md:py-8 md:px-3 font-inter">
@@ -362,7 +461,7 @@ const OverviewContent = ({
               Here's what's happening today across your academic operations.
             </p>
             <p className="text-sm font-medium text-white mt-2">
-              Role: {user?.role?.toLocaleUpperCase()}
+              Role: {userRoleDisplay}
             </p>
           </div>
         </div>
@@ -482,7 +581,51 @@ const OverviewContent = ({
               <ActivityItem key={index} {...activity} />
             ))}
           </div>
+          {computedData.recentActivity.length >= 10 && (
+            <button
+              onClick={() => setShowActivityModal(true)}
+              className="mt-4 w-full px-4 py-2 text-sm font-medium text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
+            >
+              View More
+            </button>
+          )}
         </div>
+
+        {/* Activity Modal */}
+        {showActivityModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
+            <div className="relative bg-white p-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                <h2 className="text-xl font-bold text-gray-800">
+                  Recent Activity (Last 30 Days)
+                </h2>
+                <button
+                  onClick={() => setShowActivityModal(false)}
+                  className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Activities List */}
+              <div className="flex-1 overflow-y-auto py-4">
+                <div className="space-y-6">
+                  {computedData.modalActivities.length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">
+                      No activities in the last 30 days
+                    </p>
+                  ) : (
+                    computedData.modalActivities.map((activity, index) => (
+                      <ActivityItem key={index} {...activity} />
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

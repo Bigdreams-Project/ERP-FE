@@ -1169,3 +1169,434 @@ export const markAllNotificationsAsReadClient = async () => {
     throw err;
   }
 };
+
+// Refunds - Client-side functions
+import {
+  CreateRefundRequest,
+  UpdateRefundRequest,
+  RefundRequest,
+} from "@/types/finance/refund.interface";
+import {
+  CreateDiscountRequest,
+  UpdateDiscountRequest,
+  DiscountRequest,
+} from "@/types/finance/discount.interface";
+
+export const getRefundsClient = async (centerId?: string | null) => {
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/refunds", {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch refunds: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    console.error("Failed to fetch refunds:", err.message);
+    throw err;
+  }
+};
+
+export const getRefundClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/refunds/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch refund: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch refund:", err.message);
+    throw err;
+  }
+};
+
+export const createRefundRequestClient = async (
+  payload: CreateRefundRequest,
+  centerId?: string | null
+) => {
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/refunds", {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      const errorMessage =
+        errorData.error || `Failed to create refund request: ${res.statusText}`;
+      throw new Error(errorMessage);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to create refund request:", err.message);
+    throw err;
+  }
+};
+
+export const approveRefundClient = async (id: string, notes?: string) => {
+  try {
+    const res = await fetch(`/api/refunds/${id}/approve`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ notes }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to approve refund: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to approve refund:", err.message);
+    throw err;
+  }
+};
+
+export const rejectRefundClient = async (
+  id: string,
+  rejectionReason: string
+) => {
+  try {
+    const res = await fetch(`/api/refunds/${id}/reject`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ rejectionReason }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to reject refund: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to reject refund:", err.message);
+    throw err;
+  }
+};
+
+// Discounts - Client-side functions
+export const getDiscountsClient = async (centerId?: string | null) => {
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/discounts", {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch discounts: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    console.error("Failed to fetch discounts:", err.message);
+    throw err;
+  }
+};
+
+export const getDiscountClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/discounts/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch discount: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch discount:", err.message);
+    throw err;
+  }
+};
+
+export const createDiscountRequestClient = async (
+  payload: CreateDiscountRequest,
+  centerId?: string | null
+) => {
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/discounts", {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: res.statusText }));
+      throw new Error(
+        errorData.error ||
+          `Failed to create discount request: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to create discount request:", err.message);
+    throw err;
+  }
+};
+
+export const approveDiscountClient = async (id: string, notes?: string) => {
+  try {
+    const res = await fetch(`/api/discounts/${id}/approve`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ notes }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to approve discount: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to approve discount:", err.message);
+    throw err;
+  }
+};
+
+export const rejectDiscountClient = async (
+  id: string,
+  rejectionReason: string
+) => {
+  try {
+    const res = await fetch(`/api/discounts/${id}/reject`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ rejectionReason }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to reject discount: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to reject discount:", err.message);
+    throw err;
+  }
+};
+
+// Support Tickets - Client-side functions
+import {
+  CreateTicketRequest,
+  UpdateTicketRequest,
+  Ticket,
+  CreateTicketCommentRequest,
+} from "@/types/support/ticket.interface";
+
+export const getTicketsClient = async (centerId?: string | null) => {
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/tickets", {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch tickets: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    console.error("Failed to fetch tickets:", err.message);
+    throw err;
+  }
+};
+
+export const getTicketClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/tickets/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch ticket: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch ticket:", err.message);
+    throw err;
+  }
+};
+
+export const createTicketClient = async (
+  payload: CreateTicketRequest,
+  centerId?: string | null
+) => {
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (centerId && centerId !== "all") {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/tickets", {
+      method: "POST",
+      headers,
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      const errorMessage =
+        errorData.error || `Failed to create ticket: ${res.statusText}`;
+      throw new Error(errorMessage);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to create ticket:", err.message);
+    throw err;
+  }
+};
+
+export const updateTicketClient = async (
+  id: string,
+  payload: UpdateTicketRequest
+) => {
+  try {
+    const res = await fetch(`/api/tickets/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to update ticket: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to update ticket:", err.message);
+    throw err;
+  }
+};
+
+export const addTicketCommentClient = async (
+  payload: CreateTicketCommentRequest
+) => {
+  try {
+    const res = await fetch(`/api/tickets/${payload.ticketId}/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        comment: payload.comment,
+        attachments: payload.attachments,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to add comment: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to add comment:", err.message);
+    throw err;
+  }
+};

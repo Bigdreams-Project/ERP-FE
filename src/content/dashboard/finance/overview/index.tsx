@@ -15,6 +15,7 @@ import { IoDocumentAttachOutline } from "react-icons/io5";
 import { useQuery } from "@tanstack/react-query";
 import { getFinanceOverviewClient } from "@/lib/client-network";
 import { useCenter } from "@/context/CenterContext";
+import { userRoles } from "@/data/common/roles.data";
 
 interface OverviewContentProps {
   user: User;
@@ -75,6 +76,20 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
     topPendingCenters: [],
     topPerformingCenter: {} as Center,
   };
+
+  // Format role to user-friendly display name
+  const userRoleDisplay = useMemo(() => {
+    if (!user?.role) return "User";
+    const roleUpper = user.role.toUpperCase();
+    const roleData = userRoles.find((r) => r.value === roleUpper);
+    if (roleData) {
+      return roleData.label;
+    }
+    return roleUpper
+      .split("_")
+      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(" ");
+  }, [user?.role]);
 
   // Refetch overview when center context loads and selectedCenter changes
   useEffect(() => {
@@ -174,13 +189,13 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
               Have a great day today, let's dive into your financial operations.
             </p>
             <p className="text-sm font-medium text-white mt-2">
-              Role: {user?.role?.toLocaleUpperCase()}
+              Role: {userRoleDisplay}
             </p>
           </div>
         </div>
 
         <div className="relative">
-          <div className="flex justify-end space-x-4 my-4">
+          <div className="hidden justify-end space-x-4 my-4">
             <IconButton
               icon={<Plus size={17} />}
               text="Record Payment"
