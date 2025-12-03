@@ -71,13 +71,33 @@ const BatchesContent = ({
   });
 
   // Use React Query to fetch and cache batches
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
+  // For non-center-managers: when selectedCenter is "all", pass null to get all records
+  // For center-managers: selectedCenter will be their center ID, so they only see their center's records
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
+  
   const { data: batches = initialBatches } = useQuery({
-    queryKey: ["batches"],
-    queryFn: () => getBatchesClient(),
-    initialData: initialBatches,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    queryKey: ["batches", selectedCenter],
+    queryFn: () =>
+      getBatchesClient(selectedCenter === "all" ? null : selectedCenter),
+    // Use placeholderData instead of initialData to allow refetching
+    // This ensures we always get fresh data based on selectedCenter
+    placeholderData: initialBatches,
+    staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
+    refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
+    enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
   });
+
+  // Refetch batches when selectedCenter changes
+  // This ensures non-center-managers see all records when selectedCenter is "all"
+  useEffect(() => {
+    if (!isCenterLoading && selectedCenter) {
+      queryClient.refetchQueries({ 
+        queryKey: ["batches", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
+    }
+  }, [selectedCenter, isCenterLoading, queryClient]);
 
   // Use React Query to fetch and cache courses
   const { data: courses = initialCourses } = useQuery({

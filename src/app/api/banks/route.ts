@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
 
     // Get X-Center-Id header from request if provided
     const centerId = request.headers.get("X-Center-Id");
-    console.log("API /api/banks: Received X-Center-Id header:", centerId);
     
     const headers: Record<string, string> = {
       Authorization: `Bearer ${session.accessToken}`,
@@ -25,18 +24,19 @@ export async function GET(request: NextRequest) {
     };
 
     // Only add X-Center-Id header if it's provided and not "all"
+    // When centerId is null or "all", we don't send the header to get all records
     if (centerId && centerId !== "all") {
       headers["X-Center-Id"] = centerId;
-      console.log("API /api/banks: Forwarding X-Center-Id to backend:", centerId);
+      console.log(`[API /banks] Forwarding request with X-Center-Id: ${centerId}`);
     } else {
-      console.log("API /api/banks: Not forwarding X-Center-Id (centerId:", centerId, ")");
+      console.log(`[API /banks] Forwarding request WITHOUT X-Center-Id header (requesting all banks)`);
     }
 
     const response = await axios.get(`${AuthRoutes.BASE_URL}/banks`, {
       headers,
     });
     
-    console.log("API /api/banks: Backend returned", Array.isArray(response.data) ? response.data.length : "non-array", "banks");
+    console.log(`[API /banks] Backend returned ${Array.isArray(response.data) ? response.data.length : 0} banks`);
 
     return NextResponse.json(response.data);
   } catch (error: any) {

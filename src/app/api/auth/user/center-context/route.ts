@@ -11,10 +11,19 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
+      console.error("No session found in center-context route");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await axios.get(`${AuthRoutes.BASE_URL}/auth/user/center-context`, {
+    if (!session.accessToken) {
+      console.error("No access token in session");
+      return NextResponse.json({ error: "Unauthorized - No access token" }, { status: 401 });
+    }
+
+    const apiUrl = `${AuthRoutes.BASE_URL}/auth/user/center-context`;
+    console.log("Fetching center context from:", apiUrl);
+
+    const response = await axios.get(apiUrl, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
         "Content-Type": "application/json",
@@ -25,6 +34,8 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Failed to fetch center context:", error);
     if (error.response) {
+      console.error("Backend response status:", error.response.status);
+      console.error("Backend response data:", error.response.data);
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch center context" },
         { status: error.response.status || 500 }

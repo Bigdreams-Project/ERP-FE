@@ -11,6 +11,7 @@ import { User } from "@/types/auth/user.interface";
 import { useEffect } from "react";
 import { FiGlobe } from "react-icons/fi";
 import { IoMdArrowDropdown } from "react-icons/io";
+import { canSwitchCenters } from "@/lib/utils/center-permissions";
 
 interface CenterdropdownProps {
   user: User;
@@ -22,7 +23,12 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
     useCenter();
 
   // Determine if dropdown should be shown
-  const canSwitch = centerContext?.canSwitch ?? false;
+  // Check both API response and user role as fallback
+  // Roles that can switch: ADMIN, CEO, EXECUTIVE_DIRECTOR, COO_HEAD_OFFICE, REGIONAL_MANAGER, FINANCE_OFFICER, EXECUTIVE_ASSISTANT
+  const canSwitchByRole = canSwitchCenters(user?.role);
+  // Use role-based check as primary, API response as secondary
+  // This ensures admin/CEO can switch even if API fails
+  const canSwitch = canSwitchByRole || (centerContext?.canSwitch ?? false);
 
   // Debug logging (remove in production)
   useEffect(() => {
@@ -74,55 +80,28 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
     if (!canSwitch) {
       // Priority 1: Try currentCenterName from API (most reliable)
       if (centerContext?.currentCenterName) {
-        console.log(
-          "Using currentCenterName from context:",
-          centerContext.currentCenterName
-        );
         return centerContext.currentCenterName;
       }
 
       // Priority 2: Try to find center name from centers array using currentCenterId
       if (centerContext?.currentCenterId) {
-        console.log(
-          "Looking up center by currentCenterId:",
-          centerContext.currentCenterId
-        );
-        console.log(
-          "Available centers:",
-          centers.map((c) => ({ id: c.id, name: c.name }))
-        );
         const centerName = centers.find(
           (c) => c.id === centerContext.currentCenterId
         )?.name;
         if (centerName) {
-          console.log("Found center name from centers array:", centerName);
           return centerName;
         }
-        console.warn(
-          "Could not find center with ID:",
-          centerContext.currentCenterId
-        );
       }
 
       // Priority 3: If selectedCenter has been set (by context), try to find it in centers array
       if (selectedCenter && selectedCenter !== "all") {
-        console.log("Looking up center by selectedCenter:", selectedCenter);
         const centerName = centers.find((c) => c.id === selectedCenter)?.name;
         if (centerName) {
-          console.log("Found center name from selectedCenter:", centerName);
           return centerName;
         }
       }
 
-      // If we still don't have a name, log error and return placeholder
-      console.error(
-        "Could not determine center name. Context:",
-        centerContext,
-        "Selected:",
-        selectedCenter,
-        "Centers:",
-        centers
-      );
+      // If we still don't have a name, return placeholder (no error logging for normal flow)
       return "Your Center";
     }
 
@@ -142,17 +121,42 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
       return centerContext.currentCenterName;
     }
 
+    // Default fallback
     return "Select Center";
   };
 
   const selectedCenterName = getSelectedCenterName();
 
-  // If user cannot switch centers, show fixed center name without dropdown
+  // Debug: Log the state to help diagnose issues
+  useEffect(() => {
+    console.log("Centerdropdown Debug:", {
+      userRole: user?.role,
+      canSwitchByRole,
+      canSwitch,
+      centerContextCanSwitch: centerContext?.canSwitch,
+      isLoading,
+      centersCount: centers.length,
+      selectedCenter,
+    });
+  }, [user?.role, canSwitchByRole, canSwitch, centerContext?.canSwitch, isLoading, centers.length, selectedCenter]);
+
+  // If user cannot switch centers (and it's confirmed after loading), show fixed center name without dropdown
   if (!canSwitch && !isLoading) {
     return (
       <div className="flex items-center font-bold gap-[0.5rem]">
         <FiGlobe className="text-indigo-500" />
         <span>{selectedCenterName}</span>
+      </div>
+    );
+  }
+
+  // If still loading and user role doesn't allow switching, show loading state
+  // Otherwise, show dropdown (even while loading if role allows)
+  if (isLoading && !canSwitchByRole) {
+    return (
+      <div className="flex items-center font-bold gap-[0.5rem]">
+        <FiGlobe className="text-indigo-500" />
+        <span>Loading...</span>
       </div>
     );
   }
@@ -183,7 +187,10 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
             <DropdownMenuItem
               className="outline-none text-left border-none transition-all duration-300 flex justify-between"
               key={index}
-              onClick={() => setSelectedCenter(center.id)}
+              onClick={() => {
+                console.log("Center dropdown: Selecting center:", center.name, "ID:", center.id);
+                setSelectedCenter(center.id);
+              }}
             >
               <p>{center.name}</p>
               <p>

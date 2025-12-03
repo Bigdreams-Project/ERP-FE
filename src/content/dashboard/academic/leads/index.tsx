@@ -51,26 +51,19 @@ const LeadContent = ({
     refetchOnMount: true, // Enable refetching when component mounts
   });
 
-  // Refetch leads when center context loads and selectedCenter changes from "all" to a specific center
-  // This ensures center managers see their center's leads after the context loads
+  // Refetch leads whenever selectedCenter changes
+  // This ensures data is filtered correctly when user selects a different center from dropdown
   useEffect(() => {
-    if (
-      !isCenterLoading &&
-      selectedCenter !== "all" &&
-      centerContext?.currentCenterId
-    ) {
-      // Center context has loaded and user has a specific center
-      // If selectedCenter matches their center, refetch to get filtered leads
-      if (selectedCenter === centerContext.currentCenterId) {
-        queryClient.refetchQueries({ queryKey: ["leads", selectedCenter] });
-      }
+    if (!isCenterLoading && selectedCenter) {
+      console.log("Refetching leads for selectedCenter:", selectedCenter);
+      // Invalidate cache to ensure fresh data, then refetch
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["leads", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
     }
-  }, [
-    isCenterLoading,
-    selectedCenter,
-    centerContext?.currentCenterId,
-    queryClient,
-  ]);
+  }, [selectedCenter, isCenterLoading, queryClient]);
 
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");

@@ -53,7 +53,10 @@ export const CenterProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("Processed Center Context:", centerContextData);
         setCenterContext(centerContextData);
         
-        // If user cannot switch centers, set selectedCenter to their current center
+        // If user cannot switch centers (and doesn't have a role that allows it),
+        // set selectedCenter to their current center
+        // Note: Role-based permission checking happens in components, not here
+        // This is a fallback for users locked to a specific center
         if (!context.canSwitch && context.currentCenterId) {
           console.log("Setting selectedCenter to:", context.currentCenterId);
           _setSelectedCenter(context.currentCenterId);
@@ -75,13 +78,10 @@ export const CenterProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const setSelectedCenter = (centerId: string) => {
-    // Only allow switching if user has permission
-    if (centerContext?.canSwitch || centerId === centerContext?.currentCenterId) {
-      console.log("Updating selected center to:", centerId);
-      _setSelectedCenter(centerId);
-    } else {
-      console.warn("User does not have permission to switch centers");
-    }
+    // Allow switching - permission checking is handled by components (e.g., Centerdropdown)
+    // Components check user role before calling this function
+    console.log("Updating selected center to:", centerId);
+    _setSelectedCenter(centerId);
   };
 
   return (

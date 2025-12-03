@@ -7,12 +7,14 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CenterTable from "@/components/academic/tables/Center.table";
 import CenterModal from "@/components/modals/academic/Center.modal";
-import { createCenterClient, getCentersClient } from "@/lib/client-network";
+import { createCenterClient, getCentersClient, getLoggedInUserClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCenter } from "@/context/CenterContext";
+import { canAccessCentersPage } from "@/lib/utils/center-permissions";
+import { User } from "@/types/auth/user.interface";
 
 interface CenterContentProps {
   centers: Center[];
@@ -27,16 +29,29 @@ const CenterContent = ({
   const router = useRouter();
   const { centerContext, isLoading: isCenterLoading } = useCenter();
 
-  // Redirect center managers away from centers page
+  // Fetch user to check role
+  const { data: user } = useQuery<User>({
+    queryKey: ["user"],
+    queryFn: () => getLoggedInUserClient(),
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Check if user can access centers page based on role
+  // ONLY ADMIN, CEO, and EXECUTIVE_DIRECTOR should access the centers page
+  // This is different from canSwitchCenters which includes more roles
+  const canAccessCenters = canAccessCentersPage(user?.role);
+
+  // Redirect users who shouldn't have access to centers page
   useEffect(() => {
-    if (!isCenterLoading && centerContext && !centerContext.canSwitch) {
-      // User is a center manager, redirect to overview
+    if (!isCenterLoading && user && !canAccessCenters) {
+      // User doesn't have permission, redirect to overview
       router.push("/dashboard/academic/overview");
     }
-  }, [centerContext, isCenterLoading, router]);
+  }, [isCenterLoading, user, canAccessCenters, router]);
 
-  // Don't render anything if user is a center manager
-  if (!isCenterLoading && centerContext && !centerContext.canSwitch) {
+  // Don't render anything if user doesn't have access
+  if (!isCenterLoading && user && !canAccessCenters) {
     return null;
   }
   const [searchInput, setSearchInput] = useState("");
