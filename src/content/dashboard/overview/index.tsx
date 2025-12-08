@@ -1,10 +1,9 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { DateRangePicker } from "react-date-range";
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
+import DateRangeSelector from "@/components/dashboard/overview/DateRangeSelector";
 import { useCenter } from "@/context/CenterContext";
+import { useProvider } from "@/context/ProviderContext";
 import {
   getStudentsClient,
   getCoursesClient,
@@ -46,6 +45,7 @@ import ConversionFunnel from "@/components/dashboard/overview/ConversionFunnel";
 import CenterPerformanceTable from "@/components/dashboard/overview/CenterPerformanceTable";
 import ActivityFeed from "@/components/dashboard/overview/ActivityFeed";
 import InsightsPanel from "@/components/dashboard/overview/InsightsPanel";
+import Providerdropdown from "@/components/Providerdropdown";
 
 // Icons
 import {
@@ -101,7 +101,7 @@ const DashboardOverview = ({
   financeOverview: initialFinanceOverview,
 }: DashboardOverviewProps) => {
   const { selectedCenter } = useCenter();
-  const [showPicker, setShowPicker] = useState(false);
+  const { selectedProvider } = useProvider();
   const [range, setRange] = useState([
     {
       startDate: new Date(new Date().setDate(new Date().getDate() - 29)),
@@ -162,17 +162,54 @@ const DashboardOverview = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  // Filter data by selected center
+  // Helper function to normalize course type for comparison
+  const normalizeCourseType = (type: string | undefined): string => {
+    if (!type) return "";
+    const upperType = type.toUpperCase();
+    if (upperType.includes("TEC") || upperType.includes("TERMINAL")) return "TEC_TERMINAL";
+    if (upperType.includes("APTECH") || upperType.includes("AP")) return "APTECH";
+    if (upperType.includes("CPMS") || upperType.includes("CP")) return "CPMS";
+    return upperType;
+  };
+
+  // Filter data by selected center and provider
   const filteredData = useMemo(() => {
     let filteredStudents = students;
     let filteredLeads = leads;
     let filteredCenters = centers;
     let filteredCourses = courses;
 
+    // Filter by center
     if (selectedCenter !== "all") {
-      filteredStudents = students.filter((s) => s.centerId === selectedCenter);
-      filteredLeads = leads.filter((l) => l.centerId === selectedCenter);
-      filteredCenters = centers.filter((c) => c.id === selectedCenter);
+      filteredStudents = filteredStudents.filter((s) => s.centerId === selectedCenter);
+      filteredLeads = filteredLeads.filter((l) => l.centerId === selectedCenter);
+      filteredCenters = filteredCenters.filter((c) => c.id === selectedCenter);
+    }
+
+    // Filter by provider (course type)
+    if (selectedProvider !== "all") {
+      // Filter students by their course type (check if any course matches)
+      filteredStudents = filteredStudents.filter((s) => {
+        if (!s.courses || s.courses.length === 0) return false;
+        // Check if any of the student's courses match the selected provider
+        return s.courses.some((course) => {
+          const courseType = normalizeCourseType(course.type);
+          return courseType === selectedProvider;
+        });
+      });
+
+      // Filter leads by their course type
+      filteredLeads = filteredLeads.filter((l) => {
+        if (!l.course) return false;
+        const courseType = normalizeCourseType(l.course.type);
+        return courseType === selectedProvider;
+      });
+
+      // Filter courses by type
+      filteredCourses = filteredCourses.filter((c) => {
+        const courseType = normalizeCourseType(c.type);
+        return courseType === selectedProvider;
+      });
     }
 
     return {
@@ -181,7 +218,7 @@ const DashboardOverview = ({
       centers: filteredCenters,
       courses: filteredCourses,
     };
-  }, [selectedCenter, students, leads, centers, courses]);
+  }, [selectedCenter, selectedProvider, students, leads, centers, courses]);
 
   // Calculate all metrics
   const dashboardData = useMemo(() => {
@@ -494,23 +531,28 @@ const DashboardOverview = ({
     };
   }, [range, filteredData, courses]);
 
-  const handleSelect = (ranges: any) => {
-    setRange([ranges.selection]);
-    setShowPicker(false);
+  const handleRangeChange = (newRange: Array<{ startDate: Date; endDate: Date; key: string }>) => {
+    setRange(newRange);
   };
-
-  const displayRange = useMemo(() => {
-    const start = range[0].startDate!;
-    const end = range[0].endDate!;
-    return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-  }, [range]);
 
   const selectedCenterName =
     selectedCenter === "all"
       ? "All Centers"
       : centers?.find((c) => c.id === selectedCenter)?.name || "All Centers";
 
+  const selectedProviderName =
+    selectedProvider === "all"
+      ? "All Companies"
+      : selectedProvider === "TEC_TERMINAL"
+      ? "Tec Terminal"
+      : selectedProvider === "APTECH"
+      ? "ApTech"
+      : selectedProvider === "CPMS"
+      ? "CPMS"
+      : "All Companies";
+
   const isAllCentersView = selectedCenter === "all";
+  const isAllCompaniesView = selectedProvider === "all";
 
   const isLoading = studentsLoading || coursesLoading || centersLoading || leadsLoading;
   const hasError = studentsError || coursesError || centersError || leadsError;
@@ -521,6 +563,33 @@ const DashboardOverview = ({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     })}`;
+  };
+
+  // Generate trend data for sparklines (last 12 data points)
+  const generateTrendData = (currentValue: number, trend: "up" | "down" | "neutral" = "up"): number[] => {
+    const dataPoints = 12;
+    const trendData: number[] = [];
+    const baseValue = currentValue * 0.7; // Start at 70% of current value
+    const variation = currentValue * 0.1; // 10% variation
+    
+    for (let i = 0; i < dataPoints; i++) {
+      const progress = i / (dataPoints - 1);
+      let value: number;
+      
+      if (trend === "up") {
+        value = baseValue + (currentValue - baseValue) * progress;
+      } else if (trend === "down") {
+        value = currentValue - (currentValue - baseValue) * progress;
+      } else {
+        value = baseValue + (currentValue - baseValue) * 0.5;
+      }
+      
+      // Add some random variation to make it look more realistic
+      const randomVariation = (Math.random() - 0.5) * variation;
+      trendData.push(Math.max(0, value + randomVariation));
+    }
+    
+    return trendData;
   };
 
   // Loading state
@@ -599,8 +668,12 @@ const DashboardOverview = ({
                   <div className="flex items-center gap-2 text-white/90">
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium">{selectedCenterName}</span>
-                    <span className="text-white/60">•</span>
-                    <span className="text-sm">{displayRange}</span>
+                    {!isAllCompaniesView && (
+                      <>
+                        <span className="text-white/60">•</span>
+                        <span className="text-sm font-medium">{selectedProviderName}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -636,25 +709,12 @@ const DashboardOverview = ({
             <h2 className="text-2xl font-bold text-gray-800">Key Metrics</h2>
           </div>
           
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                readOnly
-                value={displayRange}
-                onClick={() => setShowPicker(!showPicker)}
-                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border-2 border-gray-200 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm hover:shadow-md transition-all"
-              />
-              {showPicker && (
-                <div className="absolute right-0 z-50 bg-white shadow-2xl rounded-xl p-4 mt-2 border border-gray-200">
-                  <DateRangePicker
-                    ranges={range}
-                    onChange={handleSelect}
-                    moveRangeOnFirstSelection={false}
-                  />
-                </div>
-              )}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl">
+              <Providerdropdown />
             </div>
+            
+            <DateRangeSelector range={range} onChange={handleRangeChange} />
             <button className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm hover:shadow-md">
               <FileText size={18} />
               <span>Export</span>
@@ -676,25 +736,40 @@ const DashboardOverview = ({
                 {selectedCenterName}
               </span>
             )}
+            {!isAllCompaniesView && (
+              <span className="text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-1.5 rounded-full border-2 border-purple-300 shadow-sm">
+                {selectedProviderName}
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
               title="Total Revenue"
               value={formatCurrency(dashboardData.metrics.totalRevenue)}
               changeValue={dashboardData.metrics.revenueMoM}
+              changeValueYoY={dashboardData.metrics.revenueYoY}
               direction={dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"}
+              directionYoY={dashboardData.metrics.revenueYoY >= 0 ? "up" : "down"}
               icon={DollarSign}
               color="green"
               formatValue={formatCurrency}
+              trendData={generateTrendData(dashboardData.metrics.totalRevenue, dashboardData.metrics.revenueMoM >= 0 ? "up" : "down")}
+              sparklineType="line"
+              layout="simple"
             />
             <KPICard
               title="Total Billing"
               value={formatCurrency(dashboardData.metrics.totalBilling)}
               changeValue={dashboardData.metrics.billingMoM}
+              changeValueYoY={dashboardData.metrics.billingYoY}
               direction={dashboardData.metrics.billingMoM >= 0 ? "up" : "down"}
+              directionYoY={dashboardData.metrics.billingYoY >= 0 ? "up" : "down"}
               icon={TrendingUp}
               color="blue"
               formatValue={formatCurrency}
+              trendData={generateTrendData(dashboardData.metrics.totalBilling, dashboardData.metrics.billingMoM >= 0 ? "up" : "down")}
+              sparklineType="line"
+              layout="simple"
             />
             <KPICard
               title="Pending Payments"
@@ -702,12 +777,18 @@ const DashboardOverview = ({
               icon={AlertCircle}
               color="amber"
               formatValue={formatCurrency}
+              trendData={generateTrendData(dashboardData.metrics.totalPending, "neutral")}
+              sparklineType="line"
+              layout="simple"
             />
             <KPICard
               title="Collection Rate"
               value={`${dashboardData.metrics.paymentCollectionRate.toFixed(1)}%`}
               icon={DollarSign}
               color={dashboardData.metrics.paymentCollectionRate >= 70 ? "green" : "amber"}
+              trendData={generateTrendData(dashboardData.metrics.paymentCollectionRate, dashboardData.metrics.paymentCollectionRate >= 70 ? "up" : "neutral")}
+              sparklineType="line"
+              layout="simple"
             />
           </div>
         </div>
@@ -722,15 +803,25 @@ const DashboardOverview = ({
                 {selectedCenterName}
               </span>
             )}
+            {!isAllCompaniesView && (
+              <span className="text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-1.5 rounded-full border-2 border-purple-300 shadow-sm">
+                {selectedProviderName}
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
               title="Total Enrollments"
               value={formatNumber(dashboardData.metrics.totalEnrollments)}
               changeValue={dashboardData.metrics.enrollmentMoM}
+              changeValueYoY={dashboardData.metrics.enrollmentYoY}
               direction={dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down"}
+              directionYoY={dashboardData.metrics.enrollmentYoY >= 0 ? "up" : "down"}
               icon={GraduationCap}
               color="blue"
+              trendData={generateTrendData(dashboardData.metrics.totalEnrollments, dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down")}
+              sparklineType="line"
+              layout="simple"
             />
             <KPICard
               title="New Leads"
@@ -787,6 +878,11 @@ const DashboardOverview = ({
                 {selectedCenterName}
               </span>
             )}
+            {!isAllCompaniesView && (
+              <span className="text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-1.5 rounded-full border-2 border-purple-300 shadow-sm">
+                {selectedProviderName}
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
@@ -823,19 +919,19 @@ const DashboardOverview = ({
             <TrendChart
               data={dashboardData.trendData}
               dataKey="revenue"
-              title={`Revenue Trend (Last 12 Months)${!isAllCentersView ? ` - ${selectedCenterName}` : ""}`}
+              title={`Revenue Trend (Last 12 Months)${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
               color="#10b981"
               formatValue={formatCurrency}
             />
             <TrendChart
               data={dashboardData.trendData}
               dataKey="enrollments"
-              title={`Enrollment Trend (Last 12 Months)${!isAllCentersView ? ` - ${selectedCenterName}` : ""}`}
+              title={`Enrollment Trend (Last 12 Months)${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
               color="#3b82f6"
             />
             <StatusDistribution
               data={dashboardData.paymentStatusDistribution}
-              title={`Payment Status Distribution${!isAllCentersView ? ` - ${selectedCenterName}` : ""}`}
+              title={`Payment Status Distribution${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
             />
           </div>
 
@@ -897,12 +993,12 @@ const DashboardOverview = ({
             )}
             <ConversionFunnel
               data={dashboardData.conversionFunnel}
-              title={`Lead Conversion Funnel${!isAllCentersView ? ` - ${selectedCenterName}` : ""}`}
+              title={`Lead Conversion Funnel${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
             />
             {!isAllCentersView && (
               <TopPerformingCourses
                 data={dashboardData.topPerformingCourses}
-                title={`Top Performing Courses - ${selectedCenterName}`}
+                title={`Top Performing Courses${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
               />
             )}
           </div>

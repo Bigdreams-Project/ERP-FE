@@ -26,9 +26,16 @@ const TopCentersChart = ({
   dataKey,
   title,
   color = "#3b82f6",
-  formatValue = (val) => `₦${val.toLocaleString()}`,
+  formatValue,
   maxItems = 5,
 }: TopCentersChartProps) => {
+  // Default formatter based on dataKey
+  const defaultFormatter = dataKey === "enrollments" 
+    ? (val: number) => val.toLocaleString()
+    : (val: number) => `₦${val.toLocaleString()}`;
+  
+  const valueFormatter = formatValue || defaultFormatter;
+
   const chartData = data
     .slice(0, maxItems)
     .map((center, index) => ({
@@ -49,40 +56,45 @@ const TopCentersChart = ({
   ];
 
   return (
-    <div className="group relative bg-white p-6 rounded-2xl shadow-lg border border-gray-100 transition-all duration-500 hover:shadow-2xl hover:scale-[1.01] overflow-hidden">
-      {/* Decorative gradient overlay */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-100/50 to-purple-100/50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
-      <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md">
-            <Trophy className="text-white" size={18} />
-          </div>
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-300 hover:shadow-md">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-indigo-500 rounded-lg">
+          <Trophy className="text-white" size={18} />
         </div>
-        {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData} margin={{ top: 10, right: 15, left: 0, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-              <XAxis
-                dataKey="name"
-                stroke="#9ca3af"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                angle={-45}
-                textAnchor="end"
-                height={70}
-                tick={{ fill: "#6b7280" }}
-              />
-              <YAxis
-                stroke="#9ca3af"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={formatValue}
-                tick={{ fill: "#6b7280" }}
-              />
+        <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+      </div>
+      {chartData.length > 0 ? (
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart 
+            data={chartData} 
+            margin={{ 
+              top: 10, 
+              right: 15, 
+              left: dataKey === "revenue" ? 70 : 50, 
+              bottom: 20 
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+            <XAxis
+              dataKey="name"
+              stroke="#9ca3af"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              angle={-45}
+              textAnchor="end"
+              height={70}
+              tick={{ fill: "#6b7280" }}
+            />
+            <YAxis
+              stroke="#9ca3af"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={valueFormatter}
+              tick={{ fill: "#6b7280" }}
+              width={dataKey === "revenue" ? 65 : 45}
+            />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "white",
@@ -91,7 +103,7 @@ const TopCentersChart = ({
                   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                   padding: "12px",
                 }}
-                formatter={(value: number) => formatValue(value)}
+                formatter={(value: number) => valueFormatter(value)}
                 labelFormatter={(label, payload) =>
                   payload?.[0]?.payload?.fullName || label
                 }
@@ -114,7 +126,6 @@ const TopCentersChart = ({
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 };

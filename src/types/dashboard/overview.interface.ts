@@ -113,11 +113,15 @@ export interface KPICardProps {
   title: string;
   value: string | number;
   change?: string;
-  changeValue?: number;
+  changeValue?: number; // MoM (Month-over-Month)
+  changeValueYoY?: number; // YoY (Year-over-Year)
   direction?: "up" | "down" | "neutral";
+  directionYoY?: "up" | "down" | "neutral";
   icon: React.ComponentType<{ className?: string; size?: number }>;
   trendData?: number[];
-  color?: "green" | "red" | "amber" | "blue";
+  color?: "green" | "red" | "amber" | "blue" | "purple";
   formatValue?: (value: number) => string;
+  sparklineType?: "area" | "line";
+  layout?: "default" | "simple"; // Simple layout matches the design exactly
 }
 
