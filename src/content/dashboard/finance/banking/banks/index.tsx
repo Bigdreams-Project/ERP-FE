@@ -63,7 +63,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
 
   // Use React Query to fetch and cache banks
   // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
-  const { data: banks, isLoading: isLoadingBanks } = useQuery({
+  const { data: banks, isLoading: isLoadingBanks, error: banksError } = useQuery({
     queryKey: ["banks", selectedCenter],
     queryFn: async () => {
       console.log("Fetching banks with centerId:", centerIdForFetch);
@@ -239,6 +239,19 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
           {isLoadingBanks || isCenterLoading ? (
             <div className="flex items-center justify-center h-64">
               <p className="text-gray-500">Loading banks...</p>
+            </div>
+          ) : banksError ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <p className="text-red-500 font-semibold mb-2">Error loading banks</p>
+              <p className="text-gray-600 text-sm">
+                {banksError instanceof Error ? banksError.message : "Failed to fetch banks. Please try again."}
+              </p>
+              <button
+                onClick={() => queryClient.refetchQueries({ queryKey: ["banks", selectedCenter] })}
+                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
+              >
+                Retry
+              </button>
             </div>
           ) : (
             <TransactionsTable
