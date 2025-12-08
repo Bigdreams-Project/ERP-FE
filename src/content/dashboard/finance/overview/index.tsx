@@ -6,12 +6,16 @@ import TopPerformingCenter from "@/components/finance/TopPerformingCenter";
 import { Center } from "@/types/academic/center.interface";
 import { User } from "@/types/auth/user.interface";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { BiHomeAlt2 } from "react-icons/bi";
 import { IoDocumentAttachOutline } from "react-icons/io5";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getFinanceOverviewClient } from "@/lib/client-network";
+import { useCenter } from "@/context/CenterContext";
+import { userRoles } from "@/data/common/roles.data";
 
 interface OverviewContentProps {
   user: User;
@@ -35,7 +39,75 @@ interface OverviewContentProps {
   };
 }
 
-const OverviewContent = ({ user, overview }: OverviewContentProps) => {
+const OverviewContent = ({ user, overview: initialOverview }: OverviewContentProps) => {
+  const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
+
+  const queryClient = useQueryClient();
+  
+  // Determine the center ID to use for filtering
+  // For non-center-managers: when selectedCenter is "all", pass null to get all records
+  // For center-managers: selectedCenter will be their center ID, so they only see their center's records
+  const centerIdForFetch = selectedCenter === "all" ? null : selectedCenter;
+  
+  // Debug logging
+  useEffect(() => {
+    console.log("Finance Overview page - selectedCenter:", selectedCenter, "centerIdForFetch:", centerIdForFetch, "isCenterLoading:", isCenterLoading);
+  }, [selectedCenter, centerIdForFetch, isCenterLoading]);
+
+  // Use React Query to fetch and cache finance overview
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
+  const { data: overview } = useQuery({
+    queryKey: ["financeOverview", selectedCenter],
+    queryFn: async () => {
+      console.log("Fetching finance overview with centerId:", centerIdForFetch);
+      const result = await getFinanceOverviewClient(centerIdForFetch);
+      console.log("Received finance overview data");
+      return result;
+    },
+    // Don't use initialData - always fetch fresh data based on selectedCenter
+    // This ensures we get the correct data for the selected center
+    staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
+    refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
+    enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
+  });
+
+  // Use overview data or fallback to empty structure if loading
+  const overviewData = overview || {
+    totalRevenue: 0,
+    totalPending: 0,
+    totalPayments: 0,
+    topCenters: [],
+    topPendingCenters: [],
+    topPerformingCenter: {} as Center,
+  };
+
+  // Format role to user-friendly display name
+  const userRoleDisplay = useMemo(() => {
+    if (!user?.role) return "User";
+    const roleUpper = user.role.toUpperCase();
+    const roleData = userRoles.find((r) => r.value === roleUpper);
+    if (roleData) {
+      return roleData.label;
+    }
+    return roleUpper
+      .split("_")
+      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(" ");
+  }, [user?.role]);
+
+  // Refetch finance overview whenever selectedCenter changes
+  // This ensures data is filtered correctly when user selects a different center from dropdown
+  useEffect(() => {
+    if (!isCenterLoading && selectedCenter) {
+      console.log("Refetching finance overview for selectedCenter:", selectedCenter);
+      // Invalidate cache to ensure fresh data, then refetch
+      queryClient.invalidateQueries({ queryKey: ["financeOverview"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["financeOverview", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
+    }
+  }, [selectedCenter, isCenterLoading, queryClient]);
   const [showPicker, setShowPicker] = useState(false);
   const [range, setRange] = useState([
     {
@@ -71,16 +143,16 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
     return `N${amount}`;
   };
 
-  const revenueDistribution = overview.topCenters.map((center, index) => ({
+  const revenueDistribution = overviewData.topCenters.map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => ({
     name: center.center,
-    value: formatRevenue(parseFloat(center.revenue) / 2),
+    value: parseFloat(center.revenue) || 0, // Pass numeric value directly
     color: colorClasses[index % colorClasses.length],
   }));
 
-  const pendingCenterPayments = overview.topPendingCenters.map(
-    (center, index) => ({
+  const pendingCenterPayments = overviewData.topPendingCenters.map(
+    (center: { center: string; status: string; pending: string; revenue: string }, index: number) => ({
       name: center.center,
-      value: formatRevenue(parseFloat(center.pending)),
+      value: parseFloat(center.pending) || 0, // Pass numeric value directly
       color: colorClasses[index % colorClasses.length],
     })
   );
@@ -119,13 +191,13 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
               Have a great day today, let's dive into your financial operations.
             </p>
             <p className="text-sm font-medium text-white mt-2">
-              Role: {user?.role?.toLocaleUpperCase()}
+              Role: {userRoleDisplay}
             </p>
           </div>
         </div>
 
         <div className="relative">
-          <div className="flex justify-end space-x-4 my-4">
+          <div className="hidden justify-end space-x-4 my-4">
             <IconButton
               icon={<Plus size={17} />}
               text="Record Payment"
@@ -189,7 +261,7 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
             <div className="flex items-center space-x-4">
               <ChartLegend
                 data={revenueDistribution}
-                totalRevenue={overview.totalRevenue}
+                totalRevenue={overviewData.totalRevenue}
               />
             </div>
           </div>
@@ -205,7 +277,7 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
             <div className="flex items-center space-x-4">
               <ChartLegendPending
                 data={pendingCenterPayments}
-                totalPending={overview.totalPending}
+                totalPending={overviewData.totalPending}
               />
             </div>
           </div>
@@ -216,7 +288,7 @@ const OverviewContent = ({ user, overview }: OverviewContentProps) => {
               Top Performing Centers
             </h2>
             <ul className="space-y-4">
-              {overview.topCenters?.map((center, index) => (
+              {overviewData.topCenters?.map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => (
                 <TopPerformingCenter
                   key={index}
                   number={index + 1}

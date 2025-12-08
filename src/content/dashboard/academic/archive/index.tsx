@@ -60,7 +60,7 @@ const ArchiveContent = ({
   // Fetch centers using React Query
   const { data: centersData = centers } = useQuery({
     queryKey: ["centers"],
-    queryFn: getCentersClient,
+    queryFn: () => getCentersClient(),
     initialData: centers,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -69,7 +69,7 @@ const ArchiveContent = ({
   // Fetch courses using React Query
   const { data: coursesData = initialCourses } = useQuery({
     queryKey: ["courses"],
-    queryFn: getCoursesClient,
+    queryFn: () => getCoursesClient(),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,

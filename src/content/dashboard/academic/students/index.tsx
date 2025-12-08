@@ -21,6 +21,7 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { Archive } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useCenter } from "@/context/CenterContext";
 
 interface StudentContentProps {
   students: Student[];
@@ -41,6 +42,7 @@ const StudentContent = ({
   const queryClient = useQueryClient();
   const router = useRouter();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
   
   // Set user data in cache synchronously (before paint) so useIsAdmin hook can use it immediately
   useLayoutEffect(() => {
@@ -50,13 +52,48 @@ const StudentContent = ({
   }, [initialUser, queryClient]);
   
   // Use React Query to fetch and cache students
-  const { data: students = initialStudents } = useQuery({
-    queryKey: ["students"],
-    queryFn: getStudentsClient,
-    initialData: initialStudents,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
+  // For non-center-managers: when selectedCenter is "all", pass null to get all records
+  // For center-managers: selectedCenter will be their center ID, so they only see their center's records
+  const centerIdForFetch = selectedCenter === "all" ? null : selectedCenter;
+  
+  // Debug logging
+  useEffect(() => {
+    console.log("Students page - selectedCenter:", selectedCenter, "centerIdForFetch:", centerIdForFetch, "isCenterLoading:", isCenterLoading);
+  }, [selectedCenter, centerIdForFetch, isCenterLoading]);
+  
+  const { data: students, isLoading: isLoadingStudents } = useQuery({
+    queryKey: ["students", selectedCenter],
+    queryFn: async () => {
+      console.log("Fetching students with centerId:", centerIdForFetch);
+      const result = await getStudentsClient(centerIdForFetch);
+      console.log("Received students:", result?.length || 0, "students");
+      return result;
+    },
+    // Don't use initialData - always fetch fresh data based on selectedCenter
+    // This ensures we get the correct data for the selected center
+    staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
+    refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
+    enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
   });
+
+  // Use fetched data - don't fallback to initialStudents as it might be filtered from server-side
+  // When selectedCenter is "all", we want fresh data from the API, not cached server data
+  const displayStudents = students ?? [];
+
+  // Refetch students when selectedCenter changes
+  // This ensures non-center-managers see all records when selectedCenter is "all"
+  useEffect(() => {
+    if (!isCenterLoading && selectedCenter) {
+      console.log("Refetching students for selectedCenter:", selectedCenter);
+      // Invalidate all student queries to clear cache, then refetch
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["students", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
+    }
+  }, [selectedCenter, isCenterLoading, queryClient]);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
@@ -105,8 +142,9 @@ const StudentContent = ({
     setIsFilterDropdown(false);
   };
 
-  const filteredData = students.filter((student: Student) => {
-    // All students are active (no soft delete filtering)
+  // Backend handles center filtering, so we only filter by search and status
+  // Use displayStudents which is the fetched data, not initialStudents
+  const filteredData = displayStudents.filter((student: Student) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       (student.fullName?.toLowerCase() || "").includes(query) ||
@@ -120,13 +158,14 @@ const StudentContent = ({
   // Mutation for creating students
   const { mutate: createStudentMutation, isPending: isCreating } = useMutation({
     mutationFn: async (payload: CreateStudent) => {
-      return await createStudentClient(payload);
+      // Pass selectedCenter to ensure center context is maintained
+      return await createStudentClient(payload, selectedCenter === "all" ? null : selectedCenter);
     },
     onSuccess: async () => {
       showSuccess("Student enrolled successfully");
       setIsModalOpen(false);
       // Refetch students immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["students"] });
+      await queryClient.refetchQueries({ queryKey: ["students", selectedCenter] });
     },
     onError: (error: any) => {
       console.error("Failed to save student:", error);

@@ -1,9 +1,12 @@
 "use client";
 
 import AddPaymentModal from "@/components/modals/academic/AddPaymentModal";
+import DiscountRequestModal from "@/components/modals/finance/DiscountRequestModal";
 import { getStudentCourses } from "@/lib/network";
+import { createDiscountRequestClient } from "@/lib/client-network";
 import { formatDate } from "@/lib/utils";
 import { Student } from "@/types/academic/student.interface";
+import { CreateDiscountRequest } from "@/types/finance/discount.interface";
 import { useEffect, useState } from "react";
 import Card from "./Card";
 import InfoItem from "./InfoItem";
@@ -57,12 +60,27 @@ const StudentCourses = ({ data }: Props) => {
                   <h3 className="font-semibold text-gray-800">
                     {course.course.name}
                   </h3>
-                  <button
-                    onClick={() => setSelectedCourse({ course: course })}
-                    className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 transition"
-                  >
-                    Add Payment
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setSelectedCourse({
+                          course: course,
+                          action: "discount",
+                        })
+                      }
+                      className="bg-indigo-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-indigo-700 transition"
+                    >
+                      Offer Discount
+                    </button>
+                    <button
+                      onClick={() =>
+                        setSelectedCourse({ course: course, action: "payment" })
+                      }
+                      className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 transition"
+                    >
+                      Add Payment
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-6">
@@ -108,12 +126,25 @@ const StudentCourses = ({ data }: Props) => {
         </div>
       )}
 
-      {selectedCourse && (
+      {selectedCourse && selectedCourse.action === "payment" && (
         <AddPaymentModal
           course={selectedCourse.course}
           paymentPlan={selectedCourse.course.paymentPlan}
           studentId={data.id}
           onClose={() => setSelectedCourse(null)}
+        />
+      )}
+
+      {selectedCourse && selectedCourse.action === "discount" && (
+        <DiscountRequestModal
+          studentId={data.id}
+          course={selectedCourse.course.course}
+          paymentPlan={selectedCourse.course.paymentPlan}
+          isOpen={true}
+          onClose={() => setSelectedCourse(null)}
+          onSubmit={async (request: CreateDiscountRequest) => {
+            await createDiscountRequestClient(request);
+          }}
         />
       )}
     </Card>

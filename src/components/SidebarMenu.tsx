@@ -1,5 +1,6 @@
 "use client";
 import { useUser } from "@/context/UserContext";
+import { useCenter } from "@/context/CenterContext";
 import { logoutUser } from "@/lib/auth/login";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,6 +13,10 @@ import SettingsIcon from "./svg/SettingsIcon";
 import StaffIcon from "./svg/StaffIcon";
 import HouseIcon from "./svg/HouseIcon";
 import { AuthRoutes } from "@/constants/apiRoutes.constant";
+import { canAccessCentersPage } from "@/lib/utils/center-permissions";
+import { useQuery } from "@tanstack/react-query";
+import { getLoggedInUserClient } from "@/lib/client-network";
+import { User } from "@/types/auth/user.interface";
 
 interface SidebarLink {
   label: string;
@@ -34,7 +39,19 @@ const SidebarMenu = ({
   toggleSidebar: () => void;
 }) => {
   const router = useRouter();
-  const { user } = useUser();
+  const { user: userFromContext } = useUser();
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
+  
+  // Fallback to React Query if user is not in context
+  const { data: userFromQuery } = useQuery<User>({
+    queryKey: ["user"],
+    queryFn: () => getLoggedInUserClient(),
+    staleTime: 1000 * 60 * 5,
+    enabled: !userFromContext, // Only fetch if not in context
+  });
+  
+  // Use user from context if available, otherwise from query
+  const user = userFromContext || userFromQuery;
   // const userPermissions = permissions[user?.role ?? "staff"];
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -89,8 +106,13 @@ const SidebarMenu = ({
 
   const logout = () => {
     logoutUser();
-    router.push(AuthRoutes.LOGIN)
-  }
+    router.push(AuthRoutes.LOGIN);
+  };
+
+  // Determine if user can access the Centers page
+  // ONLY ADMIN, CEO, and EXECUTIVE_DIRECTOR should see the Centers page
+  // This is different from canSwitchCenters which includes more roles
+  const canAccessCenters = canAccessCentersPage(user?.role);
 
   // Sidebar Menu
   const sidebarMenu: SidebarSection[] = [
@@ -100,7 +122,11 @@ const SidebarMenu = ({
       links: [
         { label: "Overview", href: "/dashboard/academic/overview" },
         { label: "Leads", href: "/dashboard/academic/leads" },
-        { label: "Centers", href: "/dashboard/academic/centers" },
+        // Only show Centers link for ADMIN, CEO, EXECUTIVE_DIRECTOR
+        // Show while loading to prevent flicker
+        ...(canAccessCenters || isCenterLoading
+          ? [{ label: "Centers", href: "/dashboard/academic/centers" }]
+          : []),
         { label: "Students", href: "/dashboard/academic/students" },
         { label: "Courses", href: "/dashboard/academic/courses" },
         { label: "Batches", href: "/dashboard/academic/batches" },
@@ -114,6 +140,10 @@ const SidebarMenu = ({
         {
           label: "Transactions",
           href: "/dashboard/finance/banking/banks",
+        },
+        {
+          label: "Refunds",
+          href: "/dashboard/finance/refunds",
         },
         // { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
         // {
@@ -152,6 +182,10 @@ const SidebarMenu = ({
         {
           label: "User Management",
           href: "/dashboard/settings/users",
+        },
+        {
+          label: "Support Tickets",
+          href: "/dashboard/settings/tickets",
         },
       ],
     },

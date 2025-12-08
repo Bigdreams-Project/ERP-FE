@@ -20,6 +20,7 @@ export const userRoles = [
   { value: "GUARDIAN", label: "Guardian" },
   { value: "CEO", label: "CEO" },
   { value: "EXECUTIVE_ASSISTANT", label: "Executive Assistant" },
+  { value: "EXECUTIVE_DIRECTOR", label: "Executive Director" },
 ];
 
 export const userRolesEnum = {

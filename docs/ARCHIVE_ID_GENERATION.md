@@ -1,6 +1,6 @@
 # Archive Student ID Generation - Frontend vs Backend
 
-## Summary
+## Summary of implementation
 
 **Student ID generation is handled by the FRONTEND** for archive records.
 

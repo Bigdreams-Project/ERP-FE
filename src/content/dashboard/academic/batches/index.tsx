@@ -20,6 +20,7 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateBatch } from "@/types/requests/batch.interface";
+import { useCenter } from "@/context/CenterContext";
 
 interface BatchesContentProps {
   batches: Batch[];
@@ -55,6 +56,7 @@ const BatchesContent = ({
   students: initialStudents,
   faculties: initialFaculties,
 }: BatchesContentProps) => {
+  const { selectedCenter } = useCenter();
   const queryClient = useQueryClient();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -69,18 +71,38 @@ const BatchesContent = ({
   });
 
   // Use React Query to fetch and cache batches
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
+  // For non-center-managers: when selectedCenter is "all", pass null to get all records
+  // For center-managers: selectedCenter will be their center ID, so they only see their center's records
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
+  
   const { data: batches = initialBatches } = useQuery({
-    queryKey: ["batches"],
-    queryFn: getBatchesClient,
-    initialData: initialBatches,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    queryKey: ["batches", selectedCenter],
+    queryFn: () =>
+      getBatchesClient(selectedCenter === "all" ? null : selectedCenter),
+    // Use placeholderData instead of initialData to allow refetching
+    // This ensures we always get fresh data based on selectedCenter
+    placeholderData: initialBatches,
+    staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
+    refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
+    enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
   });
+
+  // Refetch batches when selectedCenter changes
+  // This ensures non-center-managers see all records when selectedCenter is "all"
+  useEffect(() => {
+    if (!isCenterLoading && selectedCenter) {
+      queryClient.refetchQueries({ 
+        queryKey: ["batches", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
+    }
+  }, [selectedCenter, isCenterLoading, queryClient]);
 
   // Use React Query to fetch and cache courses
   const { data: courses = initialCourses } = useQuery({
     queryKey: ["courses"],
-    queryFn: getCoursesClient,
+    queryFn: () => getCoursesClient(),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -89,7 +111,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache students
   const { data: students = initialStudents } = useQuery({
     queryKey: ["students"],
-    queryFn: getStudentsClient,
+    queryFn: () => getStudentsClient(),
     initialData: initialStudents,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -98,7 +120,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache faculties
   const { data: faculties = initialFaculties } = useQuery({
     queryKey: ["faculties"],
-    queryFn: getFacultiesClient,
+    queryFn: () => getFacultiesClient(),
     initialData: initialFaculties,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -106,12 +128,15 @@ const BatchesContent = ({
 
   // Mutation for creating batches
   const { mutate: createBatchMutation, isPending: isCreating } = useMutation({
-    mutationFn: createBatchClient,
+    mutationFn: (payload: CreateBatch) => {
+      // Pass selectedCenter to ensure center context is maintained
+      return createBatchClient(payload, selectedCenter === "all" ? null : selectedCenter);
+    },
     onSuccess: async () => {
       showSuccess("Batch created successfully!");
       setIsModalOpen(false);
       // Refetch batches immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["batches"] });
+      await queryClient.refetchQueries({ queryKey: ["batches", selectedCenter] });
     },
     onError: (error: any) => {
       console.error("Failed to save batch:", error);
@@ -190,6 +215,7 @@ const BatchesContent = ({
     setDateFilterName("");
   };
 
+  // Backend handles center filtering, so we only filter by search, status, and date
   const filteredData = batches.filter((batch: Batch) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =

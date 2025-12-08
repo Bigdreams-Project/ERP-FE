@@ -28,18 +28,42 @@ interface LeadContentProps {
   courses: Course[];
 }
 
-const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps) => {
-  const { selectedCenter } = useCenter();
+const LeadContent = ({
+  leads: initialLeads,
+  centers,
+  courses,
+}: LeadContentProps) => {
+  const {
+    selectedCenter,
+    isLoading: isCenterLoading,
+    centerContext,
+  } = useCenter();
   const queryClient = useQueryClient();
 
   // Use React Query to fetch and cache leads
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
   const { data: leads = initialLeads } = useQuery({
-    queryKey: ["leads"],
-    queryFn: getLeadsClient,
+    queryKey: ["leads", selectedCenter],
+    queryFn: () =>
+      getLeadsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialLeads,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    refetchOnMount: false,
+    refetchOnMount: true, // Enable refetching when component mounts
   });
+
+  // Refetch leads whenever selectedCenter changes
+  // This ensures data is filtered correctly when user selects a different center from dropdown
+  useEffect(() => {
+    if (!isCenterLoading && selectedCenter) {
+      console.log("Refetching leads for selectedCenter:", selectedCenter);
+      // Invalidate cache to ensure fresh data, then refetch
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["leads", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
+    }
+  }, [selectedCenter, isCenterLoading, queryClient]);
 
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,10 +76,8 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
     endDate: "",
   });
 
-  const filteredLeads =
-    selectedCenter === "all"
-      ? leads
-      : leads.filter((lead: Lead) => lead.centerId === selectedCenter);
+  // Backend handles filtering, so we use leads directly
+  const filteredLeads = leads;
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -78,13 +100,17 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
   // Mutation for creating leads
   const { mutate: createLeadMutation, isPending: isCreating } = useMutation({
     mutationFn: async (payload: CreateLead) => {
-      return await createLeadClient(payload);
+      // Pass selectedCenter to ensure center context is maintained
+      return await createLeadClient(
+        payload,
+        selectedCenter === "all" ? null : selectedCenter
+      );
     },
     onSuccess: async () => {
       showSuccess("Lead created successfully");
       setIsModalOpen(false);
       // Refetch leads immediately to update the list
-      await queryClient.refetchQueries({ queryKey: ["leads"] });
+      await queryClient.refetchQueries({ queryKey: ["leads", selectedCenter] });
     },
     onError: (error: any) => {
       console.error("Failed to save lead:", error);
@@ -106,31 +132,39 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
       parentName: payload.guardianName,
       parentPhone: payload.guardianPhone,
       // Only include parentEmail if it's a valid email, otherwise omit it
-      ...(payload.guardianEmail && payload.guardianEmail.trim() !== "" && {
-        parentEmail: payload.guardianEmail
-      }),
+      ...(payload.guardianEmail &&
+        payload.guardianEmail.trim() !== "" && {
+          parentEmail: payload.guardianEmail,
+        }),
       courseId: payload.courseId,
       centerId: payload.centerId,
       enquiryDate: payload.enquiryDate,
       source: payload.source,
       // Optional fields - only include if they have values
-      ...(payload.nextFollowUpDate && payload.nextFollowUpDate.trim() !== "" && { 
-        nextFollowUpDate: payload.nextFollowUpDate 
-      }),
-      ...(payload.lastFollowUpDate && payload.lastFollowUpDate.trim() !== "" && { 
-        lastFollowUpDate: payload.lastFollowUpDate 
-      }),
-      ...(payload.assignedTo && payload.assignedTo.trim() !== "" && { 
-        assignedTo: payload.assignedTo 
-      }),
-      ...(payload.note && payload.note.trim() !== "" && { 
-        note: payload.note 
-      }),
+      ...(payload.nextFollowUpDate &&
+        payload.nextFollowUpDate.trim() !== "" && {
+          nextFollowUpDate: payload.nextFollowUpDate,
+        }),
+      ...(payload.lastFollowUpDate &&
+        payload.lastFollowUpDate.trim() !== "" && {
+          lastFollowUpDate: payload.lastFollowUpDate,
+        }),
+      ...(payload.assignedTo &&
+        payload.assignedTo.trim() !== "" && {
+          assignedTo: payload.assignedTo,
+        }),
+      ...(payload.note &&
+        payload.note.trim() !== "" && {
+          note: payload.note,
+        }),
     };
-    
+
     // Log the payload for debugging
-    console.log("Transformed payload being sent:", JSON.stringify(transformedPayload, null, 2));
-    
+    console.log(
+      "Transformed payload being sent:",
+      JSON.stringify(transformedPayload, null, 2)
+    );
+
     createLeadMutation(transformedPayload);
   };
 
@@ -204,7 +238,7 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
       </div>
 
       <LeadTable
-        leads={leads}
+        leads={filteredLeads}
         centers={centers}
         courses={courses}
         searchQuery={searchQuery}
@@ -217,6 +251,11 @@ const LeadContent = ({ leads: initialLeads, centers, courses }: LeadContentProps
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         mode="add"
+        initialData={
+          selectedCenter !== "all" && selectedCenter
+            ? { centerId: selectedCenter, note: "" }
+            : undefined
+        }
       />
     </div>
   );

@@ -36,7 +36,7 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
   // Use React Query to fetch and cache courses
   const { data: courses = initialCourses } = useQuery({
     queryKey: ["courses"],
-    queryFn: getCoursesClient,
+    queryFn: () => getCoursesClient(),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,

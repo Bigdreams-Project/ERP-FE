@@ -1,7 +1,29 @@
-import { studentPayment } from "@/data/mock/finance.data";
+"use client";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { uploadFileClient, getStudentFilesClient } from "@/lib/client-network";
+import { showError, showSuccess } from "@/lib/toast";
+import { File as StudentFile } from "@/types/academic/file.interface";
+import { Student } from "@/types/academic/student.interface";
 import Card from "./Card";
+import { formatDate } from "@/lib/utils";
 
-const ProofOfPaymentUpload = ({ data }: any) => {
+interface ProofOfPaymentUploadProps {
+  data: Student;
+}
+
+const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  // Fetch uploaded files
+  const { data: files = [], refetch } = useQuery({
+    queryKey: ["student-files", data.id, "payment_receipt"],
+    queryFn: () => getStudentFilesClient(data.id, "payment_receipt"),
+  });
+
   const CloudUpload = (props: any) => (
     <svg
       {...props}
@@ -21,6 +43,73 @@ const ProofOfPaymentUpload = ({ data }: any) => {
     </svg>
   );
 
+  const handleFileSelect = async (file: globalThis.File) => {
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      showError("Invalid file type. Only PDF, JPG, and PNG are accepted.");
+      return;
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showError("File size exceeds 5MB limit.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await uploadFileClient(file, data.id, "payment_receipt");
+      showSuccess("File uploaded successfully!");
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ["student-files"] });
+    } catch (error: any) {
+      showError(error.message || "Failed to upload file");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const paymentReceipts = files.filter(
+    (file: StudentFile) => file.fileType === "payment_receipt"
+  );
+
   return (
     <Card title="Upload Proof of Payment" className="h-">
       <p className="text-xs text-gray-500 mb-4">
@@ -29,32 +118,61 @@ const ProofOfPaymentUpload = ({ data }: any) => {
 
       {/* Drag and Drop Area */}
       <div
-        className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-xl mb-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition duration-150"
-        onClick={() => document.getElementById("file-upload")!.click()}
+        className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl mb-6 text-center cursor-pointer transition duration-150 ${
+          isDragging
+            ? "border-blue-500 bg-blue-100"
+            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+        } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={handleClick}
       >
-        <CloudUpload className="text-gray-400 mb-2" />
-        <p className="text-sm font-medium text-gray-600">
-          Drag & drop files here or click to upload
-        </p>
-        <input type="file" id="file-upload" className="hidden" multiple />
+        {isUploading ? (
+          <>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+            <p className="text-sm font-medium text-gray-600">Uploading...</p>
+          </>
+        ) : (
+          <>
+            <CloudUpload className="text-gray-400 mb-2" />
+            <p className="text-sm font-medium text-gray-600">
+              Drag & drop files here or click to upload
+            </p>
+          </>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={handleFileInputChange}
+          disabled={isUploading}
+        />
       </div>
 
       {/* Recently Uploaded */}
       <h3 className="text-sm font-medium text-gray-700 mb-2">
         Recently Uploaded:
       </h3>
-      <div className="space-y-1">
-        {/* {studentPayment.recentlyUploaded.map((file: any, index: any) => (
-          <p
-            key={index}
-            className="text-xs text-blue-600 hover:underline cursor-pointer"
-          >
-            {file}
+      <div className="space-y-1 max-h-40 overflow-y-auto">
+        {paymentReceipts.length > 0 ? (
+          paymentReceipts.map((file: StudentFile) => (
+            <a
+              key={file.id}
+              href={file.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-xs text-blue-600 hover:underline cursor-pointer"
+            >
+              {file.fileName} - {formatDate(file.uploadedAt)}
+            </a>
+          ))
+        ) : (
+          <p className="text-xs text-gray-500">
+            No receipts available. Please upload.
           </p>
-        ))} */}
-        <p className="text-xs text-blue-600">
-          No receipts available. Please upload.
-        </p>
+        )}
       </div>
     </Card>
   );

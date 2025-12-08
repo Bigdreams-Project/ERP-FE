@@ -1,16 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CenterTable from "@/components/academic/tables/Center.table";
 import CenterModal from "@/components/modals/academic/Center.modal";
-import { createCenterClient, getCentersClient } from "@/lib/client-network";
+import { createCenterClient, getCentersClient, getLoggedInUserClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCenter } from "@/context/CenterContext";
+import { canAccessCentersPage } from "@/lib/utils/center-permissions";
+import { User } from "@/types/auth/user.interface";
 
 interface CenterContentProps {
   centers: Center[];
@@ -22,6 +26,34 @@ const CenterContent = ({
   managers,
 }: CenterContentProps) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
+
+  // Fetch user to check role
+  const { data: user } = useQuery<User>({
+    queryKey: ["user"],
+    queryFn: () => getLoggedInUserClient(),
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  // Check if user can access centers page based on role
+  // ONLY ADMIN, CEO, and EXECUTIVE_DIRECTOR should access the centers page
+  // This is different from canSwitchCenters which includes more roles
+  const canAccessCenters = canAccessCentersPage(user?.role);
+
+  // Redirect users who shouldn't have access to centers page
+  useEffect(() => {
+    if (!isCenterLoading && user && !canAccessCenters) {
+      // User doesn't have permission, redirect to overview
+      router.push("/dashboard/academic/overview");
+    }
+  }, [isCenterLoading, user, canAccessCenters, router]);
+
+  // Don't render anything if user doesn't have access
+  if (!isCenterLoading && user && !canAccessCenters) {
+    return null;
+  }
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -31,7 +63,7 @@ const CenterContent = ({
   // Use React Query to fetch and cache centers
   const { data: centers = initialCenters } = useQuery({
     queryKey: ["centers"],
-    queryFn: getCentersClient,
+    queryFn: () => getCentersClient(),
     initialData: initialCenters,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     refetchOnMount: false,
