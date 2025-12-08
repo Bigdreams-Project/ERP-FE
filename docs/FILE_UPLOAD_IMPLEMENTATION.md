@@ -212,3 +212,6 @@ AWS_S3_BUCKET_NAME=your-bucket-name
 - The `uploadedBy` field should be populated with the current user's ID from the session
 - For profile images, consider updating the `student.image` field to point to the uploaded file URL (optional)
 
+
+
+
