@@ -6,16 +6,17 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 // Removed unused mock data import to speed up compilation
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useEntityDelete } from "@/hooks/useEntityDelete";
-import { createStudentClient, archiveStudentToArchiveClient } from "@/lib/client-network";
+import { createStudentClient, archiveStudentToArchiveClient, enrollStudentToProgramClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
+import { programTypeLabels } from "@/data/constants/program.constants";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
-import { ChevronDown, Link2Icon, Archive } from "lucide-react";
+import { ChevronDown, Link2Icon, Archive, Eye, Trash2, DollarSign, GraduationCap, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -52,7 +53,6 @@ export default function StudentTable({
   
   const [data, setData] = useState(filteredData);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -92,23 +92,6 @@ export default function StudentTable({
     );
   };
 
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedStudents.includes(id!)
-    );
-
-    if (allSelected) {
-      setSelectedStudents((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedStudents((prev: any) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
 
   const handleSave = (payload: CreateStudent | UpdateStudent) => {
     // In enroll mode, payload is always CreateStudent
@@ -176,11 +159,6 @@ export default function StudentTable({
     setIsModalOpen(true);
   };
 
-  const handleCheckboxChange = (id: string) => {
-    setSelectedStudents((prev) =>
-      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
-    );
-  };
 
   const handleHardDelete = async (studentId: string) => {
     try {
@@ -194,6 +172,18 @@ export default function StudentTable({
     }
   };
 
+  const handleEnrollToProgram = async (studentId: string, programType: "JPTP" | "INTERNSHIP") => {
+    try {
+      await enrollStudentToProgramClient(studentId, programType);
+      showSuccess(`Student enrolled to ${programType} program successfully`);
+      setOpenDropdown(null);
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    } catch (error: any) {
+      console.error("Failed to enroll student to program:", error);
+      showError(error.message || "Failed to enroll student to program");
+    }
+  };
+
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white rounded-lg relative overflow-hidden">
@@ -204,20 +194,7 @@ export default function StudentTable({
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
               <thead>
                 <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((student) =>
-                          selectedStudents.includes(student.id!)
-                        )
-                      }
-                      onChange={handleSelectAll}
-                      className="mr-2 accent-primary align-middle"
-                    />{" "}
-                    #
-                  </th>
+                  <th className="p-4">#</th>
                   <th className="p-4">Student ID</th>
                   <th className="p-4">Name</th>
                   <th className="p-4">Email</th>
@@ -238,13 +215,7 @@ export default function StudentTable({
                     key={student.id}
                     className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
-                    <td className="p-4 flex items-center align-middle">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudents.includes(student.id!)}
-                        onChange={() => handleCheckboxChange(student.id!)}
-                        className="mr-2 accent-primary"
-                      />
+                    <td className="p-4">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3">
@@ -300,8 +271,9 @@ export default function StudentTable({
                                 `/dashboard/academic/students/${student.id!}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
+                            <Eye size={16} />
                             View
                           </button>
                           <button
@@ -310,16 +282,29 @@ export default function StudentTable({
                                 `/dashboard/academic/students/enrollment/${student.id!}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
+                            <DollarSign size={16} />
                             Record Payment
                           </button>
-                          {/* <button
-                            onClick={() => handleEdit(student.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button> */}
+                          {(student.programType !== "JPTP" && (!student.programType || student.programType === "REGULAR_STUDENT")) && (
+                            <button
+                              onClick={() => handleEnrollToProgram(student.id!, "JPTP")}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
+                            >
+                              <GraduationCap size={16} />
+                              Enroll to JPTP
+                            </button>
+                          )}
+                          {(student.programType !== "INTERNSHIP" && (!student.programType || student.programType === "REGULAR_STUDENT")) && (
+                            <button
+                              onClick={() => handleEnrollToProgram(student.id!, "INTERNSHIP")}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-purple-600 hover:bg-gray-100"
+                            >
+                              <Briefcase size={16} />
+                              Enroll to Internship
+                            </button>
+                          )}
                           {isAdmin && !isAdminLoading && (
                             <>
                               <button
@@ -331,8 +316,9 @@ export default function StudentTable({
                               </button>
                               <button
                                 onClick={() => handleDelete(student)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                               >
+                                <Trash2 size={16} />
                                 Delete
                               </button>
                             </>

@@ -60,15 +60,15 @@ const BatchModal: React.FC<IBatchModalProps> = ({
           duration: 2,
         },
       ],
-      facultyId: "",
+      facultyIds: [],
       students: [],
     },
   });
 
   const {
     fields: schedules,
-    append,
-    remove,
+    append: appendSchedule,
+    remove: removeSchedule,
   } = useFieldArray({
     control,
     name: "schedules",
@@ -103,6 +103,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     } else {
       reset({
         courseId: "",
+        centerId: "",
         startDate: "",
         endDate: "",
         schedules: [
@@ -113,16 +114,21 @@ const BatchModal: React.FC<IBatchModalProps> = ({
             duration: 2,
           },
         ],
-        facultyId: "",
+        facultyIds: [],
         students: [],
       });
     }
   }, [initialData, reset]);
 
-  const options = students.map((student) => ({
+  const studentOptions = students.map((student) => ({
     value: student.id,
     label: student.fullName,
   }));
+
+  const facultyOptions = faculties?.map((faculty) => ({
+    value: faculty.id!,
+    label: faculty.fullname,
+  })) || [];
 
   const handleChange = (
     selectedOptions: MultiValue<{ value: string; label: string }>,
@@ -225,11 +231,23 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
               >
                 <option value="">Select Course</option>
-                {courses?.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
-                ))}
+                {courses?.map((course) => {
+                  const courseType = course.type?.toLowerCase();
+                  let prefix = "";
+                  if (courseType === "tecterminal" || courseType === "tec_terminal") {
+                    prefix = "TT";
+                  } else if (courseType === "aptech") {
+                    prefix = "AP";
+                  } else if (courseType === "cpms") {
+                    prefix = "CP";
+                  }
+                  const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
+                  return (
+                    <option key={course.id} value={course.id}>
+                      {displayName}
+                    </option>
+                  );
+                })}
               </select>
               {errors.courseId && (
                 <p className="text-red-500 text-xs mt-1">
@@ -430,7 +448,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   {/* Remove button */}
                   <button
                     type="button"
-                    onClick={() => remove(index)}
+                    onClick={() => removeSchedule(index)}
                     className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                   >
                     <X size={16} />
@@ -445,8 +463,8 @@ const BatchModal: React.FC<IBatchModalProps> = ({
 
               <button
                 type="button"
-                onClick={() =>
-                  append({
+                  onClick={() =>
+                  appendSchedule({
                     day: "Monday",
                     startTime: "02:00 PM",
                     endTime: "04:00 PM",
@@ -459,29 +477,38 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               </button>
             </div>
 
-            {/* Faculty */}
+            {/* Select Faculty */}
             <div className="flex flex-col relative">
               <label
-                htmlFor="facultyId"
+                htmlFor="facultyIds"
                 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
               >
-                <User size={14} /> Faculty
+                <User size={14} /> Select Faculty
               </label>
-              <select
-                id="facultyId"
-                {...register("facultyId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-              >
-                <option value="">Select Faculty</option>
-                {faculties?.map((faculty) => (
-                  <option key={faculty.id} value={faculty.id}>
-                    {faculty.fullname}
-                  </option>
-                ))}
-              </select>
-              {errors.facultyId && (
+              <Controller
+                name="facultyIds"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    isMulti
+                    name="facultyIds"
+                    options={facultyOptions}
+                    className="basic-multi-select text-sm text-gray-600"
+                    classNamePrefix="select"
+                    value={facultyOptions.filter((option) =>
+                      field.value?.includes(option.value)
+                    )}
+                    onChange={(selected) =>
+                      field.onChange(selected ? selected.map((s) => s.value) : [])
+                    }
+                    styles={customStyles}
+                    placeholder="Select faculty..."
+                  />
+                )}
+              />
+              {errors.facultyIds && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.facultyId.message}
+                  {errors.facultyIds.message}
                 </p>
               )}
             </div>
@@ -501,14 +528,14 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                   <Select
                     isMulti
                     name="students"
-                    options={options}
+                    options={studentOptions}
                     className="basic-multi-select text-sm text-gray-600"
                     classNamePrefix="select"
-                    value={options.filter((option) =>
+                    value={studentOptions.filter((option) =>
                       field.value?.includes(option.value)
                     )}
                     onChange={(selected) =>
-                      field.onChange(selected.map((s) => s.value))
+                      field.onChange(selected ? selected.map((s) => s.value) : [])
                     }
                     styles={customStyles}
                     placeholder="Select students..."

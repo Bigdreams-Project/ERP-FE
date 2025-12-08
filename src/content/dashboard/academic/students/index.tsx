@@ -4,6 +4,7 @@ import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
 import { studentStatus } from "@/data/constants/status.constants";
+import { programTypes } from "@/data/constants/program.constants";
 import { createStudentClient, getStudentsClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
@@ -104,6 +105,7 @@ const StudentContent = ({
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<any>({
     status: [],
+    programType: [],
   });
 
   useEffect(() => {
@@ -135,14 +137,14 @@ const StudentContent = ({
   };
 
   const handleClearAll = () => {
-    setAppliedFilters({ status: [] });
+    setAppliedFilters({ status: [], programType: [] });
   };
 
   const handleApplyFilter = () => {
     setIsFilterDropdown(false);
   };
 
-  // Backend handles center filtering, so we only filter by search and status
+  // Backend handles center filtering, so we only filter by search, status, and program type
   // Use displayStudents which is the fetched data, not initialStudents
   const filteredData = displayStudents.filter((student: Student) => {
     const query = searchQuery.toLowerCase();
@@ -152,7 +154,10 @@ const StudentContent = ({
     const matchesStatus =
       appliedFilters.status.length === 0 ||
       appliedFilters.status.includes(student.status);
-    return matchesSearch && matchesStatus;
+    const matchesProgramType =
+      appliedFilters.programType.length === 0 ||
+      appliedFilters.programType.includes(student.programType || "REGULAR_STUDENT");
+    return matchesSearch && matchesStatus && matchesProgramType;
   });
 
   // Mutation for creating students
@@ -226,6 +231,41 @@ const StudentContent = ({
                           </label>
                         </li>
                       ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <p className="font-semibold text-gray-800">Program Type</p>
+                    <ul className="flex flex-col gap-1">
+                      {programTypes.map((programType) => {
+                        const programTypeValue = programType === "Regular Student" 
+                          ? "REGULAR_STUDENT" 
+                          : programType === "JPTP" 
+                          ? "JPTP" 
+                          : "INTERNSHIP";
+                        return (
+                          <li
+                            key={programType}
+                            className="flex items-center gap-2 text-sm text-gray-700"
+                          >
+                            <input
+                              id={`programType-${programType}`}
+                              type="checkbox"
+                              checked={appliedFilters.programType.includes(programTypeValue)}
+                              onChange={() =>
+                                handleFilterChange("programType", programTypeValue)
+                              }
+                              className="w-4 h-4 rounded accent-blue-600"
+                            />
+                            <label
+                              htmlFor={`programType-${programType}`}
+                              className="cursor-pointer"
+                            >
+                              {programType}
+                            </label>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
 

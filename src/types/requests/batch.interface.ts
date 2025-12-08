@@ -8,7 +8,7 @@ export interface CreateBatch {
   duration: string;
   status: string | null;
   schedules: IBatchSchedule[];
-  facultyId: string;
+  facultyIds: string[];
   students: string[];
 }
 
@@ -20,6 +20,6 @@ export interface UpdateBatch {
   duration: string;
   status: string | null;
   schedules: IBatchSchedule[];
-  facultyId: string;
+  facultyIds: string[];
   students: string[];
 }

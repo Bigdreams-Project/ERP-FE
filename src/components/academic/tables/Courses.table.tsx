@@ -7,13 +7,14 @@ import { useEntityDelete } from "@/hooks/useEntityDelete";
 import { createCourse } from "@/lib/network";
 import { Course } from "@/types/academic/course.interface";
 import { CreateCourse } from "@/types/requests/course.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { ChevronDown, Link2Icon, Eye, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
+import { formatCourseType } from "@/lib/utils";
 
 type Props = {
   searchQuery: string;
@@ -30,7 +31,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     entityType: "courses",
   });
   
-  const [selectedCourses, setSelectedCourses] = useState<any>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mode, setMode] = useState<"add" | "edit">("add");
@@ -83,28 +83,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
     setIsDeleteModalOpen(true);
   };
 
-  const handleCheckboxChange = (id: string) => {
-    setSelectedCourses((prev: any) =>
-      prev.includes(id) ? prev.filter((cid: any) => cid !== id) : [...prev, id]
-    );
-  };
-
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((course) => course.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedCourses.includes(id)
-    );
-    if (allSelected) {
-      setSelectedCourses((prev: any) =>
-        prev.filter((id: string) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedCourses((prev: any) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
@@ -154,20 +132,7 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
             <table className="min-w-full relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
                 <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((course) =>
-                          selectedCourses.includes(course.id!)
-                        )
-                      }
-                      onChange={handleSelectAll}
-                      className="mr-2 accent-primary"
-                    />{" "}
-                    #
-                  </th>
+                  <th className="p-4">#</th>
                   <th className="p-4">Code</th>
                   <th className="p-4">Title</th>
                   <th className="p-4">Duration</th>
@@ -185,13 +150,7 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                     key={course.id}
                     className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
-                    <td className="p-4 flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedCourses.includes(course.id!)}
-                        onChange={() => handleCheckboxChange(course.id!)}
-                        className="mr-2 accent-primary"
-                      />
+                    <td className="p-4">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-4">
@@ -212,7 +171,7 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                       {course.students ? course.students?.length : ""}
                     </td>
                     <td className="p-4">{course.leads ? course.leads?.length : ""}</td>
-                    <td className="p-4">{course.type}</td>
+                    <td className="p-4">{formatCourseType(course.type)}</td>
                     <td className="p-3">
                       <StatusBadge step={course.status} label={course.status} />
                     </td>
@@ -226,27 +185,23 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                       </button>
                       {openDropdown === course.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                          {/* <button
-                            onClick={() => handleEnroll(course.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-green-500 hover:bg-gray-100"
-                          >
-                            Enroll
-                          </button> */}
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/academic/courses/${course.id!}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
+                            <Eye size={16} />
                             View
                           </button>
                           {isAdmin && !isAdminLoading && (
                             <button
                               onClick={() => handleDelete(course)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                             >
+                              <Trash2 size={16} />
                               Delete
                             </button>
                           )}

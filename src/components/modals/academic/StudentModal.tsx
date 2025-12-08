@@ -110,14 +110,11 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   useEffect(() => {
     if (!selectedCourse) return;
 
-    // Get the effective fee: use courseFee if old price is entered, otherwise use baseFee
+    // Get the effective fee: use current price if selected, otherwise use baseFee
     let effectiveFee: number = 0;
     const baseFee = selectedCourse.courseAssignments?.[0]?.baseFee || 0;
     
-    if (paymentType === "old" && courseFeeValue) {
-      const customFee = parseFloat(courseFeeValue.toString().replace(/[^\d.]/g, ''));
-      effectiveFee = isNaN(customFee) ? baseFee : customFee;
-    } else if (paymentType === "current") {
+    if (paymentType === "current") {
       effectiveFee = getCurrentFee();
     } else {
       effectiveFee = baseFee;
@@ -295,22 +292,8 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     if (showBaseFeeError) return;
     
     // Ensure courseFee is properly set based on payment type
-    if (paymentType === "old") {
-      // For old price, validate that a value was entered
-      if (data.courseFee && typeof data.courseFee === 'string') {
-        const numericValue = data.courseFee.replace(/[^\d.]/g, '');
-        if (numericValue && !isNaN(parseFloat(numericValue))) {
-          data.courseFee = numericValue;
-        } else {
-          // If invalid or empty, use baseFee as fallback
-          data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
-        }
-      } else if (!data.courseFee || data.courseFee === '') {
-        // If empty, use baseFee as fallback
-        data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
-      }
-    } else if (paymentType === "current") {
-      // For current price, ensure it's set to the current fee
+    if (paymentType === "current") {
+      // For new price, ensure it's set to the current fee
       data.courseFee = getCurrentFee().toString();
     } else if (!data.courseFee && selectedCourse) {
       // Fallback to baseFee if not set
@@ -331,9 +314,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       data.lumpSumFee = data.lumpSumFee.replace(/[^\d.]/g, '');
       if (data.lumpSumFee === '' || isNaN(parseFloat(data.lumpSumFee))) {
         // Recalculate based on effective fee
-        const effectiveFee = paymentType === "old" && data.courseFee 
-          ? parseFloat(data.courseFee) 
-          : paymentType === "current" 
+        const effectiveFee = paymentType === "current" 
           ? getCurrentFee() 
           : selectedCourse?.courseAssignments[0]?.baseFee || 0;
         
@@ -373,6 +354,15 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     }
     if (data.amount !== null && data.amount !== undefined) {
       data.amount = String(data.amount);
+    }
+    
+    // Set status to PENDING_APPROVAL for new enrollments
+    if (mode === "enroll") {
+      data.status = "PENDING_APPROVAL";
+      // Set default program type to REGULAR_STUDENT if not specified
+      if (!data.programType) {
+        data.programType = "REGULAR_STUDENT";
+      }
     }
     
     console.log("Submitting data:", data);
@@ -537,35 +527,37 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
-            {/* Status */}
-            <div className="flex flex-col relative">
-              <label
-                htmlFor="status"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
-              >
-                Status
-              </label>
-              <select
-                id="status"
-                {...register("status")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
-              >
-                <option value="">Choose Status</option>
-                {statuses.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.name}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <ChevronDown size={18} />
-              </span>
-              {errors.status && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.status.message}
-                </p>
-              )}
-            </div>
+            {/* Status - Hidden in enroll mode, automatically set to PENDING_APPROVAL */}
+            {mode !== "enroll" && (
+              <div className="flex flex-col relative">
+                <label
+                  htmlFor="status"
+                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                >
+                  Status
+                </label>
+                <select
+                  id="status"
+                  {...register("status")}
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                >
+                  <option value="">Choose Status</option>
+                  {statuses.map((status) => (
+                    <option key={status.value} value={status.value}>
+                      {status.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <ChevronDown size={18} />
+                </span>
+                {errors.status && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.status.message}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Center */}
             <div className="flex flex-col relative">
@@ -737,11 +729,23 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
-                ))}
+                {courses.map((course) => {
+                  const courseType = course.type?.toLowerCase();
+                  let prefix = "";
+                  if (courseType === "tecterminal" || courseType === "tec_terminal") {
+                    prefix = "TT";
+                  } else if (courseType === "aptech") {
+                    prefix = "AP";
+                  } else if (courseType === "cpms") {
+                    prefix = "CP";
+                  }
+                  const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
+                  return (
+                    <option key={course.id} value={course.id}>
+                      {displayName}
+                    </option>
+                  );
+                })}
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
@@ -767,9 +771,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   value={paymentType}
                   onChange={(e) => {
                     setPaymentType(e.target.value);
-                    if (e.target.value === "old") {
-                      setValue("courseFee", "", { shouldValidate: true });
-                    } else if (e.target.value === "current") {
+                    if (e.target.value === "current") {
                       const fee = getCurrentFee();
                       setValue("courseFee", fee.toString(), { shouldValidate: true });
                     }
@@ -777,8 +779,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Price Type</option>
-                  <option value="current">Current Price</option>
-                  <option value="old">Old Price</option>
+                  <option value="current">New Price</option>
                 </select>
                 <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                   <ChevronDown size={18} />
@@ -795,7 +796,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 >
                   Course Fee
                 </label>
-                {paymentType === "current" ? (
+                {paymentType === "current" && (
                   <>
                     <input
                       type="text"
@@ -810,18 +811,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                       value={getCurrentFee().toString()}
                     />
                   </>
-                ) : (
-                  <input
-                    type="text"
-                    id="courseFee"
-                    {...register("courseFee")}
-                    placeholder="Enter old fee..."
-                    className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-                    onChange={(e) => {
-                      const numericValue = e.target.value.replace(/[^\d.]/g, '');
-                      setValue("courseFee", numericValue, { shouldValidate: true });
-                    }}
-                  />
                 )}
               </div>
             )}

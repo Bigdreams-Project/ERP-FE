@@ -215,11 +215,23 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.name}>
-                    {course.name}
-                  </option>
-                ))}
+                {courses.map((course) => {
+                  const courseType = course.type?.toLowerCase();
+                  let prefix = "";
+                  if (courseType === "tecterminal" || courseType === "tec_terminal") {
+                    prefix = "TT";
+                  } else if (courseType === "aptech") {
+                    prefix = "AP";
+                  } else if (courseType === "cpms") {
+                    prefix = "CP";
+                  }
+                  const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
+                  return (
+                    <option key={course.id} value={course.name}>
+                      {displayName}
+                    </option>
+                  );
+                })}
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />

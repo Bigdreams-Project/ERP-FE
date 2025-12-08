@@ -132,3 +132,37 @@ export const getChangeText = (start: Date, end: Date): string => {
   // Fallback: generic date span
   return `from ${start.toLocaleDateString()} to ${end.toLocaleDateString()}`;
 };
+
+/**
+ * Formats course type to user-friendly display format
+ * @param courseType - The course type string (e.g., "TEC_TERMINAL", "APTECH", "CPMS", "TecTerminal", "ApTech")
+ * @returns Formatted course type (e.g., "Tec Terminal", "ApTech", "CPMS")
+ */
+export const formatCourseType = (courseType: string | null | undefined): string => {
+  if (!courseType) return "";
+
+  const normalized = courseType.toUpperCase().trim();
+
+  // Handle TEC_TERMINAL or TecTerminal variations
+  if (normalized === "TEC_TERMINAL" || normalized === "TECTERMINAL") {
+    return "Tec Terminal";
+  }
+
+  // Handle APTECH or ApTech variations
+  if (normalized === "APTECH" || normalized === "APTECH") {
+    return "ApTech";
+  }
+
+  // Handle CPMS (already user-friendly)
+  if (normalized === "CPMS") {
+    return "CPMS";
+  }
+
+  // If it doesn't match known types, try to format it nicely
+  // Convert underscores to spaces and capitalize words
+  return courseType
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};

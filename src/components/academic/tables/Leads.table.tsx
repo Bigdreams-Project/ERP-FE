@@ -14,7 +14,7 @@ import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { CreateLead } from "@/types/requests/lead.interface";
 import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { ChevronDown, Link2Icon, Eye, Trash2, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
@@ -49,7 +49,6 @@ export default function LeadTable({
     entityType: "leads",
   });
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
@@ -119,23 +118,6 @@ export default function LeadTable({
     currentPage * itemsPerPage
   );
 
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedLeads.includes(id)
-    );
-
-    if (allSelected) {
-      setSelectedLeads((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedLeads((prev) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
 
   const handleSave = async (payload: CreateLead) => {
     try {
@@ -205,20 +187,7 @@ export default function LeadTable({
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
                 <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((lead) =>
-                          selectedLeads.includes(lead.id)
-                        )
-                      }
-                      onChange={handleSelectAll}
-                      className="mr-2"
-                    />
-                    #
-                  </th>
+                  <th className="p-4">#</th>
                   <th className="p-4">Inquiry ID</th>
                   <th className="p-4">Full Name</th>
                   <th className="p-4">Email</th>
@@ -237,8 +206,7 @@ export default function LeadTable({
                     key={lead.id}
                     className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
-                    <td className="pt-6 flex items-center">
-                      <input type="checkbox" className="mr-2" />
+                    <td className="pt-6">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-4">
@@ -271,8 +239,9 @@ export default function LeadTable({
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                           <button
                             onClick={() => handleEnroll(lead.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
+                            <UserPlus size={16} />
                             Enroll
                           </button>
 
@@ -282,23 +251,18 @@ export default function LeadTable({
                                 `/dashboard/academic/leads/${lead.id}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
+                            <Eye size={16} />
                             View
                           </button>
-
-                          {/* <button
-                            onClick={() => handleEmail(lead.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Send an Email
-                          </button> */}
 
                           {isAdmin && !isAdminLoading && (
                             <button
                               onClick={() => handleDelete(lead)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                             >
+                              <Trash2 size={16} />
                               Delete
                             </button>
                           )}

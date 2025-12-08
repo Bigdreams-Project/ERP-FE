@@ -125,11 +125,23 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
             className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
           >
             <option value="">Select Course</option>
-            {courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.name}
-              </option>
-            ))}
+            {courses.map((course) => {
+              const courseType = course.type?.toLowerCase();
+              let prefix = "";
+              if (courseType === "tecterminal" || courseType === "tec_terminal") {
+                prefix = "TT";
+              } else if (courseType === "aptech") {
+                prefix = "AP";
+              } else if (courseType === "cpms") {
+                prefix = "CP";
+              }
+              const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
+              return (
+                <option key={course.id} value={course.id}>
+                  {displayName}
+                </option>
+              );
+            })}
           </select>
           {errors.courseId && (
             <p className="text-red-500 text-sm">{errors.courseId.message}</p>

@@ -57,7 +57,7 @@ export interface IBatch {
   duration: string;
   status: string | null;
   schedules: IBatchSchedule[];
-  facultyId: string;
+  facultyIds: string[];
   students: string[];
 }
 

@@ -8,7 +8,7 @@ import { createCenter } from "@/lib/network";
 import { useQueryClient } from "@tanstack/react-query";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { ChevronDown, Link2Icon, Eye, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import Pagination from "../common/Pagination";
@@ -35,7 +35,6 @@ export default function CenterTable({
   });
   
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -123,29 +122,6 @@ export default function CenterTable({
     setIsDeleteModalOpen(true);
   };
 
-  const handleCheckboxChange = (id: string) => {
-    setSelectedCenters((prev) =>
-      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
-    );
-  };
-
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedCenters.includes(id)
-    );
-
-    if (allSelected) {
-      setSelectedCenters((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedCenters((prev) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
 
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
@@ -180,20 +156,7 @@ export default function CenterTable({
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
               <thead>
                 <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((center) =>
-                          selectedCenters.includes(center.id)
-                        )
-                      }
-                      onChange={handleSelectAll}
-                      className="mr-2 accent-primary"
-                    />
-                    #
-                  </th>
+                  <th className="p-4">#</th>
                   <th className="p-4">Center Code</th>
                   <th className="p-4">Center Name</th>
                   <th className="p-4">Center Manager</th>
@@ -212,13 +175,7 @@ export default function CenterTable({
                     key={center.id}
                     className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
-                    <td className="p-4 flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedCenters.includes(center.id)}
-                        onChange={() => handleCheckboxChange(center.id)}
-                        className="mr-2 accent-primary"
-                      />
+                    <td className="p-4">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3">
@@ -267,21 +224,17 @@ export default function CenterTable({
                                 `/dashboard/academic/centers/${center.id}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
+                            <Eye size={16} />
                             View
                           </button>
-                          {/* <button
-                            onClick={() => handleEdit(center.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button> */}
                           {isAdmin && !isAdminLoading && (
                             <button
                               onClick={() => handleDelete(center)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                             >
+                              <Trash2 size={16} />
                               Delete
                             </button>
                           )}

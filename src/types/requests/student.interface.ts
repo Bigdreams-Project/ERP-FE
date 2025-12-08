@@ -1,3 +1,5 @@
+import { ProgramType } from "../academic/student.interface";
+
 export interface CreateStudent {
   leadId: string | null;
   fullName: string;
@@ -23,6 +25,7 @@ export interface CreateStudent {
   courseId: string;
   bankId: string;
   batchId: string | null;
+  programType?: ProgramType;
 }
 
 export interface UpdateStudent {
@@ -46,6 +49,7 @@ export interface UpdateStudent {
   notes: string;
   courseId: string;
   batchId: string | null;
+  programType?: ProgramType;
 }
 
 export interface CreateStudentPayment {

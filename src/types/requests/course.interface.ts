@@ -3,6 +3,7 @@ export interface CreateCourse {
   name: string;
   type: string;
   duration: number;
+  oldId?: string;
 }
  
 export interface UpdateCourse {
@@ -10,4 +11,5 @@ export interface UpdateCourse {
   name: string;
   type: string;
   duration: number;
+  oldId?: string;
 }

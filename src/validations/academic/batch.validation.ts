@@ -27,7 +27,11 @@ export const batchSchema = yup.object().shape({
     ) 
     .required()
     .min(1, "At least one class schedule is required"),
-  facultyId: yup.string().required("Faculty is required"),
+  facultyIds: yup
+    .array()
+    .of(yup.string().required())
+    .min(1, "At least one faculty must be selected")
+    .required("Faculty are required"),
   students: yup
     .array()
     .of(yup.string().required())
