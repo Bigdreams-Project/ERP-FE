@@ -197,6 +197,7 @@ export const createCourseClient = async (
           name: payload.name,
           type: payload.type,
           duration: payload.duration,
+          oldId: payload.oldId,
         },
         isDraft,
       }),
@@ -1695,6 +1696,70 @@ export const getStudentFilesClient = async (
     return Array.isArray(data) ? data : [];
   } catch (err: any) {
     console.error("Failed to fetch files:", err.message);
+    throw err;
+  }
+};
+
+// Approve Transaction
+export const approveTransactionClient = async (
+  transactionId: string,
+  notes?: string
+) => {
+  try {
+    const res = await fetch(`/api/transactions/${transactionId}/approve`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ notes }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: res.statusText }));
+      throw new Error(
+        errorData.error || `Failed to approve transaction: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to approve transaction:", err.message);
+    throw err;
+  }
+};
+
+// Enroll Student to Program (JPTP or Internship)
+export const enrollStudentToProgramClient = async (
+  studentId: string,
+  programType: "JPTP" | "INTERNSHIP"
+) => {
+  try {
+    const res = await fetch(`/api/students/${studentId}/enroll-program`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ programType }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: res.statusText }));
+      throw new Error(
+        errorData.error || `Failed to enroll student to program: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to enroll student to program:", err.message);
     throw err;
   }
 };

@@ -10,7 +10,7 @@ import { formatDate } from "@/lib/utils";
 import { Batch, Faculty } from "@/types/academic/batch.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { ChevronDown, Link2Icon, Eye, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -121,10 +121,7 @@ export default function BatchTable({
             <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
               <thead>
                 <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input type="checkbox" className="mr-2 accent-indigo-600" />{" "}
-                    #
-                  </th>
+                  <th className="p-4">#</th>
                   <th className="p-4">Batch Code</th>
                   <th className="p-4">Course</th>
                   <th className="p-4">Duration</th>
@@ -144,11 +141,7 @@ export default function BatchTable({
                     key={batch.id}
                     className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
                   >
-                    <td className="p-4 flex items-center">
-                      <input
-                        type="checkbox"
-                        className="mr-2 accent-indigo-600"
-                      />
+                    <td className="p-4">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3">
@@ -186,39 +179,23 @@ export default function BatchTable({
                       </button>
                       {openDropdown === batch.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                          {/* <button
-                            onClick={() => handleActivate(batch.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Acivate
-                          </button> */}
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/academic/batches/${batch.id}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
+                            <Eye size={16} />
                             View
                           </button>
-                          {/* <button
-                            onClick={() => handleEdit(batch.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button> */}
-                          {/* <button
-                            onClick={() => handleExport(batch.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Export
-                          </button> */}
                           {isAdmin && !isAdminLoading && (
                             <button
                               onClick={() => handleDelete(batch)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                             >
+                              <Trash2 size={16} />
                               Delete
                             </button>
                           )}

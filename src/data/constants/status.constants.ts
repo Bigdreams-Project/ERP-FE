@@ -8,7 +8,7 @@ export const courseTypes = ["TecTerminal", "ApTech", "CPMS"];
 
 export const courseStatus = ["Active", "Inactive", "Draft"];
 
-export const studentStatus = ["Active", "Dropout", "Graduated", "On Hold"];
+export const studentStatus = ["Active", "Pending Approval", "Dropout", "Graduated", "On Hold"];
 
 export const batchStatus = ["Active", "Inactive", "Draft"];
 

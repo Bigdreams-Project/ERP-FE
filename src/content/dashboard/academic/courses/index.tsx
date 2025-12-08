@@ -7,6 +7,7 @@ import CourseModal from "@/components/modals/academic/Course.modal";
 import { courseStatus, courseTypes } from "@/data/constants/status.constants";
 import { createCourseClient, getCoursesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
+import { formatCourseType } from "@/lib/utils";
 import { Course } from "@/types/academic/course.interface";
 import { CreateCourse } from "@/types/requests/course.interface";
 import { useEffect, useRef, useState } from "react";
@@ -193,7 +194,7 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
                             htmlFor={`type-${type}`}
                             className="cursor-pointer"
                           >
-                            {type}
+                            {formatCourseType(type)}
                           </label>
                         </li>
                       ))}

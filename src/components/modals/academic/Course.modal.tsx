@@ -28,6 +28,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
       name: "",
       type: "",
       duration: 1,
+      oldId: "",
     },
   });
 
@@ -40,6 +41,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
           name: "",
           type: "",
           duration: 1,
+          oldId: "",
         });
       }
     }
@@ -158,6 +160,29 @@ const CourseModal: React.FC<ICourseModalProps> = ({
                 {errors.duration && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.duration.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Old ID */}
+              <div className="flex flex-col sm:col-span-2">
+                <label
+                  htmlFor="oldId"
+                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                >
+                  <BookOpen size={14} />
+                  Old ID <span className="text-gray-500 text-xs font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  id="oldId"
+                  {...register("oldId")}
+                  placeholder="Enter old course ID for mapping"
+                  className="w-full h-12 px-4 text-sm text-gray-600 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                />
+                {errors.oldId && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.oldId.message}
                   </p>
                 )}
               </div>

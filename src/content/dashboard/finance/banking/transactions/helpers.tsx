@@ -40,8 +40,11 @@ import { CreateRefundRequest } from "@/types/finance/refund.interface";
 import { CreateTicketRequest } from "@/types/support/ticket.interface";
 import RefundRequestModal from "@/components/modals/finance/RefundRequestModal";
 import CreateTicketModal from "@/components/modals/support/CreateTicketModal";
+import TransactionApprovalModal from "@/components/modals/finance/TransactionApprovalModal";
 import { createRefundRequestClient } from "@/lib/client-network";
 import { createTicketClient } from "@/lib/client-network";
+import { approveTransactionClient } from "@/lib/client-network";
+import { showSuccess, showError } from "@/lib/toast";
 
 interface Props {
   data: Payment;
@@ -82,8 +85,16 @@ export const PaymentSummary = ({ data }: Props) => {
     return pending === 0 ? "Paid" : "Pending";
   };
 
+  if (!data || !data.paymentPlan) {
+    return (
+      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
+        <p className="text-gray-500">Transaction data not available</p>
+      </div>
+    );
+  }
+
   const statusColor =
-    getStatus(parseFloat(data.paymentPlan.pending)) === "Paid"
+    getStatus(parseFloat(data.paymentPlan.pending || "0")) === "Paid"
       ? "bg-green-100 text-green-700"
       : "bg-red-100 text-red-700";
 
@@ -101,7 +112,7 @@ export const PaymentSummary = ({ data }: Props) => {
         <span
           className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColor}`}
         >
-          {getStatus(parseFloat(data.paymentPlan.pending))}
+          {getStatus(parseFloat(data.paymentPlan.pending || "0"))}
         </span>
       </div>
 
@@ -126,6 +137,14 @@ export const PaymentSummary = ({ data }: Props) => {
 };
 
 export const PaymentDetails = ({ data }: Props) => {
+  if (!data || !data.paymentPlan) {
+    return (
+      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
+        <p className="text-gray-500">Payment details not available</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
       <h2 className="text-xl font-semibold mb-6 text-gray-700">
@@ -150,19 +169,21 @@ export const PaymentDetails = ({ data }: Props) => {
         <DetailRow
           icon={Percent}
           label="Total Fee"
-          value={`₦${data.paymentPlan.amount.toLocaleString()}`}
+          value={`₦${(data.paymentPlan.amount || 0).toLocaleString()}`}
           valueClassName="font-bold text-gray-900"
         />
         <DetailRow
           icon={CheckCircle}
           label="Paid So Far"
-          value={`₦${data.paymentPlan.paid.toLocaleString()}`}
+          value={`₦${(data.paymentPlan.paid || "0").toLocaleString()}`}
           valueClassName="font-bold text-gray-900"
         />
         <DetailRow
           icon={Receipt}
           label="Balance"
-          value={`₦${parseFloat(data.paymentPlan.pending).toLocaleString()}`}
+          value={`₦${parseFloat(
+            data.paymentPlan.pending || "0"
+          ).toLocaleString()}`}
           valueClassName="font-extrabold text-red-600"
         />
       </div>
@@ -173,8 +194,17 @@ export const PaymentDetails = ({ data }: Props) => {
 export const AdditionalActions = ({ data }: { data: Payment }) => {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
 
-  const pending = parseFloat(data.paymentPlan.pending) || 0;
+  if (!data || !data.paymentPlan) {
+    return (
+      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+        <p className="text-gray-500">Actions not available</p>
+      </div>
+    );
+  }
+
+  const pending = parseFloat(data.paymentPlan.pending || "0") || 0;
   const isPaid = pending === 0;
   const statusText = isPaid ? "Paid" : "Pending";
   const statusColor = isPaid
@@ -213,6 +243,19 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
     await createTicketClient(ticket);
   };
 
+  const handleApproveTransaction = async (notes?: string) => {
+    try {
+      await approveTransactionClient(data.id, notes);
+      showSuccess("Transaction approved successfully");
+      // Optionally refresh the page or update the transaction data
+      window.location.reload();
+    } catch (error: any) {
+      console.error("Failed to approve transaction:", error);
+      showError(error.message || "Failed to approve transaction");
+      throw error;
+    }
+  };
+
   return (
     <>
       <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
@@ -228,6 +271,11 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
         </div>
 
         <div className="space-y-3">
+          <ActionButton
+            icon={CheckCircle}
+            label="Approve Transaction"
+            onClick={() => setShowApprovalModal(true)}
+          />
           <ActionButton
             icon={RefreshCcw}
             label="Issue Refund"
@@ -255,6 +303,13 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
         onClose={() => setShowTicketModal(false)}
         onSubmit={handleTicketSubmit}
       />
+
+      <TransactionApprovalModal
+        payment={data}
+        isOpen={showApprovalModal}
+        onClose={() => setShowApprovalModal(false)}
+        onSubmit={handleApproveTransaction}
+      />
     </>
   );
 };
@@ -266,11 +321,19 @@ export const PayerInformation = ({ data }: Props) => {
       <div className="flex-grow flex justify-between">
         <span className="text-sm text-gray-500">{label}</span>
         <span className="text-sm font-medium text-gray-800 text-right">
-          {value}
+          {value || "N/A"}
         </span>
       </div>
     </div>
   );
+
+  if (!data) {
+    return (
+      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
+        <p className="text-gray-500">Payer information not available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">

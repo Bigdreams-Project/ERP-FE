@@ -17,6 +17,10 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { User } from "@/types/auth/user.interface";
+import { DateRangePicker } from "react-date-range";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
+import { includesDate } from "@/lib/utils";
 
 interface ArchiveContentProps {
   archiveRecords: ArchiveRecord[];
@@ -46,6 +50,7 @@ const ArchiveContent = ({
   }, [initialUser, queryClient]);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const datePickerRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
@@ -56,6 +61,16 @@ const ArchiveContent = ({
   const [itemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState<string>(""); // "Graduated" | "Owing" | "Dropout" | ""
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: new Date(new Date().setDate(new Date().getDate() - 29)),
+      endDate: new Date(),
+      key: "selection",
+    },
+  ]);
+  const [displayDateRange, setDisplayDateRange] = useState("");
+  const [isDateFilterActive, setIsDateFilterActive] = useState(false);
 
   // Fetch centers using React Query
   const { data: centersData = centers } = useQuery({
@@ -103,10 +118,48 @@ const ArchiveContent = ({
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsFilterDropdown(false);
       }
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setShowDatePicker(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Update display date range when date range changes
+  useEffect(() => {
+    if (dateRange[0].startDate && dateRange[0].endDate) {
+      const start = dateRange[0].startDate;
+      const end = dateRange[0].endDate;
+      setDisplayDateRange(
+        `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
+      );
+    } else {
+      setDisplayDateRange("");
+    }
+  }, [dateRange]);
+
+  const handleDateSelect = (ranges: any) => {
+    const { startDate, endDate } = ranges.selection;
+    setDateRange([ranges.selection]);
+    setIsDateFilterActive(true); // Mark as active when user selects a date
+    setShowDatePicker(false);
+    setCurrentPage(1); // Reset to first page when date filter changes
+  };
+
+  // Clear date filter handler
+  const handleClearDateFilter = () => {
+    setDateRange([
+      {
+        startDate: new Date(new Date().setDate(new Date().getDate() - 29)),
+        endDate: new Date(),
+        key: "selection",
+      },
+    ]);
+    setIsDateFilterActive(false);
+    setDisplayDateRange("");
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) setIsTyping(true);
@@ -208,10 +261,23 @@ const ArchiveContent = ({
     createArchiveMutation(payload);
   };
 
-  // Client-side filtering (search + status filter)
+  // Client-side filtering (search + status filter + date range)
   // This runs on all fetched records, then pagination happens in the table
   const filteredData = useMemo(() => {
+    const startDate = dateRange[0].startDate;
+    const endDate = dateRange[0].endDate;
+    
     return (archiveRecords || []).filter((record: ArchiveRecord) => {
+      // Date range filter - only apply if user has explicitly selected a date range
+      let matchesDateRange = true;
+      if (isDateFilterActive && startDate && endDate) {
+        matchesDateRange = includesDate(
+          record.enrollmentDate,
+          startDate,
+          endDate
+        );
+      }
+
       // If no search query, show all records
       if (!searchQuery || searchQuery.trim() === "") {
         // Only apply status filter when no search
@@ -227,7 +293,7 @@ const ArchiveContent = ({
           matchesStatus = record.status?.toLowerCase().includes("dropout") || 
                           record.status?.toLowerCase().includes("dropped");
         }
-        return matchesStatus;
+        return matchesStatus && matchesDateRange;
       }
 
       const query = searchQuery.toLowerCase().trim();
@@ -255,14 +321,14 @@ const ArchiveContent = ({
                         record.status?.toLowerCase().includes("dropped");
       }
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesDateRange;
     });
-  }, [archiveRecords, searchQuery, statusFilter]);
+  }, [archiveRecords, searchQuery, statusFilter, dateRange, isDateFilterActive]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, dateRange]);
   
   // Calculate total pages from backend response
   // Always use backend total for pagination (backend handles search)
@@ -284,9 +350,9 @@ const ArchiveContent = ({
           <AcademicTabs />
         </div>
 
-        <div className="w-full flex items-center justify-end gap-7 p-2">
+        <div className="w-full flex items-center justify-end gap-3 p-2 flex-wrap">
           {/* Status Filter Dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative flex-shrink-0" ref={dropdownRef}>
             <div
               className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors border border-gray-300"
               onClick={() => setIsFilterDropdown(!isFilterDropdown)}
@@ -360,8 +426,40 @@ const ArchiveContent = ({
             )}
           </div>
 
+          {/* Date Range Filter */}
+          <div className="relative flex-shrink-0" ref={datePickerRef}>
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                readOnly
+                value={displayDateRange || "Select enrollment date range"}
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className="w-[200px] min-w-[180px] px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50"
+              />
+              {isDateFilterActive && (
+                <button
+                  onClick={handleClearDateFilter}
+                  className="px-2 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                  title="Clear date filter"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {showDatePicker && (
+              <div className="absolute right-0 mt-2 z-50 bg-white shadow-lg rounded-lg p-2">
+                <DateRangePicker
+                  ranges={dateRange}
+                  onChange={handleDateSelect}
+                  moveRangeOnFirstSelection={false}
+                  className="text-black"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Search */}
-          <div className="w-[250px]">
+          <div className="w-[200px] min-w-[150px] flex-shrink-0">
             <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
               <BiSearchAlt size={18} className="ml-2" />
               <input

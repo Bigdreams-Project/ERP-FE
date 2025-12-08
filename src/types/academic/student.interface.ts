@@ -44,6 +44,8 @@ export interface StudentNote {
   updatedAt: string;
 }
 
+export type ProgramType = "REGULAR_STUDENT" | "JPTP" | "INTERNSHIP";
+
 export interface Student {
   id: string;
   studentId: string | null;
@@ -63,6 +65,7 @@ export interface Student {
   notes: StudentNote[];
   payments: Payment[];
   status: string;
+  programType: ProgramType;
   paymentPlan: string;
   lumpSum: number | null;
   numberOfInstallments: number | null;

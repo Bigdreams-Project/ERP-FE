@@ -4,7 +4,7 @@ import ConversionProgress from "@/components/academic/common/ConversionProgress"
 import { statuses } from "@/data/view/lead.data";
 import { updateLeadClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatCourseType } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
@@ -196,7 +196,9 @@ const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
                       {label}:
                     </p>
                     <p className="mt-1 font-semibold text-gray-900">
-                      {(lead as any)[key] || "N/A"}
+                      {key === "courseType" 
+                        ? formatCourseType((lead as any)[key] || lead.course?.type) || "N/A"
+                        : (lead as any)[key] || "N/A"}
                     </p>
                   </div>
                 ))}

@@ -40,6 +40,7 @@ export interface ICourse {
   name: string;
   type: string;
   duration: number;
+  oldId?: string;
 }
 
 export interface ICourseModalProps {

@@ -49,6 +49,7 @@ export const paymentMethods = [
 
 export const statuses = [
   { name: "Active", value: "ACTIVE" },
+  { name: "Pending Approval", value: "PENDING_APPROVAL" },
   { name: "Dropout", value: "DROPOUT" },
   { name: "Graduated", value: "GRADUATED" },
   { name: "On Hold", value: "ON_HOLD" },

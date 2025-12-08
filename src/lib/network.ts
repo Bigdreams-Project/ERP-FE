@@ -319,6 +319,7 @@ export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
       name: payload.name,
       type: payload.type as any,
       duration: payload.duration,
+      oldId: payload.oldId,
       isDraft,
     });
     return res.data;
@@ -705,11 +706,18 @@ export const getBank = async (id: string) => {
 export const getTransaction = async (id: string) => {
   try {
     const api = await server();
-    const res = await api.get(`/payment/${id}`);
-    return res.data;
+    // Try /payments/:id first, fallback to /payment/:id
+    try {
+      const res = await api.get(`/payments/${id}`);
+      return res.data;
+    } catch (err: any) {
+      // Fallback to /payment/:id if /payments/:id doesn't exist
+      const res = await api.get(`/payment/${id}`);
+      return res.data;
+    }
   } catch (err: any) {
-    console.error("Failed to fetch transactions:", err.message);
-    return {};
+    console.error("Failed to fetch transaction:", err.message);
+    return null;
   }
 };
 
