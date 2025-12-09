@@ -352,13 +352,15 @@ export default function ArchiveTable({
                               <Edit size={16} className="mr-2" />
                               Edit
                             </button>
-                            <button
-                              onClick={() => handleRestore(record)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
-                            >
-                              <RotateCcw size={16} className="mr-2" />
-                              Restore Student
-                            </button>
+                            {record.status?.toUpperCase() !== "MIGRATED" && (
+                              <button
+                                onClick={() => handleRestore(record)}
+                                className="flex items-center w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
+                              >
+                                <RotateCcw size={16} className="mr-2" />
+                                Restore Student
+                              </button>
+                            )}
                             <button
                               onClick={() => handleDelete(record)}
                               className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
