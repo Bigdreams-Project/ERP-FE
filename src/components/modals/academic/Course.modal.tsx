@@ -2,6 +2,7 @@ import { courseTypes, durationOptions } from "@/data/view/course.data";
 import { ICourse, ICourseModalProps } from "@/types/academic/course.interface";
 import { courseSchema } from "@/validations/academic/course.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { Resolver } from "react-hook-form";
 import { BookOpen, ChevronDown, Clock, X } from "lucide-react";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -22,7 +23,7 @@ const CourseModal: React.FC<ICourseModalProps> = ({
     setValue,
     getValues,
   } = useForm<ICourse>({
-    resolver: yupResolver(courseSchema),
+    resolver: yupResolver(courseSchema) as Resolver<ICourse>,
     mode: "onTouched",
     defaultValues: {
       name: "",
