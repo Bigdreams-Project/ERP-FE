@@ -13,12 +13,16 @@ const inter = Inter({
   weight: "400",
   variable: "--font-inter",
   display: "swap",
+  fallback: ["system-ui", "arial"],
+  preload: true,
 });
 
 const archivo = Archivo({
   subsets: ["latin"],
   variable: "--font-archivo",
   display: "swap",
+  fallback: ["system-ui", "arial"],
+  preload: true,
 });
 
 export const metadata: Metadata = {
