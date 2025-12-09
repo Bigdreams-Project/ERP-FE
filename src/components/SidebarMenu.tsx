@@ -1,21 +1,21 @@
 "use client";
-import { useUser } from "@/context/UserContext";
+import { AuthRoutes } from "@/constants/apiRoutes.constant";
 import { useCenter } from "@/context/CenterContext";
+import { useUser } from "@/context/UserContext";
 import { logoutUser } from "@/lib/auth/login";
+import { getLoggedInUserClient } from "@/lib/client-network";
+import { canAccessCentersPage } from "@/lib/utils/center-permissions";
+import { User } from "@/types/auth/user.interface";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { PiSignInFill } from "react-icons/pi";
 import GraduationCapIcon from "./svg/GraduationCapIcon";
+import HouseIcon from "./svg/HouseIcon";
 import MoneyIcon from "./svg/MoneyIcon";
 import SettingsIcon from "./svg/SettingsIcon";
-import StaffIcon from "./svg/StaffIcon";
-import { AuthRoutes } from "@/constants/apiRoutes.constant";
-import { canAccessCentersPage } from "@/lib/utils/center-permissions";
-import { useQuery } from "@tanstack/react-query";
-import { getLoggedInUserClient } from "@/lib/client-network";
-import { User } from "@/types/auth/user.interface";
 
 interface SidebarLink {
   label: string;
@@ -195,7 +195,7 @@ const SidebarMenu = ({
   return (
     <div className="h-full flex flex-col flex-1 mt-8">
       <div className="flex-1">
-        {/* <Link
+        <Link
           href={"/dashboard"}
           className={`flex items-center px-[1.5rem] py-[0.4rem] ${
             sidebarExpanded ? "" : "items-start !px-[2rem]"
@@ -222,7 +222,7 @@ const SidebarMenu = ({
           >
             Dashboard
           </div>
-        </Link> */}
+        </Link>
 
         {/* Sidebar Sections */}
         <div className="w-full flex flex-col justify-between">

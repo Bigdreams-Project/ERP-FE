@@ -1,4 +1,5 @@
 import { CenterProvider } from "@/context/CenterContext";
+import { ProviderProvider } from "@/context/ProviderContext";
 import { UserProvider } from "@/context/UserContext";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import type { Metadata } from "next";
@@ -35,8 +36,10 @@ export default function RootLayout({
       <body className={`${inter.variable} ${archivo.variable} antialiased`}>
         <UserProvider>
           <CenterProvider>
-            <ReactQueryProvider>{children}</ReactQueryProvider>
-            <ToastContainer />
+            <ProviderProvider>
+              <ReactQueryProvider>{children}</ReactQueryProvider>
+              <ToastContainer />
+            </ProviderProvider>
           </CenterProvider>
         </UserProvider>
       </body>
