@@ -192,7 +192,9 @@ const BatchesContent = ({
     setEndDate(endDate);
   };
 
-  const handleSave = async (payload: CreateBatch) => {
+  const handleSave = async (payload: CreateBatch, isDraft: boolean = false) => {
+    // For drafts, we might want to handle differently in the future
+    // For now, we'll create the batch normally
     createBatchMutation(payload);
   };
 

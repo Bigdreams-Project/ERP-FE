@@ -15,7 +15,7 @@ const StatusDistribution = ({
   const chartData = [
     { name: "Paid", value: data.paid, color: "#10b981" },
     { name: "Pending", value: data.pending, color: "#f59e0b" },
-    { name: "Overdue", value: data.overdue, color: "#ef4444" },
+    { name: "Legacy", value: data.overdue, color: "#ef4444" }, // Using overdue field for legacy
   ].filter((item) => item.value > 0);
 
   const total = data.paid + data.pending + data.overdue;

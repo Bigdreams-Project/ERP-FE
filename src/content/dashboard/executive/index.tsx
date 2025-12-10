@@ -793,7 +793,7 @@ const ExecutiveDashboard = ({
               layout="simple"
             />
             <KPICard
-              title="New Leads"
+              title="All Leads"
               value={formatNumber(dashboardData.metrics.newLeads)}
               changeValue={dashboardData.leadsMoM}
               changeValueYoY={dashboardData.leadsYoY}

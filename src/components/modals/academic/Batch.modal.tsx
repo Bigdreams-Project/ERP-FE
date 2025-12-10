@@ -21,7 +21,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import Select, { ActionMeta, MultiValue } from "react-select";
 import { ImSpinner2 } from "react-icons/im";
@@ -37,6 +37,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   mode,
   isLoading = false,
 }) => {
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const {
     register,
     handleSubmit,
@@ -46,19 +47,21 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     setValue,
     getValues,
     watch,
+    trigger,
   } = useForm<IBatch>({
     resolver: yupResolver(batchSchema),
-    mode: "onChange",
+    mode: "all", // Validate on all events (change, blur, submit)
     defaultValues: {
       courseId: "",
       centerId: "",
       startDate: "",
       endDate: "",
+      duration: "",
       schedules: [
         {
           day: "Monday",
-          startTime: "02:00 PM",
-          endTime: "02:00 PM",
+          startTime: "",
+          endTime: "",
           duration: 2,
         },
       ],
@@ -78,25 +81,88 @@ const BatchModal: React.FC<IBatchModalProps> = ({
 
   const [isDraft, setIsDraft] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [allCenters, setAllCenters] = useState<any[]>([]);
 
   const courseId = watch("courseId");
+  
+  // Fetch centers to match center IDs with names
+  useEffect(() => {
+    const fetchCenters = async () => {
+      try {
+        const { getCentersClient } = await import("@/lib/client-network");
+        const centers = await getCentersClient();
+        setAllCenters(centers || []);
+      } catch (error) {
+        console.error("Failed to fetch centers:", error);
+      }
+    };
+    if (isOpen) {
+      fetchCenters();
+    }
+  }, [isOpen]);
+  
+  // Watch all form values for debugging and manual validation check
+  const formValues = watch();
+
+  // Debug: Log validation state
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Form validation state:", {
+        isValid,
+        errors,
+        formValues,
+      });
+    }
+  }, [isValid, errors, formValues]);
+  
+  // Manual validation check - ensure all required fields are filled
+  const isFormValid = useMemo(() => {
+    const hasRequiredFields = 
+      formValues.courseId &&
+      formValues.centerId &&
+      formValues.startDate &&
+      formValues.endDate &&
+      formValues.duration &&
+      formValues.schedules?.length > 0 &&
+      formValues.schedules.every(
+        (s: any) => s.day && s.startTime && s.endTime && s.duration
+      ) &&
+      formValues.facultyIds?.length > 0 &&
+      formValues.students?.length > 0;
+    
+    // Only return true if both react-hook-form validation passes AND required fields are filled
+    return isValid && hasRequiredFields && Object.keys(errors).length === 0;
+  }, [isValid, formValues, errors]);
 
   useEffect(() => {
     if (courseId) {
-      const selectedCourse = courses.find((course) => course.id === courseId);
-      if (selectedCourse) {
-        const duration = parseInt(selectedCourse.duration.toString(), 10).toString();
-        const centerId = selectedCourse?.courseAssignments?.[0]?.centerId;
-        
+      const foundCourse = courses.find((course) => course.id === courseId);
+      if (foundCourse) {
+        setSelectedCourse(foundCourse);
+        const duration = parseInt(foundCourse.duration.toString(), 10).toString();
         setValue("duration", duration, { shouldValidate: true });
         
-        // Only set centerId if it exists, don't set empty string
-        if (centerId) {
-          setValue("centerId", centerId, { shouldValidate: true });
+        // If course has only one assignment, auto-select it
+        if (foundCourse.courseAssignments?.length === 1) {
+          const centerId = foundCourse.courseAssignments[0].centerId;
+          if (centerId) {
+            setValue("centerId", centerId, { shouldValidate: true });
+          }
+        } else {
+          // Multiple or no assignments - clear centerId and let user select
+          setValue("centerId", "", { shouldValidate: true });
         }
+        // Trigger validation for all fields to update isValid state
+        trigger();
       }
+    } else {
+      setSelectedCourse(null);
+      // Reset duration and centerId when course is cleared
+      setValue("duration", "", { shouldValidate: true });
+      setValue("centerId", "", { shouldValidate: true });
+      trigger();
     }
-  }, [courseId, setValue, courses]);
+  }, [courseId, setValue, courses, trigger]);
 
   // Reset the form
   useEffect(() => {
@@ -111,8 +177,8 @@ const BatchModal: React.FC<IBatchModalProps> = ({
         schedules: [
           {
             day: "Monday",
-            startTime: "02:00 PM",
-            endTime: "02:00 PM",
+            startTime: "",
+            endTime: "",
             duration: 2,
           },
         ],
@@ -178,12 +244,12 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     }),
   };
 
-  const handleSaveDraft = (data: IBatch | any) => {
+  const handleSaveDraft = (data: IBatch) => {
     onSave(data, true);
     onClose();
   };
 
-  const handleSave = (data: IBatch | any) => {
+  const handleSave = (data: IBatch) => {
     onSave(data, false);
     onClose();
   };
@@ -217,7 +283,10 @@ const BatchModal: React.FC<IBatchModalProps> = ({
         </div>
 
         {/* Form */}
-        <form className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll">
+        <form 
+          onSubmit={handleSubmit(handleSave)} 
+          className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pb-4">
             {/* Course */}
             <div className="flex flex-col sm:col-span-2">
@@ -257,6 +326,63 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                 </p>
               )}
             </div>
+
+            {/* Center Selection - Show when course is selected */}
+            {selectedCourse && (
+              <div className="flex flex-col sm:col-span-2">
+                <label
+                  htmlFor="centerId"
+                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                >
+                  <BookOpen size={14} /> Center
+                </label>
+                <select
+                  id="centerId"
+                  {...register("centerId")}
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                  onChange={(e) => {
+                    setValue("centerId", e.target.value, { shouldValidate: true });
+                    trigger("centerId");
+                  }}
+                >
+                  <option value="">Select Center</option>
+                  {selectedCourse.courseAssignments && selectedCourse.courseAssignments.length > 0 ? (
+                    // Show centers from course assignments
+                    selectedCourse.courseAssignments.map((assignment: any) => {
+                      // Try to get center name from assignment.center.name first
+                      let centerName = assignment.center?.name;
+                      
+                      // If not found, try to find it in allCenters by matching centerId
+                      if (!centerName && assignment.centerId) {
+                        const matchedCenter = allCenters.find((c: any) => c.id === assignment.centerId);
+                        centerName = matchedCenter?.name;
+                      }
+                      
+                      // Final fallback - use centerId but format it nicely
+                      if (!centerName) {
+                        centerName = `Center ${assignment.centerId}`;
+                      }
+                      
+                      return (
+                        <option key={assignment.centerId} value={assignment.centerId}>
+                          {centerName}
+                        </option>
+                      );
+                    })
+                  ) : (
+                    // If no course assignments, show a message (user needs to assign centers to course first)
+                    <option value="" disabled>
+                      No centers assigned to this course. Please assign centers to the course first.
+                    </option>
+                  )}
+                </select>
+                {errors.centerId && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.centerId.message}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Status */}
             <div className="flex flex-col relative">
@@ -465,14 +591,16 @@ const BatchModal: React.FC<IBatchModalProps> = ({
 
               <button
                 type="button"
-                  onClick={() =>
+                  onClick={() => {
                   appendSchedule({
                     day: "Monday",
-                    startTime: "02:00 PM",
-                    endTime: "04:00 PM",
+                    startTime: "",
+                    endTime: "",
                     duration: 2,
-                  })
-                }
+                  });
+                  // Trigger validation after adding schedule
+                  trigger("schedules");
+                }}
                 className="mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
               >
                 + Add Another Schedule
@@ -500,9 +628,11 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     value={facultyOptions.filter((option) =>
                       field.value?.includes(option.value)
                     )}
-                    onChange={(selected) =>
-                      field.onChange(selected ? selected.map((s) => s.value) : [])
-                    }
+                    onChange={(selected) => {
+                      field.onChange(selected ? selected.map((s) => s.value) : []);
+                      // Trigger validation after change
+                      trigger("facultyIds");
+                    }}
                     styles={customStyles}
                     placeholder="Select faculty..."
                   />
@@ -536,9 +666,11 @@ const BatchModal: React.FC<IBatchModalProps> = ({
                     value={studentOptions.filter((option) =>
                       field.value?.includes(option.value)
                     )}
-                    onChange={(selected) =>
-                      field.onChange(selected ? selected.map((s) => s.value) : [])
-                    }
+                    onChange={(selected) => {
+                      field.onChange(selected ? selected.map((s) => s.value) : []);
+                      // Trigger validation after change
+                      trigger("students");
+                    }}
                     styles={customStyles}
                     placeholder="Select students..."
                   />
@@ -563,20 +695,19 @@ const BatchModal: React.FC<IBatchModalProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => handleSaveDraft(getValues())}
+              onClick={handleSubmit(handleSaveDraft)}
               className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
             >
               Save as Draft
             </button>
             <button
-              type="button"
-              onClick={() => handleSave(getValues())}
+              type="submit"
               className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                isValid && !isLoading
+                isFormValid && !isLoading
                   ? "bg-blue-600 hover:bg-blue-700"
                   : "bg-blue-400 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid || isLoading}
+              disabled={!isFormValid || isLoading}
             >
               {isLoading && (
                 <ImSpinner2 className="animate-spin h-4 w-4" />

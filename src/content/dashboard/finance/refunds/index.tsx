@@ -176,7 +176,7 @@ const RefundsContent = () => {
           {isLoading ? (
             <div className="p-8 text-center text-gray-500">Loading refunds...</div>
           ) : filteredRefunds.length === 0 ? (
-            <NotFoundComponent text="Refunds" setIsModalOpen={() => {}} />
+            <NotFoundComponent text="Refunds" setIsModalOpen={() => {}} showButton={false} />
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">

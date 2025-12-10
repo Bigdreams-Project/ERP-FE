@@ -12,7 +12,13 @@ import {
   CreateStudent,
   CreateStudentPayment,
   UpdateStudent,
+  BulkUploadStudentsRequest,
+  BulkUploadStudentsResponse,
 } from "@/types/requests/student.interface";
+import {
+  BulkUploadCoursesRequest,
+  BulkUploadCoursesResponse,
+} from "@/types/requests/course.interface";
 import {
   BulkUploadArchiveRequest,
   CreateArchiveRecord,
@@ -240,6 +246,34 @@ export const hardDeleteCourseClient = async (id: string) => {
   }
 };
 
+export const bulkUploadCoursesClient = async (
+  payload: BulkUploadCoursesRequest
+): Promise<BulkUploadCoursesResponse> => {
+  try {
+    const res = await fetch("/api/courses/bulk-upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to bulk upload courses: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to bulk upload courses:", err.message);
+    throw err;
+  }
+};
+
 // Students - Client-side functions
 export const getStudentsClient = async (centerId?: string | null) => {
   try {
@@ -383,6 +417,34 @@ export const hardDeleteStudentClient = async (id: string) => {
     return data;
   } catch (err: any) {
     console.error("Failed to hard delete student:", err.message);
+    throw err;
+  }
+};
+
+export const bulkUploadStudentsClient = async (
+  payload: BulkUploadStudentsRequest
+): Promise<BulkUploadStudentsResponse> => {
+  try {
+    const res = await fetch("/api/students/bulk-upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to bulk upload students: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to bulk upload students:", err.message);
     throw err;
   }
 };

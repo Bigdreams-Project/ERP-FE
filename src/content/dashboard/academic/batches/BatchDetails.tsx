@@ -78,7 +78,18 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               </svg>
               <p className="text-indigo-600 hover:text-indigo-800 font-medium">
                 Academic &gt; Batches &gt; {batch?.code}
-                &gt; {batch?.faculty?.fullname}
+                {(() => {
+                  // Check for batchFaculties array first (new structure from backend)
+                  const batchFaculties = (batch as any).batchFaculties || [];
+                  const facultiesList = batchFaculties.length > 0
+                    ? batchFaculties.map((bf: any) => bf.faculty).filter(Boolean)
+                    : // Fallback to legacy faculty field
+                      (batch.faculty ? [batch.faculty] : []);
+                  if (facultiesList.length > 0) {
+                    return ` &gt; ${facultiesList.map((f: any) => f?.fullname).filter(Boolean).join(", ")}`;
+                  }
+                  return "";
+                })()}
               </p>
             </div>
             <a
@@ -148,8 +159,6 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                   "End Date": formatDate(batch.endDate),
                   Status: batch.status,
                   Schedule: batch?.schedules[0]?.day,
-                  Faculty: batch.faculty?.fullname,
-                  "Faculty Phone": batch.faculty?.phone || "N/A",
                   "Max Students": batch.students
                     ? batch.students.filter((s: any) => !s.deletedAt).length
                     : "0",
@@ -199,8 +208,70 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               </div>
             </div>
 
+            {/* Students List */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+                STUDENTS LIST
+              </h2>
+              <div className="bg-white rounded-lg px-2 py-4 grid gap-2">
+                <div className="overflow-x-auto custom-scroll-white">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-white">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Name
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Payment Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Amount Paid
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Balance
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {batch.students
+                        ?.filter((s: any) => !s.deletedAt)
+                        ?.map((student, index) => {
+                          const pending = parseFloat(
+                            student?.payments[0]?.paymentPlan?.pending || "0"
+                          );
+                          const amountOwing = Math.abs(pending);
+                          const hasOutstandingBalance = pending > 0;
+                          
+                          return (
+                            <tr key={index}>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                {student?.fullName}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
+                                {hasOutstandingBalance ? "Pending" : "Paid"}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ₦
+                                {student?.payments[0]?.paymentPlan?.paid?.toLocaleString() || "0"}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {hasOutstandingBalance ? (
+                                  `₦${amountOwing.toLocaleString()}`
+                                ) : (
+                                  <span className="text-green-600 font-medium">No Outstanding</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
             {/* Recent Activity Log */}
-            <div className={isEditing ? "mt-14" : ""}>
+            <div className="mt-8">
               <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
                 RECENT ACTIVITY LOG
               </h2>
@@ -231,58 +302,58 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
           </div>
 
           <div>
-            {/* Students List */}
+            {/* Faculties List */}
             <div>
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
-                STUDENTS LIST
+                FACULTIES LIST
               </h2>
-              <div className="bg-white rounded-lg px-2 py-4 grid gap-2">
-                <div className="overflow-x-auto custom-scroll-white">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-white">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Payment Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Amount Paid
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Balance
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {batch.students
-                        ?.filter((s: any) => !s.deletedAt)
-                        ?.map((student, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            {student?.fullName}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {parseFloat(
-                              student?.payments[0]?.paymentPlan?.pending
-                            ) !== 0
-                              ? "Pending"
-                              : "Paid"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ₦
-                            {student?.payments[0].paymentPlan?.paid.toLocaleString()}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ₦
-                            {student?.payments[0].paymentPlan?.pending.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="bg-white rounded-lg px-2 py-4 grid gap-2 mb-6">
+                {(() => {
+                  // Check for batchFaculties array first (new structure from backend)
+                  // Each item in batchFaculties has a faculty property
+                  const batchFaculties = (batch as any).batchFaculties || [];
+                  const facultiesList = batchFaculties.length > 0
+                    ? batchFaculties.map((bf: any) => bf.faculty).filter(Boolean)
+                    : // Fallback to legacy faculty field if batchFaculties doesn't exist
+                      (batch.faculty ? [batch.faculty] : []);
+                  
+                  if (facultiesList.length === 0) {
+                    return (
+                      <div className="px-4 py-6 text-center text-gray-500">
+                        <p>No faculties assigned to this batch.</p>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div className="overflow-x-auto custom-scroll-white">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-white">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Name
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Phone Number
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {facultiesList.map((faculty: any, index: number) => (
+                            <tr key={faculty?.id || index}>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                {faculty?.fullname || "N/A"}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {faculty?.phone || "N/A"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 

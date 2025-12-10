@@ -65,7 +65,10 @@ import {
   UserX,
   Award,
   Archive,
+  X,
 } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface DashboardOverviewProps {
   user: User;
@@ -109,6 +112,8 @@ const DashboardOverview = ({
       key: "selection",
     },
   ]);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
 
   // Fetch data with React Query
   const { data: user = initialUser } = useQuery(
@@ -245,24 +250,110 @@ const DashboardOverview = ({
       includesDate(s.enrolledDate, start, end)
     );
 
-    // Calculate billing (expected income from enrolled courses)
+    // Helper function to check if payment is legacy
+    // Check multiple fields to identify legacy payments - be very thorough
+    const isLegacyPayment = (payment: any): boolean => {
+      if (!payment) return false;
+      
+      // Check paymentType (case-insensitive)
+      const paymentType = String(payment?.paymentType || "").toUpperCase().trim();
+      // Check message field
+      const message = String(payment?.message || "").toUpperCase().trim();
+      // Check paymentPlan name
+      const paymentPlanName = String(payment?.paymentPlan?.name || "").toUpperCase().trim();
+      // Check disclaimer
+      const disclaimer = String(payment?.disclaimer || "").toUpperCase().trim();
+      // Check if there's a status field (in case it exists)
+      const status = String(payment?.status || "").toUpperCase().trim();
+      
+      // Check for "LEGACY" in any of these fields
+      const hasLegacy = (
+        paymentType === "LEGACY" ||
+        paymentType.includes("LEGACY") ||
+        message === "LEGACY" ||
+        message.includes("LEGACY") ||
+        paymentPlanName === "LEGACY" ||
+        paymentPlanName.includes("LEGACY") ||
+        disclaimer === "LEGACY" ||
+        disclaimer.includes("LEGACY") ||
+        status === "LEGACY" ||
+        status.includes("LEGACY")
+      );
+      
+      return hasLegacy;
+    };
+
+    // Calculate billing (expected income from enrolled courses) - total expected income from all enrolled students for every course enrolled
+    // Use center-specific course fees from courseAssignments, or student's stored lumpSum
     const totalBilling = filteredStudents.reduce((sum, student) => {
-      if (student.courses && student.courses.length > 0) {
-        const course = student.courses[0];
-        const fee = course.courseAssignments?.[0]?.lumpSumFee || course.lumpSumFee || 0;
-        return sum + fee;
+      // Priority 1: Check if student has a lumpSum stored (this is the actual expected payment)
+      if (student.lumpSum !== undefined && student.lumpSum !== null && student.lumpSum > 0) {
+        const lumpSumValue = typeof student.lumpSum === 'number' ? student.lumpSum : parseFloat(String(student.lumpSum)) || 0;
+        if (!isNaN(lumpSumValue) && lumpSumValue > 0) {
+          return sum + lumpSumValue;
+        }
       }
+      
+      // Priority 2: Calculate from courses and courseAssignments
+      if (student.courses && student.courses.length > 0 && student.centerId) {
+        // Sum fees from all courses the student is enrolled in
+        const studentBilling = student.courses.reduce((courseSum: number, course: Course) => {
+          // Find the courseAssignment that matches the student's center
+          const centerAssignment = course.courseAssignments?.find((ca: any) => ca.centerId === student.centerId);
+          
+          // Try multiple fee fields in priority order
+          let fee = 0;
+          
+          // First try center-specific assignment fees
+          if (centerAssignment) {
+            if (centerAssignment.lumpSumFee !== undefined && centerAssignment.lumpSumFee !== null) {
+              fee = typeof centerAssignment.lumpSumFee === 'number' 
+                ? centerAssignment.lumpSumFee 
+                : parseFloat(String(centerAssignment.lumpSumFee)) || 0;
+            } else if (centerAssignment.baseFee !== undefined && centerAssignment.baseFee !== null) {
+              fee = typeof centerAssignment.baseFee === 'number' 
+                ? centerAssignment.baseFee 
+                : parseFloat(String(centerAssignment.baseFee)) || 0;
+            }
+          }
+          
+          // Fall back to course-level fees if no center assignment or fee found
+          if (!fee || isNaN(fee)) {
+            if (course.lumpSumFee !== undefined && course.lumpSumFee !== null) {
+              fee = typeof course.lumpSumFee === 'number' 
+                ? course.lumpSumFee 
+                : parseFloat(String(course.lumpSumFee)) || 0;
+            } else if (course.baseFee !== undefined && course.baseFee !== null) {
+              fee = typeof course.baseFee === 'number' 
+                ? course.baseFee 
+                : parseFloat(String(course.baseFee)) || 0;
+            }
+          }
+          
+          return courseSum + (isNaN(fee) || fee <= 0 ? 0 : fee);
+        }, 0);
+        
+        if (!isNaN(studentBilling) && studentBilling > 0) {
+          return sum + studentBilling;
+        }
+      }
+      
       return sum;
     }, 0);
 
-    // Calculate revenue from payments
+    // Calculate revenue and pending from payments - exclude legacy payments
     const allPayments = filteredStudents.flatMap((s) => s.payments || []);
-    const totalRevenue = allPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
-    const totalPending = allPayments.reduce((sum, p: any) => {
+    const nonLegacyPayments = allPayments.filter((p: any) => !isLegacyPayment(p));
+    const totalRevenue = nonLegacyPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
+    const totalPending = nonLegacyPayments.reduce((sum, p: any) => {
       const pending = parseFloat(p.paymentPlan?.pending || "0");
       return sum + pending;
     }, 0);
-    const totalPayments = allPayments.length;
+    const totalPayments = nonLegacyPayments.length;
+    
+    // Calculate legacy payments separately
+    const legacyPayments = allPayments.filter((p: any) => isLegacyPayment(p));
+    const legacyAmount = legacyPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
 
     // Calculate payment collection rate
     const paymentCollectionRate = totalBilling > 0 ? (totalRevenue / totalBilling) * 100 : 0;
@@ -272,8 +363,15 @@ const DashboardOverview = ({
     // Academic metrics
     const totalEnrollments = studentsInRange.length;
     const newLeads = leadsInRange.length;
-    const conversionRate = newLeads > 0 ? (totalEnrollments / newLeads) * 100 : 0;
-    const activeStudents = filteredStudents.filter((s) => !s.deletedAt).length;
+    // Conversion rate: rate at which leads are being converted from leads to active students
+    // Count active students that came from leads (have leadId) and are enrolled in the date range
+    const activeStudentsFromLeads = studentsInRange.filter(
+      (s) => s.leadId && !s.deletedAt && s.status !== "DROPOUT" && s.status !== "GRADUATED"
+    ).length;
+    // Also count all active students for display
+    const activeStudents = filteredStudents.filter((s) => !s.deletedAt && s.status !== "DROPOUT" && s.status !== "GRADUATED").length;
+    // Conversion rate = students converted from leads / total leads
+    const conversionRate = newLeads > 0 ? (activeStudentsFromLeads / newLeads) * 100 : 0;
     
     // Student Status Metrics (part of Academic)
     // Total students (all students, regardless of date range or deletion)
@@ -331,23 +429,76 @@ const DashboardOverview = ({
     const centerPerformance: CenterPerformance[] = filteredCenters.map((center) => {
       const centerStudents = filteredStudents.filter((s) => s.centerId === center.id);
       const centerLeads = filteredLeads.filter((l) => l.centerId === center.id);
-      const centerRevenue = centerStudents.reduce((sum, s) => {
-        return sum + (s.payments?.reduce((pSum: number, p: any) => pSum + (p.amount || 0), 0) || 0);
-      }, 0);
+      
+      // Calculate center revenue - exclude legacy payments
+      const centerAllPayments = centerStudents.flatMap((s) => s.payments || []);
+      const centerNonLegacyPayments = centerAllPayments.filter((p: any) => !isLegacyPayment(p));
+      const centerRevenue = centerNonLegacyPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
+      
+      // Calculate center billing - total expected revenue from all students registered under the center
+      // Use center-specific course fees from courseAssignments, or student's stored lumpSum
       const centerBilling = centerStudents.reduce((sum, s) => {
-        if (s.courses && s.courses.length > 0) {
-          const course = s.courses[0];
-          const fee = course.courseAssignments?.[0]?.lumpSumFee || course.lumpSumFee || 0;
-          return sum + fee;
+        // Priority 1: Check if student has a lumpSum stored (this is the actual expected payment)
+        if (s.lumpSum !== undefined && s.lumpSum !== null && s.lumpSum > 0) {
+          const lumpSumValue = typeof s.lumpSum === 'number' ? s.lumpSum : parseFloat(String(s.lumpSum)) || 0;
+          if (!isNaN(lumpSumValue) && lumpSumValue > 0) {
+            return sum + lumpSumValue;
+          }
         }
+        
+        // Priority 2: Calculate from courses and courseAssignments
+        if (s.courses && s.courses.length > 0) {
+          // Sum fees from all courses the student is enrolled in
+          const studentBilling = s.courses.reduce((courseSum: number, course: Course) => {
+            // Find the courseAssignment that matches this center
+            const centerAssignment = course.courseAssignments?.find((ca: any) => ca.centerId === center.id);
+            
+            // Try multiple fee fields in priority order
+            let fee = 0;
+            
+            // First try center-specific assignment fees
+            if (centerAssignment) {
+              if (centerAssignment.lumpSumFee !== undefined && centerAssignment.lumpSumFee !== null) {
+                fee = typeof centerAssignment.lumpSumFee === 'number' 
+                  ? centerAssignment.lumpSumFee 
+                  : parseFloat(String(centerAssignment.lumpSumFee)) || 0;
+              } else if (centerAssignment.baseFee !== undefined && centerAssignment.baseFee !== null) {
+                fee = typeof centerAssignment.baseFee === 'number' 
+                  ? centerAssignment.baseFee 
+                  : parseFloat(String(centerAssignment.baseFee)) || 0;
+              }
+            }
+            
+            // Fall back to course-level fees if no center assignment or fee found
+            if (!fee || isNaN(fee)) {
+              if (course.lumpSumFee !== undefined && course.lumpSumFee !== null) {
+                fee = typeof course.lumpSumFee === 'number' 
+                  ? course.lumpSumFee 
+                  : parseFloat(String(course.lumpSumFee)) || 0;
+              } else if (course.baseFee !== undefined && course.baseFee !== null) {
+                fee = typeof course.baseFee === 'number' 
+                  ? course.baseFee 
+                  : parseFloat(String(course.baseFee)) || 0;
+              }
+            }
+            
+            return courseSum + (isNaN(fee) || fee <= 0 ? 0 : fee);
+          }, 0);
+          
+          if (!isNaN(studentBilling) && studentBilling > 0) {
+            return sum + studentBilling;
+          }
+        }
+        
         return sum;
       }, 0);
-      const centerPending = centerStudents.reduce((sum, s) => {
-        return sum + (s.payments?.reduce((pSum: number, p: any) => {
-          const pending = parseFloat(p.paymentPlan?.pending || "0");
-          return pSum + pending;
-        }, 0) || 0);
+      
+      // Calculate center pending - outstanding payment from all enrolled students, exclude legacy
+      const centerPending = centerNonLegacyPayments.reduce((sum, p: any) => {
+        const pending = parseFloat(p.paymentPlan?.pending || "0");
+        return sum + pending;
       }, 0);
+      
       const centerConversion = centerLeads.length > 0 ? (centerStudents.length / centerLeads.length) * 100 : 0;
 
       return {
@@ -362,8 +513,9 @@ const DashboardOverview = ({
       };
     });
 
-    // Top performing centers
+    // Top performing centers - exclude centers with only legacy payments (zero revenue)
     const topPerformingCenters: TopPerformingCenter[] = centerPerformance
+      .filter((cp) => cp.totalRevenue > 0) // Only include centers with non-legacy revenue
       .sort((a, b) => b.totalRevenue - a.totalRevenue)
       .slice(0, 5)
       .map((cp) => ({
@@ -373,7 +525,7 @@ const DashboardOverview = ({
         status: cp.status,
       }));
 
-    // Top performing courses
+    // Top performing courses - exclude legacy payments from revenue calculation
     const coursePerformanceMap = new Map<string, { enrollments: number; revenue: number }>();
     
     filteredStudents.forEach((student) => {
@@ -386,8 +538,9 @@ const DashboardOverview = ({
         const current = coursePerformanceMap.get(courseId) || { enrollments: 0, revenue: 0 };
         current.enrollments += 1;
         
-        // Calculate revenue from student payments
-        const studentRevenue = (student.payments || []).reduce(
+        // Calculate revenue from student payments - exclude legacy payments
+        const studentNonLegacyPayments = (student.payments || []).filter((p: any) => !isLegacyPayment(p));
+        const studentRevenue = studentNonLegacyPayments.reduce(
           (sum: number, p: any) => sum + (p.amount || 0),
           0
         );
@@ -414,36 +567,118 @@ const DashboardOverview = ({
       .sort((a, b) => b.enrollments - a.enrollments)
       .slice(0, 5);
 
-    // Payment status distribution
-    const paidAmount = totalRevenue;
+    // Payment status distribution - show paid, pending, and legacy
+    const paidPayments = nonLegacyPayments.filter((p: any) => {
+      const pending = parseFloat(p.paymentPlan?.pending || "0");
+      return pending === 0;
+    });
+    const paidAmount = paidPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
     const pendingAmount = totalPending;
-    const overdueAmount = 0;
     const paymentStatusDistribution: PaymentStatusDistribution = {
       paid: paidAmount,
       pending: pendingAmount,
-      overdue: overdueAmount,
+      overdue: legacyAmount, // Use legacy amount for the "overdue" field (we'll rename it in the component)
     };
 
-    // Trend data
+    // Trend data - calculate actual revenue and enrollment trends for last 12 months
     const trendData: TrendDataPoint[] = [];
     for (let i = 11; i >= 0; i--) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      // Calculate revenue for this month (from non-legacy payments)
+      const monthPayments = nonLegacyPayments.filter((p: any) => {
+        if (!p.paymentDate) return false;
+        const paymentDate = new Date(p.paymentDate);
+        return paymentDate >= monthStart && paymentDate <= monthEnd;
+      });
+      const monthRevenue = monthPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
+      
+      // Calculate enrollments for this month
+      const monthEnrollments = filteredStudents.filter((s) => {
+        if (!s.enrolledDate) return false;
+        const enrollmentDate = new Date(s.enrolledDate);
+        return enrollmentDate >= monthStart && enrollmentDate <= monthEnd;
+      }).length;
+      
+      // Calculate billing for this month (expected income from students enrolled this month)
+      // Use student's lumpSum field first, then fall back to course fees
+      const monthBilling = filteredStudents.filter((s) => {
+        if (!s.enrolledDate) return false;
+        const enrollmentDate = new Date(s.enrolledDate);
+        return enrollmentDate >= monthStart && enrollmentDate <= monthEnd;
+      }).reduce((sum, student) => {
+        // Priority 1: Check if student has a lumpSum stored
+        if (student.lumpSum !== undefined && student.lumpSum !== null && student.lumpSum > 0) {
+          const lumpSumValue = typeof student.lumpSum === 'number' ? student.lumpSum : parseFloat(String(student.lumpSum)) || 0;
+          if (!isNaN(lumpSumValue) && lumpSumValue > 0) {
+            return sum + lumpSumValue;
+          }
+        }
+        
+        // Priority 2: Calculate from courses
+        if (student.courses && student.courses.length > 0 && student.centerId) {
+          const studentBilling = student.courses.reduce((courseSum: number, course: Course) => {
+            // Find the courseAssignment that matches the student's center
+            const centerAssignment = course.courseAssignments?.find((ca: any) => ca.centerId === student.centerId);
+            
+            // Try multiple fee fields
+            let fee = 0;
+            if (centerAssignment) {
+              if (centerAssignment.lumpSumFee !== undefined && centerAssignment.lumpSumFee !== null) {
+                fee = typeof centerAssignment.lumpSumFee === 'number' 
+                  ? centerAssignment.lumpSumFee 
+                  : parseFloat(String(centerAssignment.lumpSumFee)) || 0;
+              } else if (centerAssignment.baseFee !== undefined && centerAssignment.baseFee !== null) {
+                fee = typeof centerAssignment.baseFee === 'number' 
+                  ? centerAssignment.baseFee 
+                  : parseFloat(String(centerAssignment.baseFee)) || 0;
+              }
+            }
+            
+            if (!fee || isNaN(fee)) {
+              if (course.lumpSumFee !== undefined && course.lumpSumFee !== null) {
+                fee = typeof course.lumpSumFee === 'number' 
+                  ? course.lumpSumFee 
+                  : parseFloat(String(course.lumpSumFee)) || 0;
+              } else if (course.baseFee !== undefined && course.baseFee !== null) {
+                fee = typeof course.baseFee === 'number' 
+                  ? course.baseFee 
+                  : parseFloat(String(course.baseFee)) || 0;
+              }
+            }
+            
+            return courseSum + (isNaN(fee) || fee <= 0 ? 0 : fee);
+          }, 0);
+          
+          if (!isNaN(studentBilling) && studentBilling > 0) {
+            return sum + studentBilling;
+          }
+        }
+        
+        return sum;
+      }, 0);
+      
       trendData.push({
         date: date.toISOString(),
-        revenue: 0,
-        billing: 0,
-        enrollments: 0,
-        payments: 0,
+        revenue: monthRevenue,
+        billing: monthBilling,
+        enrollments: monthEnrollments,
+        payments: monthPayments.length,
       });
     }
 
-    // Lead conversion funnel
-    const leadsContacted = leadsInRange.filter((l) => l.status === leadStatusEnum.Contacted).length;
-    const leadsDeposited = leadsInRange.filter((l) => l.status === leadStatusEnum.Deposited).length;
-    const leadsEnrolled = leadsInRange.filter((l) => l.status === leadStatusEnum.Enrolled).length;
+    // Lead conversion funnel - capture data from different status of leads
+    // Count all leads regardless of status for total
+    const totalLeads = leadsInRange.length;
+    const leadsNew = leadsInRange.filter((l) => l.status?.toUpperCase() === leadStatusEnum.New || l.status === "New").length;
+    const leadsContacted = leadsInRange.filter((l) => l.status?.toUpperCase() === leadStatusEnum.Contacted || l.status === "Contacted").length;
+    const leadsDeposited = leadsInRange.filter((l) => l.status?.toUpperCase() === leadStatusEnum.Deposited || l.status === "Deposited").length;
+    const leadsEnrolled = leadsInRange.filter((l) => l.status?.toUpperCase() === leadStatusEnum.Enrolled || l.status === "Enrolled").length;
     const conversionFunnel = [
-      { name: "Leads", value: newLeads },
+      { name: "Leads", value: totalLeads },
       { name: "Contacted", value: leadsContacted },
       { name: "Deposited", value: leadsDeposited },
       { name: "Enrolled", value: leadsEnrolled },
@@ -471,10 +706,12 @@ const DashboardOverview = ({
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, 20);
 
-    // Generate insights
+    // Generate insights - only include centers with non-legacy revenue
     const insights: DashboardInsight[] = [];
     
-    const highPendingCenters = centerPerformance.filter((cp) => cp.pendingPayments > 100000);
+    // Filter out centers with zero revenue (likely all legacy payments)
+    const centersWithRevenue = centerPerformance.filter((cp) => cp.totalRevenue > 0);
+    const highPendingCenters = centersWithRevenue.filter((cp) => cp.pendingPayments > 100000);
     if (highPendingCenters.length > 0) {
       insights.push({
         type: "warning",
@@ -484,7 +721,8 @@ const DashboardOverview = ({
       });
     }
 
-    if (topPerformingCenters.length > 0) {
+    // Only show top performing center if it has non-legacy revenue
+    if (topPerformingCenters.length > 0 && topPerformingCenters[0].revenue > 0) {
       insights.push({
         type: "success",
         message: `Top performing center: ${topPerformingCenters[0].center}`,
@@ -493,7 +731,8 @@ const DashboardOverview = ({
       });
     }
 
-    if (paymentCollectionRate < 50) {
+    // Only show payment collection rate warning if there's actual revenue
+    if (paymentCollectionRate < 50 && totalRevenue > 0) {
       insights.push({
         type: "warning",
         message: `Payment collection rate is below 50%`,
@@ -583,6 +822,96 @@ const DashboardOverview = ({
     })}`;
   };
 
+  // PDF Export and Preview functions
+  const handleExportPreview = async () => {
+    try {
+      const dashboardElement = document.getElementById("dashboard-content");
+      if (!dashboardElement) {
+        alert("Dashboard content not found. Please try again.");
+        return;
+      }
+
+      // Generate canvas from the dashboard
+      const canvas = await html2canvas(dashboardElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        height: dashboardElement.scrollHeight,
+        width: dashboardElement.scrollWidth,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      setPdfPreviewUrl(imgData);
+      setShowPdfPreview(true);
+    } catch (error) {
+      console.error("Error generating PDF preview:", error);
+      alert("Failed to generate PDF preview. Please try again.");
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const dashboardElement = document.getElementById("dashboard-content");
+      if (!dashboardElement) {
+        alert("Dashboard content not found. Please try again.");
+        return;
+      }
+
+      // Generate canvas from the dashboard
+      const canvas = await html2canvas(dashboardElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        height: dashboardElement.scrollHeight,
+        width: dashboardElement.scrollWidth,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      // Calculate PDF dimensions
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
+
+      // Create PDF
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      // Add multiple pages if content is longer than one page
+      let heightLeft = pdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= 297; // A4 height in mm
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+        heightLeft -= 297;
+      }
+
+      // Generate filename
+      const filename = `dashboard_export_${new Date().toISOString().split("T")[0]}.pdf`;
+
+      // Download PDF
+      pdf.save(filename);
+      
+      // Close preview if open
+      setShowPdfPreview(false);
+      setPdfPreviewUrl(null);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    await handleExportPDF();
+  };
+
   // Generate trend data for sparklines (last 12 data points)
   const generateTrendData = (currentValue: number, trend: "up" | "down" | "neutral" = "up"): number[] => {
     const dataPoints = 12;
@@ -659,7 +988,39 @@ const DashboardOverview = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* PDF Preview Modal */}
+      {showPdfPreview && pdfPreviewUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center rounded-t-2xl z-10">
+              <h2 className="text-xl font-bold text-gray-800">PDF Preview</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleExportPDF}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all"
+                >
+                  <Download size={18} />
+                  <span>Export PDF</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPdfPreview(false);
+                    setPdfPreviewUrl(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={20} className="text-gray-600" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <img src={pdfPreviewUrl} alt="PDF Preview" className="w-full h-auto" />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <main id="dashboard-content" className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Enhanced Header with Glassmorphism */}
         <div className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
           {/* Animated background pattern */}
@@ -740,11 +1101,17 @@ const DashboardOverview = ({
             </div>
 
             <DateRangeSelector range={range} onChange={handleRangeChange} />
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm hover:shadow-md">
+            <button
+              onClick={handleExportPreview}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm hover:shadow-md"
+            >
               <FileText size={18} />
               <span>Export</span>
             </button>
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl">
+            <button
+              onClick={handleDownloadPDF}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+            >
               <Download size={18} />
               <span>Download</span>
             </button>
@@ -884,7 +1251,7 @@ const DashboardOverview = ({
               layout="simple"
             />
             <KPICard
-              title="New Leads"
+              title="All Leads"
               value={formatNumber(dashboardData.metrics.newLeads)}
               icon={Users}
               color="purple"
