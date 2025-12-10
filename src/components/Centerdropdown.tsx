@@ -166,7 +166,7 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
     <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center font-bold gap-[0.5rem] outline-none border-none">
+          <button type="button" className="flex items-center font-bold gap-[0.5rem] outline-none border-none">
             <FiGlobe className="text-indigo-500" />
             {selectedCenterName}
             <IoMdArrowDropdown className="text-indigo-500 size-[1.3rem]" />
@@ -183,10 +183,10 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
               <IoMdArrowDropdown className="size-[1.3rem] text-indigo-500" />
             </p>
           </DropdownMenuItem>
-          {centers.map((center, index) => (
+          {centers.map((center) => (
             <DropdownMenuItem
               className="outline-none text-left border-none transition-all duration-300 flex justify-between"
-              key={index}
+              key={center.id}
               onClick={() => {
                 console.log("Center dropdown: Selecting center:", center.name, "ID:", center.id);
                 setSelectedCenter(center.id);

@@ -136,7 +136,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                   <th className="p-4">Code</th>
                   <th className="p-4">Title</th>
                   <th className="p-4">Duration</th>
-                  <th className="p-4">Amount</th>
                   <th className="p-4">Enrolled Students</th>
                   <th className="p-4">Leads</th>
                   <th className="p-4">Course Type</th>
@@ -166,7 +165,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
                       {highlightMatch(course.name, searchQuery)}
                     </td>
                     <td className="p-4">{course.duration}</td>
-                    <td className="p-4">{course.baseFee}</td>
                     <td className="p-4">
                       {course.students ? course.students?.length : ""}
                     </td>

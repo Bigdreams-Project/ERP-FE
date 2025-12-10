@@ -3,9 +3,10 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import StudentTable from "@/components/academic/tables/Students.table";
 import StudentModal from "@/components/modals/academic/StudentModal";
+import BulkUploadStudentsModal from "@/components/modals/academic/BulkUploadStudents.modal";
 import { studentStatus } from "@/data/constants/status.constants";
 import { programTypes } from "@/data/constants/program.constants";
-import { createStudentClient, getStudentsClient } from "@/lib/client-network";
+import { createStudentClient, getStudentsClient, bulkUploadStudentsClient, getCentersClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -20,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
-import { Archive } from "lucide-react";
+import { Archive, Upload } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useCenter } from "@/context/CenterContext";
 import { Loading } from "@/components/common/Loading";
@@ -103,7 +104,9 @@ const StudentContent = ({
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<any>({
     status: [],
     programType: [],
@@ -183,6 +186,38 @@ const StudentContent = ({
     // In enroll mode, payload is always CreateStudent
     const createPayload = payload as CreateStudent;
     createStudentMutation(createPayload);
+  };
+
+  // Fetch centers for bulk upload
+  const { data: centersForUpload = centers } = useQuery({
+    queryKey: ["centers"],
+    queryFn: () => getCentersClient(),
+    initialData: centers,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: false,
+  });
+
+  const handleBulkUpload = async (payload: any) => {
+    setIsBulkUploading(true);
+    try {
+      const result = await bulkUploadStudentsClient(payload);
+      if (result.success > 0) {
+        showSuccess(
+          `Successfully uploaded ${result.success} student(s). ${result.failed > 0 ? `${result.failed} failed.` : ""}`
+        );
+        // Refetch students
+        await queryClient.refetchQueries({ queryKey: ["students", selectedCenter] });
+      } else {
+        showError("No students were uploaded. Please check the errors.");
+      }
+      return result;
+    } catch (error: any) {
+      console.error("Bulk upload failed:", error);
+      showError(error.message || "Bulk upload failed");
+      throw error;
+    } finally {
+      setIsBulkUploading(false);
+    }
   };
 
   return (
@@ -315,6 +350,17 @@ const StudentContent = ({
           <span className="text-white text-sm">Enroll Student</span>
         </button>
 
+        {/* Bulk Upload Button - Admin Only */}
+        {isAdmin && !isAdminLoading && (
+          <button
+            className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-green-600 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+            onClick={() => setIsBulkUploadModalOpen(true)}
+          >
+            <Upload className="text-white" size={16} />
+            <span className="text-white text-sm">Upload Students</span>
+          </button>
+        )}
+
         {/* Archive Button - Admin Only */}
         {isAdmin && !isAdminLoading && (
           <button
@@ -349,6 +395,13 @@ const StudentContent = ({
         leads={leads}
         isLoading={isCreating}
         mode="enroll"
+      />
+      <BulkUploadStudentsModal
+        isOpen={isBulkUploadModalOpen}
+        onClose={() => setIsBulkUploadModalOpen(false)}
+        onSave={handleBulkUpload}
+        centers={centersForUpload}
+        isUploading={isBulkUploading}
       />
     </div>
   );

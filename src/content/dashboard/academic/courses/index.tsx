@@ -4,8 +4,9 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
+import BulkUploadCoursesModal from "@/components/modals/academic/BulkUploadCourses.modal";
 import { courseStatus, courseTypes } from "@/data/constants/status.constants";
-import { createCourseClient, getCoursesClient } from "@/lib/client-network";
+import { createCourseClient, getCoursesClient, bulkUploadCoursesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatCourseType } from "@/lib/utils";
 import { Course } from "@/types/academic/course.interface";
@@ -14,6 +15,8 @@ import { useEffect, useRef, useState } from "react";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
+import { Upload } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CoursesContentProps {
@@ -22,12 +25,15 @@ interface CoursesContentProps {
 
 const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
   const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<any>({
     status: [],
@@ -121,16 +127,40 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
     createCourseMutation({ payload, isDraft });
   };
 
+  const handleBulkUpload = async (payload: any) => {
+    setIsBulkUploading(true);
+    try {
+      const result = await bulkUploadCoursesClient(payload);
+      if (result.success > 0) {
+        showSuccess(
+          `Successfully uploaded ${result.success} course(s). ${result.failed > 0 ? `${result.failed} failed.` : ""}`
+        );
+        // Refetch courses
+        await queryClient.refetchQueries({ queryKey: ["courses"] });
+      } else {
+        showError("No courses were uploaded. Please check the errors.");
+      }
+      return result;
+    } catch (error: any) {
+      console.error("Bulk upload failed:", error);
+      showError(error.message || "Bulk upload failed");
+      throw error;
+    } finally {
+      setIsBulkUploading(false);
+    }
+  };
+
   return (
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Courses" }]} />
 
-      <div className="w-full flex items-center justify-between">
-        <div className="flex items-center mt-4">
-          <AcademicTabs />
-        </div>
+      {/* Tabs Section - Full Width */}
+      <div className="w-full mt-4">
+        <AcademicTabs />
+      </div>
 
-        <div className="w-full flex items-center justify-end gap-4 p-3">
+      {/* Controls Section - Below Tabs */}
+      <div className="w-full flex items-center justify-end gap-7 p-2 mt-2">
           {/* Filter */}
           <div className="relative" ref={dropdownRef}>
             <div
@@ -245,7 +275,17 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
             <FaPlus className="text-white" size={16} />
             <span className="text-white text-sm">Add Course</span>
           </button>
-        </div>
+
+          {/* Bulk Upload Button - Admin Only */}
+          {isAdmin && !isAdminLoading && (
+            <button
+              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-green-600 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+              onClick={() => setIsBulkUploadModalOpen(true)}
+            >
+              <Upload className="text-white" size={16} />
+              <span className="text-white text-sm">Upload Courses</span>
+            </button>
+          )}
       </div>
 
       <CoursesTable searchQuery={searchQuery} filteredData={filteredData} />
@@ -255,6 +295,12 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         mode="add"
+      />
+      <BulkUploadCoursesModal
+        isOpen={isBulkUploadModalOpen}
+        onClose={() => setIsBulkUploadModalOpen(false)}
+        onSave={handleBulkUpload}
+        isUploading={isBulkUploading}
       />
     </div>
   );

@@ -1,13 +1,15 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTicketsClient } from "@/lib/client-network";
+import { getTicketsClient, createTicketClient } from "@/lib/client-network";
 import { useCenter } from "@/context/CenterContext";
-import { Ticket, TicketStatus, TicketPriority, TicketCategory } from "@/types/support/ticket.interface";
+import { Ticket, TicketStatus, TicketPriority, TicketCategory, CreateTicketRequest } from "@/types/support/ticket.interface";
 import NotFoundComponent from "@/components/NotFoundComponent";
+import CreateTicketModal from "@/components/modals/support/CreateTicketModal";
 import { formatDate } from "@/lib/utils";
 import { Eye, MessageSquare, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const TicketsContent = () => {
   const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
@@ -16,6 +18,7 @@ const TicketsContent = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const centerIdForQuery = useMemo(() => {
     if (!isCenterLoading && centerContext && !centerContext.canSwitch && centerContext.currentCenterId) {
@@ -102,6 +105,20 @@ const TicketsContent = () => {
     return labels[category] || category;
   };
 
+  const handleCreateTicket = async (ticket: CreateTicketRequest) => {
+    try {
+      await createTicketClient(ticket, centerIdForQuery);
+      toast.success("Support ticket created successfully");
+      setIsModalOpen(false);
+      // Invalidate and refetch tickets
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    } catch (error: any) {
+      console.error("Failed to create ticket:", error);
+      toast.error(error.message || "Failed to create support ticket. Please try again.");
+      throw error;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -176,7 +193,7 @@ const TicketsContent = () => {
           {isLoading ? (
             <div className="p-8 text-center text-gray-500">Loading tickets...</div>
           ) : filteredTickets.length === 0 ? (
-            <NotFoundComponent text="Support Tickets" setIsModalOpen={() => {}} />
+            <NotFoundComponent text="Support Tickets" setIsModalOpen={setIsModalOpen} />
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -270,6 +287,13 @@ const TicketsContent = () => {
           )}
         </div>
       </div>
+
+      {/* Create Ticket Modal */}
+      <CreateTicketModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateTicket}
+      />
     </div>
   );
 };

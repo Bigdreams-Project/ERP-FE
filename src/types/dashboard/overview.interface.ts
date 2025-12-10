@@ -65,7 +65,7 @@ export interface TrendDataPoint {
 export interface PaymentStatusDistribution {
   paid: number;
   pending: number;
-  overdue: number;
+  overdue: number; // Used for legacy payments
 }
 
 export interface TopPerformingCenter {

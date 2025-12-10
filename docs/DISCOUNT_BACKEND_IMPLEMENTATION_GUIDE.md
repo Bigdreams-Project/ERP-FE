@@ -407,3 +407,6 @@ pending → rejected
 4. **Validation:** Ensure discounts don't result in negative amounts
 
 5. **Multiple Discounts:** Consider if a student can have multiple discounts (current implementation assumes one discount per payment plan)
+
+
+

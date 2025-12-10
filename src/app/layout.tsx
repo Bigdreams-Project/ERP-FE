@@ -3,27 +3,9 @@ import { ProviderProvider } from "@/context/ProviderContext";
 import { UserProvider } from "@/context/UserContext";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import type { Metadata } from "next";
-import { Archivo, Inter } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-inter",
-  display: "swap",
-  fallback: ["system-ui", "arial"],
-  preload: true,
-});
-
-const archivo = Archivo({
-  subsets: ["latin"],
-  variable: "--font-archivo",
-  display: "swap",
-  fallback: ["system-ui", "arial"],
-  preload: true,
-});
 
 export const metadata: Metadata = {
   title: "TecTerminal ERP",
@@ -37,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${archivo.variable} antialiased`}>
+      <body className="antialiased">
         <UserProvider>
           <CenterProvider>
             <ProviderProvider>

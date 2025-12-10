@@ -17,6 +17,15 @@ export interface BatchNote {
   updatedAt: string;
 }
 
+export interface BatchFaculty {
+  id?: string;
+  batchId?: string;
+  facultyId?: string;
+  courseId?: string;
+  faculty: Faculty;
+  course?: Course;
+}
+
 export interface Batch {
   id?: string;
   code: string;
@@ -25,7 +34,8 @@ export interface Batch {
   createdAt: string;
   duration: string;
   status: string;
-  faculty: Faculty;
+  faculty: Faculty; // Legacy field for backward compatibility
+  batchFaculties?: BatchFaculty[]; // New array structure for multiple faculties
   course: Course;
   center: Center;
   schedules: IBatchSchedule[];

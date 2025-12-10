@@ -18,7 +18,10 @@ const CenterPerformanceTable = ({
     router.push(`/dashboard/academic/centers`);
   }; 
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return "₦0";
+    }
     return `₦${value.toLocaleString(undefined, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,

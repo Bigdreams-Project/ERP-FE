@@ -63,3 +63,48 @@ export interface CreateStudentPayment {
   paymentType: string;
   paymentMethod: string;
 }
+
+export interface BulkUploadStudentPayment {
+  amount: number;
+  date: string;
+  balance: number;
+}
+
+export interface BulkUploadStudentRecord {
+  oldId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  birthDate: string;
+  enrolledDate: string;
+  courseId: string;
+  courseFee: number;
+  payments: BulkUploadStudentPayment[];
+}
+
+export interface BulkUploadStudentsRequest {
+  centerId: string;
+  records: BulkUploadStudentRecord[];
+}
+
+export interface BulkUploadStudentsResponse {
+  success: number;
+  failed: number;
+  skipped: number;
+  errors: Array<{
+    row: number;
+    oldId?: string;
+    email?: string;
+    fullName?: string;
+    error: string;
+  }>;
+  skippedRecords: Array<{
+    row: number;
+    oldId?: string;
+    email?: string;
+    fullName?: string;
+    reason: string;
+  }>;
+  total: number;
+}
