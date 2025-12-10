@@ -24,6 +24,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import Select, { ActionMeta, MultiValue } from "react-select";
+import { ImSpinner2 } from "react-icons/im";
 
 const BatchModal: React.FC<IBatchModalProps> = ({
   isOpen,
@@ -34,6 +35,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   students,
   faculties,
   mode,
+  isLoading = false,
 }) => {
   const {
     register,
@@ -569,14 +571,17 @@ const BatchModal: React.FC<IBatchModalProps> = ({
             <button
               type="button"
               onClick={() => handleSave(getValues())}
-              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
-                isValid
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                isValid && !isLoading
                   ? "bg-blue-600 hover:bg-blue-700"
                   : "bg-blue-400 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid}
+              disabled={!isValid || isLoading}
             >
-              Create Batch
+              {isLoading && (
+                <ImSpinner2 className="animate-spin h-4 w-4" />
+              )}
+              {isLoading ? "Creating..." : "Create Batch"}
             </button>
           </div>
         </form>

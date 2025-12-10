@@ -6,6 +6,7 @@ import {
 } from "@/components/academic/utils/payment";
 import { formatDate } from "@/lib/utils";
 import { Payment } from "@/types/finance/payment.interface";
+import Link from "next/link";
 import {
   Book,
   Calendar,
@@ -215,12 +216,15 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
     icon: Icon,
     label,
     isDestructive = false,
+    isSuccess = false,
     onClick,
   }: any) => (
     <button
       className={`flex items-center w-full px-4 py-3 rounded-xl transition duration-150 ease-in-out text-sm font-medium 
         ${
-          isDestructive
+          isSuccess
+            ? "bg-green-500 hover:bg-green-600 text-white shadow-md"
+            : isDestructive
             ? "bg-red-500 hover:bg-red-600 text-white shadow-md"
             : "text-gray-700 bg-gray-50 hover:bg-gray-100"
         }`}
@@ -228,7 +232,7 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
     >
       <Icon
         className={`w-4 h-4 mr-3 ${
-          isDestructive ? "text-white" : "text-gray-500"
+          isSuccess || isDestructive ? "text-white" : "text-gray-500"
         }`}
       />
       {label}
@@ -274,12 +278,12 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
           <ActionButton
             icon={CheckCircle}
             label="Approve Transaction"
+            isSuccess={true}
             onClick={() => setShowApprovalModal(true)}
           />
           <ActionButton
             icon={RefreshCcw}
             label="Issue Refund"
-            isDestructive={true}
             onClick={() => setShowRefundModal(true)}
           />
           <ActionButton
@@ -335,11 +339,28 @@ export const PayerInformation = ({ data }: Props) => {
     );
   }
 
-  return (
-    <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
-      <h2 className="text-xl font-semibold mb-6 text-gray-700">
-        Payer Information
-      </h2>
+  const studentId = data.student?.id;
+  const hasStudentLink = !!studentId;
+
+  const content = (
+    <div className={`p-6 bg-white border rounded-xl shadow-sm mb-6 transition-all duration-200 ${
+      hasStudentLink 
+        ? "border-blue-300 hover:border-blue-500 hover:shadow-md cursor-pointer" 
+        : "border-gray-200"
+    }`}>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className={`text-xl font-semibold ${
+          hasStudentLink ? "text-blue-700" : "text-gray-700"
+        }`}>
+          Payer Information
+        </h2>
+        {hasStudentLink && (
+          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1">
+            <User className="w-3 h-3" />
+            View Student →
+          </span>
+        )}
+      </div>
       <div className="divide-y divide-gray-100">
         <PayerDetail icon={User} label="Name" value={data.student?.fullName} />
         <PayerDetail icon={User} label="Relationship" value={"Student"} />
@@ -356,6 +377,19 @@ export const PayerInformation = ({ data }: Props) => {
       </div>
     </div>
   );
+
+  if (hasStudentLink) {
+    return (
+      <Link
+        href={`/dashboard/academic/students/${studentId}`}
+        className="block group"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 };
 
 export const ProofOfPayment = ({ data }: any) => {

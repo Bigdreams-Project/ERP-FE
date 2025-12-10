@@ -1,18 +1,17 @@
 export const getPaymentPlan = (plan: string) => {
-  let paymentPlan;
-
-  switch (plan) {
+  if (!plan) return plan;
+  
+  const planLower = plan.toLowerCase().trim();
+  
+  switch (planLower) {
     case "lumpsum":
-      paymentPlan = "Lumpsum";
-      break;
+      return "Lump Sum";
     case "installment":
-      paymentPlan = "Installment";
-      break;
+      return "Installment";
     default:
-      break;
+      // Return original if it doesn't match, or capitalize first letter
+      return plan.charAt(0).toUpperCase() + plan.slice(1).toLowerCase();
   }
-
-  return paymentPlan;
 };
 
 export const getPaymentMethod = (method: string) => {

@@ -4,12 +4,15 @@ export const AppAuthRoutes = {
 };
 
 export const DashboardAcademicRoutes = {
+  DASHBOARD: "/dashboard",
   OVERVIEW: "/dashboard/academic/overview",
   LEADS: "/dashboard/academic/leads",
   CENTERS: "/dashboard/academic/centers",
   COURSES: "/dashboard/academic/courses",
   STUDENTS: "/dashboard/academic/students",
   BATCHES: "/dashboard/academic/batches",
+  INTERNSHIP: "/dashboard/academic/internship",
+  NICTP: "/dashboard/academic/nictp",
 };
 
 export const DashboardFinanceRoutes = {

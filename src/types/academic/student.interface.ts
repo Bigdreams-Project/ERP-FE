@@ -44,7 +44,7 @@ export interface StudentNote {
   updatedAt: string;
 }
 
-export type ProgramType = "REGULAR_STUDENT" | "JPTP" | "INTERNSHIP";
+export type ProgramType = "REGULAR_STUDENT" | "JPTP" | "INTERNSHIP" | "NICTP";
 
 export interface Student {
   id: string;
@@ -132,6 +132,7 @@ export interface IStudentModalProps {
   leads: Lead[];
   initialData?: Partial<IStudent>;
   mode: "enroll" | "edit";
+  isLoading?: boolean;
 }
 
 export interface IStudentEditModalProps {

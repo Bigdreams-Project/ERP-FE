@@ -501,6 +501,11 @@ const DashboardOverview = ({
       });
     }
 
+    // Program metrics
+    const jptpCount = filteredStudents.filter((s) => s.programType === "JPTP").length;
+    const internshipCount = filteredStudents.filter((s) => s.programType === "INTERNSHIP").length;
+    const nictpCount = filteredStudents.filter((s) => s.programType === "NICTP").length;
+
     const metrics: DashboardMetrics = {
       totalRevenue,
       totalBilling,
@@ -526,6 +531,9 @@ const DashboardOverview = ({
       enrollmentYoY,
       billingMoM,
       billingYoY,
+      jptpCount,
+      internshipCount,
+      nictpCount,
     };
 
     return {
@@ -656,15 +664,18 @@ const DashboardOverview = ({
         <div className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
           {/* Animated background pattern */}
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-              backgroundSize: '40px 40px'
-            }}></div>
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                backgroundSize: "40px 40px",
+              }}
+            ></div>
           </div>
-          
+
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-          
+
           <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
@@ -677,18 +688,22 @@ const DashboardOverview = ({
                   </h1>
                   <div className="flex items-center gap-2 text-white/90">
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">{selectedCenterName}</span>
+                    <span className="text-sm font-medium">
+                      {selectedCenterName}
+                    </span>
                     {!isAllCompaniesView && (
                       <>
                         <span className="text-white/60">•</span>
-                        <span className="text-sm font-medium">{selectedProviderName}</span>
+                        <span className="text-sm font-medium">
+                          {selectedProviderName}
+                        </span>
                       </>
                     )}
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 bg-gradient-to-br from-white/30 to-white/10 rounded-full flex items-center justify-center border-2 border-white/30">
@@ -718,12 +733,12 @@ const DashboardOverview = ({
             </div>
             <h2 className="text-2xl font-bold text-gray-800">Key Metrics</h2>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl">
               <Providerdropdown />
             </div>
-            
+
             <DateRangeSelector range={range} onChange={handleRangeChange} />
             <button className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm hover:shadow-md">
               <FileText size={18} />
@@ -740,7 +755,9 @@ const DashboardOverview = ({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Target className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700">Financial Performance</h3>
+            <h3 className="text-lg font-bold text-gray-700">
+              Financial Performance
+            </h3>
             {!isAllCentersView && (
               <span className="text-sm font-semibold text-indigo-700 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-1.5 rounded-full border-2 border-indigo-300 shadow-sm">
                 {selectedCenterName}
@@ -754,16 +771,21 @@ const DashboardOverview = ({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
-              title="Total Revenue"
+              title="Total Collection"
               value={formatCurrency(dashboardData.metrics.totalRevenue)}
               changeValue={dashboardData.metrics.revenueMoM}
               changeValueYoY={dashboardData.metrics.revenueYoY}
               direction={dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"}
-              directionYoY={dashboardData.metrics.revenueYoY >= 0 ? "up" : "down"}
+              directionYoY={
+                dashboardData.metrics.revenueYoY >= 0 ? "up" : "down"
+              }
               icon={DollarSign}
               color="green"
               formatValue={formatCurrency}
-              trendData={generateTrendData(dashboardData.metrics.totalRevenue, dashboardData.metrics.revenueMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalRevenue,
+                dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"
+              )}
               sparklineType="line"
               layout="simple"
             />
@@ -773,11 +795,16 @@ const DashboardOverview = ({
               changeValue={dashboardData.metrics.billingMoM}
               changeValueYoY={dashboardData.metrics.billingYoY}
               direction={dashboardData.metrics.billingMoM >= 0 ? "up" : "down"}
-              directionYoY={dashboardData.metrics.billingYoY >= 0 ? "up" : "down"}
+              directionYoY={
+                dashboardData.metrics.billingYoY >= 0 ? "up" : "down"
+              }
               icon={TrendingUp}
               color="blue"
               formatValue={formatCurrency}
-              trendData={generateTrendData(dashboardData.metrics.totalBilling, dashboardData.metrics.billingMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalBilling,
+                dashboardData.metrics.billingMoM >= 0 ? "up" : "down"
+              )}
               sparklineType="line"
               layout="simple"
             />
@@ -787,16 +814,30 @@ const DashboardOverview = ({
               icon={AlertCircle}
               color="amber"
               formatValue={formatCurrency}
-              trendData={generateTrendData(dashboardData.metrics.totalPending, "neutral")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalPending,
+                "neutral"
+              )}
               sparklineType="line"
               layout="simple"
             />
             <KPICard
               title="Collection Rate"
-              value={`${dashboardData.metrics.paymentCollectionRate.toFixed(1)}%`}
+              value={`${dashboardData.metrics.paymentCollectionRate.toFixed(
+                1
+              )}%`}
               icon={DollarSign}
-              color={dashboardData.metrics.paymentCollectionRate >= 70 ? "green" : "amber"}
-              trendData={generateTrendData(dashboardData.metrics.paymentCollectionRate, dashboardData.metrics.paymentCollectionRate >= 70 ? "up" : "neutral")}
+              color={
+                dashboardData.metrics.paymentCollectionRate >= 70
+                  ? "green"
+                  : "amber"
+              }
+              trendData={generateTrendData(
+                dashboardData.metrics.paymentCollectionRate,
+                dashboardData.metrics.paymentCollectionRate >= 70
+                  ? "up"
+                  : "neutral"
+              )}
               sparklineType="line"
               layout="simple"
             />
@@ -807,7 +848,9 @@ const DashboardOverview = ({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <GraduationCap className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700">Academic Metrics</h3>
+            <h3 className="text-lg font-bold text-gray-700">
+              Academic Metrics
+            </h3>
             {!isAllCentersView && (
               <span className="text-sm font-semibold text-indigo-700 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-1.5 rounded-full border-2 border-indigo-300 shadow-sm">
                 {selectedCenterName}
@@ -825,11 +868,18 @@ const DashboardOverview = ({
               value={formatNumber(dashboardData.metrics.totalEnrollments)}
               changeValue={dashboardData.metrics.enrollmentMoM}
               changeValueYoY={dashboardData.metrics.enrollmentYoY}
-              direction={dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down"}
-              directionYoY={dashboardData.metrics.enrollmentYoY >= 0 ? "up" : "down"}
+              direction={
+                dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down"
+              }
+              directionYoY={
+                dashboardData.metrics.enrollmentYoY >= 0 ? "up" : "down"
+              }
               icon={GraduationCap}
               color="blue"
-              trendData={generateTrendData(dashboardData.metrics.totalEnrollments, dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalEnrollments,
+                dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down"
+              )}
               sparklineType="line"
               layout="simple"
             />
@@ -882,7 +932,9 @@ const DashboardOverview = ({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <School className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700">Operational Overview</h3>
+            <h3 className="text-lg font-bold text-gray-700">
+              Operational Overview
+            </h3>
             {!isAllCentersView && (
               <span className="text-sm font-semibold text-indigo-700 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-1.5 rounded-full border-2 border-indigo-300 shadow-sm">
                 {selectedCenterName}
@@ -915,10 +967,52 @@ const DashboardOverview = ({
             />
             <KPICard
               title="Avg Revenue/Student"
-              value={formatCurrency(dashboardData.metrics.averagePaymentPerStudent)}
+              value={formatCurrency(
+                dashboardData.metrics.averagePaymentPerStudent
+              )}
               icon={DollarSign}
               color="green"
               formatValue={formatCurrency}
+            />
+          </div>
+        </div>
+
+        {/* Programs KPIs */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <GraduationCap className="text-indigo-600" size={20} />
+            <h3 className="text-lg font-bold text-gray-700">
+              Programs
+            </h3>
+            {!isAllCentersView && (
+              <span className="text-sm font-semibold text-indigo-700 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-1.5 rounded-full border-2 border-indigo-300 shadow-sm">
+                {selectedCenterName}
+              </span>
+            )}
+            {!isAllCompaniesView && (
+              <span className="text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-1.5 rounded-full border-2 border-purple-300 shadow-sm">
+                {selectedProviderName}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <KPICard
+              title="JPTP"
+              value={formatNumber(dashboardData.metrics.jptpCount || 0)}
+              icon={Users}
+              color="blue"
+            />
+            <KPICard
+              title="Internship"
+              value={formatNumber(dashboardData.metrics.internshipCount || 0)}
+              icon={Users}
+              color="purple"
+            />
+            <KPICard
+              title="NICTP"
+              value={formatNumber(dashboardData.metrics.nictpCount || 0)}
+              icon={Users}
+              color="green"
             />
           </div>
         </div>
@@ -929,19 +1023,25 @@ const DashboardOverview = ({
             <TrendChart
               data={dashboardData.trendData}
               dataKey="revenue"
-              title={`Revenue Trend (Last 12 Months)${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
+              title={`Revenue Trend (Last 12 Months)${
+                !isAllCentersView ? ` - ${selectedCenterName}` : ""
+              }${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
               color="#10b981"
               formatValue={formatCurrency}
             />
             <TrendChart
               data={dashboardData.trendData}
               dataKey="enrollments"
-              title={`Enrollment Trend (Last 12 Months)${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
+              title={`Enrollment Trend (Last 12 Months)${
+                !isAllCentersView ? ` - ${selectedCenterName}` : ""
+              }${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
               color="#3b82f6"
             />
             <StatusDistribution
               data={dashboardData.paymentStatusDistribution}
-              title={`Payment Status Distribution${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
+              title={`Payment Status Distribution${
+                !isAllCentersView ? ` - ${selectedCenterName}` : ""
+              }${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
             />
           </div>
 
@@ -970,31 +1070,51 @@ const DashboardOverview = ({
                     <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md">
                       <School className="text-white" size={18} />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800">{selectedCenterName} Overview</h3>
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {selectedCenterName} Overview
+                    </h3>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">Revenue</p>
+                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                        Revenue
+                      </p>
                       <p className="text-2xl font-bold text-emerald-700">
-                        {formatCurrency(dashboardData.centerPerformance[0]?.totalRevenue || 0)}
+                        {formatCurrency(
+                          dashboardData.centerPerformance[0]?.totalRevenue || 0
+                        )}
                       </p>
                     </div>
                     <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">Billing</p>
+                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                        Billing
+                      </p>
                       <p className="text-2xl font-bold text-blue-700">
-                        {formatCurrency(dashboardData.centerPerformance[0]?.totalBilling || 0)}
+                        {formatCurrency(
+                          dashboardData.centerPerformance[0]?.totalBilling || 0
+                        )}
                       </p>
                     </div>
                     <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">Pending</p>
+                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                        Pending
+                      </p>
                       <p className="text-2xl font-bold text-amber-700">
-                        {formatCurrency(dashboardData.centerPerformance[0]?.pendingPayments || 0)}
+                        {formatCurrency(
+                          dashboardData.centerPerformance[0]?.pendingPayments ||
+                            0
+                        )}
                       </p>
                     </div>
                     <div className="p-5 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border-2 border-purple-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">Conversion</p>
+                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                        Conversion
+                      </p>
                       <p className="text-2xl font-bold text-purple-700">
-                        {dashboardData.centerPerformance[0]?.conversionRate.toFixed(1) || 0}%
+                        {dashboardData.centerPerformance[0]?.conversionRate.toFixed(
+                          1
+                        ) || 0}
+                        %
                       </p>
                     </div>
                   </div>
@@ -1003,12 +1123,16 @@ const DashboardOverview = ({
             )}
             <ConversionFunnel
               data={dashboardData.conversionFunnel}
-              title={`Lead Conversion Funnel${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
+              title={`Lead Conversion Funnel${
+                !isAllCentersView ? ` - ${selectedCenterName}` : ""
+              }${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
             />
             {!isAllCentersView && (
               <TopPerformingCourses
                 data={dashboardData.topPerformingCourses}
-                title={`Top Performing Courses${!isAllCentersView ? ` - ${selectedCenterName}` : ""}${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
+                title={`Top Performing Courses${
+                  !isAllCentersView ? ` - ${selectedCenterName}` : ""
+                }${!isAllCompaniesView ? ` - ${selectedProviderName}` : ""}`}
               />
             )}
           </div>

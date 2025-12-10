@@ -1,5 +1,4 @@
 "use client";
-import AcademicStatCard from "@/components/academic/cards/AcademicStatCard.card";
 import StatCard from "@/components/academic/cards/StatCard.card";
 // Removed unused mockData import to speed up compilation
 import { courseStatusEnum } from "@/data/view/course.data";
@@ -277,39 +276,6 @@ const OverviewContent = ({
         })
       );
 
-    // Academic summary cards
-    const academicStats = [
-      {
-        title: "Centers",
-        value: formatNumber(totalCenters),
-        subText: `${
-          centers.filter((ct: Center) => ct.status === centerStatusEnum.Active)
-            .length
-        } active`,
-        icon: School,
-      },
-      {
-        title: "Students (range)",
-        value: formatNumber(totalStudents),
-        subText: `${percent(
-          totalStudents,
-          Math.max(1, students.length)
-        )} of all`,
-        icon: Users,
-      },
-      {
-        title: "Leads (range)",
-        value: formatNumber(totalLeads),
-        subText: `${percent(totalLeads, Math.max(1, leads.length))} of all`,
-        icon: Users,
-      },
-      {
-        title: "Conversion",
-        value: `${conversionRate.toFixed(1)}%`,
-        subText: `${convertedFromLeadsInRange} direct conversions`,
-        icon: Users,
-      },
-    ];
 
     // Recent activity
     const leadActivity = leadsInRange.map((l: Lead) => ({
@@ -418,7 +384,6 @@ const OverviewContent = ({
       stats,
       funnel,
       insights,
-      academicStats,
       courseStats,
       recentActivity,
       modalActivities,
@@ -556,12 +521,6 @@ const OverviewContent = ({
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {computedData.academicStats.map((stat, index) => (
-            <AcademicStatCard key={index} {...stat} />
-          ))}
-        </div>
 
         {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

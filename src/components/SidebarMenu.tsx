@@ -129,6 +129,8 @@ const SidebarMenu = ({
         { label: "Students", href: "/dashboard/academic/students" },
         { label: "Courses", href: "/dashboard/academic/courses" },
         { label: "Batches", href: "/dashboard/academic/batches" },
+        { label: "Internship", href: "/dashboard/academic/internship" },
+        { label: "NICTP", href: "/dashboard/academic/nictp" },
       ],
     },
     {

@@ -44,6 +44,9 @@ const StudentEnrollmentInfo = ({ student, courses }: StudentDetailsProps) => {
               </div>
             </div>
 
+            {/* Payment History - Moved to left section */}
+            <PaymentHistory data={data} />
+
             {/* New Payment Form */}
             <NewPaymentForm courses={courses} studentId={data.id} />
           </div>
@@ -51,9 +54,6 @@ const StudentEnrollmentInfo = ({ student, courses }: StudentDetailsProps) => {
           <div className="lg:col-span-1 space-y-6">
             {/* Proof of Payment */}
             <ProofOfPaymentUpload data={data} />
-
-            {/* Payment History */}
-            <PaymentHistory data={data} />
 
             {/* System Actions Summary */}
             <SystemActionsSummary data={data} />

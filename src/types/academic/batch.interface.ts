@@ -70,6 +70,7 @@ export interface IBatchModalProps {
   faculties: Faculty[];
   initialData?: Partial<IBatch>;
   mode: "add" | "edit";
+  isLoading?: boolean;
 }
 
 export interface IBatchSchedule {

@@ -108,7 +108,7 @@ const ChartLegend = ({ data, totalRevenue }: ChartLegendProps) => {
         )}
 
         <div className="absolute inset-0 flex flex-col items-center justify-center p-2 pointer-events-none">
-          <span className="text-sm font-bold">Total Revenue</span>
+          <span className="text-sm font-bold">Total Collection</span>
           <span className="text-sm text-gray-500">
             ₦{formatCurrency(totalRevenue!)}
           </span>

@@ -285,7 +285,7 @@ export default function StudentTable({
                             className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             <DollarSign size={16} />
-                            Record Payment
+                            View Payments
                           </button>
                           {(student.programType !== "JPTP" && (!student.programType || student.programType === "REGULAR_STUDENT")) && (
                             <button

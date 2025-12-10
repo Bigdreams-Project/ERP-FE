@@ -69,6 +69,7 @@ export interface ILeadModalProps {
   onSave: (payload: CreateLead) => void;
   centers: Center[];
   courses: Course[];
+  isLoading?: boolean;
   initialData?: {
     fullName?: string;
     phone?: string;
