@@ -16,6 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { ImSpinner2 } from "react-icons/im";
 
 const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   isOpen,
@@ -26,6 +27,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   centers, 
   leads,
   mode = "enroll",
+  isLoading = false,
 }) => {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -1111,14 +1113,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             </button>
             <button
               type="submit"
-              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
-                isValid && !showBaseFeeError
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                isValid && !showBaseFeeError && !isLoading
                   ? "bg-blue-600 hover:bg-blue-700"
                   : "bg-blue-400 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid || showBaseFeeError}
+              disabled={!isValid || showBaseFeeError || isLoading}
             >
-              Enroll
+              {isLoading && (
+                <ImSpinner2 className="animate-spin h-4 w-4" />
+              )}
+              {isLoading ? "Enrolling..." : "Enroll"}
             </button>
           </div>
         </form>

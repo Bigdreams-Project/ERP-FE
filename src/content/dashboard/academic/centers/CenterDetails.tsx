@@ -160,7 +160,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                 {Object.entries({
                   "Bank Name": "N/A",
                   "Account Number": "N/A",
-                  "Total Revenue": "N/A",
+                  "Total Collection": "N/A",
                   "Overdue Payments": getOverduePayment("", "") || "N/A",
                 }).map(([label, value]) => (
                   <div
@@ -221,8 +221,14 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
           managerId: center.manager?.id || "",
           phone: center.phone,
           email: center.email,
-          status: center.status as "" | "ACTIVE" | "IN_SETUP" | "SUSPENDED" | "CLOSED" || "",
-          type: center.type as "" | "OWNED" | "PARTNERED" || "",
+          status:
+            (center.status as
+              | ""
+              | "ACTIVE"
+              | "IN_SETUP"
+              | "SUSPENDED"
+              | "CLOSED") || "",
+          type: (center.type as "" | "OWNED" | "PARTNERED") || "",
           banks: [], // Banks not available in Center interface
         }}
       />

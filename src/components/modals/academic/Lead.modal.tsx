@@ -24,6 +24,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
 import { GiTeacher } from "react-icons/gi";
+import { ImSpinner2 } from "react-icons/im";
 
 const LeadModal: React.FC<ILeadModalProps> = ({
   isOpen,
@@ -33,6 +34,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
   initialData,
   onSave,
   mode,
+  isLoading = false,
 }) => {
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [enquiryDate, setEnquiryDate] = useState<Date | null>(null);
@@ -633,14 +635,23 @@ const LeadModal: React.FC<ILeadModalProps> = ({
             </button>
             <button
               type="submit"
-              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
-                isValid
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                isValid && !isLoading
                   ? "bg-blue-600 hover:bg-blue-700"
                   : "bg-blue-400 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid}
+              disabled={!isValid || isLoading}
             >
-              {mode === "add" ? "Add Lead" : "Update Lead"}
+              {isLoading && (
+                <ImSpinner2 className="animate-spin h-4 w-4" />
+              )}
+              {isLoading
+                ? mode === "add"
+                  ? "Adding Lead..."
+                  : "Updating Lead..."
+                : mode === "add"
+                ? "Add Lead"
+                : "Update Lead"}
             </button>
           </div>
         </form>

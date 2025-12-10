@@ -36,6 +36,11 @@ export interface DashboardMetrics {
   enrollmentYoY: number;
   billingMoM: number;
   billingYoY: number;
+
+  // Program Metrics
+  jptpCount: number;
+  internshipCount: number;
+  nictpCount: number;
 }
 
 export interface CenterPerformance {

@@ -15,6 +15,8 @@ const tabs = [
   { label: "Students", href: "/dashboard/academic/students" },
   { label: "Courses", href: "/dashboard/academic/courses" },
   { label: "Batches", href: "/dashboard/academic/batches" },
+  { label: "Internship", href: "/dashboard/academic/internship" },
+  { label: "NICTP", href: "/dashboard/academic/nictp" },
 ];
 
 export default function AcademicTabs() {
@@ -42,15 +44,15 @@ export default function AcademicTabs() {
     : tabs.filter(tab => tab.label !== "Centers" || canAccessCenters);
 
   return (
-    <div className="min-w-full transition-all duration-500 border border-gray-200 bg-white mb-4 font-inter ">
-      <div className="flex" style={{ border: "1px solid #f5f5f5" }}>
+    <div className="w-full transition-all duration-500 border border-gray-200 bg-white mb-4 font-inter overflow-hidden">
+      <div className="flex overflow-x-auto scrollbar-hide" style={{ border: "1px solid #f5f5f5" }}>
         {visibleTabs.map((tab) => {
           const isActive = pathname === tab.href;
           return (
             <Link
               href={tab.href}
               key={tab.href}
-              className={`flex items-center text-center px-4 py-2 text-[14px] font-medium transition-colors duration-500 text-[rgba(0,0,0,0.7)]`}
+              className={`flex items-center text-center px-4 py-2 text-[14px] font-medium transition-colors duration-500 text-[rgba(0,0,0,0.7)] whitespace-nowrap flex-shrink-0`}
               style={{
                 border: "1px solid #f5f5f5",
                 borderBottom: isActive ? "4px solid #6366f1" : "",

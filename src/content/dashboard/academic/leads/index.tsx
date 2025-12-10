@@ -21,6 +21,7 @@ import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loading } from "@/components/common/Loading";
 
 interface LeadContentProps {
   leads: Lead[];
@@ -42,7 +43,7 @@ const LeadContent = ({
 
   // Use React Query to fetch and cache leads
   // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
-  const { data: leads = initialLeads } = useQuery({
+  const { data: leads = initialLeads, isLoading: isLoadingLeads } = useQuery({
     queryKey: ["leads", selectedCenter],
     queryFn: () =>
       getLeadsClient(selectedCenter === "all" ? null : selectedCenter),
@@ -237,13 +238,19 @@ const LeadContent = ({
         </div>
       </div>
 
-      <LeadTable
-        leads={filteredLeads}
-        centers={centers}
-        courses={courses}
-        searchQuery={searchQuery}
-        filterOptions={filterOptions}
-      />
+      {isLoadingLeads || isCenterLoading ? (
+        <div className="w-full bg-white rounded-lg p-8">
+          <Loading text="Loading leads..." />
+        </div>
+      ) : (
+        <LeadTable
+          leads={filteredLeads}
+          centers={centers}
+          courses={courses}
+          searchQuery={searchQuery}
+          filterOptions={filterOptions}
+        />
+      )}
       <LeadModal
         isOpen={isModalOpen}
         centers={centers}
@@ -251,6 +258,7 @@ const LeadContent = ({
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         mode="add"
+        isLoading={isCreating}
         initialData={
           selectedCenter !== "all" && selectedCenter
             ? { centerId: selectedCenter, note: "" }

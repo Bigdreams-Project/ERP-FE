@@ -21,6 +21,7 @@ import { IoFilter } from "react-icons/io5";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateBatch } from "@/types/requests/batch.interface";
 import { useCenter } from "@/context/CenterContext";
+import { Loading } from "@/components/common/Loading";
 
 interface BatchesContentProps {
   batches: Batch[];
@@ -76,7 +77,7 @@ const BatchesContent = ({
   // For center-managers: selectedCenter will be their center ID, so they only see their center's records
   const { centerContext, isLoading: isCenterLoading } = useCenter();
   
-  const { data: batches = initialBatches } = useQuery({
+  const { data: batches = initialBatches, isLoading: isLoadingBatches } = useQuery({
     queryKey: ["batches", selectedCenter],
     queryFn: () =>
       getBatchesClient(selectedCenter === "all" ? null : selectedCenter),
@@ -382,13 +383,19 @@ const BatchesContent = ({
         </div>
       </div>
 
-      <BatchTable
-        searchQuery={searchQuery}
-        filteredData={filteredData}
-        courses={courses}
-        students={students}
-        faculties={faculties}
-      />
+      {isLoadingBatches || isCenterLoading ? (
+        <div className="w-full bg-white rounded-lg p-8">
+          <Loading text="Loading batches..." />
+        </div>
+      ) : (
+        <BatchTable
+          searchQuery={searchQuery}
+          filteredData={filteredData}
+          courses={courses}
+          students={students}
+          faculties={faculties}
+        />
+      )}
       <BatchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -397,6 +404,7 @@ const BatchesContent = ({
         students={students}
         faculties={faculties}
         mode="add"
+        isLoading={isCreating}
       />
     </div>
   );

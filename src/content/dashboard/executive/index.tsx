@@ -487,6 +487,11 @@ const ExecutiveDashboard = ({
       });
     }
 
+    // Program metrics
+    const jptpCount = filteredStudents.filter((s) => s.programType === "JPTP").length;
+    const internshipCount = filteredStudents.filter((s) => s.programType === "INTERNSHIP").length;
+    const nictpCount = filteredStudents.filter((s) => s.programType === "NICTP").length;
+
     const metrics: DashboardMetrics = {
       totalRevenue,
       totalBilling,
@@ -512,6 +517,9 @@ const ExecutiveDashboard = ({
       enrollmentYoY,
       billingMoM: 0,
       billingYoY: 0,
+      jptpCount,
+      internshipCount,
+      nictpCount,
     };
 
     return {
@@ -619,14 +627,15 @@ const ExecutiveDashboard = ({
               <UserCircle className="text-gray-600" size={24} />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
-                  Welcome, {user?.firstname || "Executive"} ({user?.role || "Director"})
+                  Welcome, {user?.firstname || "Executive"} (
+                  {user?.role || "Director"})
                 </h1>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <Centerdropdown user={user} centers={centers} />
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigateDateRange("prev")}
@@ -668,7 +677,7 @@ const ExecutiveDashboard = ({
                   <Calendar size={18} className="text-gray-600" />
                 </button>
               </div>
-              
+
               <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-all">
                 <Download size={18} />
                 <span>Export Report</span>
@@ -685,16 +694,21 @@ const ExecutiveDashboard = ({
         <div className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
-              title="Total Revenue"
+              title="Total Collection"
               value={formatCurrency(dashboardData.metrics.totalRevenue)}
               changeValue={dashboardData.metrics.revenueMoM}
               changeValueYoY={dashboardData.metrics.revenueYoY}
               direction={dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"}
-              directionYoY={dashboardData.metrics.revenueYoY >= 0 ? "up" : "down"}
+              directionYoY={
+                dashboardData.metrics.revenueYoY >= 0 ? "up" : "down"
+              }
               icon={DollarSign}
               color="green"
               formatValue={formatCurrency}
-              trendData={generateTrendData(dashboardData.metrics.totalRevenue, dashboardData.metrics.revenueMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalRevenue,
+                dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"
+              )}
               sparklineType="line"
               layout="simple"
             />
@@ -704,7 +718,10 @@ const ExecutiveDashboard = ({
               icon={AlertCircle}
               color="red"
               formatValue={formatCurrency}
-              trendData={generateTrendData(dashboardData.metrics.totalPending, "neutral")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalPending,
+                "neutral"
+              )}
               sparklineType="line"
               layout="simple"
             />
@@ -714,24 +731,40 @@ const ExecutiveDashboard = ({
               changeValue={dashboardData.paymentsReceivedMoM}
               changeValueYoY={dashboardData.paymentsReceivedYoY}
               direction={dashboardData.paymentsReceivedMoM >= 0 ? "up" : "down"}
-              directionYoY={dashboardData.paymentsReceivedYoY >= 0 ? "up" : "down"}
+              directionYoY={
+                dashboardData.paymentsReceivedYoY >= 0 ? "up" : "down"
+              }
               icon={DollarSign}
               color="blue"
               formatValue={formatCurrency}
-              trendData={generateTrendData(dashboardData.metrics.totalRevenue, dashboardData.paymentsReceivedMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalRevenue,
+                dashboardData.paymentsReceivedMoM >= 0 ? "up" : "down"
+              )}
               sparklineType="line"
               layout="simple"
             />
             <KPICard
               title="Collection Rate"
-              value={`${dashboardData.metrics.paymentCollectionRate.toFixed(1)}%`}
+              value={`${dashboardData.metrics.paymentCollectionRate.toFixed(
+                1
+              )}%`}
               changeValue={dashboardData.collectionRateMoM}
               changeValueYoY={dashboardData.collectionRateYoY}
               direction={dashboardData.collectionRateMoM >= 0 ? "up" : "down"}
-              directionYoY={dashboardData.collectionRateYoY >= 0 ? "up" : "down"}
+              directionYoY={
+                dashboardData.collectionRateYoY >= 0 ? "up" : "down"
+              }
               icon={TrendingUp}
-              color={dashboardData.metrics.paymentCollectionRate >= 70 ? "green" : "amber"}
-              trendData={generateTrendData(dashboardData.metrics.paymentCollectionRate, dashboardData.collectionRateMoM >= 0 ? "up" : "down")}
+              color={
+                dashboardData.metrics.paymentCollectionRate >= 70
+                  ? "green"
+                  : "amber"
+              }
+              trendData={generateTrendData(
+                dashboardData.metrics.paymentCollectionRate,
+                dashboardData.collectionRateMoM >= 0 ? "up" : "down"
+              )}
               layout="simple"
             />
           </div>
@@ -745,11 +778,18 @@ const ExecutiveDashboard = ({
               value={formatNumber(dashboardData.metrics.totalEnrollments)}
               changeValue={dashboardData.metrics.enrollmentMoM}
               changeValueYoY={dashboardData.metrics.enrollmentYoY}
-              direction={dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down"}
-              directionYoY={dashboardData.metrics.enrollmentYoY >= 0 ? "up" : "down"}
+              direction={
+                dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down"
+              }
+              directionYoY={
+                dashboardData.metrics.enrollmentYoY >= 0 ? "up" : "down"
+              }
               icon={GraduationCap}
               color="blue"
-              trendData={generateTrendData(dashboardData.metrics.totalEnrollments, dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.totalEnrollments,
+                dashboardData.metrics.enrollmentMoM >= 0 ? "up" : "down"
+              )}
               layout="simple"
             />
             <KPICard
@@ -761,7 +801,10 @@ const ExecutiveDashboard = ({
               directionYoY={dashboardData.leadsYoY >= 0 ? "up" : "down"}
               icon={Users}
               color="purple"
-              trendData={generateTrendData(dashboardData.metrics.newLeads, dashboardData.leadsMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.newLeads,
+                dashboardData.leadsMoM >= 0 ? "up" : "down"
+              )}
               layout="simple"
             />
             <KPICard
@@ -771,7 +814,10 @@ const ExecutiveDashboard = ({
               direction={dashboardData.conversionRateMoM >= 0 ? "up" : "down"}
               icon={BookOpen}
               color="blue"
-              trendData={generateTrendData(dashboardData.metrics.conversionRate, dashboardData.conversionRateMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.conversionRate,
+                dashboardData.conversionRateMoM >= 0 ? "up" : "down"
+              )}
               layout="simple"
             />
             <KPICard
@@ -781,7 +827,10 @@ const ExecutiveDashboard = ({
               direction={dashboardData.activeStudentsMoM >= 0 ? "up" : "down"}
               icon={Users}
               color="blue"
-              trendData={generateTrendData(dashboardData.metrics.activeStudents, dashboardData.activeStudentsMoM >= 0 ? "up" : "down")}
+              trendData={generateTrendData(
+                dashboardData.metrics.activeStudents,
+                dashboardData.activeStudentsMoM >= 0 ? "up" : "down"
+              )}
               layout="simple"
             />
           </div>
@@ -813,10 +862,39 @@ const ExecutiveDashboard = ({
             />
             <KPICard
               title="Avg. Rev. per Student"
-              value={formatCurrency(dashboardData.metrics.averagePaymentPerStudent)}
+              value={formatCurrency(
+                dashboardData.metrics.averagePaymentPerStudent
+              )}
               icon={DollarSign}
               color="green"
               formatValue={formatCurrency}
+              layout="simple"
+            />
+          </div>
+        </div>
+
+        {/* Row 4: Programs KPIs */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <KPICard
+              title="JPTP"
+              value={formatNumber(dashboardData.metrics.jptpCount || 0)}
+              icon={Users}
+              color="blue"
+              layout="simple"
+            />
+            <KPICard
+              title="Internship"
+              value={formatNumber(dashboardData.metrics.internshipCount || 0)}
+              icon={Users}
+              color="purple"
+              layout="simple"
+            />
+            <KPICard
+              title="NICTP"
+              value={formatNumber(dashboardData.metrics.nictpCount || 0)}
+              icon={Users}
+              color="green"
               layout="simple"
             />
           </div>

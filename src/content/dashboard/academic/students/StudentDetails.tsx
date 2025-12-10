@@ -16,7 +16,6 @@ import { Payment } from "@/types/finance/payment.interface";
 import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
-  ArrowRight,
   BookOpen,
   Building2,
   CalendarDays,
@@ -196,59 +195,6 @@ const StudentDetails = ({
     </div>
   );
 
-  const renderPaymentHistory = () => {
-    if (!student.payments || student.payments.length === 0) {
-      return (
-        <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 min-h-32">
-          <span className="text-sm">
-            No payment records found for this student.
-          </span>
-        </div>
-      );
-    }
-
-    const sortedPayments = student.payments.sort(
-      (a: Payment, b: Payment) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
-    const paymentsToShow = sortedPayments.slice(0, 5);
-
-    return (
-      <div className="space-y-3">
-        {paymentsToShow.map((payment) => (
-          <div
-            key={payment.id}
-            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-indigo-50 hover:shadow-md transition-all duration-200 cursor-pointer"
-          >
-            <div className="flex flex-col">
-              <span className="font-semibold text-gray-800">
-                Payment on {formatDate(payment.createdAt)}
-              </span>
-              <span className="text-sm text-gray-500">
-                {!payment.paymentPlan?.pending || payment.paymentPlan.pending === "0" || (payment.paymentPlan?.pending && isNaN(Number(payment.paymentPlan.pending)))
-                  ? "Full Payment"
-                  : `Partial Payment (Pending: ₦${Number(payment.paymentPlan.pending).toLocaleString()})`}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-emerald-600">
-                ₦{payment.amount.toLocaleString()}
-              </span>
-              <Link href={`/dashboard/finance/payments/${payment.id}`}>
-                <ArrowRight className="w-4 h-4 text-indigo-600" />
-              </Link>
-            </div>
-          </div>
-        ))}
-        {student.payments.length > 0 && (
-          <button className="w-full text-center py-2 text-indigo-600 font-medium hover:text-indigo-800 transition-colors text-sm">
-            View All Payments ({student.payments.length})
-          </button>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div className="font-inter text-gray-200">
@@ -313,17 +259,8 @@ const StudentDetails = ({
               className="flex gap-2 items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
             >
               <BiMoney />
-              Record Payment
+              View Payments
             </button>
-            {isAdmin && !isAdminLoading && (
-              <button
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="flex gap-2 items-center px-4 py-2 bg-red-600 rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-colors"
-              >
-                <Trash2 size={16} />
-                Delete
-              </button>
-            )}
           </div>
         </div>
 
@@ -578,14 +515,6 @@ const StudentDetails = ({
                   : "",
                 MailIcon
               )}
-            </div>
-
-            {/* Payment History */}
-            <div className="bg-white py-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Payment History
-              </h3>
-              {renderPaymentHistory()}
             </div>
 
             {/* Notes */}

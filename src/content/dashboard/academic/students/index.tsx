@@ -23,6 +23,7 @@ import { IoFilter } from "react-icons/io5";
 import { Archive } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useCenter } from "@/context/CenterContext";
+import { Loading } from "@/components/common/Loading";
 
 interface StudentContentProps {
   students: Student[];
@@ -188,151 +189,157 @@ const StudentContent = ({
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Students" }]} />
 
-      <div className="w-full flex items-center">
-        <div className="flex items-center mt-4">
-          <AcademicTabs />
-        </div>
+      {/* Tabs Section - Full Width */}
+      <div className="w-full mt-4">
+        <AcademicTabs />
+      </div>
 
-        <div className="w-full flex items-center justify-end gap-7 p-2">
-          {/* Filter Dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <div
-              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
-              onClick={() => setIsFilterDropdown(!isFilterDropdown)}
-            >
-              <IoFilter size={20} />
-              <p className="font-medium text-gray-900">Filter</p>
-            </div>
-            {isFilterDropdown && (
-              <div className="absolute right-0 mt-2 bg-white rounded-md w-[200px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <p className="font-semibold text-gray-800">Status</p>
-                    <ul className="flex flex-col gap-1">
-                      {studentStatus.map((status) => (
+      {/* Controls Section - Below Tabs */}
+      <div className="w-full flex items-center justify-end gap-7 p-2 mt-2">
+        {/* Filter Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <div
+            className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
+            onClick={() => setIsFilterDropdown(!isFilterDropdown)}
+          >
+            <IoFilter size={20} />
+            <p className="font-medium text-gray-900">Filter</p>
+          </div>
+          {isFilterDropdown && (
+            <div className="absolute right-0 mt-2 bg-white rounded-md w-[200px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400">
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <p className="font-semibold text-gray-800">Status</p>
+                  <ul className="flex flex-col gap-1">
+                    {studentStatus.map((status) => (
+                      <li
+                        key={status}
+                        className="flex items-center gap-2 text-sm text-gray-700"
+                      >
+                        <input
+                          id={`status-${status}`}
+                          type="checkbox"
+                          checked={appliedFilters.status.includes(status)}
+                          onChange={() =>
+                            handleFilterChange("status", status)
+                          }
+                          className="w-4 h-4 rounded accent-blue-600"
+                        />
+                        <label
+                          htmlFor={`status-${status}`}
+                          className="cursor-pointer"
+                        >
+                          {status}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <p className="font-semibold text-gray-800">Program Type</p>
+                  <ul className="flex flex-col gap-1">
+                    {programTypes.map((programType) => {
+                      const programTypeValue = programType === "Regular Student" 
+                        ? "REGULAR_STUDENT" 
+                        : programType === "JPTP" 
+                        ? "JPTP" 
+                        : "INTERNSHIP";
+                      return (
                         <li
-                          key={status}
+                          key={programType}
                           className="flex items-center gap-2 text-sm text-gray-700"
                         >
                           <input
-                            id={`status-${status}`}
+                            id={`programType-${programType}`}
                             type="checkbox"
-                            checked={appliedFilters.status.includes(status)}
+                            checked={appliedFilters.programType.includes(programTypeValue)}
                             onChange={() =>
-                              handleFilterChange("status", status)
+                              handleFilterChange("programType", programTypeValue)
                             }
                             className="w-4 h-4 rounded accent-blue-600"
                           />
                           <label
-                            htmlFor={`status-${status}`}
+                            htmlFor={`programType-${programType}`}
                             className="cursor-pointer"
                           >
-                            {status}
+                            {programType}
                           </label>
                         </li>
-                      ))}
-                    </ul>
-                  </div>
+                      );
+                    })}
+                  </ul>
+                </div>
 
-                  <div className="flex flex-col gap-1">
-                    <p className="font-semibold text-gray-800">Program Type</p>
-                    <ul className="flex flex-col gap-1">
-                      {programTypes.map((programType) => {
-                        const programTypeValue = programType === "Regular Student" 
-                          ? "REGULAR_STUDENT" 
-                          : programType === "JPTP" 
-                          ? "JPTP" 
-                          : "INTERNSHIP";
-                        return (
-                          <li
-                            key={programType}
-                            className="flex items-center gap-2 text-sm text-gray-700"
-                          >
-                            <input
-                              id={`programType-${programType}`}
-                              type="checkbox"
-                              checked={appliedFilters.programType.includes(programTypeValue)}
-                              onChange={() =>
-                                handleFilterChange("programType", programTypeValue)
-                              }
-                              className="w-4 h-4 rounded accent-blue-600"
-                            />
-                            <label
-                              htmlFor={`programType-${programType}`}
-                              className="cursor-pointer"
-                            >
-                              {programType}
-                            </label>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 mt-4 text-[14px]">
-                    <button
-                      onClick={handleClearAll}
-                      className="flex-1 bg-red-500 text-white text-center rounded-md p-2 hover:bg-red-600 transition-colors"
-                    >
-                      Clear All
-                    </button>
-                    <button
-                      onClick={handleApplyFilter}
-                      className="flex-1 bg-blue-600 text-white text-center rounded-md p-2 hover:bg-blue-700 transition-colors"
-                    >
-                      Apply
-                    </button>
-                  </div>
+                <div className="flex items-center justify-between gap-2 mt-4 text-[14px]">
+                  <button
+                    onClick={handleClearAll}
+                    className="flex-1 bg-red-500 text-white text-center rounded-md p-2 hover:bg-red-600 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={handleApplyFilter}
+                    className="flex-1 bg-blue-600 text-white text-center rounded-md p-2 hover:bg-blue-700 transition-colors"
+                  >
+                    Apply
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Search */}
-          <div className="w-[250px]">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-              <BiSearchAlt size={18} className="ml-2" />
-              <input
-                type="text"
-                placeholder="Search"
-                onChange={(e) => {
-                  setSearchInput(e.target.value);
-                  if (!isTyping) setIsTyping(true);
-                }}
-                className="outline-none"
-              />
             </div>
-          </div>
-
-          {/* Add Button */}
-          <button
-            className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <FaPlus className="text-white" size={16} />
-            <span className="text-white text-sm">Enroll Student</span>
-          </button>
-
-          {/* Archive Button - Admin Only */}
-          {isAdmin && !isAdminLoading && (
-            <button
-              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-amber-600 rounded-md shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors"
-              onClick={() => router.push("/dashboard/academic/archive")}
-            >
-              <Archive className="text-white" size={16} />
-              <span className="text-white text-sm">Archive</span>
-            </button>
           )}
         </div>
+
+        {/* Search */}
+        <div className="w-[250px]">
+          <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
+            <BiSearchAlt size={18} className="ml-2" />
+            <input
+              type="text"
+              placeholder="Search"
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                if (!isTyping) setIsTyping(true);
+              }}
+              className="outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Add Button */}
+        <button
+          className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <FaPlus className="text-white" size={16} />
+          <span className="text-white text-sm">Enroll Student</span>
+        </button>
+
+        {/* Archive Button - Admin Only */}
+        {isAdmin && !isAdminLoading && (
+          <button
+            className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-amber-600 rounded-md shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors"
+            onClick={() => router.push("/dashboard/academic/archive")}
+          >
+            <Archive className="text-white" size={16} />
+            <span className="text-white text-sm">Archive</span>
+          </button>
+        )}
       </div>
 
-      <StudentTable
-        searchQuery={searchQuery}
-        filteredData={filteredData}
-        courses={courses}
-        centers={centers}
-        leads={leads}
-      />
+        {isLoadingStudents || isCenterLoading ? (
+          <div className="w-full bg-white rounded-lg p-8">
+            <Loading text="Loading students..." />
+          </div>
+        ) : (
+          <StudentTable
+            searchQuery={searchQuery}
+            filteredData={filteredData}
+            courses={courses}
+            centers={centers}
+            leads={leads}
+          />
+        )}
       <StudentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -340,6 +347,7 @@ const StudentContent = ({
         courses={courses}
         centers={centers}
         leads={leads}
+        isLoading={isCreating}
         mode="enroll"
       />
     </div>
