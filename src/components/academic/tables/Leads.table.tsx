@@ -1,23 +1,26 @@
 "use client";
 import LeadModal from "@/components/modals/academic/Lead.modal";
+import EnrollStudentModal from "@/components/modals/academic/StudentModal";
+import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createStudentClient, deleteLeadClient } from "@/lib/client-network";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/lib/toast";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
+import { createLead } from "@/lib/network";
+import { createStudentClient } from "@/lib/client-network";
 import { formatDate } from "@/lib/utils";
+import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { CreateLead } from "@/types/requests/lead.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
+import { ChevronDown, Link2Icon, Eye, Trash2, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import EnrollStudentModal from "@/components/modals/academic/StudentModal";
-import { CreateStudent } from "@/types/requests/student.interface";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   leads: Lead[];
@@ -39,25 +42,31 @@ export default function LeadTable({
 }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [data, setData] = useState(leads);
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "leads",
+  });
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-  const [filteredData, setFilteredData] = useState(data);
-  const itemsPerPage = 10;
-
-  // Update data when leads prop changes (from React Query)
-  useEffect(() => {
-    setData(leads);
+  // All leads are active (no soft delete filtering)
+  // Use leads prop directly (which comes from React Query cache)
+  const activeLeads = useMemo(() => {
+    return leads;
   }, [leads]);
 
+  const [filteredData, setFilteredData] = useState(activeLeads);
+  const itemsPerPage = 10;
+
   useEffect(() => {
-    let result = data;
+    let result = activeLeads;
     const { startDate, endDate } = filterOptions;
     const query = searchQuery.toLowerCase();
 
@@ -101,7 +110,7 @@ export default function LeadTable({
 
     setFilteredData(result);
     setCurrentPage(1);
-  }, [searchQuery, filterOptions, data]);
+  }, [searchQuery, filterOptions, activeLeads]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
@@ -109,81 +118,43 @@ export default function LeadTable({
     currentPage * itemsPerPage
   );
 
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedLeads.includes(id)
-    );
 
-    if (allSelected) {
-      setSelectedLeads((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedLeads((prev) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
+  const handleSave = async (payload: CreateLead) => {
+    try {
+      await createLead(payload);
+      setIsModalOpen(false);
+      // Invalidate React Query cache - parent component will update via React Query
+      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
+    } catch (error) {
+      console.error("Failed to save lead:", error);
     }
   };
 
-  // Mutation for enrolling student from lead
-  const { mutate: enrollStudentMutation } = useMutation({
-    mutationFn: createStudentClient,
-    onSuccess: (newStudent) => {
-      showSuccess("Student enrolled successfully");
-      setIsEnrollModalOpen(false);
-      // Optimistically update caches
-      queryClient.setQueryData(["students"], (old: any[] = []) => [newStudent, ...old]);
-      // Remove the lead from the list (since it's now enrolled)
-      queryClient.setQueryData(["leads"], (old: Lead[] = []) => 
-        old.filter(lead => lead.id !== selectedLeadId)
-      );
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["students"], refetchType: "active" });
-      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
-    },
-    onError: (error: any) => {
-      console.error("Failed to save student:", error);
-      showError("Failed to enroll student");
-      // Revert optimistic updates on error
-      queryClient.invalidateQueries({ queryKey: ["students"] });
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
-    },
-  });
+  const handleEnrollSave = (payload: CreateStudent | UpdateStudent) => {
+    // In enroll mode, payload is always CreateStudent
+    const createPayload = payload as CreateStudent;
+    createStudentClient(createPayload)
+      .then(() => {
+        showSuccess("Student enrolled successfully");
+        setIsEnrollModalOpen(false);
+        router.push("/dashboard/academic/students");
+      })
+      .catch((error) => {
+        console.error("Failed to save student:", error);
+        showError("Student enrollment failed");
+      });
+  };
 
-  // Mutation for deleting lead
-  const { mutate: deleteLeadMutation } = useMutation({
-    mutationFn: deleteLeadClient,
-    onSuccess: () => {
-      showSuccess("Lead deleted successfully");
+  const handleHardDelete = async (leadId: string) => {
+    try {
+      await handleHardDeleteEntity(leadId);
+      // Close modal after operation completes and toast is shown
       setIsDeleteModalOpen(false);
-      // Optimistically remove from cache
-      queryClient.setQueryData(["leads"], (old: Lead[] = []) => 
-        old.filter(lead => lead.id !== selectedLeadId)
-      );
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
-    },
-    onError: (error: any) => {
-      console.error("Failed to delete lead:", error);
-      showError("Failed to delete lead");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
-    },
-  });
-
-  const handleSave = async (payload: CreateLead) => {
-    // This is handled by parent component, but keeping for compatibility
-    console.log("Lead save handled by parent");
-  };
-
-  const handleEnrollSave = async (payload: CreateStudent) => {
-    enrollStudentMutation(payload);
-  };
-
-  const handleDeleteLead = async (leadId: string) => {
-    deleteLeadMutation(leadId);
+      setSelectedLead(null);
+    } catch (error) {
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
+    }
   };
 
   const handleEnroll = (leadId: string) => {
@@ -192,9 +163,9 @@ export default function LeadTable({
     setIsEnrollModalOpen(true);
   };
 
-  const handleDelete = (leadId: string) => {
+  const handleDelete = (lead: Lead) => {
     setOpenDropdown(null);
-    setSelectedLeadId(leadId);
+    setSelectedLead(lead);
     setIsDeleteModalOpen(true);
   };
 
@@ -208,28 +179,15 @@ export default function LeadTable({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent text="Lead" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 dark:text-gray-300 overflow-x-auto">
               <thead>
-                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((lead) =>
-                          selectedLeads.includes(lead.id)
-                        )
-                      }
-                      onChange={handleSelectAll}
-                      className="mr-2"
-                    />
-                    #
-                  </th>
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
+                  <th className="p-4">#</th>
                   <th className="p-4">Inquiry ID</th>
                   <th className="p-4">Full Name</th>
                   <th className="p-4">Email</th>
@@ -246,16 +204,15 @@ export default function LeadTable({
                 {paginatedData.map((lead: Lead, index) => (
                   <tr
                     key={lead.id}
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
-                    <td className="pt-6 flex items-center">
-                      <input type="checkbox" className="mr-2" />
+                    <td className="pt-6">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-4">
                       <Link
                         href={`/dashboard/academic/leads/${lead.id}`}
-                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                        className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                       >
                         {lead.code} <Link2Icon size={12} />
                       </Link>
@@ -279,11 +236,12 @@ export default function LeadTable({
                       </button>
 
                       {openDropdown === lead.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <button
                             onClick={() => handleEnroll(lead.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
+                            <UserPlus size={16} />
                             Enroll
                           </button>
 
@@ -293,24 +251,21 @@ export default function LeadTable({
                                 `/dashboard/academic/leads/${lead.id}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
+                            <Eye size={16} />
                             View
                           </button>
 
-                          {/* <button
-                            onClick={() => handleEmail(lead.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Send an Email
-                          </button> */}
-
-                          {/* <button
-                            onClick={() => handleDelete(lead.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {isAdmin && !isAdminLoading && (
+                            <button
+                              onClick={() => handleDelete(lead)}
+                              className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -321,7 +276,7 @@ export default function LeadTable({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white">
+        <div className="sticky bottom-0 bg-white dark:bg-gray-800">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -349,13 +304,21 @@ export default function LeadTable({
           mode="enroll"
         />
 
-        <DeleteModal
-          title="Lead"
-          subtitle="Are you sure you want to delete this lead?"
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onDelete={handleDeleteLead}
-        />
+        {selectedLead && (
+          <EntityDeleteModal
+            entityType="Lead"
+            entity={selectedLead}
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false);
+              setSelectedLead(null);
+            }}
+            onHardDelete={handleHardDelete}
+            hasRelatedData={{
+              students: 0, // Could be enhanced to check actual related data
+            }}
+          />
+        )}
       </div>
     </div>
   );

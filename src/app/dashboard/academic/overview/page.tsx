@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+// Removed force-dynamic for better caching
 import OverviewContent from "@/content/dashboard/academic/overview";
 import {
   getCenters,
@@ -9,11 +9,14 @@ import {
 } from "@/lib/network";
 
 export default async function Overview() {
-  const students = await getStudents();
-  const courses = await getCourses();
-  const centers = await getCenters();
-  const leads = await getLeads();
-  const user = await getLoggedInUser();
+  // Fetch all data in parallel for maximum speed
+  const [students, courses, centers, leads, user] = await Promise.all([
+    getStudents(),
+    getCourses(),
+    getCenters(),
+    getLeads(),
+    getLoggedInUser(),
+  ]);
 
   return (
     <OverviewContent

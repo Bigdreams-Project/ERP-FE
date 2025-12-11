@@ -38,6 +38,7 @@ export interface Lead {
   guardians: Guardian[];
   notes: LeadNote[];
   documents: Document[];
+  deletedAt: string | null;
   createdAt?: string;
 }
 
@@ -68,6 +69,7 @@ export interface ILeadModalProps {
   onSave: (payload: CreateLead) => void;
   centers: Center[];
   courses: Course[];
+  isLoading?: boolean;
   initialData?: {
     fullName?: string;
     phone?: string;

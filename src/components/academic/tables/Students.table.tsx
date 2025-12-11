@@ -1,21 +1,28 @@
 "use client";
 import StudentModal from "@/components/modals/academic/StudentModal";
+import StudentDeleteModal from "@/components/modals/academic/StudentDeleteModal";
+import ArchiveStudentConfirmModal from "@/components/modals/academic/ArchiveStudentConfirm.modal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { students } from "@/data/mock/academic.data";
-import { createStudent, deleteStudent } from "@/lib/network";
+// Removed unused mock data import to speed up compilation
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
+import { createStudentClient, archiveStudentToArchiveClient, enrollStudentToProgramClient } from "@/lib/client-network";
+import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
+import { programTypeLabels } from "@/data/constants/program.constants";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
-import { CreateStudent } from "@/types/requests/student.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { Bank } from "@/types/finance/bank.interface";
+import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
+import { ChevronDown, Link2Icon, Archive, Eye, Trash2, DollarSign, GraduationCap, Briefcase } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "../common/Pagination";
 import StatusBadge from "../common/StatusBadge";
-import Link from "next/link";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type Props = {
   searchQuery: string;
@@ -30,21 +37,35 @@ export default function StudentTable({
   filteredData,
   courses,
   centers,
-  leads,
+  leads
 }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "students",
+    onSuccess: (id) => {
+      setData((prev) => prev.filter((s) => s.id !== id));
+    },
+  });
+  
   const [data, setData] = useState(filteredData);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
-    null
-  );
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const itemsPerPage = 10;
 
-  const sortedData = [...filteredData].sort(
+  // All students are active (no soft delete filtering)
+  const activeStudents = useMemo(() => {
+    return filteredData;
+  }, [filteredData]);
+
+  const sortedData = [...activeStudents].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
@@ -71,32 +92,20 @@ export default function StudentTable({
     );
   };
 
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedStudents.includes(id!)
-    );
 
-    if (allSelected) {
-      setSelectedStudents((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedStudents((prev: any) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
-
-  const handleSave = async (payload: CreateStudent) => {
-    try {
-      const response = await createStudent(payload);
-      setData((prev) => [...prev, response]);
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save student:", error);
-    }
+  const handleSave = (payload: CreateStudent | UpdateStudent) => {
+    // In enroll mode, payload is always CreateStudent
+    const createPayload = payload as CreateStudent;
+    createStudentClient(createPayload)
+      .then((response) => {
+        setData((prev) => [...prev, response]);
+        showSuccess("Student enrolled successfully");
+        setIsModalOpen(false);
+      })
+      .catch((error) => {
+        console.error("Failed to save student:", error);
+        showError("Student enrollment failed");
+      });
   };
 
   const toggleDropdown = (id: string) => {
@@ -104,23 +113,45 @@ export default function StudentTable({
   };
 
   const handleEnroll = (studentId: string) => {
-    console.log(`Enrolling student with ID: ${studentId}`);
     setOpenDropdown(null);
   };
 
   const handleView = (studentId: string) => {
-    console.log(`Viewing student with ID: ${studentId}`);
     setOpenDropdown(null);
   };
 
-  const handleDelete = (centerId: string) => {
+  const handleDelete = (student: Student) => {
     setOpenDropdown(null);
-    setSelectedStudentId(centerId);
+    setSelectedStudent(student);
     setIsDeleteModalOpen(true);
   };
 
+  const handleArchive = (student: Student) => {
+    setOpenDropdown(null);
+    setSelectedStudent(student);
+    setIsArchiveModalOpen(true);
+  };
+
+  const handleArchiveConfirm = async (studentId: string) => {
+    try {
+      await archiveStudentToArchiveClient(studentId);
+      showSuccess("Student archived successfully!");
+      // Close modal after operation completes and toast is shown
+      setIsArchiveModalOpen(false);
+      setSelectedStudent(null);
+      // Refresh both student list and archive list
+      await queryClient.refetchQueries({ queryKey: ["students"] });
+      // ✅ Force refetch archive queries immediately (not just invalidate)
+      await queryClient.refetchQueries({ queryKey: ["archive"] });
+    } catch (error: any) {
+      console.error("Failed to archive student:", error);
+      showError(error.message || "Failed to archive student");
+      // Keep modal open on error so user can retry
+    }
+  };
+
   const handleEdit = (studentId: string) => {
-    const student = students.find((s) => s.id === studentId);
+    const student = filteredData.find((s) => s.id === studentId);
     if (student) {
       window.location.href = `mailto:${student.email}`;
     }
@@ -128,54 +159,51 @@ export default function StudentTable({
     setIsModalOpen(true);
   };
 
-  const handleCheckboxChange = (id: string) => {
-    setSelectedStudents((prev) =>
-      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
-    );
+
+  const handleHardDelete = async (studentId: string) => {
+    try {
+      await handleHardDeleteEntity(studentId);
+      // Close modal after operation completes and toast is shown
+      setIsDeleteModalOpen(false);
+      setSelectedStudent(null);
+    } catch (error) {
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
+    }
   };
 
-  const handleDeleteStudent = async (studentId: string) => {
+  const handleEnrollToProgram = async (studentId: string, programType: "JPTP" | "INTERNSHIP") => {
     try {
-      await deleteStudent(studentId);
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      console.error("Failed to delete student:", error);
+      await enrollStudentToProgramClient(studentId, programType);
+      showSuccess(`Student enrolled to ${programType} program successfully`);
+      setOpenDropdown(null);
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    } catch (error: any) {
+      console.error("Failed to enroll student to program:", error);
+      showError(error.message || "Failed to enroll student to program");
     }
   };
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
-          {filteredData.length === 0 ? (
+          {activeStudents.length === 0 ? (
             <NotFoundComponent text="Student" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 dark:text-gray-300">
               <thead>
-                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((student) =>
-                          selectedStudents.includes(student.id!)
-                        )
-                      }
-                      onChange={handleSelectAll}
-                      className="mr-2 accent-primary align-middle"
-                    />{" "}
-                    #
-                  </th>
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
+                  <th className="p-4">#</th>
                   <th className="p-4">Student ID</th>
                   <th className="p-4">Name</th>
                   <th className="p-4">Email</th>
                   <th className="p-4">Phone</th>
                   <th className="p-4">Address</th>
                   <th className="p-4">Date Enrolled</th>
-                  <th className="p-4">Parent/Guardian Name</th>
-                  <th className="p-4">Parent/Guardian Phone Number</th>
-                  <th className="p-4">Course Enrolled</th>
+                  <th className="p-4">Guardian Name</th>
+                  <th className="p-4">Guardian Phone Number</th>
+                  <th className="p-4">Courses Enrolled</th>
                   <th className="p-4">Center</th>
                   <th className="p-4">Status</th>
                   <th className="p-4">Actions</th>
@@ -185,21 +213,15 @@ export default function StudentTable({
                 {paginatedData.map((student: Student, index) => (
                   <tr
                     key={student.id}
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
-                    <td className="p-4 flex items-center align-middle">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudents.includes(student.id!)}
-                        onChange={() => handleCheckboxChange(student.id!)}
-                        className="mr-2 accent-primary"
-                      />
+                    <td className="p-4">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3">
                       <Link
                         href={`/dashboard/academic/students/${student.id!}`}
-                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                        className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                       >
                         {student.studentId} <Link2Icon size={12} />
                       </Link>
@@ -221,8 +243,8 @@ export default function StudentTable({
                     </td>
                     <td className="p-3">
                       {student.courses && student.courses.length > 0
-                        ? student.courses[0]?.name
-                        : "Not yet enrolled"}
+                        ? student.courses.length
+                        : "Not yet enrolled in a course"}
                     </td>
                     <td className="p-3">
                       {student.center && student.center?.name}
@@ -242,15 +264,16 @@ export default function StudentTable({
                         <ChevronDown size={16} className="ml-2" />
                       </button>
                       {openDropdown === student.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/academic/students/${student.id!}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
+                            <Eye size={16} />
                             View
                           </button>
                           <button
@@ -259,22 +282,47 @@ export default function StudentTable({
                                 `/dashboard/academic/students/enrollment/${student.id!}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
-                            Record Payment
+                            <DollarSign size={16} />
+                            View Payments
                           </button>
-                          {/* <button
-                            onClick={() => handleEdit(student.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button> */}
-                          {/* <button
-                            onClick={() => handleDelete(student.id!)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {(student.programType !== "JPTP" && (!student.programType || student.programType === "REGULAR_STUDENT")) && (
+                            <button
+                              onClick={() => handleEnrollToProgram(student.id!, "JPTP")}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
+                            >
+                              <GraduationCap size={16} />
+                              Enroll to JPTP
+                            </button>
+                          )}
+                          {(student.programType !== "INTERNSHIP" && (!student.programType || student.programType === "REGULAR_STUDENT")) && (
+                            <button
+                              onClick={() => handleEnrollToProgram(student.id!, "INTERNSHIP")}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-purple-600 hover:bg-gray-100"
+                            >
+                              <Briefcase size={16} />
+                              Enroll to Internship
+                            </button>
+                          )}
+                          {isAdmin && !isAdminLoading && (
+                            <>
+                              <button
+                                onClick={() => handleArchive(student)}
+                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-amber-600 hover:bg-gray-100"
+                              >
+                                <Archive size={16} />
+                                Archive
+                              </button>
+                              <button
+                                onClick={() => handleDelete(student)}
+                                className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </td>
@@ -304,13 +352,29 @@ export default function StudentTable({
         mode="enroll"
       />
 
-      <DeleteModal
-        title="Student"
-        subtitle="Are you sure you want to delete this student?"
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onDelete={handleDeleteStudent}
-      />
+      {selectedStudent && (
+        <ArchiveStudentConfirmModal
+          student={selectedStudent}
+          isOpen={isArchiveModalOpen}
+          onClose={() => {
+            setIsArchiveModalOpen(false);
+            setSelectedStudent(null);
+          }}
+          onConfirm={handleArchiveConfirm}
+        />
+      )}
+
+      {selectedStudent && (
+        <StudentDeleteModal
+          student={selectedStudent}
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setSelectedStudent(null);
+          }}
+          onHardDelete={handleHardDelete}
+        />
+      )}
     </div>
   );
 }

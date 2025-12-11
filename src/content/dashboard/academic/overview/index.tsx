@@ -1,7 +1,6 @@
 "use client";
-import AcademicStatCard from "@/components/academic/cards/AcademicStatCard.card";
 import StatCard from "@/components/academic/cards/StatCard.card";
-import { mockData } from "@/data/mock/academic.data";
+// Removed unused mockData import to speed up compilation
 import { courseStatusEnum } from "@/data/view/course.data";
 import { leadStatusEnum } from "@/data/view/lead.data";
 import {
@@ -15,8 +14,15 @@ import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { User } from "@/types/auth/user.interface";
-import { BookOpen, GraduationCap, School, UserPlus, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  BookOpen,
+  GraduationCap,
+  School,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -34,7 +40,15 @@ import {
 import ActivityItem from "../../../../components/academic/cards/ActivityItem.card";
 import { centerStatusEnum } from "@/data/view/center.data";
 import { useQuery } from "@tanstack/react-query";
-import { getStudentsClient, getCoursesClient, getCentersClient, getLeadsClient, getLoggedInUserClient } from "@/lib/client-network";
+import {
+  getStudentsClient,
+  getCoursesClient,
+  getCentersClient,
+  getLeadsClient,
+  getLoggedInUserClient,
+} from "@/lib/client-network";
+import { useCenter } from "@/context/CenterContext";
+import { userRoles } from "@/data/common/roles.data";
 
 interface OverviewContentProps {
   user: User;
@@ -51,47 +65,59 @@ const OverviewContent = ({
   centers: initialCenters,
   leads: initialLeads,
 }: OverviewContentProps) => {
+  const {
+    selectedCenter,
+    isLoading: isCenterLoading,
+    centerContext,
+  } = useCenter();
+
   // Use React Query to fetch and cache all data
+  // Backend handles center filtering via X-Center-Id header
   const { data: user = initialUser } = useQuery({
     queryKey: ["user"],
-    queryFn: getLoggedInUserClient,
+    queryFn: () => getLoggedInUserClient(),
     initialData: initialUser,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
   });
 
   const { data: students = initialStudents } = useQuery({
-    queryKey: ["students"],
-    queryFn: getStudentsClient,
+    queryKey: ["students", selectedCenter],
+    queryFn: () =>
+      getStudentsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialStudents,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const { data: courses = initialCourses } = useQuery({
-    queryKey: ["courses"],
-    queryFn: getCoursesClient,
+    queryKey: ["courses", selectedCenter],
+    queryFn: () =>
+      getCoursesClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const { data: centers = initialCenters } = useQuery({
-    queryKey: ["centers"],
-    queryFn: getCentersClient,
+    queryKey: ["centers", selectedCenter],
+    queryFn: () =>
+      getCentersClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialCenters,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const { data: leads = initialLeads } = useQuery({
-    queryKey: ["leads"],
-    queryFn: getLeadsClient,
+    queryKey: ["leads", selectedCenter],
+    queryFn: () =>
+      getLeadsClient(selectedCenter === "all" ? null : selectedCenter),
     initialData: initialLeads,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
   const [showPicker, setShowPicker] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
   const [range, setRange] = useState([
     {
       startDate: new Date(new Date().setDate(new Date().getDate() - 29)),
@@ -101,40 +127,22 @@ const OverviewContent = ({
   ]);
   const [displayRange, setDisplayRange] = useState("");
 
-  const [stats, setStats] = useState<any[]>([]);
-  const [funnel, setFunnel] = useState<any[]>([]);
-  const [insights, setInsights] = useState<any[]>([]);
-  const [academicStats, setAcademicStats] = useState<any[]>([]);
-  const [courseStats, setCourseStats] = useState<any[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
-
   const handleSelect = (ranges: any) => {
     const { startDate, endDate } = ranges.selection;
     setRange([ranges.selection]);
-    setDisplayRange(
-      `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
-    );
-
-    const filteredInsights = mockData.insights.filter(
-      (_, index) => index % 2 === 0
-    );
-    setInsights(filteredInsights);
-
     setShowPicker(false);
   };
 
-  useEffect(() => {
+  // Memoize expensive computations - only recalculate when dependencies change
+  const computedData = useMemo(() => {
     const start = range[0].startDate!;
     const end = range[0].endDate!;
-    setDisplayRange(
-      `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
-    );
 
     // Filter leads and students by date (inclusive)
-    const leadsInRange = leads.filter((l) =>
+    const leadsInRange = leads.filter((l: Lead) =>
       includesDate(l.enquiryDate, start, end)
     );
-    const studentsInRange = students.filter((s) =>
+    const studentsInRange = students.filter((s: Student) =>
       includesDate(s.enrolledDate, start, end)
     );
 
@@ -144,26 +152,22 @@ const OverviewContent = ({
     const totalCenters = centers.length;
 
     // Funnel
-    const followUpScheduled = leadsInRange.filter((l) =>
-      l.nextFollowUpDate ? includesDate(l.nextFollowUpDate, start, end) : false
-    ).length;
-
     const leadsContacted = leadsInRange.filter(
-      (l) => l.status === leadStatusEnum.Contacted
+      (l: Lead) => l.status === leadStatusEnum.Contacted
     ).length;
 
     const leadsDeposited = leadsInRange.filter(
-      (l) => l.status === leadStatusEnum.Deposited
+      (l: Lead) => l.status === leadStatusEnum.Deposited
     ).length;
 
     const leadsEnrolled = leadsInRange.filter(
-      (l) => l.status === leadStatusEnum.Enrolled
+      (l: Lead) => l.status === leadStatusEnum.Enrolled
     ).length;
 
     // Conversions
-    const leadsInRangeIds = new Set(leadsInRange.map((l) => l.id));
+    const leadsInRangeIds = new Set(leadsInRange.map((l: Lead) => l.id));
     const convertedFromLeadsInRange = studentsInRange.filter(
-      (s) => s.leadId && leadsInRangeIds.has(s.leadId)
+      (s: Student) => s.leadId && leadsInRangeIds.has(s.leadId)
     ).length;
 
     // General conversion rate (students in range / leads in range)
@@ -175,37 +179,46 @@ const OverviewContent = ({
     const changeText = getChangeText(start, end);
 
     // Stats cards
-    const newStats = [
+    const stats = [
       {
         title: "New Leads",
         value: formatNumber(totalLeads),
         change: `${percent(totalLeads, Math.max(1, leads.length))} of all`,
+        direction: "up",
+        icon: UserPlus,
         changeText,
       },
       {
         title: "New Enrollments",
         value: formatNumber(totalStudents),
         change: `${percent(totalStudents, Math.max(1, leads.length))} of all`,
+        direction: "up",
+        icon: GraduationCap,
         changeText,
       },
       {
         title: "Conversion Rate",
         value: `${conversionRate.toFixed(1)}%`,
         change: `${conversionFromLeads.toFixed(1)}% from leads in range`,
+        direction: conversionRate > 0 ? "up" : "down",
+        icon: BookOpen,
         changeText,
       },
       {
         title: "Active Courses",
         value: formatNumber(totalCourses),
         change: `${formatNumber(
-          courses.filter((c) => c.status === courseStatusEnum.Active).length
+          courses.filter((c: Course) => c.status === courseStatusEnum.Active)
+            .length
         )} active`,
+        direction: "up",
+        icon: School,
         changeText,
       },
     ];
 
     // Funnel data for chart
-    const newFunnel = [
+    const funnel = [
       { name: "Leads", value: totalLeads },
       { name: "Contacted", value: leadsContacted },
       { name: "Deposited", value: leadsDeposited },
@@ -217,25 +230,25 @@ const OverviewContent = ({
       string,
       { id: string; name: string; leads: number; enrolls: number }
     >();
-    courses.forEach((c) => {
+    courses.forEach((c: Course) => {
       courseMap.set(c.id!, { id: c.id!, name: c.name, leads: 0, enrolls: 0 });
     });
 
     // Count leads per course
-    leadsInRange.forEach((l) => {
+    leadsInRange.forEach((l: Lead) => {
       if (!l.courseId) return;
       const entry = courseMap.get(l.courseId);
       if (entry) entry.leads += 1;
     });
 
     // Count enrolls per course (students may have courses array)
-    studentsInRange.forEach((s) => {
+    studentsInRange.forEach((s: Student) => {
       (s.courses || []).forEach((sc: any) => {
         const entry = courseMap.get(sc.id);
         if (entry) entry.enrolls += 1;
       });
       if (s.leadId) {
-        const lead = leads.find((l) => l.id === s.leadId);
+        const lead = leads.find((l: Lead) => l.id === s.leadId);
         if (lead && lead.courseId) {
           const entry = courseMap.get(lead.courseId);
           if (entry) entry.enrolls += 0;
@@ -243,61 +256,40 @@ const OverviewContent = ({
       }
     });
 
-    const courseStatsArray = Array.from(courseMap.values())
-      .sort((a, b) => b.leads - a.leads)
+    const courseStats = Array.from(courseMap.values())
+      .sort(
+        (
+          a: { id: string; name: string; leads: number; enrolls: number },
+          b: { id: string; name: string; leads: number; enrolls: number }
+        ) => b.leads - a.leads
+      )
       .slice(0, 6)
-      .map((c) => ({
-        title: c.name,
-        leads: c.leads,
-        enrolls: c.enrolls,
-        conversion:
-          c.leads === 0 ? "0%" : `${((c.enrolls / c.leads) * 100).toFixed(1)}%`,
-      }));
+      .map(
+        (c: { id: string; name: string; leads: number; enrolls: number }) => ({
+          title: c.name,
+          leads: c.leads,
+          enrolls: c.enrolls,
+          conversion:
+            c.leads === 0
+              ? "0%"
+              : `${((c.enrolls / c.leads) * 100).toFixed(1)}%`,
+        })
+      );
 
-    // Academic summary cards
-    const newAcademicStats = [
-      {
-        title: "Centers",
-        value: formatNumber(totalCenters),
-        subText: `${
-          centers.filter((ct) => ct.status === centerStatusEnum.Active).length
-        } active`,
-        icon: School,
-      },
-      {
-        title: "Students (range)",
-        value: formatNumber(totalStudents),
-        subText: `${percent(
-          totalStudents,
-          Math.max(1, students.length)
-        )} of all`,
-        icon: Users,
-      },
-      {
-        title: "Leads (range)",
-        value: formatNumber(totalLeads),
-        subText: `${percent(totalLeads, Math.max(1, leads.length))} of all`,
-        icon: Users,
-      },
-      {
-        title: "Conversion",
-        value: `${conversionRate.toFixed(1)}%`,
-        subText: `${convertedFromLeadsInRange} direct conversions`,
-        icon: Users,
-      },
-    ];
 
     // Recent activity
-    const leadActivity = leadsInRange.map((l) => ({
+    const leadActivity = leadsInRange.map((l: Lead) => ({
       type: "lead",
       id: l.id,
       title: `New Lead: ${l.fullName}`,
       date: new Date(l.enquiryDate),
       meta: `${l.course?.name || "—"} • ${
-        l.centerId ? centers.find((c) => c.id === l.centerId)?.name : "—"
+        l.centerId
+          ? centers.find((c: Center) => c.id === l.centerId)?.name
+          : "—"
       }`,
     }));
-    const studentActivity = studentsInRange.map((s) => ({
+    const studentActivity = studentsInRange.map((s: Student) => ({
       type: "enroll",
       id: s.id,
       title: `New Enrollment: ${s.fullName}`,
@@ -307,17 +299,65 @@ const OverviewContent = ({
       }`,
     }));
 
-    const allActivity = [...leadActivity, ...studentActivity]
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, 20);
+    const allActivity = [...leadActivity, ...studentActivity].sort(
+      (
+        a: {
+          type: string;
+          id: string;
+          title: string;
+          date: Date;
+          meta: string;
+        },
+        b: { type: string; id: string; title: string; date: Date; meta: string }
+      ) => b.date.getTime() - a.date.getTime()
+    );
 
-    const recentActivity = allActivity.map((a) => ({
-      icon: a.type === "lead" ? UserPlus : GraduationCap,
-      text: a.title,
-      time: `${a.date.toLocaleDateString()} • ${a.meta}`,
-    }));
+    // Activities for last 30 days (for modal)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const activitiesLast30Days = allActivity.filter(
+      (a: {
+        type: string;
+        id: string;
+        title: string;
+        date: Date;
+        meta: string;
+      }) => a.date >= thirtyDaysAgo
+    );
 
-    const newInsights = [
+    // Recent activity (first 10 for display)
+    const recentActivity = allActivity
+      .slice(0, 10)
+      .map(
+        (a: {
+          type: string;
+          id: string;
+          title: string;
+          date: Date;
+          meta: string;
+        }) => ({
+          icon: a.type === "lead" ? UserPlus : GraduationCap,
+          text: a.title,
+          time: `${a.date.toLocaleDateString()} • ${a.meta}`,
+        })
+      );
+
+    // Activities for modal (last 30 days)
+    const modalActivities = activitiesLast30Days.map(
+      (a: {
+        type: string;
+        id: string;
+        title: string;
+        date: Date;
+        meta: string;
+      }) => ({
+        icon: a.type === "lead" ? UserPlus : GraduationCap,
+        text: a.title,
+        time: `${a.date.toLocaleDateString()} • ${a.meta}`,
+      })
+    );
+
+    const insights = [
       {
         icon: <FiPieChart size={16} color="#FFC105FF" />,
         text: `You received ${totalLeads} lead${
@@ -334,30 +374,44 @@ const OverviewContent = ({
       },
       {
         icon: <BookOpen size={18} color="#16A34AFF" />,
-        text: `Top course: ${courseStatsArray[0]?.title || "—"} (${
-          courseStatsArray[0]?.leads || 0
+        text: `Top course: ${courseStats[0]?.title || "—"} (${
+          courseStats[0]?.leads || 0
         } leads)`,
       },
     ];
 
-    setStats(newStats);
-    setFunnel(newFunnel);
-    setInsights(newInsights);
-    setAcademicStats(newAcademicStats);
-    setCourseStats(courseStatsArray);
-    setRecentActivity(recentActivity);
+    return {
+      stats,
+      funnel,
+      insights,
+      courseStats,
+      recentActivity,
+      modalActivities,
+      displayRange: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`,
+    };
   }, [range, leads, students, courses, centers]);
 
+  // Update display range when computed data changes
   useEffect(() => {
-    const start = range[0].startDate!;
-    const end = range[0].endDate!;
-    setDisplayRange(
-      `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
-    );
-  }, []);
+    setDisplayRange(computedData.displayRange);
+  }, [computedData.displayRange]);
+
+  // Format role to user-friendly display name
+  const userRoleDisplay = useMemo(() => {
+    if (!user?.role) return "User";
+    const roleUpper = user.role.toUpperCase();
+    const roleData = userRoles.find((r) => r.value === roleUpper);
+    if (roleData) {
+      return roleData.label;
+    }
+    return roleUpper
+      .split("_")
+      .map((word: string) => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(" ");
+  }, [user?.role]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-100 p-4 md:py-8 md:px-3 font-inter">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-100 p-4 md:py-8 md:px-3 font-inter">
       <div className="max-w-7xl mx-auto">
         {/* Overview Header */}
         <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -372,7 +426,7 @@ const OverviewContent = ({
               Here's what's happening today across your academic operations.
             </p>
             <p className="text-sm font-medium text-white mt-2">
-              Role: {user?.role?.toLocaleUpperCase()}
+              Role: {userRoleDisplay}
             </p>
           </div>
         </div>
@@ -386,14 +440,14 @@ const OverviewContent = ({
               readOnly
               value={displayRange || "Select a date range"}
               onClick={() => setShowPicker(!showPicker)}
-              className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
           </div>
         </div>
 
         {/* Date Picker */}
         {showPicker && (
-          <div className="absolute right-0 z-50 bg-white shadow-lg rounded-lg p-2">
+          <div className="absolute right-0 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-2">
             <DateRangePicker
               ranges={range}
               onChange={handleSelect}
@@ -405,7 +459,7 @@ const OverviewContent = ({
 
         {/* Top Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {stats.map((stat, index) => (
+          {computedData.stats.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}
         </div>
@@ -413,14 +467,14 @@ const OverviewContent = ({
         {/* Charts & Latest Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Chart */}
-          <div className="lg:col-span-2 bg-white shadow-sm shadow-gray-400 p-6 rounded-xl flex flex-col">
-            <h2 className="text-lg font-bold mb-4 text-[#242524FF]">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 shadow-sm shadow-gray-400 dark:shadow-gray-900 p-6 rounded-xl flex flex-col">
+            <h2 className="text-lg font-bold mb-4 text-[#242524FF] dark:text-gray-100">
               Enrollment Funnel
             </h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={funnel}
+                  data={computedData.funnel}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <XAxis dataKey="name" stroke="#6b7280" />
@@ -447,17 +501,17 @@ const OverviewContent = ({
           </div>
 
           {/* Latest Insights */}
-          <div className="bg-white p-6 rounded-xl shadow-sm shadow-gray-400 relative">
-            <h2 className="text-lg font-bold mb-4 text-[#242524FF]">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm shadow-gray-400 dark:shadow-gray-900 relative">
+            <h2 className="text-lg font-bold mb-4 text-[#242524FF] dark:text-gray-100">
               Latest Insights
             </h2>
 
             {/* Insights List */}
             <ul className="space-y-4 mt-4">
-              {insights.map((insight, index) => (
+              {computedData.insights.map((insight, index) => (
                 <li
                   key={index}
-                  className="flex items-center gap-2 text-sm text-[#8C8D8BFF]"
+                  className="flex items-center gap-2 text-sm text-[#8C8D8BFF] dark:text-gray-300"
                 >
                   {insight.icon}
                   <span>{insight.text}</span>
@@ -467,32 +521,70 @@ const OverviewContent = ({
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {academicStats.map((stat, index) => (
-            <AcademicStatCard key={index} {...stat} />
-          ))}
-        </div>
 
         {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {courseStats.map((stat, index) => (
+            {computedData.courseStats.map((stat, index) => (
               <AcademicStatCard key={index} {...stat} />
             ))}
           </div>
         </div> */}
 
         {/* Recent Activity */}
-        <div className="bg-white p-6 rounded-xl shadow-sm shadow-gray-400">
-          <h2 className="text-lg font-bold mb-4 text-[#242524FF]">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm shadow-gray-400 dark:shadow-gray-900">
+          <h2 className="text-lg font-bold mb-4 text-[#242524FF] dark:text-gray-100">
             Recent Activity
           </h2>
           <div className="space-y-6">
-            {recentActivity.map((activity, index) => (
+            {computedData.recentActivity.map((activity, index) => (
               <ActivityItem key={index} {...activity} />
             ))}
           </div>
+          {computedData.recentActivity.length >= 10 && (
+            <button
+              onClick={() => setShowActivityModal(true)}
+              className="mt-4 w-full px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+            >
+              View More
+            </button>
+          )}
         </div>
+
+        {/* Activity Modal */}
+        {showActivityModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
+            <div className="relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                  Recent Activity (Last 30 Days)
+                </h2>
+                <button
+                  onClick={() => setShowActivityModal(false)}
+                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Activities List */}
+              <div className="flex-1 overflow-y-auto py-4">
+                <div className="space-y-6">
+                  {computedData.modalActivities.length === 0 ? (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                      No activities in the last 30 days
+                    </p>
+                  ) : (
+                    computedData.modalActivities.map((activity, index) => (
+                      <ActivityItem key={index} {...activity} />
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

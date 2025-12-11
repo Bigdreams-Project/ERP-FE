@@ -32,7 +32,7 @@ export interface BatchStudent {
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
-  payments: any[];
+  payments: Payment[];
   createdAt: string;
 }
 
@@ -44,6 +44,8 @@ export interface StudentNote {
   updatedAt: string;
 }
 
+export type ProgramType = "REGULAR_STUDENT" | "JPTP" | "INTERNSHIP" | "NICTP";
+
 export interface Student {
   id: string;
   studentId: string | null;
@@ -51,7 +53,7 @@ export interface Student {
   fullName: string;
   phone: string;
   email: string;
-  image: string; 
+  image: string;
   address: string;
   birthDate: string;
   centerId: string;
@@ -63,10 +65,12 @@ export interface Student {
   notes: StudentNote[];
   payments: Payment[];
   status: string;
+  programType: ProgramType;
   paymentPlan: string;
   lumpSum: number | null;
   numberOfInstallments: number | null;
   comments: string | null;
+  deletedAt: string | null;
   createdAt: string;
 }
 
@@ -84,12 +88,16 @@ export interface IStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
+  amount: string | null; 
   courseFee: string | null;
   lumpSumFee: string | null;
   numberOfInstallments: string | null;
   paymentPlan: string;
-  notes: string;
+  paymentType: string;
+  paymentMethod: string;
+  notes: string | null;
   courseId: string;
+  bankId: string;
   batchId: string | null;
 }
 
@@ -118,12 +126,13 @@ export interface IEditStudent {
 export interface IStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (payload: CreateStudent) => void;
+  onSave: (payload: CreateStudent | UpdateStudent) => void;
   courses: Course[];
   centers: Center[];
   leads: Lead[];
   initialData?: Partial<IStudent>;
-  mode: "enroll";
+  mode: "enroll" | "edit";
+  isLoading?: boolean;
 }
 
 export interface IStudentEditModalProps {

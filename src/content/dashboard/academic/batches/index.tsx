@@ -3,7 +3,7 @@ import AcademicTabs from "@/components/academic/common/AcademicTabs";
 import BreadCrumb from "@/components/academic/common/BreadCrumb";
 import BatchTable from "@/components/academic/tables/Batches.table";
 import BatchModal from "@/components/modals/academic/Batch.modal";
-import { batchStatus } from "@/data/mock/academic.data";
+import { batchStatus } from "@/data/constants/status.constants";
 import { createBatchClient, getBatchesClient, getCoursesClient, getStudentsClient, getFacultiesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Batch, Faculty } from "@/types/academic/batch.interface";
@@ -20,6 +20,8 @@ import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateBatch } from "@/types/requests/batch.interface";
+import { useCenter } from "@/context/CenterContext";
+import { Loading } from "@/components/common/Loading";
 
 interface BatchesContentProps {
   batches: Batch[];
@@ -55,6 +57,7 @@ const BatchesContent = ({
   students: initialStudents,
   faculties: initialFaculties,
 }: BatchesContentProps) => {
+  const { selectedCenter } = useCenter();
   const queryClient = useQueryClient();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -69,18 +72,38 @@ const BatchesContent = ({
   });
 
   // Use React Query to fetch and cache batches
-  const { data: batches = initialBatches } = useQuery({
-    queryKey: ["batches"],
-    queryFn: getBatchesClient,
-    initialData: initialBatches,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
+  // For non-center-managers: when selectedCenter is "all", pass null to get all records
+  // For center-managers: selectedCenter will be their center ID, so they only see their center's records
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
+  
+  const { data: batches = initialBatches, isLoading: isLoadingBatches } = useQuery({
+    queryKey: ["batches", selectedCenter],
+    queryFn: () =>
+      getBatchesClient(selectedCenter === "all" ? null : selectedCenter),
+    // Use placeholderData instead of initialData to allow refetching
+    // This ensures we always get fresh data based on selectedCenter
+    placeholderData: initialBatches,
+    staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
+    refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
+    enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
   });
+
+  // Refetch batches when selectedCenter changes
+  // This ensures non-center-managers see all records when selectedCenter is "all"
+  useEffect(() => {
+    if (!isCenterLoading && selectedCenter) {
+      queryClient.refetchQueries({ 
+        queryKey: ["batches", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
+    }
+  }, [selectedCenter, isCenterLoading, queryClient]);
 
   // Use React Query to fetch and cache courses
   const { data: courses = initialCourses } = useQuery({
     queryKey: ["courses"],
-    queryFn: getCoursesClient,
+    queryFn: () => getCoursesClient(),
     initialData: initialCourses,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -89,7 +112,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache students
   const { data: students = initialStudents } = useQuery({
     queryKey: ["students"],
-    queryFn: getStudentsClient,
+    queryFn: () => getStudentsClient(),
     initialData: initialStudents,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -98,7 +121,7 @@ const BatchesContent = ({
   // Use React Query to fetch and cache faculties
   const { data: faculties = initialFaculties } = useQuery({
     queryKey: ["faculties"],
-    queryFn: getFacultiesClient,
+    queryFn: () => getFacultiesClient(),
     initialData: initialFaculties,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -106,20 +129,19 @@ const BatchesContent = ({
 
   // Mutation for creating batches
   const { mutate: createBatchMutation, isPending: isCreating } = useMutation({
-    mutationFn: createBatchClient,
-    onSuccess: (newBatch) => {
+    mutationFn: (payload: CreateBatch) => {
+      // Pass selectedCenter to ensure center context is maintained
+      return createBatchClient(payload, selectedCenter === "all" ? null : selectedCenter);
+    },
+    onSuccess: async () => {
       showSuccess("Batch created successfully!");
       setIsModalOpen(false);
-      // Optimistically update the cache
-      queryClient.setQueryData(["batches"], (old: Batch[] = []) => [newBatch, ...old]);
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["batches"], refetchType: "active" });
+      // Refetch batches immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["batches", selectedCenter] });
     },
     onError: (error: any) => {
       console.error("Failed to save batch:", error);
       showError("Failed to create batch. Please try again.");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["batches"] });
     },
   });
 
@@ -170,7 +192,9 @@ const BatchesContent = ({
     setEndDate(endDate);
   };
 
-  const handleSave = async (payload: CreateBatch) => {
+  const handleSave = async (payload: CreateBatch, isDraft: boolean = false) => {
+    // For drafts, we might want to handle differently in the future
+    // For now, we'll create the batch normally
     createBatchMutation(payload);
   };
 
@@ -194,7 +218,8 @@ const BatchesContent = ({
     setDateFilterName("");
   };
 
-  const filteredData = batches.filter((batch) => {
+  // Backend handles center filtering, so we only filter by search, status, and date
+  const filteredData = batches.filter((batch: Batch) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       batch.code.toLowerCase().includes(query) ||
@@ -228,20 +253,20 @@ const BatchesContent = ({
         <div className="w-full flex items-center justify-end gap-7 p-2">
           <div className="relative" ref={dropdownRef}>
             <div
-              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               onClick={() => {
                 setIsFilterDropdown(!isFilterDropdown);
                 setDateFilterName("");
               }}
             >
               <IoFilter size={20} />
-              <p className="font-medium text-gray-900">Filter</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Filter</p>
             </div>
             {isFilterDropdown && (
               <div
                 className={`absolute ${
                   dateFilterName ? "-right-60" : "right-0"
-                } mt-2 pt-1 bg-white flex flex-row rounded-md z-50 animate-in fade-in-0 duration-300 border-t border-gray-300 shadow-lg shadow-gray-400`}
+                } mt-2 pt-1 bg-white dark:bg-gray-800 flex flex-row rounded-md z-50 animate-in fade-in-0 duration-300 border-t border-gray-300 dark:border-gray-700 shadow-lg shadow-gray-400 dark:shadow-gray-900`}
               >
                 {dateFilterName && (
                   <div className="p-1">
@@ -250,28 +275,28 @@ const BatchesContent = ({
                         type="text"
                         readOnly
                         value={displayRange || "Select a date range"}
-                        className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                       />
                     </div>
 
-                    <div className="bg-white">
+                    <div className="bg-white dark:bg-gray-800">
                       <DateRangePicker
                         ranges={range}
                         onChange={handleSelect}
                         moveRangeOnFirstSelection={false}
-                        className="text-black"
+                        className="text-black dark:text-white"
                       />
                     </div>
                   </div>
                 )}
 
-                <div className="bg-white w-[200px] p-4 pl-0 animate-in fade-in-0 duration-300 shadow-md shadow-gray-400">
+                <div className="bg-white dark:bg-gray-800 w-[200px] p-4 pl-0 animate-in fade-in-0 duration-300 shadow-md shadow-gray-400 dark:shadow-gray-900">
                   <div className="flex flex-col gap-3">
                     <div className="pl-3">
                       <select
                         name="date"
                         id=""
-                        className="w-fit font-bold px-0 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-0"
+                        className="w-fit font-bold px-0 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-0 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         onChange={(e) => setDateFilterName(e.target.value)}
                       >
                         <option value="">Select a date</option>
@@ -288,12 +313,12 @@ const BatchesContent = ({
                     </div>
 
                     <div className="flex flex-col gap-1 pl-4">
-                      <p className="font-semibold text-gray-800">Status</p>
+                      <p className="font-semibold text-gray-800 dark:text-gray-200">Status</p>
                       <ul className="flex flex-col gap-1">
                         {batchStatus?.map((status) => (
                           <li
                             key={status}
-                            className="flex items-center gap-2 text-sm text-gray-700"
+                            className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                           >
                             <input
                               id={`status-${status}`}
@@ -336,8 +361,8 @@ const BatchesContent = ({
           </div>
 
           <div className="w-[250px]">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-              <BiSearchAlt size={18} className="ml-2" />
+            <div className="flex items-center gap-1 py-1.5 border-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100">
+              <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search"
@@ -345,7 +370,7 @@ const BatchesContent = ({
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
-                className="outline-none"
+                className="outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -360,13 +385,19 @@ const BatchesContent = ({
         </div>
       </div>
 
-      <BatchTable
-        searchQuery={searchQuery}
-        filteredData={filteredData}
-        courses={courses}
-        students={students}
-        faculties={faculties}
-      />
+      {isLoadingBatches || isCenterLoading ? (
+        <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-8">
+          <Loading text="Loading batches..." />
+        </div>
+      ) : (
+        <BatchTable
+          searchQuery={searchQuery}
+          filteredData={filteredData}
+          courses={courses}
+          students={students}
+          faculties={faculties}
+        />
+      )}
       <BatchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -375,6 +406,7 @@ const BatchesContent = ({
         students={students}
         faculties={faculties}
         mode="add"
+        isLoading={isCreating}
       />
     </div>
   );

@@ -31,6 +31,7 @@ export interface Course {
   batches: Batch[];
   documents: Document[];
   paymentPlans: any[];
+  deletedAt: string | null;
   createdAt?: string;
 }
 
@@ -39,6 +40,7 @@ export interface ICourse {
   name: string;
   type: string;
   duration: number;
+  oldId?: string;
 }
 
 export interface ICourseModalProps {

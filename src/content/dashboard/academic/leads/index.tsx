@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useCenter } from "@/context/CenterContext";
-import { createLeadClient, getLeadsClient, getCentersClient, getCoursesClient } from "@/lib/client-network";
+import { createLeadClient, getLeadsClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -21,6 +21,7 @@ import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loading } from "@/components/common/Loading";
 
 interface LeadContentProps {
   leads: Lead[];
@@ -28,13 +29,42 @@ interface LeadContentProps {
   courses: Course[];
 }
 
-const LeadContent = ({ 
-  leads: initialLeads, 
-  centers: initialCenters, 
-  courses: initialCourses 
+const LeadContent = ({
+  leads: initialLeads,
+  centers,
+  courses,
 }: LeadContentProps) => {
+  const {
+    selectedCenter,
+    isLoading: isCenterLoading,
+    centerContext,
+  } = useCenter();
   const queryClient = useQueryClient();
-  const { selectedCenter } = useCenter();
+
+  // Use React Query to fetch and cache leads
+  // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
+  const { data: leads = initialLeads, isLoading: isLoadingLeads } = useQuery({
+    queryKey: ["leads", selectedCenter],
+    queryFn: () =>
+      getLeadsClient(selectedCenter === "all" ? null : selectedCenter),
+    initialData: initialLeads,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnMount: true, // Enable refetching when component mounts
+  });
+
+  // Refetch leads whenever selectedCenter changes
+  // This ensures data is filtered correctly when user selects a different center from dropdown
+  useEffect(() => {
+    if (!isCenterLoading && selectedCenter) {
+      console.log("Refetching leads for selectedCenter:", selectedCenter);
+      // Invalidate cache to ensure fresh data, then refetch
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["leads", selectedCenter],
+        type: 'active' // Only refetch active queries
+      });
+    }
+  }, [selectedCenter, isCenterLoading, queryClient]);
 
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,56 +77,8 @@ const LeadContent = ({
     endDate: "",
   });
 
-  // Use React Query to fetch and cache leads
-  const { data: leads = initialLeads } = useQuery({
-    queryKey: ["leads"],
-    queryFn: getLeadsClient,
-    initialData: initialLeads,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
-  });
-
-  // Use React Query to fetch and cache centers
-  const { data: centers = initialCenters } = useQuery({
-    queryKey: ["centers"],
-    queryFn: getCentersClient,
-    initialData: initialCenters,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
-  });
-
-  // Use React Query to fetch and cache courses
-  const { data: courses = initialCourses } = useQuery({
-    queryKey: ["courses"],
-    queryFn: getCoursesClient,
-    initialData: initialCourses,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
-  });
-
-  // Mutation for creating leads
-  const { mutate: createLeadMutation, isPending: isCreating } = useMutation({
-    mutationFn: createLeadClient,
-    onSuccess: (newLead) => {
-      showSuccess("Lead created successfully");
-      setIsModalOpen(false);
-      // Optimistically update the cache
-      queryClient.setQueryData(["leads"], (old: Lead[] = []) => [newLead, ...old]);
-      // Invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
-    },
-    onError: (error: any) => {
-      console.error("Failed to save lead:", error);
-      showError("Failed to save lead");
-      // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
-    },
-  });
-
-  const filteredLeads =
-    selectedCenter === "all"
-      ? leads
-      : leads.filter((lead) => lead.centerId === selectedCenter);
+  // Backend handles filtering, so we use leads directly
+  const filteredLeads = leads;
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) {
@@ -116,8 +98,75 @@ const LeadContent = ({
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  const handleSave = async (payload: CreateLead) => {
-    createLeadMutation(payload);
+  // Mutation for creating leads
+  const { mutate: createLeadMutation, isPending: isCreating } = useMutation({
+    mutationFn: async (payload: CreateLead) => {
+      // Pass selectedCenter to ensure center context is maintained
+      return await createLeadClient(
+        payload,
+        selectedCenter === "all" ? null : selectedCenter
+      );
+    },
+    onSuccess: async () => {
+      showSuccess("Lead created successfully");
+      setIsModalOpen(false);
+      // Refetch leads immediately to update the list
+      await queryClient.refetchQueries({ queryKey: ["leads", selectedCenter] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to save lead:", error);
+      showError("Failed to save lead");
+    },
+  });
+
+  const handleSave = async (payload: any) => {
+    // Backend requirements:
+    // - Remove: id, status, createdAt, updatedAt, studyType
+    // - parentEmail must be valid email or omitted (not empty string)
+    // - Don't send empty strings for required fields
+    const transformedPayload: any = {
+      fullName: payload.fullName,
+      email: payload.email,
+      phone: payload.phone,
+      address: payload.address,
+      birthDate: payload.birthDate,
+      parentName: payload.guardianName,
+      parentPhone: payload.guardianPhone,
+      // Only include parentEmail if it's a valid email, otherwise omit it
+      ...(payload.guardianEmail &&
+        payload.guardianEmail.trim() !== "" && {
+          parentEmail: payload.guardianEmail,
+        }),
+      courseId: payload.courseId,
+      centerId: payload.centerId,
+      enquiryDate: payload.enquiryDate,
+      source: payload.source,
+      // Optional fields - only include if they have values
+      ...(payload.nextFollowUpDate &&
+        payload.nextFollowUpDate.trim() !== "" && {
+          nextFollowUpDate: payload.nextFollowUpDate,
+        }),
+      ...(payload.lastFollowUpDate &&
+        payload.lastFollowUpDate.trim() !== "" && {
+          lastFollowUpDate: payload.lastFollowUpDate,
+        }),
+      ...(payload.assignedTo &&
+        payload.assignedTo.trim() !== "" && {
+          assignedTo: payload.assignedTo,
+        }),
+      ...(payload.note &&
+        payload.note.trim() !== "" && {
+          note: payload.note,
+        }),
+    };
+
+    // Log the payload for debugging
+    console.log(
+      "Transformed payload being sent:",
+      JSON.stringify(transformedPayload, null, 2)
+    );
+
+    createLeadMutation(transformedPayload);
   };
 
   const handleFilterChange = (newFilters: any) => {
@@ -147,9 +196,9 @@ const LeadContent = ({
             <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <PopoverTrigger asChild>
                 <div className="relative">
-                  <div className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors">
-                    <IoFilter size={20} />
-                    <p className="font-medium text-gray-900">Filter</p>
+                  <div className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <IoFilter size={20} className="text-gray-700 dark:text-gray-300" />
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Filter</p>
                   </div>
                 </div>
               </PopoverTrigger>
@@ -164,8 +213,8 @@ const LeadContent = ({
             </Popover>
 
             <div className="w-[250px]">
-              <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-                <BiSearchAlt size={18} className="ml-2" />
+              <div className="flex items-center gap-1 py-1.5 border-2 border-gray-300 dark:border-gray-600 rounded focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100 bg-white dark:bg-gray-800 placeholder:text-[rgba(0,0,0,0.7)] dark:placeholder:text-gray-400">
+                <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search"
@@ -173,7 +222,7 @@ const LeadContent = ({
                     setSearchInput(e.target.value);
                     if (!isTyping) setIsTyping(true);
                   }}
-                  className="outline-none"
+                  className="outline-none bg-transparent text-gray-900 dark:text-gray-100"
                 />
               </div>
             </div>
@@ -189,13 +238,19 @@ const LeadContent = ({
         </div>
       </div>
 
-      <LeadTable
-        leads={filteredLeads}
-        centers={centers}
-        courses={courses}
-        searchQuery={searchQuery}
-        filterOptions={filterOptions}
-      />
+      {isLoadingLeads || isCenterLoading ? (
+        <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-8">
+          <Loading text="Loading leads..." />
+        </div>
+      ) : (
+        <LeadTable
+          leads={filteredLeads}
+          centers={centers}
+          courses={courses}
+          searchQuery={searchQuery}
+          filterOptions={filterOptions}
+        />
+      )}
       <LeadModal
         isOpen={isModalOpen}
         centers={centers}
@@ -203,6 +258,12 @@ const LeadContent = ({
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         mode="add"
+        isLoading={isCreating}
+        initialData={
+          selectedCenter !== "all" && selectedCenter
+            ? { centerId: selectedCenter, note: "" }
+            : undefined
+        }
       />
     </div>
   );

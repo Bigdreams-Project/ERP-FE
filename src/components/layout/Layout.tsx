@@ -12,11 +12,11 @@ interface LayoutProps {
 
 const Layout = ({ children, user, centers }: LayoutProps) => {
   return (
-    <div className="w-full h-screen relative flex bg-white ">
+    <div className="w-full h-screen relative flex bg-white dark:bg-gray-900">
       <SideNav />
       <div className="w-[63%] relative flex flex-col flex-1 mt-[0.9rem]">
         <Navbar user={user} centers={centers} />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto dark:bg-gray-900">{children}</main>
       </div>
     </div>
   );

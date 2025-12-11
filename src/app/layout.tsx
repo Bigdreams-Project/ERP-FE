@@ -1,24 +1,12 @@
 import { CenterProvider } from "@/context/CenterContext";
+import { ProviderProvider } from "@/context/ProviderContext";
 import { UserProvider } from "@/context/UserContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import type { Metadata } from "next";
-import { Archivo, Inter } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const archivo = Archivo({
-  subsets: ["latin"],
-  variable: "--font-archivo",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "TecTerminal ERP",
@@ -31,14 +19,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${archivo.variable} antialiased`}>
-        <UserProvider>
-          <CenterProvider>
-            <ReactQueryProvider>{children}</ReactQueryProvider>
-            <ToastContainer />
-          </CenterProvider>
-        </UserProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased">
+        <ThemeProvider>
+          <UserProvider>
+            <CenterProvider>
+              <ProviderProvider>
+                <ReactQueryProvider>{children}</ReactQueryProvider>
+                <ToastContainer />
+              </ProviderProvider>
+            </CenterProvider>
+          </UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

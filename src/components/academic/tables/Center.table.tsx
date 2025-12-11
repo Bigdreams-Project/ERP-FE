@@ -1,15 +1,18 @@
 "use client";
 import CenterModal from "@/components/modals/academic/Center.modal";
+import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { createCenter, deleteCenter } from "@/lib/network";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useEntityDelete } from "@/hooks/useEntityDelete";
+import { createCenter } from "@/lib/network";
+import { useQueryClient } from "@tanstack/react-query";
 import { Center, Manager } from "@/types/academic/center.interface";
 import { CreateCenter } from "@/types/requests/center.interface";
-import { ChevronDown, Link2Icon } from "lucide-react";
+import { ChevronDown, Link2Icon, Eye, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Pagination from "../common/Pagination";
 import Link from "next/link";
-import DeleteModal from "@/components/modals/common/Delete.modal";
 
 type CenterTableProps = {
   centers: Center[];
@@ -23,17 +26,29 @@ export default function CenterTable({
   searchQuery,
 }: CenterTableProps) {
   const router = useRouter();
-  const [data, setData] = useState(centers);
+  const queryClient = useQueryClient();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  
+  // Use reusable delete hook
+  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
+    entityType: "centers",
+  });
+  
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedCenterId, setSelectedCenterId] = useState<string | null>(null);
+  const [selectedCenter, setSelectedCenter] = useState<Center | null>(null);
   const itemsPerPage = 10;
 
-  const filteredData = data
+  // Use centers prop directly (which comes from React Query cache)
+  // All centers are active (no soft delete filtering)
+  const activeCenters = useMemo(() => {
+    return centers;
+  }, [centers]);
+
+  const filteredData = activeCenters
     .filter((center) => {
       const query = searchQuery.toLowerCase();
       return (
@@ -74,7 +89,7 @@ export default function CenterTable({
 
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
-        <span key={i} className=" text-primary">
+        <span key={i} className="text-primary dark:text-indigo-400">
           {part}
         </span>
       ) : (
@@ -101,82 +116,47 @@ export default function CenterTable({
     setIsModalOpen(true);
   };
 
-  const handleDelete = (centerId: string) => {
+  const handleDelete = (center: Center) => {
     setOpenDropdown(null);
-    setSelectedCenterId(centerId);
+    setSelectedCenter(center);
     setIsDeleteModalOpen(true);
   };
 
-  const handleCheckboxChange = (id: string) => {
-    setSelectedCenters((prev) =>
-      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
-    );
-  };
-
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedData.map((center) => center.id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedCenters.includes(id)
-    );
-
-    if (allSelected) {
-      setSelectedCenters((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedCenters((prev) => [
-        ...prev,
-        ...currentPageIds.filter((id) => !prev.includes(id)),
-      ]);
-    }
-  };
 
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
-      const response = await createCenter(payload, isDraft);
-
-      console.log("Center created successfully:", response);
-
-      setData((prev) => [...prev, response]);
+      await createCenter(payload, isDraft);
       setIsModalOpen(false);
+      // Invalidate React Query cache - parent component will update via React Query
+      queryClient.invalidateQueries({ queryKey: ["centers"], refetchType: "active" });
     } catch (error) {
-      console.error("Failed to save lead:", error);
+      console.error("Failed to save center:", error);
     }
   };
 
-  const handleDeleteCenter = async (leadId: string) => {
+  const handleHardDelete = async (centerId: string) => {
     try {
-      await deleteCenter(leadId);
+      await handleHardDeleteEntity(centerId);
+      // Close modal after operation completes and toast is shown
       setIsDeleteModalOpen(false);
+      setSelectedCenter(null);
     } catch (error) {
-      console.error("Failed to delete lead:", error);
+      // Error toast is shown by useEntityDelete hook
+      // Keep modal open on error so user can retry
     }
   };
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent text="Center" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 dark:text-gray-300">
               <thead>
-                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
-                  <th className="p-4 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((center) =>
-                          selectedCenters.includes(center.id)
-                        )
-                      }
-                      onChange={handleSelectAll}
-                      className="mr-2 accent-primary"
-                    />
-                    #
-                  </th>
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
+                  <th className="p-4">#</th>
                   <th className="p-4">Center Code</th>
                   <th className="p-4">Center Name</th>
                   <th className="p-4">Center Manager</th>
@@ -193,47 +173,41 @@ export default function CenterTable({
                 {paginatedData.map((center: Center, index) => (
                   <tr
                     key={center.id}
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
-                    <td className="p-4 flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedCenters.includes(center.id)}
-                        onChange={() => handleCheckboxChange(center.id)}
-                        className="mr-2 accent-primary"
-                      />
+                    <td className="p-4 text-gray-700 dark:text-gray-300">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3">
                       <Link
                         href={`/dashboard/academic/centers/${center.id}`}
-                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                        className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                       >
                         {center.code} <Link2Icon size={12} />
                       </Link>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.name, searchQuery)}
                     </td>
-                    <td className="p-3 font-bold">
+                    <td className="p-3 font-bold text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.manager?.fullname, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.email, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.phone, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.address, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {center.students ? center.students.length : ""}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {center.leads ? center.leads.length : ""}
                     </td>
-                    <td className="p-3">{center.status}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300">{center.status}</td>
                     <td className="p-3 relative text-right">
                       <button
                         onClick={() => toggleDropdown(center.id)}
@@ -243,29 +217,27 @@ export default function CenterTable({
                         <ChevronDown size={16} className="ml-2" />
                       </button>
                       {openDropdown === center.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/academic/centers/${center.id}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
+                            <Eye size={16} />
                             View
                           </button>
-                          {/* <button
-                            onClick={() => handleEdit(center.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button> */}
-                          {/* <button
-                            onClick={() => handleDelete(center.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button> */}
+                          {isAdmin && !isAdminLoading && (
+                            <button
+                              onClick={() => handleDelete(center)}
+                              className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -277,7 +249,7 @@ export default function CenterTable({
         </div>
       </div>
 
-      <div className="sticky w-full bottom-0 z-10 bg-white">
+      <div className="sticky w-full bottom-0 z-10 bg-white dark:bg-gray-800">
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -293,13 +265,18 @@ export default function CenterTable({
         mode={mode}
       />
 
-      <DeleteModal
-        title="Center"
-        subtitle="Are you sure you want to delete this center?"
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onDelete={handleDeleteCenter}
-      />
+      {selectedCenter && (
+        <EntityDeleteModal
+          entityType="Center"
+          entity={selectedCenter}
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setSelectedCenter(null);
+          }}
+          onHardDelete={handleHardDelete}
+        />
+      )}
     </div>
   );
 }

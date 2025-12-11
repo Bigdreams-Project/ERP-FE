@@ -5,6 +5,7 @@ import { getPieChartBgColor } from "@/components/academic/utils/backgrounds";
 
 interface ChartLegendProps {
   data: { name: string; value: string | number; color: string }[];
+  totalRevenue: number;
 }
 
 const parseCurrencyToNumber = (v: string | number): number => {
@@ -12,7 +13,6 @@ const parseCurrencyToNumber = (v: string | number): number => {
   const s = String(v).trim();
   if (!s) return 0;
 
-  // Remove currency symbols and commas, keep K/M suffixes and dots
   let cleaned = s.replace(/[^0-9.kKmM.]/g, "");
 
   let multiplier = 1;
@@ -30,29 +30,29 @@ const parseCurrencyToNumber = (v: string | number): number => {
 };
 
 const formatCurrency = (v: number) =>
-  // Format with comma separators. You can replace with Intl if you want currency symbol
-  v.toLocaleString();
+  v.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
 
-const ChartLegend = ({ data }: ChartLegendProps) => {
+const ChartLegend = ({ data, totalRevenue }: ChartLegendProps) => {
   const [hovered, setHovered] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null
   );
 
-  // map data to chart-friendly form and keep original display value
   const chartData = data.map((item) => {
-    const numeric = parseCurrencyToNumber(item.value);
+    const numeric = typeof item.value === "number" ? Math.round(item.value) : parseCurrencyToNumber(item.value);
     return {
       title: item.name,
       value: numeric,
-      displayValue: item.value,
+      displayValue: typeof item.value === "number" ? formatCurrency(item.value) : String(item.value),
       color: getPieChartBgColor(item.color),
     };
   });
 
   const total = chartData.reduce((sum, it) => sum + it.value, 0);
 
-  // handlers
   const handleSliceEnter = (evt: React.MouseEvent, index: number) => {
     setHovered(index);
     setTooltipPos({ x: evt.clientX, y: evt.clientY });
@@ -71,40 +71,46 @@ const ChartLegend = ({ data }: ChartLegendProps) => {
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-6 relative">
-      <ul className="space-y-2 text-sm text-gray-700 font-medium">
+      <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
         {data.map((item, index) => (
           <li key={index} className="flex items-center space-x-2">
             <span className={`w-3 h-3 rounded-full ${item.color}`}></span>
-            <span>{item.name}</span>
+            <span className="flex-1">{item.name}</span>
           </li>
         ))}
-      </ul>
+      </div>
 
       <div
-        className="relative"
+        className="relative flex-shrink-0"
         style={{ height: 200, width: 200 }}
         onMouseMove={handleMouseMove}
       >
-        <PieChart
-          data={chartData.map((d) => ({
-            title: d.title,
-            value: d.value,
-            color: d.color,
-          }))}
-          lineWidth={50}
-          animate
-          segmentsStyle={{ cursor: "pointer" }}
-          onMouseOver={(evt: any, index: number) =>
-            handleSliceEnter(evt, index)
-          }
-          onMouseOut={handleSliceLeave}
-          style={{ height: "200px", width: "200px" }}
-        />
+        {chartData.length > 0 && total > 0 ? (
+          <PieChart
+            data={chartData.map((d) => ({
+              title: d.title,
+              value: d.value,
+              color: d.color,
+            }))}
+            lineWidth={50}
+            animate
+            segmentsStyle={{ cursor: "pointer" }}
+            onMouseOver={(evt: any, index: number) =>
+              handleSliceEnter(evt, index)
+            }
+            onMouseOut={handleSliceLeave}
+            style={{ height: "200px", width: "200px" }}
+          />
+        ) : (
+          <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+            <span className="text-xs text-gray-400 dark:text-gray-500">No data</span>
+          </div>
+        )}
 
         <div className="absolute inset-0 flex flex-col items-center justify-center p-2 pointer-events-none">
-          <span className="text-sm font-bold">Total Revenue</span>
-          <span className="text-sm text-gray-500">
-            ₦{formatCurrency(total)}
+          <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Total Collection</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            ₦{formatCurrency(totalRevenue!)}
           </span>
         </div>
       </div>
@@ -123,7 +129,7 @@ const ChartLegend = ({ data }: ChartLegendProps) => {
             {chartData[hovered].title}
           </strong>
           <span className="block text-[11px]">
-            {String(data[hovered].value)}
+            ₦{chartData[hovered].displayValue}
           </span>
         </div>
       )}

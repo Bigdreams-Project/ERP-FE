@@ -11,11 +11,17 @@ import {
   CreateStudentPayment,
   UpdateStudent,
 } from "@/types/requests/student.interface";
+import {
+  BulkUploadArchiveRequest,
+  CreateArchiveRecord,
+  UpdateArchiveRecord,
+} from "@/types/requests/archive.interface";
+import { ArchiveRecord } from "@/types/academic/archive.interface";
 import { getSession } from "./session";
 
 // Users
 export const getLoggedInUser = async () => {
-  try {
+  try { 
     const api = await server();
     const session = await getSession();
     if (!session) {
@@ -90,7 +96,9 @@ export const getLeads = async () => {
   try {
     const api = await server();
     const res = await api.get("/leads/active");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted leads
+    const leads = Array.isArray(res.data) ? res.data : [];
+    return leads.filter((lead: any) => !lead.deletedAt);
   } catch (err: any) {
     if (err instanceof NoSessionError) {
       console.error("No active session, please log in.");
@@ -137,10 +145,37 @@ export const updateLead = async (id: string, payload: UpdateLead) => {
 export const deleteLead = async (id: string) => {
   try {
     const api = await server();
-    const res = await api.delete(`/leads/${id}`);
+    // Soft delete: PATCH with deletedAt timestamp
+    const res = await api.patch(`/leads/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete lead:", err.message);
+    return err.message;
+  }
+};
+
+export const softDeleteLead = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/leads/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to soft delete lead:", err.message);
+    return err.message;
+  }
+};
+
+export const hardDeleteLead = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/leads/${id}?hard=true`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to hard delete lead:", err.message);
     return err.message;
   }
 };
@@ -150,7 +185,9 @@ export const getCenters = async () => {
   try {
     const api = await server();
     const res = await api.get("/centers");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted centers
+    const centers = Array.isArray(res.data) ? res.data : [];
+    return centers.filter((center: any) => !center.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch centers:", err.message);
     return [];
@@ -193,10 +230,37 @@ export const updateCenter = async (id: string, payload: UpdateCenter) => {
 export const deleteCenter = async (id: string) => {
   try {
     const api = await server();
-    const res = await api.delete(`/centers/${id}`);
+    // Soft delete: PATCH with deletedAt timestamp
+    const res = await api.patch(`/centers/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete center:", err.message);
+    return err.message;
+  }
+};
+
+export const softDeleteCenter = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/centers/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to soft delete center:", err.message);
+    return err.message;
+  }
+};
+
+export const hardDeleteCenter = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/centers/${id}?hard=true`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to hard delete center:", err.message);
     return err.message;
   }
 };
@@ -206,7 +270,9 @@ export const getCourses = async () => {
   try {
     const api = await server();
     const res = await api.get("/courses");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted courses
+    const courses = Array.isArray(res.data) ? res.data : [];
+    return courses.filter((course: any) => !course.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch courses:", err.message);
     return [];
@@ -253,6 +319,7 @@ export const createCourse = async (payload: CreateCourse, isDraft: boolean) => {
       name: payload.name,
       type: payload.type as any,
       duration: payload.duration,
+      oldId: payload.oldId,
       isDraft,
     });
     return res.data;
@@ -316,10 +383,37 @@ export const updateCourse = async (id: string, payload: UpdateCourse) => {
 export const deleteCourse = async (id: string) => {
   try {
     const api = await server();
-    const res = await api.delete(`/courses/${id}`);
+    // Soft delete: PATCH with deletedAt timestamp
+    const res = await api.patch(`/courses/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete course:", err.message);
+    return err.message;
+  }
+};
+
+export const softDeleteCourse = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/courses/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to soft delete course:", err.message);
+    return err.message;
+  }
+};
+
+export const hardDeleteCourse = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/courses/${id}?hard=true`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to hard delete course:", err.message);
     return err.message;
   }
 };
@@ -329,7 +423,10 @@ export const getStudents = async () => {
   try {
     const api = await server();
     const res = await api.get("/students");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted students
+    // Backend should handle this, but add as fallback
+    const students = Array.isArray(res.data) ? res.data : [];
+    return students.filter((student: any) => !student.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch students:", err.message);
     return [];
@@ -358,7 +455,6 @@ export const getStudentCourses = async (studentId: string) => {
     return [];
   }
 };
-
 
 export const createStudent = async (payload: CreateStudent) => {
   try {
@@ -407,10 +503,37 @@ export const updateStudent = async (id: string, payload: UpdateStudent) => {
 export const deleteStudent = async (id: string) => {
   try {
     const api = await server();
-    const res = await api.delete(`/students/${id}`);
+    // Soft delete: PATCH with deletedAt timestamp
+    const res = await api.patch(`/students/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete student:", err.message);
+    return err.message;
+  }
+};
+
+export const softDeleteStudent = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/students/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to soft delete student:", err.message);
+    return err.message;
+  }
+};
+
+export const hardDeleteStudent = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/students/${id}?hard=true`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to hard delete student:", err.message);
     return err.message;
   }
 };
@@ -420,7 +543,9 @@ export const getBatches = async () => {
   try {
     const api = await server();
     const res = await api.get("/batches");
-    return res.data;
+    // Frontend safety filter: exclude soft-deleted batches
+    const batches = Array.isArray(res.data) ? res.data : [];
+    return batches.filter((batch: any) => !batch.deletedAt);
   } catch (err: any) {
     console.error("Failed to fetch batches:", err.message);
     return [];
@@ -463,10 +588,37 @@ export const updateBatch = async (id: string, payload: UpdateBatch | any) => {
 export const deleteBatch = async (id: string) => {
   try {
     const api = await server();
-    const res = await api.delete(`/batches/${id}`);
+    // Soft delete: PATCH with deletedAt timestamp
+    const res = await api.patch(`/batches/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
     return res.data;
   } catch (err: any) {
     console.error("Failed to delete batch:", err.message);
+    return err.message;
+  }
+};
+
+export const softDeleteBatch = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/batches/${id}`, {
+      deletedAt: new Date().toISOString(),
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to soft delete batch:", err.message);
+    return err.message;
+  }
+};
+
+export const hardDeleteBatch = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/batches/${id}?hard=true`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to hard delete batch:", err.message);
     return err.message;
   }
 };
@@ -529,6 +681,17 @@ export const getBanks = async () => {
   }
 };
 
+export const getCenterBanks = async (centerId: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/banks/center/${centerId}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch center's banks:", err.message);
+    return [];
+  }
+};
+
 export const getBank = async (id: string) => {
   try {
     const api = await server();
@@ -543,11 +706,18 @@ export const getBank = async (id: string) => {
 export const getTransaction = async (id: string) => {
   try {
     const api = await server();
-    const res = await api.get(`/payment/${id}`);
-    return res.data;
+    // Try /payments/:id first, fallback to /payment/:id
+    try {
+      const res = await api.get(`/payments/${id}`);
+      return res.data;
+    } catch (err: any) {
+      // Fallback to /payment/:id if /payments/:id doesn't exist
+      const res = await api.get(`/payment/${id}`);
+      return res.data;
+    }
   } catch (err: any) {
-    console.error("Failed to fetch transactions:", err.message);
-    return {};
+    console.error("Failed to fetch transaction:", err.message);
+    return null;
   }
 };
 
@@ -605,10 +775,134 @@ export const getAttendance = async (
 export const getAllPayments = async () => {
   try {
     const api = await server();
-    const res = await api.get("/payments");
+    const res = await api.get("/payment");
     return res.data;
   } catch (err: any) {
     console.error("Failed to fetch payments", err.message);
     throw new Error(err.message);
+  }
+};
+
+export const getFinanceOverview = async () => {
+  try {
+    const api = await server();
+    const res = await api.get(`/payment/overview`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch finance overview:", err.message);
+    return {
+      totalRevenue: 0,
+      totalPending: 0,
+      totalPayments: 0,
+      topCenters: [],
+    };
+  }
+};
+
+// Archive
+export const getArchiveRecords = async (options?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}) => {
+  try {
+    const api = await server();
+    const params = new URLSearchParams();
+    if (options?.page) params.append("page", options.page.toString());
+    if (options?.limit) params.append("limit", options.limit.toString());
+    if (options?.search) params.append("search", options.search);
+    
+    const queryString = params.toString();
+    const url = `/archive${queryString ? `?${queryString}` : ""}`;
+    const res = await api.get(url);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch archive records:", err.message);
+    return { data: [], total: 0, page: 1, limit: 10 };
+  }
+};
+
+export const getArchiveRecord = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.get(`/archive/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to fetch archive record:", err.message);
+    console.error("Archive ID:", id);
+    console.error("Error response status:", err.response?.status);
+    console.error("Error response data:", err.response?.data);
+    console.error("Error response headers:", err.response?.headers);
+    console.error("Full error details:", JSON.stringify(err.response?.data || err, null, 2));
+    throw err; // Re-throw to let the page handle the error
+  }
+};
+
+export const createArchiveRecord = async (payload: CreateArchiveRecord) => {
+  try {
+    const api = await server();
+    const res = await api.post("/archive", payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to create archive record:", err.message);
+    throw err;
+  }
+};
+
+export const bulkUploadArchive = async (payload: BulkUploadArchiveRequest) => {
+  try {
+    const api = await server();
+    const res = await api.post("/archive/bulk-upload", payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to upload archive records:", err.message);
+    throw err;
+  }
+};
+
+export const updateArchiveRecord = async (
+  id: string,
+  payload: UpdateArchiveRecord
+) => {
+  try {
+    const api = await server();
+    const res = await api.patch(`/archive/${id}`, payload);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to update archive record:", err.message);
+    throw err;
+  }
+};
+
+export const archiveStudentToArchive = async (studentId: string) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/archive/from-student/${studentId}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to archive student:", err.message);
+    throw err;
+  }
+};
+
+export const restoreStudentFromArchive = async (archiveId: string) => {
+  try {
+    const api = await server();
+    const res = await api.post(`/archive/restore/${archiveId}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to restore student:", err.message);
+    throw err;
+  }
+};
+
+export const deleteArchiveRecord = async (id: string) => {
+  try {
+    const api = await server();
+    const res = await api.delete(`/archive/${id}`);
+    return res.data;
+  } catch (err: any) {
+    console.error("Failed to delete archive record:", err.message);
+    throw err;
   }
 };

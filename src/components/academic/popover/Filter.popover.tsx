@@ -63,11 +63,11 @@ export default function FilterPopover({
   };
 
   return (
-    <div className="p-4 h-96 overflow-y-auto custom-scroll bg-white rounded-lg shadow-lg shadow-gray-400">
+    <div className="p-4 h-96 overflow-y-auto custom-scroll bg-white dark:bg-gray-800 rounded-lg shadow-lg shadow-gray-400 dark:shadow-gray-900">
       <div className="space-y-4">
         {filterItems.map((item) => (
           <div key={item.name}>
-            <label className="block text-sm font-bold text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">
               {item.label}
             </label>
           </div>
@@ -80,31 +80,31 @@ export default function FilterPopover({
           type="text"
           readOnly
           value={displayRange || "Select a date range"}
-          className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
       </div>
 
       {/* Date Picker */}
-      <div className=" bg-white rounded-lg">
+      <div className="bg-white dark:bg-gray-800 rounded-lg">
         <DateRangePicker
           ranges={range}
           onChange={handleSelect}
           moveRangeOnFirstSelection={false}
-          className="text-black"
+          className="text-black dark:text-white"
         />
       </div>
 
-      <div className="flex flex-row items-center justify-end gap-2 mt-4 pt-2 text-[14px] border-t border-gray-300">
+      <div className="flex flex-row items-center justify-end gap-2 mt-4 pt-2 text-[14px] border-t border-gray-300 dark:border-gray-700">
         <button
           onClick={handleClear}
-          className="bg-red-500 w-36 text-white text-center rounded-md p-2 hover:bg-red-600 transition-colors"
+          className="bg-red-500 dark:bg-red-600 w-36 text-white text-center rounded-md p-2 hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
         >
           Clear All
         </button>
 
         <button
           onClick={handleApply}
-          className="bg-blue-600 w-36 text-white text-center rounded-md p-2 hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 dark:bg-blue-700 w-36 text-white text-center rounded-md p-2 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
         >
           Apply
         </button>

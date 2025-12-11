@@ -36,7 +36,6 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      console.log("Data:", formData);
       saveCourse(formData);
     } else {
       setIsEditing(true);
@@ -57,7 +56,7 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
   };
 
   return (
-    <div className="flex bg-white font-sans text-gray-800 min-h-screen">
+    <div className="flex bg-white dark:bg-gray-900 font-sans text-gray-800 dark:text-gray-200 min-h-screen">
       <main className="flex-1 p-8 pb-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -79,7 +78,18 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               </svg>
               <p className="text-indigo-600 hover:text-indigo-800 font-medium">
                 Academic &gt; Batches &gt; {batch?.code}
-                &gt; {batch?.faculty?.fullname}
+                {(() => {
+                  // Check for batchFaculties array first (new structure from backend)
+                  const batchFaculties = (batch as any).batchFaculties || [];
+                  const facultiesList = batchFaculties.length > 0
+                    ? batchFaculties.map((bf: any) => bf.faculty).filter(Boolean)
+                    : // Fallback to legacy faculty field
+                      (batch.faculty ? [batch.faculty] : []);
+                  if (facultiesList.length > 0) {
+                    return ` &gt; ${facultiesList.map((f: any) => f?.fullname).filter(Boolean).join(", ")}`;
+                  }
+                  return "";
+                })()}
               </p>
             </div>
             <a
@@ -138,10 +148,10 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
           <div className="border-r-2 border-grey">
             {/* Batches Details */}
             <div>
-              <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 BATCH DETAILS
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
                 {Object.entries({
                   "Batch Id": batch.code,
                   "Course Name": batch.course?.name,
@@ -149,10 +159,12 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                   "End Date": formatDate(batch.endDate),
                   Status: batch.status,
                   Schedule: batch?.schedules[0]?.day,
-                  Faculty: batch.faculty?.fullname,
-                  "Faculty Phone": batch.faculty?.phone || "N/A",
-                  "Max Students": batch.students ? batch.students?.length : "0",
-                  Enrolled: batch.students ? batch.students?.length : "0",
+                  "Max Students": batch.students
+                    ? batch.students.filter((s: any) => !s.deletedAt).length
+                    : "0",
+                  Enrolled: batch.students
+                    ? batch.students.filter((s: any) => !s.deletedAt).length
+                    : "0",
                   // "Next Class": batch.regionalManager?.fullname,
                 }).map(([key, value]) => (
                   <div key={key} className="col-span-1">
@@ -176,15 +188,15 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                         //     ? String(formData[key as keyof Batch])
                         //     : ""
                         // }
-                        className="w-full mt-1 p-1 border rounded-md text-gray-900"
+                        className="w-full mt-1 p-1 border rounded-md text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                       />
                     ) : (
-                      <p className="mt-1 font-semibold text-gray-900">
+                      <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                         <span
                           className={`py-0.5 text-md font-semibold rounded-full ${
                             value === "New"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-white text-gray-800"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                           }`}
                         >
                           {value}
@@ -196,29 +208,91 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
               </div>
             </div>
 
+            {/* Students List */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
+                STUDENTS LIST
+              </h2>
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-4 grid gap-2">
+                <div className="overflow-x-auto custom-scroll-white">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-white dark:bg-gray-800">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Name
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Payment Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Amount Paid
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Balance
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      {batch.students
+                        ?.filter((s: any) => !s.deletedAt)
+                        ?.map((student, index) => {
+                          const pending = parseFloat(
+                            student?.payments[0]?.paymentPlan?.pending || "0"
+                          );
+                          const amountOwing = Math.abs(pending);
+                          const hasOutstandingBalance = pending > 0;
+                          
+                          return (
+                            <tr key={index}>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">
+                                {student?.fullName}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500 dark:text-gray-300">
+                                {hasOutstandingBalance ? "Pending" : "Paid"}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                ₦
+                                {student?.payments[0]?.paymentPlan?.paid?.toLocaleString() || "0"}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                {hasOutstandingBalance ? (
+                                  `₦${amountOwing.toLocaleString()}`
+                                ) : (
+                                  <span className="text-green-600 dark:text-green-400 font-medium">No Outstanding</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
             {/* Recent Activity Log */}
-            <div className={isEditing ? "mt-14" : ""}>
-              <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 RECENT ACTIVITY LOG
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid gap-4">
                 {batch.notes?.length > 0 ? (
                   batch.notes?.map((note, index) => (
-                    <div key={index} className="text-sm text-gray-700">
-                      <span className="font-semibold text-gray-500">
+                    <div key={index} className="text-sm text-gray-700 dark:text-gray-300">
+                      <span className="font-semibold text-gray-500 dark:text-gray-400">
                         {note.updatedAt || note.createdAt}
                       </span>{" "}
                       <br />
-                      <span className="text-black">{note.note}</span>
+                      <span className="text-black dark:text-gray-100">{note.note}</span>
                     </div>
                   ))
                 ) : (
                   <div>
-                    <p>No batch notes added.</p>
+                    <p className="text-gray-700 dark:text-gray-300">No batch notes added.</p>
                   </div>
                 )}
-                <div className="flex items-center space-x-2 text-indigo-600 cursor-pointer">
-                  <button className="mt-4 text-blue-600 text-sm font-medium p-3 shadow-md shadow-gray-400 rounded-md flex items-center space-x-1">
+                <div className="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 cursor-pointer">
+                  <button className="mt-4 text-blue-600 dark:text-blue-400 text-sm font-medium p-3 shadow-md shadow-gray-400 dark:shadow-gray-700 rounded-md flex items-center space-x-1">
                     <IoMdAdd />
                     <span>Add Note</span>
                   </button>
@@ -228,76 +302,86 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
           </div>
 
           <div>
-            {/* Students List */}
+            {/* Faculties List */}
             <div>
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
-                STUDENTS LIST
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
+                FACULTIES LIST
               </h2>
-              <div className="bg-white rounded-lg px-2 py-4 grid gap-2">
-                <div className="overflow-x-auto custom-scroll-white">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-white">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Attendance %
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Payment Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Amount Paid
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {batch.students?.map((student, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                            {student?.fullName}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {0}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-500">
-                            {student?.payments[0].pending ? "Pending" : "Paid"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ₦{student?.payments[0].paid.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-4 grid gap-2 mb-6">
+                {(() => {
+                  // Check for batchFaculties array first (new structure from backend)
+                  // Each item in batchFaculties has a faculty property
+                  const batchFaculties = (batch as any).batchFaculties || [];
+                  const facultiesList = batchFaculties.length > 0
+                    ? batchFaculties.map((bf: any) => bf.faculty).filter(Boolean)
+                    : // Fallback to legacy faculty field if batchFaculties doesn't exist
+                      (batch.faculty ? [batch.faculty] : []);
+                  
+                  if (facultiesList.length === 0) {
+                    return (
+                      <div className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                        <p>No faculties assigned to this batch.</p>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div className="overflow-x-auto custom-scroll-white">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-white dark:bg-gray-800">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                              Name
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                              Phone Number
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                          {facultiesList.map((faculty: any, index: number) => (
+                            <tr key={faculty?.id || index}>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">
+                                {faculty?.fullname || "N/A"}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                {faculty?.phone || "N/A"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
             {/* Mark Attendance */}
             <div>
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 MARK ATTENDANCE
               </h2>
               <div className="px-2 pb-8">
                 <div className="flex items-center space-x-2 mt-2 mb-6">
-                  <label className="text-sm font-semibold text-gray-500">
+                  <label className="text-sm font-semibold text-gray-500 dark:text-gray-400">
                     Select Class Day:
                   </label>
                   <input
                     type="date"
                     defaultValue="2024-04-29"
-                    className="p-2 bg-transparent rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                    className="p-2 bg-transparent dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors text-gray-900 dark:text-gray-100"
                   />
                 </div>
-                <div className="border border-gray-300 p-1 pb-0 rounded-lg">
-                  {batch.students?.map((student, index) => (
+                <div className="border border-gray-300 dark:border-gray-700 p-1 pb-0 rounded-lg">
+                  {batch.students
+                    ?.filter((s: any) => !s.deletedAt)
+                    ?.map((student, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-white border-b border-gray-300"
+                      className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700"
                     >
-                      <span className="font-medium text-gray-800">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
                         {student?.fullName}
                       </span>
                       <div className="flex items-center space-x-4">

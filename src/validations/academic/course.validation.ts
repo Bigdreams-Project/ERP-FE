@@ -8,4 +8,5 @@ export const courseSchema = yup.object().shape({
     .transform((value) => (isNaN(value) ? undefined : value))
     .required("Duration is required")
     .min(1, "Duration must be at least 1 month"),
+  oldId: yup.string().notRequired(),
 });

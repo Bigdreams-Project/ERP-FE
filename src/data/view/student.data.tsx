@@ -19,7 +19,7 @@ export const studentData = {
     attendance: 88,
     nextPaymentDue: "2024-03-15",
   },
-  homeAddress: {
+  homeAddress: { 
     address: "1234 University Ave, Cityville, CA 90210",
   },
   parentGuardian: {
@@ -36,8 +36,8 @@ export const paymentPlan = [
 ];
 
 export const paymentTypes = [
-  { name: "Lumpsum", value: "lumpsum" },
-  { name: "Bi-Annual", value: "bi-annual" },
+  { name: "Monthly", value: "monthly" },
+  { name: "Bi-Monthly", value: "bi-monthly" },
   { name: "Quarterly", value: "quarterly" },
 ];
 
@@ -49,6 +49,7 @@ export const paymentMethods = [
 
 export const statuses = [
   { name: "Active", value: "ACTIVE" },
+  { name: "Pending Approval", value: "PENDING_APPROVAL" },
   { name: "Dropout", value: "DROPOUT" },
   { name: "Graduated", value: "GRADUATED" },
   { name: "On Hold", value: "ON_HOLD" },

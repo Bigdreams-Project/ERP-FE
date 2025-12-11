@@ -1,17 +1,22 @@
-import { paymentPlan, statuses } from "@/data/view/student.data";
-import { getCourse } from "@/lib/network";
+import {
+  paymentMethods,
+  paymentPlan,
+  paymentTypes,
+  statuses,
+} from "@/data/view/student.data";
+import { getCourseClient, getCenterBanksClient } from "@/lib/client-network";
 import { Course } from "@/types/academic/course.interface";
 import {
   IStudent,
   IStudentModalProps,
 } from "@/types/academic/student.interface";
+import { Bank } from "@/types/finance/bank.interface";
 import { enrollmentSchema } from "@/validations/academic/student.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ChevronDown, Info, X } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
+import { ImSpinner2 } from "react-icons/im";
 
 const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   isOpen,
@@ -19,9 +24,12 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   initialData,
   onSave,
   courses,
-  centers,
+  centers, 
   leads,
+  mode = "enroll",
+  isLoading = false,
 }) => {
+  const [banks, setBanks] = useState<Bank[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
   const {
     register,
@@ -31,9 +39,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     setValue,
     formState: { errors, isValid },
     getValues,
+    trigger,
   } = useForm<IStudent>({
     resolver: yupResolver(enrollmentSchema),
-    mode: "onTouched",
+    mode: "onChange",
     defaultValues: {
       fullName: "",
       phone: "",
@@ -47,14 +56,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       guardianEmail: "",
       guardianAddress: "",
       courseId: "",
+      bankId: "",
       batchId: "",
     },
   });
 
   const leadId = watch("leadId");
   const courseId = watch("courseId");
+  const centerId = watch("centerId");
   const paymentplan = watch("paymentPlan");
   const courseFeeValue = watch("courseFee");
+  const amount = watch("amount");
 
   const [selectedCourse, setSelectedCourse] = useState<Course>();
   const [showBaseFeeError, setShowBaseFeeError] = useState(false);
@@ -63,9 +75,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const [plan, setPlan] = useState<string>("lumpsum");
   const [maxInstallment, setMaxInstallment] = useState<number>(2);
   const [lumpSum, setLumpSum] = useState<number>(0);
-
-  const [enrolledDate, setEnrolledDate] = useState<Date | null>(null);
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
 
   const getCurrentFee = useCallback(() => {
     if (!selectedCourse) return 0;
@@ -82,17 +91,40 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   }, [selectedCourse]);
 
   useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const response = await getCenterBanksClient(centerId);
+        const formattedBanks = response.map((item: any) => item);
+        setBanks(formattedBanks);
+      } catch (error) {
+        console.error("Failed to fetch center's banks:", error);
+        setBanks([]);
+      }
+    };
+
+    if (centerId) {
+      fetchBanks();
+    } else {
+      setBanks([]);
+    }
+  }, [centerId]);
+
+  useEffect(() => {
     if (!selectedCourse) return;
 
-    // Get the effective fee: use courseFee if old price is entered, otherwise use baseFee
-    let effectiveFee: number;
-    if (paymentType === "old" && courseFeeValue) {
-      const customFee = parseFloat(courseFeeValue.toString().replace(/[^\d.]/g, ''));
-      effectiveFee = isNaN(customFee) ? selectedCourse.courseAssignments[0]?.baseFee! : customFee;
-    } else if (paymentType === "current") {
+    // Get the effective fee: use current price if selected, otherwise use baseFee
+    let effectiveFee: number = 0;
+    const baseFee = selectedCourse.courseAssignments?.[0]?.baseFee || 0;
+    
+    if (paymentType === "current") {
       effectiveFee = getCurrentFee();
     } else {
-      effectiveFee = selectedCourse.courseAssignments[0]?.baseFee!;
+      effectiveFee = baseFee;
+    }
+
+    // Ensure effectiveFee is a valid number
+    if (isNaN(effectiveFee) || effectiveFee < 0) {
+      effectiveFee = baseFee;
     }
 
     if (plan === "lumpsum") {
@@ -108,7 +140,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     if (paymentType === "current") {
       setValue("courseFee", getCurrentFee().toString());
     } else if (!paymentType) {
-      setValue("courseFee", selectedCourse.courseAssignments[0]?.baseFee!.toString()!);
+      setValue("courseFee", baseFee.toString());
     }
     setValue("numberOfInstallments", maxInstallment?.toString());
   }, [plan, maxInstallment, selectedCourse, paymentType, courseFeeValue, setValue, getCurrentFee]);
@@ -118,20 +150,25 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
     const lead = leads.find((l) => l.id === leadId);
     if (lead) {
-      setValue("fullName", lead.fullName);
-      setValue("phone", lead.phone);
-      setValue("email", lead.email);
-      setValue("address", lead.address);
-      setValue("centerId", lead.centerId);
-      setValue("enrolledDate", lead.enquiryDate);
-      setValue("birthDate", lead.birthDate);
-      setValue("guardianName", lead.guardians[0]?.fullname);
-      setValue("guardianPhone", lead.guardians[0]?.phone);
-      setValue("guardianEmail", lead.guardians[0]?.email);
-      setValue("guardianAddress", lead.guardians[0]?.address);
-      setValue("courseId", lead.courseId);
+      setValue("fullName", lead.fullName, { shouldValidate: true });
+      setValue("phone", lead.phone, { shouldValidate: true });
+      setValue("email", lead.email, { shouldValidate: true });
+      setValue("address", lead.address, { shouldValidate: true });
+      setValue("centerId", lead.centerId, { shouldValidate: true });
+      setValue("enrolledDate", lead.enquiryDate, { shouldValidate: true });
+      setValue("birthDate", lead.birthDate, { shouldValidate: true });
+      setValue("guardianName", lead.guardians[0]?.fullname || "", { shouldValidate: true });
+      setValue("guardianPhone", lead.guardians[0]?.phone || "", { shouldValidate: true });
+      setValue("guardianEmail", lead.guardians[0]?.email || "", { shouldValidate: true });
+      setValue("guardianAddress", lead.guardians[0]?.address || "", { shouldValidate: true });
+      setValue("courseId", lead.courseId, { shouldValidate: true });
+      
+      // Trigger validation for all fields after setting values
+      setTimeout(() => {
+        trigger();
+      }, 100);
     }
-  }, [leadId, leads, setValue]); 
+  }, [leadId, leads, setValue, trigger]);
 
   useEffect(() => {
     if (!courseId) {
@@ -140,18 +177,26 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       return;
     }
 
+    // First try to find course from props (no API call needed)
+    const courseFromProps = courses.find(c => c.id === courseId);
+    if (courseFromProps) {
+      setSelectedCourse(courseFromProps);
+      return;
+    }
+
+    // If not found in props, fetch from API
     const fetchCourse = async () => {
       try {
-        const course = await getCourse(courseId);
-        console.log("course:", course);
+        const course = await getCourseClient(courseId);
         setSelectedCourse(course);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
+        // Show error but don't break the UI
       }
     };
 
     fetchCourse();
-  }, [courseId]);
+  }, [courseId, courses]);
 
   useEffect(() => {
     if (initialData?.leadId) {
@@ -159,13 +204,89 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     }
   }, [initialData, setValue]);
 
+  // Pre-fill form when in edit mode with initialData
+  useEffect(() => {
+    if (isOpen && mode === "edit" && initialData) {
+      reset({
+        leadId: initialData.leadId || null,
+        fullName: initialData.fullName || "",
+        phone: initialData.phone || "",
+        email: initialData.email || "",
+        address: initialData.address || "",
+        status: initialData.status || "",
+        centerId: initialData.centerId || "",
+        enrolledDate: initialData.enrolledDate || "",
+        birthDate: initialData.birthDate || "",
+        guardianName: initialData.guardianName || "",
+        guardianPhone: initialData.guardianPhone || "",
+        guardianEmail: initialData.guardianEmail || null,
+        guardianAddress: initialData.guardianAddress || "",
+        courseId: initialData.courseId || "",
+        bankId: initialData.bankId || "",
+        batchId: initialData.batchId || null,
+        paymentPlan: initialData.paymentPlan || "",
+        paymentType: initialData.paymentType || "",
+        paymentMethod: initialData.paymentMethod || "",
+        courseFee: initialData.courseFee || null,
+        lumpSumFee: initialData.lumpSumFee || null,
+        numberOfInstallments: initialData.numberOfInstallments || null,
+        amount: initialData.amount || null,
+        notes: initialData.notes || null,
+      });
+      
+      // Set payment plan state
+      if (initialData.paymentPlan) {
+        setPlan(initialData.paymentPlan);
+      }
+      
+      // Set payment type state
+      if (initialData.paymentType) {
+        setPaymentType(initialData.paymentType);
+      }
+      
+      // Set max installment if provided
+      if (initialData.numberOfInstallments) {
+        setMaxInstallment(parseInt(initialData.numberOfInstallments) || 2);
+      }
+    } else if (isOpen && mode === "enroll") {
+      // Reset form for new enrollment
+      reset({
+        fullName: "",
+        phone: "",
+        email: "",
+        address: "",
+        centerId: "",
+        enrolledDate: "",
+        birthDate: "",
+        guardianName: "",
+        guardianPhone: "",
+        guardianEmail: "",
+        guardianAddress: "",
+        courseId: "",
+        bankId: "",
+        batchId: "",
+      });
+      setPlan("lumpsum");
+      setPaymentType("");
+      setMaxInstallment(2);
+    }
+  }, [isOpen, mode, initialData, reset, setValue]);
+
   const handlePaymentPlan = (e: any) => {
-    setValue("paymentPlan", e.target.value);
+    setValue("paymentPlan", e.target.value, { shouldValidate: true });
     setPlan(e.target.value);
   };
 
+  const handlePaymentType = (e: any) => {
+    setValue("paymentType", e.target.value, { shouldValidate: true });
+  };
+
+  const handlePaymentMethod = (e: any) => {
+    setValue("paymentMethod", e.target.value, { shouldValidate: true });
+  };
+
   const handleMaxInstallment = (e: any) => {
-    setValue("numberOfInstallments", e.target.value);
+    setValue("numberOfInstallments", e.target.value, { shouldValidate: true });
     setMaxInstallment(e.target.value);
   };
 
@@ -173,22 +294,8 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     if (showBaseFeeError) return;
     
     // Ensure courseFee is properly set based on payment type
-    if (paymentType === "old") {
-      // For old price, validate that a value was entered
-      if (data.courseFee && typeof data.courseFee === 'string') {
-        const numericValue = data.courseFee.replace(/[^\d.]/g, '');
-        if (numericValue && !isNaN(parseFloat(numericValue))) {
-          data.courseFee = numericValue;
-        } else {
-          // If invalid or empty, use baseFee as fallback
-          data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
-        }
-      } else if (!data.courseFee || data.courseFee === '') {
-        // If empty, use baseFee as fallback
-        data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
-      }
-    } else if (paymentType === "current") {
-      // For current price, ensure it's set to the current fee
+    if (paymentType === "current") {
+      // For new price, ensure it's set to the current fee
       data.courseFee = getCurrentFee().toString();
     } else if (!data.courseFee && selectedCourse) {
       // Fallback to baseFee if not set
@@ -209,9 +316,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       data.lumpSumFee = data.lumpSumFee.replace(/[^\d.]/g, '');
       if (data.lumpSumFee === '' || isNaN(parseFloat(data.lumpSumFee))) {
         // Recalculate based on effective fee
-        const effectiveFee = paymentType === "old" && data.courseFee 
-          ? parseFloat(data.courseFee) 
-          : paymentType === "current" 
+        const effectiveFee = paymentType === "current" 
           ? getCurrentFee() 
           : selectedCourse?.courseAssignments[0]?.baseFee || 0;
         
@@ -221,6 +326,22 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           data.lumpSumFee = (effectiveFee / (parseInt(data.numberOfInstallments || '2') || 2)).toString();
         }
       }
+    }
+    
+    // Ensure amount (Amount Paid) is properly formatted - CRITICAL FOR PAYMENT RECORDING
+    if (data.amount !== null && data.amount !== undefined && data.amount !== '') {
+      // Convert to string and clean numeric value
+      const amountStr = String(data.amount);
+      const numericAmount = amountStr.replace(/[^\d.]/g, '');
+      if (numericAmount && !isNaN(parseFloat(numericAmount)) && parseFloat(numericAmount) > 0) {
+        data.amount = numericAmount;
+      } else {
+        // If invalid, set to null (no payment recorded)
+        data.amount = null;
+      }
+    } else {
+      // If empty or null, set to null (no payment recorded)
+      data.amount = null;
     }
     
     // Ensure all numeric fields are strings (not numbers)
@@ -233,6 +354,18 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     if (data.numberOfInstallments !== null && data.numberOfInstallments !== undefined) {
       data.numberOfInstallments = String(data.numberOfInstallments);
     }
+    if (data.amount !== null && data.amount !== undefined) {
+      data.amount = String(data.amount);
+    }
+    
+    // Set status to PENDING_APPROVAL for new enrollments
+    if (mode === "enroll") {
+      data.status = "PENDING_APPROVAL";
+      // Set default program type to REGULAR_STUDENT if not specified
+      if (!data.programType) {
+        data.programType = "REGULAR_STUDENT";
+      }
+    }
     
     console.log("Submitting data:", data);
     onSave(data);
@@ -242,15 +375,15 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
-      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">
-            Enroll New Student
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+            {mode === "edit" ? "Edit Student" : "Enroll New Student"}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -266,7 +399,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           <div className="w-full flex flex-col relative mb-5">
             <label
               htmlFor="leadId"
-              className="text-sm font-medium text-gray-700 mb-1"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Lead ID
             </label>
@@ -274,7 +407,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <select
                 id="leadId"
                 {...register("leadId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10 appearance-none"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors pr-10 appearance-none"
               >
                 <option value="">Search lead ID</option>
                 {leads.map((lead) => (
@@ -290,21 +423,21 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 onClick={() => setShowTooltip(!showTooltip)}
               >
                 <Info size={18} />
               </button>
             </div>
             {errors.leadId && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.leadId.message}
               </p>
             )}
             {/* Tooltip */}
             {showTooltip && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white">
-                <p className="text-gray-700">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white dark:before:border-b-gray-800">
+                <p className="text-gray-700 dark:text-gray-300">
                   Use a Lead ID to auto-populate fields from an existing record.
                 </p>
               </div>
@@ -316,7 +449,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-1">
               <label
                 htmlFor="fullName"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Full Name
               </label>
@@ -324,10 +457,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="fullName"
                 {...register("fullName")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.fullName && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.fullName.message}
                 </p>
               )}
@@ -337,7 +470,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-1">
               <label
                 htmlFor="phone"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Phone Number
               </label>
@@ -345,10 +478,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="tel"
                 id="phone"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.phone.message}
                 </p>
               )}
@@ -358,7 +491,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Email
               </label>
@@ -366,10 +499,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="email"
                 id="email"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.email.message}
                 </p>
               )}
@@ -379,7 +512,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="address"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Home Address
               </label>
@@ -387,57 +520,59 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="address"
                 {...register("address")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.address && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.address.message}
                 </p>
               )}
             </div>
 
-            {/* Status */}
-            <div className="flex flex-col relative">
-              <label
-                htmlFor="status"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
-              >
-                Status
-              </label>
-              <select
-                id="status"
-                {...register("status")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
-              >
-                <option value="">Choose Status</option>
-                {statuses.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.name}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <ChevronDown size={18} />
-              </span>
-              {errors.status && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.status.message}
-                </p>
-              )}
-            </div>
+            {/* Status - Hidden in enroll mode, automatically set to PENDING_APPROVAL */}
+            {mode !== "enroll" && (
+              <div className="flex flex-col relative">
+                <label
+                  htmlFor="status"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
+                >
+                  Status
+                </label>
+                <select
+                  id="status"
+                  {...register("status")}
+                  className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
+                >
+                  <option value="">Choose Status</option>
+                  {statuses.map((status) => (
+                    <option key={status.value} value={status.value}>
+                      {status.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
+                  <ChevronDown size={18} />
+                </span>
+                {errors.status && (
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                    {errors.status.message}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Center */}
             <div className="flex flex-col relative">
               <label
                 htmlFor="centerId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Center
               </label>
               <select
                 id="centerId"
                 {...register("centerId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
@@ -450,7 +585,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.courseId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.courseId.message}
                 </p>
               )}
@@ -460,25 +595,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="enrolledDate"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
               >
                 Enquiry Date
               </label>
-              <DatePicker
-                selected={enrolledDate}
-                onChange={(date) => {
-                  if (date) {
-                    setEnrolledDate(date);
-                    setValue("enrolledDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              <input
+                type="date"
+                {...register("enrolledDate")}
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.enrolledDate && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.enrolledDate.message}
                 </p>
               )}
@@ -488,25 +615,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="birthDate"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
               >
                 Birth Date
               </label>
-              <DatePicker
-                selected={birthDate}
-                onChange={(date) => {
-                  if (date) {
-                    setBirthDate(date);
-                    setValue("birthDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              <input
+                type="date"
+                {...register("birthDate")}
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.birthDate.message}
                 </p>
               )}
@@ -516,7 +635,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="guardianName"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Name
               </label>
@@ -524,10 +643,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="guardianName"
                 {...register("guardianName")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianName && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianName.message}
                 </p>
               )}
@@ -537,7 +656,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="guardianPhone"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Phone Number
               </label>
@@ -545,10 +664,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="tel"
                 id="guardianPhone"
                 {...register("guardianPhone")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianPhone && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianPhone.message}
                 </p>
               )}
@@ -558,7 +677,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="guardianEmail"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Email
               </label>
@@ -566,10 +685,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="email"
                 id="guardianEmail"
                 {...register("guardianEmail")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianEmail && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianEmail.message}
                 </p>
               )}
@@ -579,7 +698,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="guardianAddress"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Address
               </label>
@@ -587,75 +706,84 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="guardianAddress"
                 {...register("guardianAddress")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianAddress && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianAddress.message}
                 </p>
               )}
             </div>
 
-            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200"></div>
+            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200 dark:border-gray-700"></div>
 
             {/* Course of Interest */}
             <div className="flex flex-col relative">
               <label
                 htmlFor="courseId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Course of Interest
               </label>
               <select
                 id="courseId"
                 {...register("courseId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
-                ))}
+                {courses.map((course) => {
+                  const courseType = course.type?.toLowerCase();
+                  let prefix = "";
+                  if (courseType === "tecterminal" || courseType === "tec_terminal") {
+                    prefix = "TT";
+                  } else if (courseType === "aptech") {
+                    prefix = "AP";
+                  } else if (courseType === "cpms") {
+                    prefix = "CP";
+                  }
+                  const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
+                  return (
+                    <option key={course.id} value={course.id}>
+                      {displayName}
+                    </option>
+                  );
+                })}
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.courseId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.courseId.message}
                 </p>
               )}
             </div>
 
-            {/* Payment Type */}
+            {/* Price Type */}
             {selectedCourse && (
               <div className="flex flex-col relative">
                 <label
-                  htmlFor="paymentType"
-                  className="text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="priceType"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
-                  Payment Type
+                  Price Type
                 </label>
                 <select
-                  id="paymentType"
+                  id="priceType"
                   value={paymentType}
                   onChange={(e) => {
                     setPaymentType(e.target.value);
-                    if (e.target.value === "old") {
-                      setValue("courseFee", "");
-                    } else if (e.target.value === "current") {
+                    if (e.target.value === "current") {
                       const fee = getCurrentFee();
-                      setValue("courseFee", fee.toString());
+                      setValue("courseFee", fee.toString(), { shouldValidate: true });
                     }
                   }}
-                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                  className="w-full h-10 px-3 text-sm text-black dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
                 >
-                  <option value="">Select Payment Type</option>
-                  <option value="current">Current Price</option>
-                  <option value="old">Old Price</option>
+                  <option value="">Select Price Type</option>
+                  <option value="current">New Price</option>
                 </select>
-                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                   <ChevronDown size={18} />
                 </span>
               </div>
@@ -666,18 +794,18 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <div className="flex flex-col">
                 <label
                   htmlFor="courseFee"
-                  className="text-sm font-medium text-gray-700 mb-1"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Course Fee
                 </label>
-                {paymentType === "current" ? (
+                {paymentType === "current" && (
                   <>
                     <input
                       type="text"
                       id="courseFee-display"
-                      value={`₦${getCurrentFee().toLocaleString()}`}
+                      value={courseFeeValue ? `₦${Number(courseFeeValue).toLocaleString()}` : `₦${getCurrentFee().toLocaleString()}`}
                       readOnly
-                      className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
+                      className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-transparent cursor-not-allowed"
                     />
                     <input
                       type="hidden"
@@ -685,40 +813,76 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                       value={getCurrentFee().toString()}
                     />
                   </>
-                ) : (
-                  <input
-                    type="text"
-                    id="courseFee"
-                    {...register("courseFee")}
-                    placeholder="Enter old fee..."
-                    className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-                    onChange={(e) => {
-                      // Remove any non-numeric characters except decimal point
-                      const numericValue = e.target.value.replace(/[^\d.]/g, '');
-                      setValue("courseFee", numericValue, { shouldValidate: false });
-                      // Trigger recalculation by updating a dependency
-                      // The useEffect will pick up the change via courseFeeValue
-                    }}
-                  />
                 )}
               </div>
             )}
+
+            {/* Amount */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="amount"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Amount Paid
+              </label>
+              <input
+                type="number"
+                id="amount"
+                {...register("amount")}
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+              />
+              {errors.amount && (
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                  {errors.amount.message}
+                </p>
+              )}
+            </div>
+
+            {/* Bank  */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="bankId"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Bank
+              </label>
+              <select
+                id="bankId"
+                {...register("bankId")}
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Bank</option>
+                {banks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>
+                    {bank.bankName}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.bankId && (
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                  {errors.bankId.message}
+                </p>
+              )}
+            </div>
 
             {/* Batch */}
             <div className="flex flex-col relative">
               <label
                 htmlFor="batchId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Batch
               </label>
               <select
                 id="batchId"
                 {...register("batchId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
-                {selectedCourse?.batches.map((batch) => (
+                {(selectedCourse?.batches || []).map((batch) => (
                   <option key={batch.id} value={batch.id}>
                     {batch?.faculty?.fullname} - {batch?.code}
                   </option>
@@ -728,7 +892,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.batchId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.batchId.message}
                 </p>
               )}
@@ -738,15 +902,18 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="paymentPlan"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Payment Plan
               </label>
               <select
                 id="paymentPlan"
-                onChange={handlePaymentPlan}
+                {...register("paymentPlan")}
+                onChange={(e) => {
+                  handlePaymentPlan(e);
+                }}
                 disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Payment Plan</option>
                 {paymentPlan?.map((plan) => (
@@ -759,14 +926,80 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.paymentPlan && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.paymentPlan.message}
                 </p>
               )}
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-6">
+            {/* Payment Type */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="paymentType"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Payment Type
+              </label>
+              <select
+                id="paymentType"
+                {...register("paymentType")}
+                onChange={(e) => {
+                  handlePaymentType(e);
+                }}
+                disabled={!selectedCourse}
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Payment Type</option>
+                {paymentTypes?.map((plan) => (
+                  <option key={plan.name} value={plan.value}>
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.paymentType && (
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                  {errors.paymentType.message}
+                </p>
+              )}
+            </div>
+
+            {/* Payment Method */}
+            <div className="flex flex-col relative">
+              <label
+                htmlFor="paymentMethod"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Payment Method
+              </label>
+              <select
+                id="paymentMethod"
+                {...register("paymentMethod")}
+                onChange={(e) => {
+                  handlePaymentMethod(e);
+                }}
+                disabled={!selectedCourse}
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
+              >
+                <option value="">Select Payment Method</option>
+                {paymentMethods?.map((plan) => (
+                  <option key={plan.name} value={plan.value}>
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <ChevronDown size={18} />
+              </span>
+              {errors.paymentMethod && (
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                  {errors.paymentMethod.message}
+                </p>
+              )}
+            </div>
+
             {/* Lump Sum */}
             <div className="flex flex-col">
               <label
@@ -780,10 +1013,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 {...register("lumpSumFee")}
                 value={lumpSum ? `₦${lumpSum.toLocaleString()}` : ""}
                 readOnly
-                className={`w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
+                className={`w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-300 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-white dark:focus:border-gray-600 focus:outline-none transition-colors`}
               />
               {errors.lumpSumFee && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.lumpSumFee.message}
                 </p>
               )}
@@ -794,7 +1027,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <div className="flex flex-col relative">
                 <label
                   htmlFor="numberOfInstallments"
-                  className="text-sm font-medium text-gray-700 mb-1"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   No. of Installments
                 </label>
@@ -804,7 +1037,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   disabled={
                     !selectedCourse?.courseAssignments[0]?.maxInstallments
                   }
-                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent 
+                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent 
              focus:border-blue-500 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Installments</option>
@@ -821,11 +1054,11 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                       </option>
                     ))}
                 </select>
-                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                   <ChevronDown size={18} />
                 </span>
                 {errors.numberOfInstallments && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.numberOfInstallments.message}
                   </p>
                 )}
@@ -833,17 +1066,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             )}
           </div>
 
-          <p className="text-sm font-medium text-gray-700 mt-6">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
             Required base fee is ₦
-            {selectedCourse?.courseAssignments[0]?.baseFee.toLocaleString()} for
+            {(selectedCourse?.courseAssignments?.[0]?.baseFee || 0).toLocaleString()} for
             enrollment
           </p>
-          <p className="text-sm font-medium text-gray-700 mt-1">
-            Total Deposit Record: ₦
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
+            Total Deposit: ₦{amount && !isNaN(parseFloat(amount)) ? parseFloat(amount).toLocaleString() : '0'}
           </p>
 
           {showBaseFeeError && (
-            <p className="text-red-500 text-sm mt-2 font-semibold">
+            <p className="text-red-500 dark:text-red-400 text-sm mt-2 font-semibold">
               Student does not meet base enrollment fee
             </p>
           )}
@@ -852,7 +1085,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           <div className="flex flex-col sm:col-span-2 mt-4">
             <label
               htmlFor="notes"
-              className="text-sm font-medium text-gray-700 mb-1"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Note
             </label>
@@ -860,34 +1093,37 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               id="notes"
               {...register("notes")}
               rows={3}
-              className="w-full p-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
             ></textarea>
             {errors.notes && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.notes.message}
               </p>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-auto pt-4 border-t border-gray-200 flex justify-end gap-3">
+          <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
-                isValid && !showBaseFeeError
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-blue-400 cursor-not-allowed opacity-70"
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                isValid && !showBaseFeeError && !isLoading
+                  ? "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600"
+                  : "bg-blue-400 dark:bg-blue-600 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid || showBaseFeeError}
+              disabled={!isValid || showBaseFeeError || isLoading}
             >
-              Enroll
+              {isLoading && (
+                <ImSpinner2 className="animate-spin h-4 w-4" />
+              )}
+              {isLoading ? "Enrolling..." : "Enroll"}
             </button>
           </div>
         </form>

@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AttendanceRecord } from "@/types/requests/attendance";
-import { getAttendance } from "@/lib/network";
 
 interface CalendarDay {
   day: number | "";
@@ -24,17 +23,41 @@ const AttendanceCalendar = ({ studentId }: AttendanceCalendarProps) => {
   const currentYear = selectedDate.getFullYear();
   const queryKey = ["studentAttendance", studentId, currentYear, currentMonth];
 
-  const { data: attendanceRecords = [], isLoading } = useQuery<
-    AttendanceRecord[]
-  >({
+  const { data: attendanceRecords = [], isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: queryKey,
-    queryFn: () => getAttendance(studentId, currentYear, currentMonth),
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/attendance/student/${studentId}?year=${currentYear}&month=${currentMonth}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch attendance: ${res.statusText}`);
+      }
+
+      const data = await res.json();
+      // Ensure we always return an array
+      return Array.isArray(data) ? data : [];
+    },
   });
 
   const attendanceMap = useMemo(() => {
+    // Safety check: ensure attendanceRecords is an array
+    if (!Array.isArray(attendanceRecords)) {
+      return {} as Record<string, "present" | "absent">;
+    }
+    
     return attendanceRecords.reduce((acc, record) => {
-      const dateKey = record.date.substring(0, 10);
-      acc[dateKey] = record.status.toLowerCase() as "present" | "absent";
+      if (record && record.date) {
+        const dateKey = record.date.substring(0, 10);
+        acc[dateKey] = record.status.toLowerCase() as "present" | "absent";
+      }
       return acc;
     }, {} as Record<string, "present" | "absent">);
   }, [attendanceRecords]);

@@ -21,8 +21,8 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Debounced search
   useEffect(() => {
     const handler = setTimeout(() => {
       setSearchQuery(searchInput);
@@ -33,11 +33,14 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
 
   const refreshData = async () => {
     try {
+      setIsRefreshing(true);
       const response = await getUsers();
       setData(response);
     } catch (error) {
       console.error("Failed to refresh users:", error);
       showError("Failed to load users");
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -46,7 +49,8 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
       await createUser(payload);
       showSuccess("User created successfully");
       setIsModalOpen(false);
-      refreshData();
+
+      await refreshData();
     } catch (error) {
       console.error("Failed to save user:", error);
       showError("Failed to create user");
@@ -59,10 +63,9 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
         <BreadCrumbSettings paths={[{ name: "Users" }]} />
 
         <div className="w-full flex items-center justify-end p-2 mt-4">
-          {/* Search Input */}
           <div className="flex items-center gap-1 w-[250px]">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100">
-              <BiSearchAlt size={18} className="ml-2" />
+            <div className="flex items-center gap-1 py-1.5 border-2 border-gray-300 dark:border-gray-600 rounded focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100 bg-white dark:bg-gray-800">
+              <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search user"
@@ -71,7 +74,7 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
-                className="outline-none w-full"
+                className="outline-none w-full bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -79,9 +82,12 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
           <button
             className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700"
             onClick={() => setIsModalOpen(true)}
+            disabled={isRefreshing}
           >
             <FaPlus className="text-white" size={16} />
-            <span className="text-white text-sm">Add User</span>
+            <span className="text-white text-sm">
+              {isRefreshing ? "Refreshing..." : "Add User"}
+            </span>
           </button>
         </div>
       </div>

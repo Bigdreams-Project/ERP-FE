@@ -17,6 +17,15 @@ export interface BatchNote {
   updatedAt: string;
 }
 
+export interface BatchFaculty {
+  id?: string;
+  batchId?: string;
+  facultyId?: string;
+  courseId?: string;
+  faculty: Faculty;
+  course?: Course;
+}
+
 export interface Batch {
   id?: string;
   code: string;
@@ -25,12 +34,14 @@ export interface Batch {
   createdAt: string;
   duration: string;
   status: string;
-  faculty: Faculty;
+  faculty: Faculty; // Legacy field for backward compatibility
+  batchFaculties?: BatchFaculty[]; // New array structure for multiple faculties
   course: Course;
   center: Center;
   schedules: IBatchSchedule[];
   students: BatchStudent[];
   notes: BatchNote[];
+  deletedAt: string | null;
 }
 
 export interface StudentBatch {
@@ -56,7 +67,7 @@ export interface IBatch {
   duration: string;
   status: string | null;
   schedules: IBatchSchedule[];
-  facultyId: string;
+  facultyIds: string[];
   students: string[];
 }
 
@@ -69,6 +80,7 @@ export interface IBatchModalProps {
   faculties: Faculty[];
   initialData?: Partial<IBatch>;
   mode: "add" | "edit";
+  isLoading?: boolean;
 }
 
 export interface IBatchSchedule {

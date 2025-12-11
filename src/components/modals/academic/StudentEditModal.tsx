@@ -1,5 +1,5 @@
 import { paymentPlan, statuses } from "@/data/view/student.data";
-import { getCourse } from "@/lib/network";
+import { getCourseClient } from "@/lib/client-network";
 import { Course } from "@/types/academic/course.interface";
 import {
   IEditStudent,
@@ -95,23 +95,31 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
   const [birthDate, setBirthDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    if (!selectedCourse?.courseAssignments?.[0]?.baseFee) return;
-    
-    const baseFee = selectedCourse.courseAssignments[0].baseFee;
-    
     if (plan === "lumpsum") {
-      setValue("lumpSumFee", baseFee.toString());
-      setLumpSum(baseFee);
+      setValue(
+        "lumpSumFee",
+        selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
+      );
+      setLumpSum(selectedCourse?.courseAssignments[0]?.lumpSumFee!);
       setMaxInstallment(2);
     } else {
-      const installmentAmount = baseFee / maxInstallment;
-      setValue("lumpSumFee", installmentAmount.toString());
-      setLumpSum(installmentAmount);
+      setValue(
+        "lumpSumFee",
+        (
+          selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment!
+        ).toString()
+      );
+      setLumpSum(
+        selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment
+      );
     }
 
-    setValue("courseFee", baseFee.toString());
+    setValue(
+      "courseFee",
+      selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
+    );
     setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse, setValue]);
+  }, [plan, maxInstallment, selectedCourse?.courseAssignments]);
 
   useEffect(() => {
     if (initialData?.courseId) {
@@ -128,7 +136,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
     const fetchCourse = async () => {
       try {
         setLoadingCourse(true);
-        const course = await getCourse(courseId);
+        const course = await getCourseClient(courseId);
         setSelectedCourse(course);
       } catch (err) {
         console.error("Failed to fetch course details:", err);
@@ -165,13 +173,13 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
-      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">Edit Student</h2>
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Edit Student</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -188,7 +196,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col sm:col-span-1">
               <label
                 htmlFor="fullName"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Full Name
               </label>
@@ -196,10 +204,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="fullName"
                 {...register("fullName")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.fullName && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.fullName.message}
                 </p>
               )}
@@ -209,7 +217,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col sm:col-span-1">
               <label
                 htmlFor="phone"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Phone Number
               </label>
@@ -217,10 +225,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="tel"
                 id="phone"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.phone.message}
                 </p>
               )}
@@ -230,7 +238,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Email
               </label>
@@ -238,10 +246,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="email"
                 id="email"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.email.message}
                 </p>
               )}
@@ -251,7 +259,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="address"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Home Address
               </label>
@@ -259,10 +267,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="address"
                 {...register("address")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.address && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.address.message}
                 </p>
               )}
@@ -272,14 +280,14 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="status"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
               >
                 Status
               </label>
               <select
                 id="status"
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Choose Status</option>
                 {statuses.map((status) => (
@@ -288,11 +296,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.status && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.status.message}
                 </p>
               )}
@@ -302,14 +310,14 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="centerId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Center
               </label>
               <select
                 id="centerId"
                 {...register("centerId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
@@ -318,11 +326,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.courseId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.courseId.message}
                 </p>
               )}
@@ -332,7 +340,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="enrolledDate"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
               >
                 Enquiry Date
               </label>
@@ -347,10 +355,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.enrolledDate && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.enrolledDate.message}
                 </p>
               )}
@@ -360,7 +368,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="birthDate"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
               >
                 Birth Date
               </label>
@@ -375,10 +383,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   }
                 }}
                 dateFormat="yyyy-MM-dd"
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.birthDate.message}
                 </p>
               )}
@@ -388,7 +396,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="guardianName"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Name
               </label>
@@ -396,10 +404,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="guardianName"
                 {...register("guardianName")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianName && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianName.message}
                 </p>
               )}
@@ -409,7 +417,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="guardianPhone"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Phone Number
               </label>
@@ -417,10 +425,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="tel"
                 id="guardianPhone"
                 {...register("guardianPhone")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianPhone && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianPhone.message}
                 </p>
               )}
@@ -430,7 +438,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="guardianEmail"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Email (Optional)
               </label>
@@ -438,10 +446,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="email"
                 id="guardianEmail"
                 {...register("guardianEmail")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianEmail && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianEmail.message}
                 </p>
               )}
@@ -451,7 +459,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="guardianAddress"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Address
               </label>
@@ -459,42 +467,54 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="guardianAddress"
                 {...register("guardianAddress")}
-                className="w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianAddress && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianAddress.message}
                 </p>
               )}
             </div>
 
-            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200"></div>
+            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200 dark:border-gray-700"></div>
 
             {/* Course of Interest */}
             <div className="flex flex-col relative">
               <label
                 htmlFor="courseId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Course of Interest
               </label>
               <select
                 id="courseId"
                 {...register("courseId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
-                ))}
+                {courses.map((course) => {
+                  const courseType = course.type?.toLowerCase();
+                  let prefix = "";
+                  if (courseType === "tecterminal" || courseType === "tec_terminal") {
+                    prefix = "TT";
+                  } else if (courseType === "aptech") {
+                    prefix = "AP";
+                  } else if (courseType === "cpms") {
+                    prefix = "CP";
+                  }
+                  const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
+                  return (
+                    <option key={course.id} value={course.id}>
+                      {displayName}
+                    </option>
+                  );
+                })}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.courseId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.courseId.message}
                 </p>
               )}
@@ -504,7 +524,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="courseFee"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Course Fee
               </label>
@@ -512,13 +532,13 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 type="text"
                 id="courseFee"
                 {...register("courseFee")}
-                    value={
-                      selectedCourse?.courseAssignments?.[0]?.baseFee
-                        ? `₦${selectedCourse.courseAssignments[0].baseFee.toLocaleString()}`
-                        : ""
-                    }
+                value={
+                  selectedCourse
+                    ? `₦${selectedCourse.courseAssignments[0]?.lumpSumFee?.toLocaleString()}`
+                    : ""
+                }
                 readOnly
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
+                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-transparent cursor-not-allowed"
               />
             </div>
 
@@ -526,14 +546,14 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="batchId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Batch
               </label>
               <select
                 id="batchId"
                 {...register("batchId")}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
                 {selectedCourse?.batches.map((batch) => (
@@ -542,11 +562,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.batchId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.batchId.message}
                 </p>
               )}
@@ -556,7 +576,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="paymentPlan"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Payment Plan
               </label>
@@ -564,7 +584,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 id="paymentPlan"
                 onChange={handlePaymentPlan}
                 disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Payment Plan</option>
                 {paymentPlan?.map((plan) => (
@@ -573,11 +593,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.paymentPlan && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.paymentPlan.message}
                 </p>
               )}
@@ -598,10 +618,10 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                 {...register("lumpSumFee")}
                 value={lumpSum ? `₦${lumpSum.toLocaleString()}` : ""}
                 readOnly
-                className={`w-full h-10 px-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
+                className={`w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
               />
               {errors.lumpSumFee && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.lumpSumFee.message}
                 </p>
               )}
@@ -612,7 +632,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               <div className="flex flex-col relative">
                 <label
                   htmlFor="numberOfInstallments"
-                  className="text-sm font-medium text-gray-700 mb-1"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   No. of Installments
                 </label>
@@ -622,8 +642,8 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   disabled={
                     !selectedCourse?.courseAssignments[0]?.maxInstallments
                   }
-                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent 
-             focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                  className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent 
+             focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Installments</option>
                   {selectedCourse?.courseAssignments[0]?.maxInstallments &&
@@ -643,7 +663,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
                   <ChevronDown size={18} />
                 </span>
                 {errors.numberOfInstallments && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.numberOfInstallments.message}
                   </p>
                 )}
@@ -651,17 +671,17 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             )}
           </div>
 
-          <p className="text-sm font-medium text-gray-700 mt-6">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
             Required base fee is ₦
-            {selectedCourse?.courseAssignments?.[0]?.baseFee?.toLocaleString() || '0'} for
+            {selectedCourse?.courseAssignments[0]?.baseFee.toLocaleString()} for
             enrollment
           </p>
-          <p className="text-sm font-medium text-gray-700 mt-1">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
             Total Deposit Record: ₦
           </p>
 
           {showBaseFeeError && (
-            <p className="text-red-500 text-sm mt-2 font-semibold">
+            <p className="text-red-500 dark:text-red-400 text-sm mt-2 font-semibold">
               Student does not meet base enrollment fee
             </p>
           )}
@@ -670,7 +690,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
           <div className="flex flex-col sm:col-span-2 mt-4">
             <label
               htmlFor="notes"
-              className="text-sm font-medium text-gray-700 mb-1"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Note
             </label>
@@ -678,21 +698,21 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               id="notes"
               {...register("notes")}
               rows={3}
-              className="w-full p-4 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
             ></textarea>
             {errors.notes && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.notes.message}
               </p>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-auto pt-4 border-t border-gray-200 flex justify-end gap-3">
+          <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
@@ -700,8 +720,8 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               type="submit"
               className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
                 isValid && !showBaseFeeError
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-blue-400 cursor-not-allowed opacity-70"
+                  ? "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600"
+                  : "bg-blue-400 dark:bg-blue-600 cursor-not-allowed opacity-70"
               }`}
               disabled={!isValid || showBaseFeeError}
             >

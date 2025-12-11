@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "pre-deploy": "npm run type-check && npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -28,9 +30,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "html2canvas": "^1.4.1",
     "jose": "^6.1.0",
+    "jspdf": "^3.0.4",
     "lucide-react": "^0.534.0",
-    "next": "15.4.2",
+    "next": "16.0.7",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.6",
     "react": "^19.1.0",
@@ -47,6 +51,7 @@
     "recharts": "^3.1.2",
     "tailwind-merge": "^3.3.1",
     "tailwind-scrollbar": "^3.1.0",
+    "xlsx": "^0.18.5",
     "yup": "^1.7.0"
   },
   "devDependencies": {

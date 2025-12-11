@@ -1,20 +1,21 @@
 "use client";
 import { updateStudentCoursePayment } from "@/lib/network";
 import { showError, showSuccess } from "@/lib/toast";
+import { Payment, PaymentPlan } from "@/types/finance/payment.interface";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 interface AddPaymentModalProps {
   course: any;
-  payment?: any;
+  paymentPlan?: PaymentPlan;
   studentId: string;
   onClose: () => void;
 }
 
 const AddPaymentModal = ({
   course,
-  payment,
+  paymentPlan,
   studentId,
   onClose,
 }: AddPaymentModalProps) => {
@@ -29,13 +30,16 @@ const AddPaymentModal = ({
 
     const payload = {
       studentId,
-      courseId: course.id,
+      courseId: course.course.id!,
+      bankId: paymentPlan?.payments[0]?.bankId!,
       amount: parseFloat(amount),
-      paymentPlan: "Installment",
-      paymentType: "Tuition",
-      paymentMethod: "Cash",
+      paymentPlan: paymentPlan?.name!,
+      paymentType: paymentPlan?.payments[0]?.paymentType!,
+      paymentMethod: paymentPlan?.payments[0]?.paymentMethod!,
+      courseFee: course.course?.courseAssignments[0]?.lumpSumFee,
+      numberOfInstallments:
+        course.course?.courseAssignments[0]?.maxInstallments,
     };
-    console.log("Payment Payload:", payload);
 
     try {
       setLoading(true);
@@ -58,7 +62,6 @@ const AddPaymentModal = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -89,13 +92,11 @@ const AddPaymentModal = ({
           </div>
 
           {/* Existing Balance */}
-          {payment && (
+          {paymentPlan && (
             <div className="text-sm text-gray-600">
               <p>
                 <span className="font-semibold">Outstanding Balance:</span> ₦
-                {payment.pending && !isNaN(payment.pending) 
-                  ? Number(payment.pending).toLocaleString() 
-                  : '0'}
+                {paymentPlan.pending?.toLocaleString() || 0}
               </p>
             </div>
           )}

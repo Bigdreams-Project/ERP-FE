@@ -1,16 +1,21 @@
 "use client";
+import { AuthRoutes } from "@/constants/apiRoutes.constant";
+import { useCenter } from "@/context/CenterContext";
 import { useUser } from "@/context/UserContext";
 import { logoutUser } from "@/lib/auth/login";
+import { getLoggedInUserClient } from "@/lib/client-network";
+import { canAccessCentersPage } from "@/lib/utils/center-permissions";
+import { User } from "@/types/auth/user.interface";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { PiSignInFill } from "react-icons/pi";
 import GraduationCapIcon from "./svg/GraduationCapIcon";
+import HouseIcon from "./svg/HouseIcon";
 import MoneyIcon from "./svg/MoneyIcon";
 import SettingsIcon from "./svg/SettingsIcon";
-import StaffIcon from "./svg/StaffIcon";
-import { AuthRoutes } from "@/constants/apiRoutes.constant";
 
 interface SidebarLink {
   label: string;
@@ -33,7 +38,19 @@ const SidebarMenu = ({
   toggleSidebar: () => void;
 }) => {
   const router = useRouter();
-  const { user } = useUser();
+  const { user: userFromContext } = useUser();
+  const { centerContext, isLoading: isCenterLoading } = useCenter();
+  
+  // Fallback to React Query if user is not in context
+  const { data: userFromQuery } = useQuery<User>({
+    queryKey: ["user"],
+    queryFn: () => getLoggedInUserClient(),
+    staleTime: 1000 * 60 * 5,
+    enabled: !userFromContext, // Only fetch if not in context
+  });
+  
+  // Use user from context if available, otherwise from query
+  const user = userFromContext || userFromQuery;
   // const userPermissions = permissions[user?.role ?? "staff"];
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -88,8 +105,13 @@ const SidebarMenu = ({
 
   const logout = () => {
     logoutUser();
-    router.push(AuthRoutes.LOGIN)
-  }
+    router.push(AuthRoutes.LOGIN);
+  };
+
+  // Determine if user can access the Centers page
+  // ONLY ADMIN, CEO, and EXECUTIVE_DIRECTOR should see the Centers page
+  // This is different from canSwitchCenters which includes more roles
+  const canAccessCenters = canAccessCentersPage(user?.role);
 
   // Sidebar Menu
   const sidebarMenu: SidebarSection[] = [
@@ -99,10 +121,16 @@ const SidebarMenu = ({
       links: [
         { label: "Overview", href: "/dashboard/academic/overview" },
         { label: "Leads", href: "/dashboard/academic/leads" },
-        { label: "Centers", href: "/dashboard/academic/centers" },
+        // Only show Centers link for ADMIN, CEO, EXECUTIVE_DIRECTOR
+        // Show while loading to prevent flicker
+        ...(canAccessCenters || isCenterLoading
+          ? [{ label: "Centers", href: "/dashboard/academic/centers" }]
+          : []),
         { label: "Students", href: "/dashboard/academic/students" },
         { label: "Courses", href: "/dashboard/academic/courses" },
         { label: "Batches", href: "/dashboard/academic/batches" },
+        { label: "Internship", href: "/dashboard/academic/internship" },
+        { label: "NICTP", href: "/dashboard/academic/nictp" },
       ],
     },
     {
@@ -113,6 +141,10 @@ const SidebarMenu = ({
         {
           label: "Transactions",
           href: "/dashboard/finance/banking/banks",
+        },
+        {
+          label: "Refunds",
+          href: "/dashboard/finance/refunds",
         },
         // { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
         // {
@@ -127,15 +159,15 @@ const SidebarMenu = ({
         // { label: "Expenses", href: "/dashboard/finance/expenses" },
       ],
     },
-    {
-      label: "HR & Staffs",
-      icon: (props) => <StaffIcon {...props} />,
-      links: [
-        { label: "Overview", href: "/dashboard/hr-staff/overview" },
-        { label: "Invoices", href: "/dashboard/hr-staff/invoices" },
-        { label: "Payments", href: "/dashboard/hr-staff/payments" },
-      ],
-    },
+    // {
+    //   label: "HR & Staffs",
+    //   icon: (props) => <StaffIcon {...props} />,
+    //   links: [
+    //     { label: "Overview", href: "/dashboard/hr-staff/overview" },
+    //     { label: "Invoices", href: "/dashboard/hr-staff/invoices" },
+    //     { label: "Payments", href: "/dashboard/hr-staff/payments" },
+    //   ],
+    // },
     // {
     //   label: "Reporting",
     //   icon: (props) => <ChartBarAxisXIcon {...props} />,
@@ -152,6 +184,10 @@ const SidebarMenu = ({
           label: "User Management",
           href: "/dashboard/settings/users",
         },
+        {
+          label: "Support Tickets",
+          href: "/dashboard/settings/tickets",
+        },
       ],
     },
   ];
@@ -161,12 +197,12 @@ const SidebarMenu = ({
   return (
     <div className="h-full flex flex-col flex-1 mt-8">
       <div className="flex-1">
-        {/* <Link
+        <Link
           href={"/dashboard"}
           className={`flex items-center px-[1.5rem] py-[0.4rem] ${
             sidebarExpanded ? "" : "items-start !px-[2rem]"
           } transition-all duration-500 font-inter ${
-            isActiveDashboard ? "bg-indigo-50 text-indigo-500 font-bold" : ""
+            isActiveDashboard ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-300 font-bold" : ""
           }`}
           onClick={(e) => {
             if (!sidebarExpanded) {
@@ -181,14 +217,14 @@ const SidebarMenu = ({
               sidebarExpanded
                 ? "md:opacity-100 md:visible md:ml-2 md:w-auto opacity-0 invisible ml-0 w-0"
                 : "opacity-0 invisible ml-0 w-0"
-            } ${!isActiveDashboard && "text-[rgba(0,0,0,0.7)]"}`}
+            } ${!isActiveDashboard && "text-[rgba(0,0,0,0.7)] dark:text-gray-300"}`}
             onClick={() => {
               if (!sidebarExpanded) toggleSidebar();
             }}
           >
             Dashboard
           </div>
-        </Link> */}
+        </Link>
 
         {/* Sidebar Sections */}
         <div className="w-full flex flex-col justify-between">
@@ -203,7 +239,7 @@ const SidebarMenu = ({
                 <div
                   ref={hoverRef}
                   className={`flex items-center justify-between font-inter mt-[0.5rem] text-[16px] cursor-pointer px-[1.5rem] py-[0.4rem] ${
-                    isMenuActive && "bg-indigo-50"
+                    isMenuActive && "bg-indigo-50 dark:bg-indigo-900/30"
                   }`}
                   onClick={() => {
                     if (!sidebarExpanded) {
@@ -219,8 +255,8 @@ const SidebarMenu = ({
                     {menu.icon({
                       className: `${
                         isMenuActive
-                          ? "text-indigo-500"
-                          : "text-[rgba(0,0,0,0.7)]"
+                          ? "text-indigo-500 dark:text-indigo-300"
+                          : "text-[rgba(0,0,0,0.7)] dark:text-gray-300"
                       } w-[20px] h-[20px]`,
                     })}
                     <span
@@ -228,8 +264,8 @@ const SidebarMenu = ({
                         sidebarExpanded
                           ? "md:opacity-100 md:scale-100 md:ml-2 md:w-auto opacity-0 scale-0 ml-0 w-0"
                           : "opacity-0 scale-0 ml-0 w-0"
-                      } text-[rgba(0,0,0,0.7)] font-inter ${
-                        isMenuActive && "text-indigo-500 font-bold"
+                      } text-[rgba(0,0,0,0.7)] dark:text-gray-300 font-inter ${
+                        isMenuActive && "text-indigo-500 dark:text-indigo-300 font-bold"
                       }`}
                     >
                       {menu.label}
@@ -240,7 +276,7 @@ const SidebarMenu = ({
                     <div
                       className={`transform transition-all duration-500 ease-in-out ${
                         expandedIndex === index ? "rotate-90" : "rotate-0"
-                      } ${isMenuActive && "text-indigo-500"}`}
+                      } ${isMenuActive && "text-indigo-500 dark:text-indigo-300"}`}
                     >
                       <FiChevronRight size={20} />
                     </div>
@@ -261,9 +297,9 @@ const SidebarMenu = ({
                         onClick={() => {
                           if (!sidebarExpanded) toggleSidebar();
                         }}
-                        className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${
+                        className={`block hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] dark:text-gray-300 text-[16px] ${
                           pathname === link.href
-                            ? "font-bold text-[rgba(0,0,0,0.8)]"
+                            ? "font-bold text-[rgba(0,0,0,0.8)] dark:text-indigo-300"
                             : ""
                         }`}
                       >
@@ -280,7 +316,7 @@ const SidebarMenu = ({
 
       {/* Sign out */}
       <div
-        className={`flex gap-1 border-t justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
+        className={`flex gap-1 border-t border-gray-300 dark:border-gray-700 justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
           sidebarExpanded ? "" : "px-[0rem] pl-[0.1rem]"
         }`}
       >
@@ -290,7 +326,7 @@ const SidebarMenu = ({
             <h1 className="ml-1 text-red-600">Sign out</h1>
           </div>
         ) : (
-          <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />
+          <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)] dark:text-gray-300" />
         )}
       </div>
     </div>

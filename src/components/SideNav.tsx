@@ -24,13 +24,6 @@ const SideNav = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) return null;
   const sidebarWidthClass = isMobile
     ? "w-[18%]"
     : sidebarExpanded
@@ -39,7 +32,7 @@ const SideNav = () => {
 
   return (
     <div
-      className={`${sidebarWidthClass} sticky h-screen transition-all duration-500 flex flex-col shadow overflow-y-auto`}
+      className={`${sidebarWidthClass} sticky h-screen transition-all duration-500 flex flex-col shadow overflow-y-auto bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-gray-800`}
     >
       <div className="sticky flex md:flex-row flex-col md:items-center justify-around px-[1rem] py-[0.7rem] transition-all duration-500 mt-[0.6rem] font-inter">
         <img
@@ -67,13 +60,13 @@ const SideNav = () => {
           (sidebarExpanded ? (
             <TfiShiftLeft
               size={15}
-              className="text-black transition-all duration-500 cursor-pointer"
+              className="text-gray-700 dark:text-gray-200 transition-all duration-500 cursor-pointer"
               onClick={() => setSidebarExpanded(false)}
             />
           ) : (
             <TfiShiftRight
               size={15}
-              className=" text-black transition-all duration-500 cursor-pointer"
+              className="text-gray-700 dark:text-gray-200 transition-all duration-500 cursor-pointer"
               onClick={() => setSidebarExpanded(true)}
             />
           ))}

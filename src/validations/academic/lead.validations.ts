@@ -37,7 +37,7 @@ export const leadSchema = yup.object().shape({
   lastFollowUpDate: yup.string().required("Last follow-up date is required"),
   nextFollowUpDate: yup.string().required("Next follow-up date is required"),
   studyType: yup.string().required("Study type is required"),
-  note: yup.string().required("Note is required")
-    .nullable()
-    .notRequired() as yup.StringSchema<string | null>,
+  note: yup.string().optional().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
 });
