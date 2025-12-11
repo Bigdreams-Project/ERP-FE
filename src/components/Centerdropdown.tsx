@@ -166,14 +166,14 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
     <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex items-center font-bold gap-[0.5rem] outline-none border-none">
+          <button type="button" className="flex items-center font-bold gap-[0.5rem] outline-none border-none text-gray-900 dark:text-gray-200">
             <FiGlobe className="text-indigo-500" />
             {selectedCenterName}
             <IoMdArrowDropdown className="text-indigo-500 size-[1.3rem]" />
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent className="w-[200px] h-[30vh] font-extralight text-gray-700 custom-scroll overflow-y-auto">
+        <DropdownMenuContent className="w-[200px] h-[30vh] font-extralight text-gray-700 dark:text-gray-300 custom-scroll overflow-y-auto">
           <DropdownMenuItem
             className="outline-none border-none transition-all duration-300 flex justify-between"
             onClick={() => setSelectedCenter("all")}
