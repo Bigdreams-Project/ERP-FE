@@ -64,7 +64,7 @@ export default function Login() {
 
   return (
     <div
-      className="w-full md:flex  md:justify-center md:items-center  min-h-screen md:gap-[2rem] md:px-[3rem]  md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem]"
+      className="w-full md:flex  md:justify-center md:items-center  min-h-screen md:gap-[2rem] md:px-[3rem]  md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem] bg-white text-gray-900"
       style={{}}
     >
       {/* Logo */}

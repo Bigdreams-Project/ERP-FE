@@ -53,7 +53,7 @@ export default function Signup() {
   const formReady = isDirty && isValid;
 
   return (
-    <div className="w-full h-screen md:flex md:justify-center md:items-center min-h-screen md:gap-[2rem] md:px-[3rem] md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem]">
+    <div className="w-full h-screen md:flex md:justify-center md:items-center min-h-screen md:gap-[2rem] md:px-[3rem] md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem] bg-white text-gray-900">
       {/* Logo */}
       <div className="w-full md:w-[60%] flex justify-between items-center md:flex-row">
         <img src="/Logo.png" alt="" />

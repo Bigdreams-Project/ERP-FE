@@ -143,8 +143,8 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
   // If user cannot switch centers (and it's confirmed after loading), show fixed center name without dropdown
   if (!canSwitch && !isLoading) {
     return (
-      <div className="flex items-center font-bold gap-[0.5rem]">
-        <FiGlobe className="text-indigo-500" />
+      <div className="flex items-center font-bold gap-[0.5rem] text-gray-900 dark:text-gray-100">
+        <FiGlobe className="text-indigo-500 dark:text-indigo-400" />
         <span>{selectedCenterName}</span>
       </div>
     );
@@ -154,8 +154,8 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
   // Otherwise, show dropdown (even while loading if role allows)
   if (isLoading && !canSwitchByRole) {
     return (
-      <div className="flex items-center font-bold gap-[0.5rem]">
-        <FiGlobe className="text-indigo-500" />
+      <div className="flex items-center font-bold gap-[0.5rem] text-gray-900 dark:text-gray-100">
+        <FiGlobe className="text-indigo-500 dark:text-indigo-400" />
         <span>Loading...</span>
       </div>
     );
@@ -166,14 +166,14 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
     <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex items-center font-bold gap-[0.5rem] outline-none border-none">
-            <FiGlobe className="text-indigo-500" />
+          <button type="button" className="flex items-center font-bold gap-[0.5rem] outline-none border-none text-gray-900 dark:text-gray-100">
+            <FiGlobe className="text-indigo-500 dark:text-indigo-400" />
             {selectedCenterName}
-            <IoMdArrowDropdown className="text-indigo-500 size-[1.3rem]" />
+            <IoMdArrowDropdown className="text-indigo-500 dark:text-indigo-400 size-[1.3rem]" />
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent className="w-[200px] h-[30vh] font-extralight text-gray-700 custom-scroll overflow-y-auto">
+        <DropdownMenuContent className="w-[200px] h-[30vh] font-extralight text-gray-700 dark:text-gray-300 custom-scroll overflow-y-auto">
           <DropdownMenuItem
             className="outline-none border-none transition-all duration-300 flex justify-between"
             onClick={() => setSelectedCenter("all")}

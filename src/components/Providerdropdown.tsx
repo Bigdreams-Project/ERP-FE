@@ -22,14 +22,14 @@ const Providerdropdown = () => {
     <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center font-bold gap-[0.5rem] outline-none border-none">
-            <BookOpen className="text-indigo-500" size={18} />
+          <button className="flex items-center font-bold gap-[0.5rem] outline-none border-none text-gray-900 dark:text-gray-300">
+            <BookOpen className="text-indigo-500 dark:text-indigo-400" size={18} />
             {selectedProviderName}
-            <IoMdArrowDropdown className="text-indigo-500 size-[1.3rem]" />
+            <IoMdArrowDropdown className="text-indigo-500 dark:text-indigo-400 size-[1.3rem]" />
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent className="w-[200px] font-extralight text-gray-700">
+        <DropdownMenuContent className="w-[200px] font-extralight text-gray-700 dark:text-gray-300">
           <DropdownMenuItem
             className="outline-none border-none transition-all duration-300 flex justify-between"
             onClick={() => setSelectedProvider("all")}
