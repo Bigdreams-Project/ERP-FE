@@ -1,5 +1,8 @@
 import { NoSessionError, server } from "@/lib/server";
-import { ICourseFeeAssignment, IEditCourseFeeAssignment } from "@/types/academic/center.interface";
+import {
+  ICourseFeeAssignment,
+  IEditCourseFeeAssignment,
+} from "@/types/academic/center.interface";
 import { CreateUser, UpdateUser } from "@/types/auth/signup.interface";
 import { AttendanceRecord } from "@/types/requests/attendance";
 import { CreateBatch, UpdateBatch } from "@/types/requests/batch.interface";
@@ -21,7 +24,7 @@ import { getSession } from "./session";
 
 // Users
 export const getLoggedInUser = async () => {
-  try { 
+  try {
     const api = await server();
     const session = await getSession();
     if (!session) {
@@ -451,7 +454,10 @@ export const getStudentCourses = async (studentId: string) => {
     const res = await api.get(`/students/${studentId}/courses`);
     return res.data;
   } catch (err: any) {
-    console.error(`Failed to fetch courses for student ${studentId}:`, err.message);
+    console.error(
+      `Failed to fetch courses for student ${studentId}:`,
+      err.message
+    );
     return [];
   }
 };
@@ -478,7 +484,9 @@ export const enrollStudentCourse = async (payload: CreateStudentPayment) => {
   }
 };
 
-export const updateStudentCoursePayment = async (payload: CreateStudentPayment) => {
+export const updateStudentCoursePayment = async (
+  payload: CreateStudentPayment
+) => {
   try {
     const api = await server();
     const res = await api.post(`/students/add/payment`, payload);
@@ -762,7 +770,8 @@ export const getAttendance = async (
 ): Promise<AttendanceRecord[]> => {
   try {
     const api = await server();
-    const res = await api.get(`/attendance/student/${studentId}?year=${year}&month=${month}`
+    const res = await api.get(
+      `/attendance/student/${studentId}?year=${year}&month=${month}`
     );
     return res.data;
   } catch (err: any) {
@@ -786,15 +795,71 @@ export const getAllPayments = async () => {
 export const getFinanceOverview = async () => {
   try {
     const api = await server();
-    const res = await api.get(`/payment/overview`);
-    return res.data;
+    // Try /payments/overview first (plural), fallback to /payment/overview (singular)
+    try {
+      const res = await api.get(`/payments/overview`);
+      console.log(
+        "[getFinanceOverview] Successfully fetched from /payments/overview"
+      );
+      console.log("[getFinanceOverview] Response data:", {
+        totalRevenue: res.data?.totalRevenue,
+        totalBilling: res.data?.totalBilling,
+        totalPending: res.data?.totalPending,
+        collectionRate: res.data?.collectionRate,
+      });
+      console.log(
+        "[getFinanceOverview] Full response:",
+        JSON.stringify(res.data, null, 2)
+      );
+      return res.data;
+    } catch (firstError: any) {
+      if (firstError.response?.status === 404) {
+        // Try singular version
+        console.log(
+          "[getFinanceOverview] /payments/overview returned 404, trying /payment/overview"
+        );
+        const res = await api.get(`/payment/overview`);
+        console.log(
+          "[getFinanceOverview] Successfully fetched from /payment/overview"
+        );
+        console.log("[getFinanceOverview] Response data:", {
+          totalRevenue: res.data?.totalRevenue,
+          totalBilling: res.data?.totalBilling,
+          totalPending: res.data?.totalPending,
+          collectionRate: res.data?.collectionRate,
+        });
+        console.log(
+          "[getFinanceOverview] Full response:",
+          JSON.stringify(res.data, null, 2)
+        );
+        return res.data;
+      }
+      throw firstError;
+    }
   } catch (err: any) {
-    console.error("Failed to fetch finance overview:", err.message);
+    // Only log non-404 errors to avoid console spam
+    // 404 errors are handled gracefully by returning default values
+    if (err.response?.status !== 404) {
+      console.error(
+        "[getFinanceOverview] Failed to fetch finance overview:",
+        err.message
+      );
+      console.error("[getFinanceOverview] Error details:", err.response?.data);
+    } else {
+      console.log(
+        "[getFinanceOverview] Endpoint not found (404), returning default values"
+      );
+    }
     return {
       totalRevenue: 0,
+      totalBilling: 0,
       totalPending: 0,
       totalPayments: 0,
+      collectionRate: 0,
       topCenters: [],
+      topPendingCenters: [],
+      topPerformingCenter: null,
+      centerPerformanceMatrix: [],
     };
   }
 };
@@ -811,7 +876,7 @@ export const getArchiveRecords = async (options?: {
     if (options?.page) params.append("page", options.page.toString());
     if (options?.limit) params.append("limit", options.limit.toString());
     if (options?.search) params.append("search", options.search);
-    
+
     const queryString = params.toString();
     const url = `/archive${queryString ? `?${queryString}` : ""}`;
     const res = await api.get(url);
@@ -833,7 +898,10 @@ export const getArchiveRecord = async (id: string) => {
     console.error("Error response status:", err.response?.status);
     console.error("Error response data:", err.response?.data);
     console.error("Error response headers:", err.response?.headers);
-    console.error("Full error details:", JSON.stringify(err.response?.data || err, null, 2));
+    console.error(
+      "Full error details:",
+      JSON.stringify(err.response?.data || err, null, 2)
+    );
     throw err; // Re-throw to let the page handle the error
   }
 };

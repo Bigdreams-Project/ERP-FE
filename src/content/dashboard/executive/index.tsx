@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
@@ -69,19 +69,41 @@ interface ExecutiveDashboardProps {
   leads: Lead[];
   financeOverview: {
     totalRevenue: number;
+    totalBilling: number;
     totalPending: number;
     totalPayments: number;
+    collectionRate: number;
     topCenters: {
       center: string;
       status: string;
-      pending: string;
-      revenue: string;
+      revenue: number;
+      billing: number;
+      pending: number;
+      collectionRate: number;
     }[];
     topPendingCenters: {
       center: string;
       status: string;
-      pending: string;
-      revenue: string;
+      revenue: number;
+      billing: number;
+      pending: number;
+      collectionRate: number;
+    }[];
+    topPerformingCenter: {
+      id: string;
+      name: string;
+      bankCount: number;
+      revenue: number;
+    } | null;
+    centerPerformanceMatrix: {
+      center: string;
+      status: string;
+      revenue: number;
+      billing: number;
+      pending: number;
+      enrollments: number;
+      conversion: number;
+      collectionRate: number;
     }[];
   };
   batches: Batch[];
@@ -97,6 +119,53 @@ const ExecutiveDashboard = ({
   batches: initialBatches,
 }: ExecutiveDashboardProps) => {
   const { selectedCenter } = useCenter();
+
+  // Log the received props IMMEDIATELY (runs on every render, client-side)
+  console.log("🚨🚨🚨 CLIENT COMPONENT RENDER 🚨🚨🚨");
+  console.log("initialFinanceOverview:", initialFinanceOverview);
+  console.log(
+    "initialFinanceOverview?.totalBilling:",
+    initialFinanceOverview?.totalBilling
+  );
+  console.log(
+    "initialFinanceOverview?.totalRevenue:",
+    initialFinanceOverview?.totalRevenue
+  );
+  console.log(
+    "initialFinanceOverview?.totalPending:",
+    initialFinanceOverview?.totalPending
+  );
+  console.log(
+    "initialFinanceOverview?.collectionRate:",
+    initialFinanceOverview?.collectionRate
+  );
+
+  // Also log in useEffect to catch any changes
+  useEffect(() => {
+    console.log("=== EXECUTIVE DASHBOARD PROPS (CLIENT-SIDE useEffect) ===");
+    console.log("initialFinanceOverview received:", initialFinanceOverview);
+    console.log(
+      "initialFinanceOverview?.totalBilling:",
+      initialFinanceOverview?.totalBilling
+    );
+    console.log(
+      "initialFinanceOverview?.totalRevenue:",
+      initialFinanceOverview?.totalRevenue
+    );
+    console.log(
+      "initialFinanceOverview?.totalPending:",
+      initialFinanceOverview?.totalPending
+    );
+    console.log(
+      "initialFinanceOverview?.collectionRate:",
+      initialFinanceOverview?.collectionRate
+    );
+    console.log(
+      "Full initialFinanceOverview:",
+      JSON.stringify(initialFinanceOverview, null, 2)
+    );
+    console.log("=================================");
+  }, [initialFinanceOverview]);
   const [showPicker, setShowPicker] = useState(false);
   const [range, setRange] = useState([
     {
@@ -198,10 +267,18 @@ const ExecutiveDashboard = ({
     const start = range[0].startDate!;
     const end = range[0].endDate!;
 
-    const { students: filteredStudents, leads: filteredLeads, centers: filteredCenters, courses: filteredCourses, batches: filteredBatches } = filteredData;
+    const {
+      students: filteredStudents,
+      leads: filteredLeads,
+      centers: filteredCenters,
+      courses: filteredCourses,
+      batches: filteredBatches,
+    } = filteredData;
 
     // Calculate previous period (same duration, one period back)
-    const periodDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const periodDays = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    );
     const previousStart = new Date(start);
     previousStart.setDate(previousStart.getDate() - periodDays);
     const previousEnd = new Date(start);
@@ -236,141 +313,264 @@ const ExecutiveDashboard = ({
       includesDate(s.enrolledDate, yoyStart, yoyEnd)
     );
 
-    // Calculate billing (expected income from enrolled courses)
-    const totalBilling = filteredStudents.reduce((sum, student) => {
-      if (student.courses && student.courses.length > 0) {
-        const course = student.courses[0];
-        const fee = course.courseAssignments?.[0]?.lumpSumFee || course.lumpSumFee || 0;
-        return sum + fee;
-      }
-      return sum;
-    }, 0);
+    // Use billing, revenue, and pending from backend API (financeOverview)
+    // The backend calculates these correctly based on actual course enrollments
+    // IMPORTANT: Log the raw data first to see what we're actually getting
+    console.log("🔍 [useMemo] initialFinanceOverview:", initialFinanceOverview);
+    console.log(
+      "🔍 [useMemo] initialFinanceOverview?.totalBilling:",
+      initialFinanceOverview?.totalBilling
+    );
+    console.log(
+      "🔍 [useMemo] initialFinanceOverview?.totalRevenue:",
+      initialFinanceOverview?.totalRevenue
+    );
+    console.log(
+      "🔍 [useMemo] initialFinanceOverview?.totalPending:",
+      initialFinanceOverview?.totalPending
+    );
+    console.log(
+      "🔍 [useMemo] initialFinanceOverview?.collectionRate:",
+      initialFinanceOverview?.collectionRate
+    );
 
-    // Calculate revenue from payments
+    const totalBilling = initialFinanceOverview?.totalBilling ?? 0;
+    const totalRevenue = initialFinanceOverview?.totalRevenue ?? 0;
+    const totalPending = initialFinanceOverview?.totalPending ?? 0;
+    const paymentCollectionRate = initialFinanceOverview?.collectionRate ?? 0;
+
+    // Log extracted values to console for debugging
+    console.log("=== FINANCE OVERVIEW DATA FROM BACKEND (useMemo) ===");
+    console.log("✅ Extracted totalBilling:", totalBilling);
+    console.log("✅ Extracted totalRevenue:", totalRevenue);
+    console.log("✅ Extracted totalPending:", totalPending);
+    console.log("✅ Extracted collectionRate:", paymentCollectionRate);
+    console.log(
+      "Full financeOverview object:",
+      JSON.stringify(initialFinanceOverview, null, 2)
+    );
+    console.log("==========================================");
+
+    // Calculate revenue from payments for trend data and MoM/YoY calculations
     const allPayments = filteredStudents.flatMap((s) => s.payments || []);
     const paymentsInRange = allPayments.filter((p: any) =>
       includesDate(p.paymentDate || p.createdAt, start, end)
     );
-    const totalRevenue = paymentsInRange.reduce((sum, p: any) => sum + (p.amount || 0), 0);
-    
-    const totalPending = filteredStudents.reduce((sum, s) => {
-      return sum + (s.payments?.reduce((pSum: number, p: any) => {
-        const pending = parseFloat(p.paymentPlan?.pending || "0");
-        return pSum + pending;
-      }, 0) || 0);
-    }, 0);
 
     const paymentsReceived = paymentsInRange.length;
-    const totalPaymentsAmount = paymentsInRange.reduce((sum, p: any) => sum + (p.amount || 0), 0);
+    const totalPaymentsAmount = paymentsInRange.reduce(
+      (sum, p: any) => sum + (p.amount || 0),
+      0
+    );
 
     // Previous period revenue
     const paymentsPreviousPeriod = allPayments.filter((p: any) =>
       includesDate(p.paymentDate || p.createdAt, previousStart, previousEnd)
     );
-    const revenuePreviousPeriod = paymentsPreviousPeriod.reduce((sum, p: any) => sum + (p.amount || 0), 0);
+    const revenuePreviousPeriod = paymentsPreviousPeriod.reduce(
+      (sum, p: any) => sum + (p.amount || 0),
+      0
+    );
 
     // YoY revenue
     const paymentsYoY = allPayments.filter((p: any) =>
       includesDate(p.paymentDate || p.createdAt, yoyStart, yoyEnd)
     );
-    const revenueYoY = paymentsYoY.reduce((sum, p: any) => sum + (p.amount || 0), 0);
+    const revenueYoY = paymentsYoY.reduce(
+      (sum, p: any) => sum + (p.amount || 0),
+      0
+    );
 
     // Calculate MoM and YoY percentages
-    const revenueMoM = revenuePreviousPeriod > 0 
-      ? ((totalRevenue - revenuePreviousPeriod) / revenuePreviousPeriod) * 100 
-      : 0;
-    const revenueYoYPercent = revenueYoY > 0 
-      ? ((totalRevenue - revenueYoY) / revenueYoY) * 100 
-      : 0;
+    const revenueMoM =
+      revenuePreviousPeriod > 0
+        ? ((totalRevenue - revenuePreviousPeriod) / revenuePreviousPeriod) * 100
+        : 0;
+    const revenueYoYPercent =
+      revenueYoY > 0 ? ((totalRevenue - revenueYoY) / revenueYoY) * 100 : 0;
 
-    // Calculate payment collection rate
-    const paymentCollectionRate = totalBilling > 0 ? (totalRevenue / totalBilling) * 100 : 0;
-    const collectionRatePrevious = totalBilling > 0 && revenuePreviousPeriod > 0
-      ? (revenuePreviousPeriod / totalBilling) * 100
-      : 0;
-    const collectionRateMoM = collectionRatePrevious > 0
-      ? paymentCollectionRate - collectionRatePrevious
-      : 0;
-    const collectionRateYoY = revenueYoY > 0 && totalBilling > 0
-      ? paymentCollectionRate - ((revenueYoY / totalBilling) * 100)
-      : 0;
+    // Collection rate comes from backend, calculate MoM/YoY changes
+    const collectionRatePrevious =
+      totalBilling > 0 && revenuePreviousPeriod > 0
+        ? (revenuePreviousPeriod / totalBilling) * 100
+        : 0;
+    const collectionRateMoM =
+      collectionRatePrevious > 0
+        ? paymentCollectionRate - collectionRatePrevious
+        : 0;
+    const collectionRateYoY =
+      revenueYoY > 0 && totalBilling > 0
+        ? paymentCollectionRate - (revenueYoY / totalBilling) * 100
+        : 0;
 
     // Academic metrics
     const totalEnrollments = studentsInRange.length;
-    const enrollmentMoM = studentsPreviousPeriod.length > 0
-      ? ((totalEnrollments - studentsPreviousPeriod.length) / studentsPreviousPeriod.length) * 100
-      : 0;
-    const enrollmentYoY = studentsInYoYRange.length > 0
-      ? ((totalEnrollments - studentsInYoYRange.length) / studentsInYoYRange.length) * 100
-      : 0;
+    const enrollmentMoM =
+      studentsPreviousPeriod.length > 0
+        ? ((totalEnrollments - studentsPreviousPeriod.length) /
+            studentsPreviousPeriod.length) *
+          100
+        : 0;
+    const enrollmentYoY =
+      studentsInYoYRange.length > 0
+        ? ((totalEnrollments - studentsInYoYRange.length) /
+            studentsInYoYRange.length) *
+          100
+        : 0;
 
     const newLeads = leadsInRange.length;
-    const leadsMoM = leadsPreviousPeriod.length > 0
-      ? ((newLeads - leadsPreviousPeriod.length) / leadsPreviousPeriod.length) * 100
-      : 0;
-    const leadsYoY = leadsInYoYRange.length > 0
-      ? ((newLeads - leadsInYoYRange.length) / leadsInYoYRange.length) * 100
-      : 0;
+    const leadsMoM =
+      leadsPreviousPeriod.length > 0
+        ? ((newLeads - leadsPreviousPeriod.length) /
+            leadsPreviousPeriod.length) *
+          100
+        : 0;
+    const leadsYoY =
+      leadsInYoYRange.length > 0
+        ? ((newLeads - leadsInYoYRange.length) / leadsInYoYRange.length) * 100
+        : 0;
 
-    const conversionRate = newLeads > 0 ? (totalEnrollments / newLeads) * 100 : 0;
-    const conversionRatePrevious = leadsPreviousPeriod.length > 0
-      ? (studentsPreviousPeriod.length / leadsPreviousPeriod.length) * 100
-      : 0;
-    const conversionRateMoM = conversionRatePrevious > 0
-      ? conversionRate - conversionRatePrevious
-      : 0;
+    const conversionRate =
+      newLeads > 0 ? (totalEnrollments / newLeads) * 100 : 0;
+    const conversionRatePrevious =
+      leadsPreviousPeriod.length > 0
+        ? (studentsPreviousPeriod.length / leadsPreviousPeriod.length) * 100
+        : 0;
+    const conversionRateMoM =
+      conversionRatePrevious > 0 ? conversionRate - conversionRatePrevious : 0;
 
-    const activeStudents = filteredStudents.filter((s) => !s.deletedAt && s.status !== "DROPOUT").length;
+    const activeStudents = filteredStudents.filter(
+      (s) => !s.deletedAt && s.status !== "DROPOUT"
+    ).length;
     const activeStudentsPrevious = filteredStudents.filter((s) => {
       if (s.deletedAt || s.status === "DROPOUT") return false;
       const enrolledDate = new Date(s.enrolledDate);
       return enrolledDate >= previousStart && enrolledDate <= previousEnd;
     }).length;
-    const activeStudentsMoM = activeStudentsPrevious > 0
-      ? ((activeStudents - activeStudentsPrevious) / activeStudentsPrevious) * 100
-      : 0;
+    const activeStudentsMoM =
+      activeStudentsPrevious > 0
+        ? ((activeStudents - activeStudentsPrevious) / activeStudentsPrevious) *
+          100
+        : 0;
 
     // Operational metrics
-    const activeCenters = filteredCenters.filter((c) => c.status === centerStatusEnum.Active).length;
-    const activeCourses = selectedCenter === "all" 
-      ? filteredCourses.filter((c) => c.status === courseStatusEnum.Active).length
-      : filteredCourses.filter((c) => {
-          if (c.status !== courseStatusEnum.Active) return false;
-          return c.courseAssignments?.some((ca: any) => ca.centerId === selectedCenter) ?? false;
-        }).length;
-    
+    const activeCenters = filteredCenters.filter(
+      (c) => c.status === centerStatusEnum.Active
+    ).length;
+    const activeCourses =
+      selectedCenter === "all"
+        ? filteredCourses.filter((c) => c.status === courseStatusEnum.Active)
+            .length
+        : filteredCourses.filter((c) => {
+            if (c.status !== courseStatusEnum.Active) return false;
+            return (
+              c.courseAssignments?.some(
+                (ca: any) => ca.centerId === selectedCenter
+              ) ?? false
+            );
+          }).length;
+
     const activeBatches = filteredBatches.filter((b) => !b.deletedAt).length;
-    const avgRevPerStudent = activeStudents > 0 ? totalRevenue / activeStudents : 0;
+    const avgRevPerStudent =
+      activeStudents > 0 ? totalRevenue / activeStudents : 0;
 
-    // Center performance
-    const centerPerformance: CenterPerformance[] = filteredCenters.map((center) => {
-      const centerStudents = filteredStudents.filter((s) => s.centerId === center.id);
-      const centerLeads = filteredLeads.filter((l) => l.centerId === center.id);
-      const centerRevenue = centerStudents.reduce((sum, s) => {
-        const studentPayments = (s.payments || []).filter((p: any) =>
-          includesDate(p.paymentDate || p.createdAt, start, end)
+    // Center performance - use data from backend API if available
+    // Otherwise calculate from local data as fallback
+    let centerPerformance: CenterPerformance[];
+
+    if (
+      initialFinanceOverview?.centerPerformanceMatrix &&
+      initialFinanceOverview.centerPerformanceMatrix.length > 0
+    ) {
+      // Use backend data - map centerPerformanceMatrix to CenterPerformance format
+      centerPerformance = initialFinanceOverview.centerPerformanceMatrix.map(
+        (row) => {
+          const center = filteredCenters.find((c) => c.name === row.center);
+          const centerStudents = filteredStudents.filter(
+            (s) => s.centerId === center?.id
+          );
+          const centerLeads = filteredLeads.filter(
+            (l) => l.centerId === center?.id
+          );
+          const centerConversion =
+            centerLeads.length > 0
+              ? (centerStudents.length / centerLeads.length) * 100
+              : 0;
+
+          return {
+            centerId: center?.id || "",
+            centerName: row.center,
+            totalRevenue: row.revenue,
+            totalBilling: row.billing,
+            totalEnrollments: row.enrollments,
+            pendingPayments: row.pending,
+            conversionRate: row.conversion || centerConversion,
+            status: row.status,
+          };
+        }
+      );
+    } else {
+      // Fallback: calculate from local data
+      centerPerformance = filteredCenters.map((center) => {
+        const centerStudents = filteredStudents.filter(
+          (s) => s.centerId === center.id
         );
-        return sum + studentPayments.reduce((pSum: number, p: any) => pSum + (p.amount || 0), 0);
-      }, 0);
-      const centerPending = centerStudents.reduce((sum, s) => {
-        return sum + (s.payments?.reduce((pSum: number, p: any) => {
-          const pending = parseFloat(p.paymentPlan?.pending || "0");
-          return pSum + pending;
-        }, 0) || 0);
-      }, 0);
-      const centerConversion = centerLeads.length > 0 ? (centerStudents.length / centerLeads.length) * 100 : 0;
+        const centerLeads = filteredLeads.filter(
+          (l) => l.centerId === center.id
+        );
 
-      return {
-        centerId: center.id,
-        centerName: center.name,
-        totalRevenue: centerRevenue,
-        totalBilling: 0,
-        totalEnrollments: centerStudents.length,
-        pendingPayments: centerPending,
-        conversionRate: centerConversion,
-        status: center.status,
-      };
-    });
+        // Calculate center revenue (collected payments)
+        const centerRevenue = centerStudents.reduce((sum, s) => {
+          const studentPayments = (s.payments || []).filter((p: any) =>
+            includesDate(p.paymentDate || p.createdAt, start, end)
+          );
+          return (
+            sum +
+            studentPayments.reduce(
+              (pSum: number, p: any) => pSum + (p.amount || 0),
+              0
+            )
+          );
+        }, 0);
+
+        // Calculate center billing (sum of ALL course fees for ALL students in this center)
+        const centerBilling = centerStudents.reduce((sum, student) => {
+          if (student.courses && student.courses.length > 0) {
+            const studentBilling = student.courses.reduce(
+              (courseSum: number, course: Course) => {
+                const fee =
+                  course.courseAssignments?.[0]?.lumpSumFee ||
+                  course.courseAssignments?.[0]?.baseFee ||
+                  course.lumpSumFee ||
+                  course.baseFee ||
+                  0;
+                return courseSum + fee;
+              },
+              0
+            );
+            return sum + studentBilling;
+          }
+          return sum;
+        }, 0);
+
+        const centerPending = Math.max(0, centerBilling - centerRevenue);
+        const centerConversion =
+          centerLeads.length > 0
+            ? (centerStudents.length / centerLeads.length) * 100
+            : 0;
+
+        return {
+          centerId: center.id,
+          centerName: center.name,
+          totalRevenue: centerRevenue,
+          totalBilling: centerBilling,
+          totalEnrollments: centerStudents.length,
+          pendingPayments: centerPending,
+          conversionRate: centerConversion,
+          status: center.status,
+        };
+      });
+    }
 
     // Top performing centers
     const topPerformingCenters: TopPerformingCenter[] = centerPerformance
@@ -400,29 +600,58 @@ const ExecutiveDashboard = ({
       date.setMonth(date.getMonth() - i);
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-      
+
       const monthPayments = allPayments.filter((p: any) =>
         includesDate(p.paymentDate || p.createdAt, monthStart, monthEnd)
       );
-      const monthRevenue = monthPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
-      
+      const monthRevenue = monthPayments.reduce(
+        (sum, p: any) => sum + (p.amount || 0),
+        0
+      );
+
       const monthStudents = filteredStudents.filter((s) =>
         includesDate(s.enrolledDate, monthStart, monthEnd)
       );
 
+      // Calculate billing for students enrolled in this month
+      const monthBilling = monthStudents.reduce((sum, student) => {
+        if (student.courses && student.courses.length > 0) {
+          const studentBilling = student.courses.reduce(
+            (courseSum: number, course: Course) => {
+              const fee =
+                course.courseAssignments?.[0]?.lumpSumFee ||
+                course.courseAssignments?.[0]?.baseFee ||
+                course.lumpSumFee ||
+                course.baseFee ||
+                0;
+              return courseSum + fee;
+            },
+            0
+          );
+          return sum + studentBilling;
+        }
+        return sum;
+      }, 0);
+
       trendData.push({
         date: date.toISOString(),
         revenue: monthRevenue,
-        billing: 0,
+        billing: monthBilling,
         enrollments: monthStudents.length,
         payments: monthPayments.length,
       });
     }
 
     // Lead conversion funnel
-    const leadsContacted = leadsInRange.filter((l) => l.status === leadStatusEnum.Contacted).length;
-    const leadsDeposited = leadsInRange.filter((l) => l.status === leadStatusEnum.Deposited).length;
-    const leadsEnrolled = leadsInRange.filter((l) => l.status === leadStatusEnum.Enrolled).length;
+    const leadsContacted = leadsInRange.filter(
+      (l) => l.status === leadStatusEnum.Contacted
+    ).length;
+    const leadsDeposited = leadsInRange.filter(
+      (l) => l.status === leadStatusEnum.Deposited
+    ).length;
+    const leadsEnrolled = leadsInRange.filter(
+      (l) => l.status === leadStatusEnum.Enrolled
+    ).length;
     const conversionFunnel = [
       { name: "Leads", value: newLeads },
       { name: "Contacted", value: leadsContacted },
@@ -435,7 +664,9 @@ const ExecutiveDashboard = ({
       ...studentsInRange.slice(-10).map((s) => ({
         type: "enrollment" as const,
         id: s.id,
-        title: `New student ${s.fullName} enrolled in ${(s.courses && s.courses[0]?.name) || "course"}.`,
+        title: `New student ${s.fullName} enrolled in ${
+          (s.courses && s.courses[0]?.name) || "course"
+        }.`,
         date: new Date(s.enrolledDate),
         meta: `${(s.courses && s.courses[0]?.name) || "—"}`,
         centerId: s.centerId,
@@ -443,7 +674,9 @@ const ExecutiveDashboard = ({
       ...paymentsInRange.slice(-10).map((p: any) => ({
         type: "payment" as const,
         id: p.id,
-        title: `Payment of ${formatCurrency(p.amount)} received from ${p.student?.fullName || "student"} for ${p.course?.name || "course"}.`,
+        title: `Payment of ${formatCurrency(p.amount)} received from ${
+          p.student?.fullName || "student"
+        } for ${p.course?.name || "course"}.`,
         date: new Date(p.paymentDate || p.createdAt),
         meta: `${p.course?.name || "—"}`,
         centerId: p.student?.centerId,
@@ -454,12 +687,16 @@ const ExecutiveDashboard = ({
 
     // Generate insights
     const insights: DashboardInsight[] = [];
-    
-    const highPendingCenters = centerPerformance.filter((cp) => cp.pendingPayments > 32000);
+
+    const highPendingCenters = centerPerformance.filter(
+      (cp) => cp.pendingPayments > 32000
+    );
     if (highPendingCenters.length > 0) {
       insights.push({
         type: "warning",
-        message: `High pending payments (${formatCurrency(highPendingCenters[0].pendingPayments)}) at ${highPendingCenters[0].centerName}. Follow up required.`,
+        message: `High pending payments (${formatCurrency(
+          highPendingCenters[0].pendingPayments
+        )}) at ${highPendingCenters[0].centerName}. Follow up required.`,
         centerName: highPendingCenters[0].centerName,
         value: highPendingCenters[0].pendingPayments,
       });
@@ -472,7 +709,9 @@ const ExecutiveDashboard = ({
       if (enrollmentGrowth > 30) {
         insights.push({
           type: "info",
-          message: `Enrollment spike (${enrollmentGrowth.toFixed(1)}% increase) this month. Excellent performance!`,
+          message: `Enrollment spike (${enrollmentGrowth.toFixed(
+            1
+          )}% increase) this month. Excellent performance!`,
           value: enrollmentGrowth,
         });
       }
@@ -488,9 +727,15 @@ const ExecutiveDashboard = ({
     }
 
     // Program metrics
-    const jptpCount = filteredStudents.filter((s) => s.programType === "JPTP").length;
-    const internshipCount = filteredStudents.filter((s) => s.programType === "INTERNSHIP").length;
-    const nictpCount = filteredStudents.filter((s) => s.programType === "NICTP").length;
+    const jptpCount = filteredStudents.filter(
+      (s) => s.programType === "JPTP"
+    ).length;
+    const internshipCount = filteredStudents.filter(
+      (s) => s.programType === "INTERNSHIP"
+    ).length;
+    const nictpCount = filteredStudents.filter(
+      (s) => s.programType === "NICTP"
+    ).length;
 
     const metrics: DashboardMetrics = {
       totalRevenue,
@@ -509,7 +754,8 @@ const ExecutiveDashboard = ({
       activeBatches,
       totalStudents: filteredStudents.length,
       dropouts: filteredStudents.filter((s) => s.status === "DROPOUT").length,
-      graduated: filteredStudents.filter((s) => s.status === "GRADUATED").length,
+      graduated: filteredStudents.filter((s) => s.status === "GRADUATED")
+        .length,
       archived: filteredStudents.filter((s) => s.deletedAt !== null).length,
       revenueMoM,
       revenueYoY: revenueYoYPercent,
@@ -522,6 +768,18 @@ const ExecutiveDashboard = ({
       nictpCount,
     };
 
+    // Log the metrics object to verify values are correct
+    console.log("=== METRICS OBJECT BEING USED ===");
+    console.log("metrics.totalRevenue:", metrics.totalRevenue);
+    console.log("metrics.totalBilling:", metrics.totalBilling);
+    console.log("metrics.totalPending:", metrics.totalPending);
+    console.log(
+      "metrics.paymentCollectionRate:",
+      metrics.paymentCollectionRate
+    );
+    console.log("Full metrics object:", metrics);
+    console.log("==================================");
+
     return {
       metrics,
       centerPerformance,
@@ -532,8 +790,16 @@ const ExecutiveDashboard = ({
       activities,
       insights,
       paymentsReceived,
-      paymentsReceivedMoM: paymentsPreviousPeriod.length > 0 ? ((paymentsReceived - paymentsPreviousPeriod.length) / paymentsPreviousPeriod.length) * 100 : 0,
-      paymentsReceivedYoY: paymentsYoY.length > 0 ? ((paymentsReceived - paymentsYoY.length) / paymentsYoY.length) * 100 : 0,
+      paymentsReceivedMoM:
+        paymentsPreviousPeriod.length > 0
+          ? ((paymentsReceived - paymentsPreviousPeriod.length) /
+              paymentsPreviousPeriod.length) *
+            100
+          : 0,
+      paymentsReceivedYoY:
+        paymentsYoY.length > 0
+          ? ((paymentsReceived - paymentsYoY.length) / paymentsYoY.length) * 100
+          : 0,
       collectionRateMoM,
       collectionRateYoY,
       conversionRateMoM,
@@ -541,7 +807,7 @@ const ExecutiveDashboard = ({
       leadsMoM,
       leadsYoY,
     };
-  }, [range, filteredData, selectedCenter]);
+  }, [range, filteredData, selectedCenter, initialFinanceOverview]);
 
   const handleSelect = (ranges: any) => {
     setRange([ranges.selection]);
@@ -551,18 +817,24 @@ const ExecutiveDashboard = ({
   const displayRange = useMemo(() => {
     const start = range[0].startDate!;
     const end = range[0].endDate!;
-    const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    const monthName = end.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const daysDiff = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const monthName = end.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
     return `Last ${daysDiff} days ${monthName}`;
   }, [range]);
 
   const navigateDateRange = (direction: "prev" | "next") => {
     const days = Math.ceil(
-      (range[0].endDate!.getTime() - range[0].startDate!.getTime()) / (1000 * 60 * 60 * 24)
+      (range[0].endDate!.getTime() - range[0].startDate!.getTime()) /
+        (1000 * 60 * 60 * 24)
     );
     const newStart = new Date(range[0].startDate!);
     const newEnd = new Date(range[0].endDate!);
-    
+
     if (direction === "prev") {
       newStart.setDate(newStart.getDate() - days);
       newEnd.setDate(newEnd.getDate() - days);
@@ -570,7 +842,7 @@ const ExecutiveDashboard = ({
       newStart.setDate(newStart.getDate() + days);
       newEnd.setDate(newEnd.getDate() + days);
     }
-    
+
     setRange([{ startDate: newStart, endDate: newEnd, key: "selection" }]);
   };
 
@@ -580,16 +852,19 @@ const ExecutiveDashboard = ({
       : centers?.find((c) => c.id === selectedCenter)?.name || "All Centers";
 
   // Generate trend data for sparklines (last 12 data points)
-  const generateTrendData = (currentValue: number, trend: "up" | "down" | "neutral" = "up"): number[] => {
+  const generateTrendData = (
+    currentValue: number,
+    trend: "up" | "down" | "neutral" = "up"
+  ): number[] => {
     const dataPoints = 12;
     const trendData: number[] = [];
     const baseValue = currentValue * 0.7;
     const variation = currentValue * 0.1;
-    
+
     for (let i = 0; i < dataPoints; i++) {
       const progress = i / (dataPoints - 1);
       let value: number;
-      
+
       if (trend === "up") {
         value = baseValue + (currentValue - baseValue) * progress;
       } else if (trend === "down") {
@@ -597,13 +872,38 @@ const ExecutiveDashboard = ({
       } else {
         value = baseValue + (currentValue - baseValue) * 0.5;
       }
-      
+
       const randomVariation = (Math.random() - 0.5) * variation;
       trendData.push(Math.max(0, value + randomVariation));
     }
-    
+
     return trendData;
   };
+
+  // Log dashboardData values when it changes (client-side)
+  useEffect(() => {
+    if (dashboardData) {
+      console.log("=== DASHBOARD DATA VALUES (CLIENT-SIDE) ===");
+      console.log(
+        "dashboardData.metrics.totalBilling:",
+        dashboardData.metrics.totalBilling
+      );
+      console.log(
+        "dashboardData.metrics.totalRevenue:",
+        dashboardData.metrics.totalRevenue
+      );
+      console.log(
+        "dashboardData.metrics.totalPending:",
+        dashboardData.metrics.totalPending
+      );
+      console.log(
+        "dashboardData.metrics.paymentCollectionRate:",
+        dashboardData.metrics.paymentCollectionRate
+      );
+      console.log("Full dashboardData.metrics:", dashboardData.metrics);
+      console.log("===========================================");
+    }
+  }, [dashboardData]);
 
   if (!dashboardData) {
     return (
@@ -692,6 +992,14 @@ const ExecutiveDashboard = ({
 
         {/* Row 1: Financial KPIs */}
         <div className="mb-6">
+          {/* DEBUG: Show raw values */}
+          <div className="mb-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded">
+            <strong>DEBUG VALUES:</strong> Billing=
+            {dashboardData.metrics.totalBilling}, Revenue=
+            {dashboardData.metrics.totalRevenue}, Pending=
+            {dashboardData.metrics.totalPending}, Rate=
+            {dashboardData.metrics.paymentCollectionRate}%
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
               title="Total Collection"
@@ -726,20 +1034,14 @@ const ExecutiveDashboard = ({
               layout="simple"
             />
             <KPICard
-              title="Payments Received"
-              value={formatCurrency(dashboardData.metrics.totalRevenue)}
-              changeValue={dashboardData.paymentsReceivedMoM}
-              changeValueYoY={dashboardData.paymentsReceivedYoY}
-              direction={dashboardData.paymentsReceivedMoM >= 0 ? "up" : "down"}
-              directionYoY={
-                dashboardData.paymentsReceivedYoY >= 0 ? "up" : "down"
-              }
+              title="Total Billing"
+              value={formatCurrency(dashboardData.metrics.totalBilling)}
               icon={DollarSign}
               color="blue"
               formatValue={formatCurrency}
               trendData={generateTrendData(
-                dashboardData.metrics.totalRevenue,
-                dashboardData.paymentsReceivedMoM >= 0 ? "up" : "down"
+                dashboardData.metrics.totalBilling,
+                "neutral"
               )}
               sparklineType="line"
               layout="simple"
@@ -968,4 +1270,3 @@ const ExecutiveDashboard = ({
 };
 
 export default ExecutiveDashboard;
-

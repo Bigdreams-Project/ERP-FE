@@ -78,19 +78,41 @@ interface DashboardOverviewProps {
   leads: Lead[];
   financeOverview: {
     totalRevenue: number;
+    totalBilling: number;
     totalPending: number;
     totalPayments: number;
+    collectionRate: number;
     topCenters: {
       center: string;
       status: string;
-      pending: string;
-      revenue: string;
+      revenue: number;
+      billing: number;
+      pending: number;
+      collectionRate: number;
     }[];
     topPendingCenters: {
       center: string;
       status: string;
-      pending: string;
-      revenue: string;
+      revenue: number;
+      billing: number;
+      pending: number;
+      collectionRate: number;
+    }[];
+    topPerformingCenter: {
+      id: string;
+      name: string;
+      bankCount: number;
+      revenue: number;
+    } | null;
+    centerPerformanceMatrix: {
+      center: string;
+      status: string;
+      revenue: number;
+      billing: number;
+      pending: number;
+      enrollments: number;
+      conversion: number;
+      collectionRate: number;
     }[];
   };
 }
@@ -283,95 +305,56 @@ const DashboardOverview = ({
       return hasLegacy;
     };
 
-    // Calculate billing (expected income from enrolled courses) - total expected income from all enrolled students for every course enrolled
-    // Use center-specific course fees from courseAssignments, or student's stored lumpSum
-    const totalBilling = filteredStudents.reduce((sum, student) => {
-      // Priority 1: Check if student has a lumpSum stored (this is the actual expected payment)
-      if (student.lumpSum !== undefined && student.lumpSum !== null && student.lumpSum > 0) {
-        const lumpSumValue = typeof student.lumpSum === 'number' ? student.lumpSum : parseFloat(String(student.lumpSum)) || 0;
-        if (!isNaN(lumpSumValue) && lumpSumValue > 0) {
-          return sum + lumpSumValue;
-        }
-      }
-      
-      // Priority 2: Calculate from courses and courseAssignments
-      if (student.courses && student.courses.length > 0 && student.centerId) {
-        // Sum fees from all courses the student is enrolled in
-        const studentBilling = student.courses.reduce((courseSum: number, course: Course) => {
-          // Find the courseAssignment that matches the student's center
-          const centerAssignment = course.courseAssignments?.find((ca: any) => ca.centerId === student.centerId);
-          
-          // Try multiple fee fields in priority order
-          let fee = 0;
-          
-          // First try center-specific assignment fees
-          if (centerAssignment) {
-            if (centerAssignment.lumpSumFee !== undefined && centerAssignment.lumpSumFee !== null) {
-              fee = typeof centerAssignment.lumpSumFee === 'number' 
-                ? centerAssignment.lumpSumFee 
-                : parseFloat(String(centerAssignment.lumpSumFee)) || 0;
-            } else if (centerAssignment.baseFee !== undefined && centerAssignment.baseFee !== null) {
-              fee = typeof centerAssignment.baseFee === 'number' 
-                ? centerAssignment.baseFee 
-                : parseFloat(String(centerAssignment.baseFee)) || 0;
-            }
-          }
-          
-          // Fall back to course-level fees if no center assignment or fee found
-          if (!fee || isNaN(fee)) {
-            if (course.lumpSumFee !== undefined && course.lumpSumFee !== null) {
-              fee = typeof course.lumpSumFee === 'number' 
-                ? course.lumpSumFee 
-                : parseFloat(String(course.lumpSumFee)) || 0;
-            } else if (course.baseFee !== undefined && course.baseFee !== null) {
-              fee = typeof course.baseFee === 'number' 
-                ? course.baseFee 
-                : parseFloat(String(course.baseFee)) || 0;
-            }
-          }
-          
-          return courseSum + (isNaN(fee) || fee <= 0 ? 0 : fee);
-        }, 0);
-        
-        if (!isNaN(studentBilling) && studentBilling > 0) {
-          return sum + studentBilling;
-        }
-      }
-      
-      return sum;
-    }, 0);
+    // Use billing, revenue, and pending from backend API (financeOverview)
+    // The backend calculates these correctly based on actual course enrollments
+    const totalBilling = initialFinanceOverview?.totalBilling ?? 0;
+    const totalRevenue = initialFinanceOverview?.totalRevenue ?? 0;
+    const totalPending = initialFinanceOverview?.totalPending ?? 0;
+    const paymentCollectionRate = initialFinanceOverview?.collectionRate ?? 0;
+    
+    // Log values to console for debugging
+    console.log("=== DASHBOARD OVERVIEW: FINANCE DATA FROM BACKEND ===");
+    console.log("totalBilling:", totalBilling);
+    console.log("totalRevenue:", totalRevenue);
+    console.log("totalPending:", totalPending);
+    console.log("collectionRate:", paymentCollectionRate);
+    console.log("Full financeOverview:", initialFinanceOverview);
+    console.log("=====================================================");
 
-    // Calculate revenue and pending from payments - exclude legacy payments
+    // Calculate revenue from payments for trend data and MoM/YoY calculations (still needed for historical data)
     const allPayments = filteredStudents.flatMap((s) => s.payments || []);
     const nonLegacyPayments = allPayments.filter((p: any) => !isLegacyPayment(p));
-    const totalRevenue = nonLegacyPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
-    const totalPending = nonLegacyPayments.reduce((sum, p: any) => {
-      const pending = parseFloat(p.paymentPlan?.pending || "0");
-      return sum + pending;
-    }, 0);
     const totalPayments = nonLegacyPayments.length;
     
     // Calculate legacy payments separately
     const legacyPayments = allPayments.filter((p: any) => isLegacyPayment(p));
     const legacyAmount = legacyPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
 
-    // Calculate payment collection rate
-    const paymentCollectionRate = totalBilling > 0 ? (totalRevenue / totalBilling) * 100 : 0;
+    // Collection rate comes from backend, calculate gap
     const billingVsRevenueGap = totalBilling - totalRevenue;
     const averagePaymentPerStudent = filteredStudents.length > 0 ? totalRevenue / filteredStudents.length : 0;
 
     // Academic metrics
     const totalEnrollments = studentsInRange.length;
     const newLeads = leadsInRange.length;
-    // Conversion rate: rate at which leads are being converted from leads to active students
-    // Count active students that came from leads (have leadId) and are enrolled in the date range
-    const activeStudentsFromLeads = studentsInRange.filter(
-      (s) => s.leadId && !s.deletedAt && s.status !== "DROPOUT" && s.status !== "GRADUATED"
+    
+    // Conversion rate: Compare leads that were able to be moved from NEW to ENROLLED
+    // Count leads that are currently ENROLLED (these are leads that successfully moved from NEW to ENROLLED)
+    const enrolledLeads = leadsInRange.filter(
+      (l) => l.status?.toUpperCase() === leadStatusEnum.Enrolled || l.status === "Enrolled"
     ).length;
+    
+    // Count leads that are currently NEW (the starting point for conversion)
+    const newLeadsCount = leadsInRange.filter(
+      (l) => l.status?.toUpperCase() === leadStatusEnum.New || l.status === "New"
+    ).length;
+    
+    // Conversion rate = (leads that are ENROLLED) / (leads that are NEW) * 100
+    // If there are no NEW leads, we can't calculate a meaningful conversion rate
+    const conversionRate = newLeadsCount > 0 ? (enrolledLeads / newLeadsCount) * 100 : 0;
+    
     // Also count all active students for display
     const activeStudents = filteredStudents.filter((s) => !s.deletedAt && s.status !== "DROPOUT" && s.status !== "GRADUATED").length;
-    // Conversion rate = students converted from leads / total leads
-    const conversionRate = newLeads > 0 ? (activeStudentsFromLeads / newLeads) * 100 : 0;
     
     // Student Status Metrics (part of Academic)
     // Total students (all students, regardless of date range or deletion)
@@ -425,93 +408,112 @@ const DashboardOverview = ({
     const billingMoM = 0;
     const billingYoY = 0;
 
-    // Center performance
-    const centerPerformance: CenterPerformance[] = filteredCenters.map((center) => {
-      const centerStudents = filteredStudents.filter((s) => s.centerId === center.id);
-      const centerLeads = filteredLeads.filter((l) => l.centerId === center.id);
-      
-      // Calculate center revenue - exclude legacy payments
-      const centerAllPayments = centerStudents.flatMap((s) => s.payments || []);
-      const centerNonLegacyPayments = centerAllPayments.filter((p: any) => !isLegacyPayment(p));
-      const centerRevenue = centerNonLegacyPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
-      
-      // Calculate center billing - total expected revenue from all students registered under the center
-      // Use center-specific course fees from courseAssignments, or student's stored lumpSum
-      const centerBilling = centerStudents.reduce((sum, s) => {
-        // Priority 1: Check if student has a lumpSum stored (this is the actual expected payment)
-        if (s.lumpSum !== undefined && s.lumpSum !== null && s.lumpSum > 0) {
-          const lumpSumValue = typeof s.lumpSum === 'number' ? s.lumpSum : parseFloat(String(s.lumpSum)) || 0;
-          if (!isNaN(lumpSumValue) && lumpSumValue > 0) {
-            return sum + lumpSumValue;
-          }
-        }
+    // Use center performance from backend if available, otherwise calculate locally
+    let centerPerformance: CenterPerformance[];
+    
+    if (initialFinanceOverview?.centerPerformanceMatrix && initialFinanceOverview.centerPerformanceMatrix.length > 0) {
+      // Use backend data
+      centerPerformance = initialFinanceOverview.centerPerformanceMatrix.map((cp) => ({
+        centerId: filteredCenters.find((c) => c.name === cp.center)?.id || "",
+        centerName: cp.center,
+        totalRevenue: cp.revenue,
+        totalBilling: cp.billing,
+        totalEnrollments: cp.enrollments,
+        pendingPayments: cp.pending,
+        conversionRate: cp.conversion,
+        status: cp.status,
+      }));
+      console.log("✅ Using centerPerformanceMatrix from backend:", centerPerformance);
+    } else {
+      // Fallback to local calculation
+      console.log("⚠️ Using local center performance calculation (backend data not available)");
+      centerPerformance = filteredCenters.map((center) => {
+        const centerStudents = filteredStudents.filter((s) => s.centerId === center.id);
+        const centerLeads = filteredLeads.filter((l) => l.centerId === center.id);
         
-        // Priority 2: Calculate from courses and courseAssignments
-        if (s.courses && s.courses.length > 0) {
-          // Sum fees from all courses the student is enrolled in
-          const studentBilling = s.courses.reduce((courseSum: number, course: Course) => {
-            // Find the courseAssignment that matches this center
-            const centerAssignment = course.courseAssignments?.find((ca: any) => ca.centerId === center.id);
-            
-            // Try multiple fee fields in priority order
-            let fee = 0;
-            
-            // First try center-specific assignment fees
-            if (centerAssignment) {
-              if (centerAssignment.lumpSumFee !== undefined && centerAssignment.lumpSumFee !== null) {
-                fee = typeof centerAssignment.lumpSumFee === 'number' 
-                  ? centerAssignment.lumpSumFee 
-                  : parseFloat(String(centerAssignment.lumpSumFee)) || 0;
-              } else if (centerAssignment.baseFee !== undefined && centerAssignment.baseFee !== null) {
-                fee = typeof centerAssignment.baseFee === 'number' 
-                  ? centerAssignment.baseFee 
-                  : parseFloat(String(centerAssignment.baseFee)) || 0;
-              }
+        // Calculate center revenue - exclude legacy payments
+        const centerAllPayments = centerStudents.flatMap((s) => s.payments || []);
+        const centerNonLegacyPayments = centerAllPayments.filter((p: any) => !isLegacyPayment(p));
+        const centerRevenue = centerNonLegacyPayments.reduce((sum, p: any) => sum + (p.amount || 0), 0);
+        
+        // Calculate center billing - total expected revenue from all students registered under the center
+        // Use center-specific course fees from courseAssignments, or student's stored lumpSum
+        const centerBilling = centerStudents.reduce((sum, s) => {
+          // Priority 1: Check if student has a lumpSum stored (this is the actual expected payment)
+          if (s.lumpSum !== undefined && s.lumpSum !== null && s.lumpSum > 0) {
+            const lumpSumValue = typeof s.lumpSum === 'number' ? s.lumpSum : parseFloat(String(s.lumpSum)) || 0;
+            if (!isNaN(lumpSumValue) && lumpSumValue > 0) {
+              return sum + lumpSumValue;
             }
-            
-            // Fall back to course-level fees if no center assignment or fee found
-            if (!fee || isNaN(fee)) {
-              if (course.lumpSumFee !== undefined && course.lumpSumFee !== null) {
-                fee = typeof course.lumpSumFee === 'number' 
-                  ? course.lumpSumFee 
-                  : parseFloat(String(course.lumpSumFee)) || 0;
-              } else if (course.baseFee !== undefined && course.baseFee !== null) {
-                fee = typeof course.baseFee === 'number' 
-                  ? course.baseFee 
-                  : parseFloat(String(course.baseFee)) || 0;
-              }
-            }
-            
-            return courseSum + (isNaN(fee) || fee <= 0 ? 0 : fee);
-          }, 0);
+          }
           
-          if (!isNaN(studentBilling) && studentBilling > 0) {
-            return sum + studentBilling;
+          // Priority 2: Calculate from courses and courseAssignments
+          if (s.courses && s.courses.length > 0) {
+            // Sum fees from all courses the student is enrolled in
+            const studentBilling = s.courses.reduce((courseSum: number, course: Course) => {
+              // Find the courseAssignment that matches this center
+              const centerAssignment = course.courseAssignments?.find((ca: any) => ca.centerId === center.id);
+              
+              // Try multiple fee fields in priority order
+              let fee = 0;
+              
+              // First try center-specific assignment fees
+              if (centerAssignment) {
+                if (centerAssignment.lumpSumFee !== undefined && centerAssignment.lumpSumFee !== null) {
+                  fee = typeof centerAssignment.lumpSumFee === 'number' 
+                    ? centerAssignment.lumpSumFee 
+                    : parseFloat(String(centerAssignment.lumpSumFee)) || 0;
+                } else if (centerAssignment.baseFee !== undefined && centerAssignment.baseFee !== null) {
+                  fee = typeof centerAssignment.baseFee === 'number' 
+                    ? centerAssignment.baseFee 
+                    : parseFloat(String(centerAssignment.baseFee)) || 0;
+                }
+              }
+              
+              // Fall back to course-level fees if no center assignment or fee found
+              if (!fee || isNaN(fee)) {
+                if (course.lumpSumFee !== undefined && course.lumpSumFee !== null) {
+                  fee = typeof course.lumpSumFee === 'number' 
+                    ? course.lumpSumFee 
+                    : parseFloat(String(course.lumpSumFee)) || 0;
+                } else if (course.baseFee !== undefined && course.baseFee !== null) {
+                  fee = typeof course.baseFee === 'number' 
+                    ? course.baseFee 
+                    : parseFloat(String(course.baseFee)) || 0;
+                }
+              }
+              
+              return courseSum + (isNaN(fee) || fee <= 0 ? 0 : fee);
+            }, 0);
+            
+            if (!isNaN(studentBilling) && studentBilling > 0) {
+              return sum + studentBilling;
+            }
           }
-        }
+          
+          return sum;
+        }, 0);
         
-        return sum;
-      }, 0);
-      
-      // Calculate center pending - outstanding payment from all enrolled students, exclude legacy
-      const centerPending = centerNonLegacyPayments.reduce((sum, p: any) => {
-        const pending = parseFloat(p.paymentPlan?.pending || "0");
-        return sum + pending;
-      }, 0);
-      
-      const centerConversion = centerLeads.length > 0 ? (centerStudents.length / centerLeads.length) * 100 : 0;
+        // Calculate center pending - outstanding payment from all enrolled students, exclude legacy
+        const centerPending = centerNonLegacyPayments.reduce((sum, p: any) => {
+          const pending = parseFloat(p.paymentPlan?.pending || "0");
+          return sum + pending;
+        }, 0);
+        
+        const centerConversion = centerLeads.length > 0 ? (centerStudents.length / centerLeads.length) * 100 : 0;
 
-      return {
-        centerId: center.id,
-        centerName: center.name,
-        totalRevenue: centerRevenue,
-        totalBilling: centerBilling,
-        totalEnrollments: centerStudents.length,
-        pendingPayments: centerPending,
-        conversionRate: centerConversion,
-        status: center.status,
-      };
-    });
+        return {
+          centerId: center.id,
+          centerName: center.name,
+          totalRevenue: centerRevenue,
+          totalBilling: centerBilling,
+          totalEnrollments: centerStudents.length,
+          pendingPayments: centerPending,
+          conversionRate: centerConversion,
+          status: center.status,
+        };
+      });
+    }
 
     // Top performing centers - exclude centers with only legacy payments (zero revenue)
     const topPerformingCenters: TopPerformingCenter[] = centerPerformance
@@ -786,7 +788,7 @@ const DashboardOverview = ({
       activities,
       insights,
     };
-  }, [range, filteredData, courses]);
+  }, [range, filteredData, courses, initialFinanceOverview]);
 
   const handleRangeChange = (newRange: Array<{ startDate: Date; endDate: Date; key: string }>) => {
     setRange(newRange);

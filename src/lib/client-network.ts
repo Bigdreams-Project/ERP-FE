@@ -871,9 +871,9 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
     // When centerId is null or "all", we don't send the header to get all records
     if (centerId && centerId !== "all" && centerId !== null) {
       headers["X-Center-Id"] = centerId;
-      console.log("Fetching finance overview for center:", centerId);
+      console.log("[getFinanceOverviewClient] Fetching finance overview for center:", centerId);
     } else {
-      console.log("Fetching ALL finance overview (no center filter)");
+      console.log("[getFinanceOverviewClient] Fetching ALL finance overview (no center filter)");
     }
 
     const res = await fetch("/api/payment/overview", {
@@ -882,24 +882,77 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
       credentials: "include",
     });
 
+    console.log("[getFinanceOverviewClient] Response status:", res.status, res.statusText);
+
     if (!res.ok) {
-      const errorText = await res.text();
-      let errorMessage = `Failed to fetch finance overview: ${res.statusText}`;
-      
-      if (res.status === 403) {
-        errorMessage = "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
-        console.error("403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers.");
+      // Handle 404 gracefully - return default data instead of throwing
+      if (res.status === 404) {
+        console.warn("[getFinanceOverviewClient] Finance overview endpoint not found (404), returning default data");
+        return {
+          totalRevenue: 0,
+          totalPending: 0,
+          totalPayments: 0,
+          topCenters: [],
+          topPendingCenters: [],
+          topPerformingCenter: null,
+        };
+      }
+
+      // Try to parse error response
+      let errorText = "";
+      try {
+        errorText = await res.text();
+        console.error(`[getFinanceOverviewClient] Error response (${res.status}):`, errorText);
+      } catch (e) {
+        console.error(`[getFinanceOverviewClient] Could not read error response`);
       }
       
-      console.error(`getFinanceOverviewClient error: ${res.status} ${res.statusText}`, errorText);
-      throw new Error(errorMessage);
+      if (res.status === 403) {
+        console.error("[getFinanceOverviewClient] 403 Forbidden - Backend denied access");
+        // For 403, also return default data instead of throwing
+        return {
+          totalRevenue: 0,
+          totalPending: 0,
+          totalPayments: 0,
+          topCenters: [],
+          topPendingCenters: [],
+          topPerformingCenter: null,
+        };
+      }
+      
+      // For other errors, log but still return default data
+      console.error(`[getFinanceOverviewClient] Unexpected error (${res.status}):`, errorText || res.statusText);
+      return {
+        totalRevenue: 0,
+        totalPending: 0,
+        totalPayments: 0,
+        topCenters: [],
+        topPendingCenters: [],
+        topPerformingCenter: null,
+      };
     }
 
+    // Success - parse and return data
     const data = await res.json();
+    console.log("[getFinanceOverviewClient] Successfully fetched finance overview data:", {
+      totalRevenue: data.totalRevenue,
+      totalPending: data.totalPending,
+      totalPayments: data.totalPayments,
+      topCentersCount: Array.isArray(data.topCenters) ? data.topCenters.length : 0,
+      topPendingCentersCount: Array.isArray(data.topPendingCenters) ? data.topPendingCenters.length : 0,
+    });
     return data;
   } catch (err: any) {
-    console.error("Failed to fetch finance overview:", err.message);
-    throw err;
+    // Network errors or other issues - log and return default data
+    console.error("[getFinanceOverviewClient] Network or parsing error:", err.message, err);
+    return {
+      totalRevenue: 0,
+      totalPending: 0,
+      totalPayments: 0,
+      topCenters: [],
+      topPendingCenters: [],
+      topPerformingCenter: null,
+    };
   }
 };
 

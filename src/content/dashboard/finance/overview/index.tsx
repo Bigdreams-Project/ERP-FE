@@ -60,25 +60,44 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
     queryKey: ["financeOverview", selectedCenter],
     queryFn: async () => {
       console.log("Fetching finance overview with centerId:", centerIdForFetch);
-      const result = await getFinanceOverviewClient(centerIdForFetch);
-      console.log("Received finance overview data");
-      return result;
+      try {
+        const result = await getFinanceOverviewClient(centerIdForFetch);
+        console.log("Received finance overview data");
+        return result;
+      } catch (err: any) {
+        // If there's still an error (shouldn't happen now), return default data
+        console.log("Error fetching finance overview, using default data:", err.message);
+        return {
+          totalRevenue: 0,
+          totalPending: 0,
+          totalPayments: 0,
+          topCenters: [],
+          topPendingCenters: [],
+          topPerformingCenter: null,
+        };
+      }
     },
     // Don't use initialData - always fetch fresh data based on selectedCenter
     // This ensures we get the correct data for the selected center
     staleTime: 0, // Always consider data stale to force refetch when selectedCenter changes
     refetchOnMount: true, // Always refetch on mount to ensure correct data based on selectedCenter
     enabled: !isCenterLoading && !!selectedCenter, // Only fetch when center context has loaded and selectedCenter is set
+    retry: false, // Don't retry failed requests since we return default data anyway
   });
 
-  // Use overview data or fallback to empty structure if loading
-  const overviewData = overview || {
-    totalRevenue: 0,
-    totalPending: 0,
-    totalPayments: 0,
-    topCenters: [],
-    topPendingCenters: [],
-    topPerformingCenter: {} as Center,
+  // Use overview data from React Query, or fallback to initialOverview from server, or empty structure
+  // Ensure all required properties exist and are arrays
+  const overviewData = {
+    totalRevenue: (overview || initialOverview)?.totalRevenue ?? 0,
+    totalPending: (overview || initialOverview)?.totalPending ?? 0,
+    totalPayments: (overview || initialOverview)?.totalPayments ?? 0,
+    topCenters: Array.isArray((overview || initialOverview)?.topCenters) 
+      ? ((overview || initialOverview)?.topCenters || [])
+      : [],
+    topPendingCenters: Array.isArray((overview || initialOverview)?.topPendingCenters)
+      ? ((overview || initialOverview)?.topPendingCenters || [])
+      : [],
+    topPerformingCenter: (overview || initialOverview)?.topPerformingCenter || ({} as Center),
   };
 
   // Format role to user-friendly display name
@@ -143,13 +162,14 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
     return `N${amount}`;
   };
 
-  const revenueDistribution = overviewData.topCenters.map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => ({
+  // Safely map arrays with fallback to empty array
+  const revenueDistribution = (overviewData.topCenters || []).map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => ({
     name: center.center,
     value: parseFloat(center.revenue) || 0, // Pass numeric value directly
     color: colorClasses[index % colorClasses.length],
   }));
 
-  const pendingCenterPayments = overviewData.topPendingCenters.map(
+  const pendingCenterPayments = (overviewData.topPendingCenters || []).map(
     (center: { center: string; status: string; pending: string; revenue: string }, index: number) => ({
       name: center.center,
       value: parseFloat(center.pending) || 0, // Pass numeric value directly

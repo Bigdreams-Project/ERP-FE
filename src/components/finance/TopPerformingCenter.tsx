@@ -3,7 +3,7 @@ import { getCenterStatus } from "../academic/utils/center";
 interface Props {
   number: number;
   name: string;
-  percentage: number;
+  percentage?: number;
   status: string;
 }
 
@@ -15,9 +15,11 @@ const TopPerformingCenter = ({ number, name, percentage, status }: Props) => {
         <span className="font-bold text-gray-800 dark:text-gray-200">{name}</span>
       </div>
       <div className="flex items-center space-x-4">
-        <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
-          {percentage}%
-        </span>
+        {percentage !== undefined && (
+          <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
+            {percentage}%
+          </span>
+        )}
         {getCenterStatus(status)}
       </div>
     </div>
