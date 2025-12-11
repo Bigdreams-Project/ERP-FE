@@ -18,7 +18,7 @@ const StudentEnrollmentInfo = ({ student, courses }: StudentDetailsProps) => {
   const data = student;
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="min-h-screen bg-white dark:bg-gray-900 font-sans">
       <style>
         {`
         select {

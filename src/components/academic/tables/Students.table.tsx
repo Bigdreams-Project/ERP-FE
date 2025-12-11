@@ -186,14 +186,14 @@ export default function StudentTable({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {activeStudents.length === 0 ? (
             <NotFoundComponent text="Student" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 dark:text-gray-300">
               <thead>
-                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
                   <th className="p-4">#</th>
                   <th className="p-4">Student ID</th>
                   <th className="p-4">Name</th>
@@ -213,7 +213,7 @@ export default function StudentTable({
                 {paginatedData.map((student: Student, index) => (
                   <tr
                     key={student.id}
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <td className="p-4">
                       {(currentPage - 1) * itemsPerPage + index + 1}
@@ -221,7 +221,7 @@ export default function StudentTable({
                     <td className="p-3">
                       <Link
                         href={`/dashboard/academic/students/${student.id!}`}
-                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                        className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                       >
                         {student.studentId} <Link2Icon size={12} />
                       </Link>
@@ -264,14 +264,14 @@ export default function StudentTable({
                         <ChevronDown size={16} className="ml-2" />
                       </button>
                       {openDropdown === student.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/academic/students/${student.id!}`
                               )
                             }
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <Eye size={16} />
                             View
@@ -282,7 +282,7 @@ export default function StudentTable({
                                 `/dashboard/academic/students/enrollment/${student.id!}`
                               )
                             }
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <DollarSign size={16} />
                             View Payments
@@ -316,7 +316,7 @@ export default function StudentTable({
                               </button>
                               <button
                                 onClick={() => handleDelete(student)}
-                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                               >
                                 <Trash2 size={16} />
                                 Delete

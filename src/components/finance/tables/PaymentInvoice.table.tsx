@@ -30,7 +30,7 @@ export default function PaymentInvoiceTable({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent
@@ -38,10 +38,10 @@ export default function PaymentInvoiceTable({
               setIsModalOpen={setIsModalOpen}
             />
           ) : (
-            <table className="min-w-max divide-y divide-gray-300">
-              <thead className="bg-white">
+            <table className="min-w-max divide-y divide-gray-300 dark:divide-gray-700">
+              <thead className="bg-white dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Student
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -64,35 +64,35 @@ export default function PaymentInvoiceTable({
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-300">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-300 dark:divide-gray-700">
                 {data.map((invoice, index) => (
-                  <tr key={index}>
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-black">
+                      <div className="text-sm font-medium text-black dark:text-gray-100">
                         {invoice.student}
                       </div>
-                      <div className="text-sm text-black">{invoice.email}</div>
+                      <div className="text-sm text-black dark:text-gray-300">{invoice.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100">
                       {invoice.course}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100">
                       {invoice.invoiceDate}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100">
                       {invoice.dueDate}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100 font-medium">
                       ${invoice.amount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-3 py-0.5 inline-flex text-xs leading-5 font-medium rounded-full ${
                           invoice.status === "Paid"
-                            ? "bg-green-500 text-black"
+                            ? "bg-green-500 dark:bg-green-600 text-black dark:text-white"
                             : invoice.status === "Pending"
-                            ? "bg-yellow-500 text-white"
-                            : "bg-red-500 text-white"
+                            ? "bg-yellow-500 dark:bg-yellow-600 text-white"
+                            : "bg-red-500 dark:bg-red-600 text-white"
                         }`}
                       >
                         {invoice.status}
@@ -101,7 +101,7 @@ export default function PaymentInvoiceTable({
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center gap-2">
                         {invoice.status === "Paid" ? (
-                          <button className="px-3 py-1 bg-indigo-600 text-white rounded-lg flex items-center gap-1 hover:bg-indigo-700 transition-colors">
+                          <button className="px-3 py-1 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg flex items-center gap-1 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               className="h-4 w-4"
@@ -122,11 +122,11 @@ export default function PaymentInvoiceTable({
                           </button>
                         ) : (
                           <>
-                            <button className="px-3 py-1 border border-gray-300 text-indigo-600 rounded-lg flex items-center gap-1 hover:bg-white transition-colors">
+                            <button className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center gap-1 hover:bg-white dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800">
                               <MdNotificationsNone size={18} />
                               Send Reminder
                             </button>
-                            <button className="px-3 py-1 border border-gray-300 text-indigo-600 rounded-lg flex items-center gap-1 hover:bg-white transition-colors">
+                            <button className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center gap-1 hover:bg-white dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800">
                               <CheckCircle size={15} />
                               Mark as Paid
                             </button>
@@ -140,7 +140,7 @@ export default function PaymentInvoiceTable({
             </table>
           )}
         </div>
-        <div className="sticky bottom-0 z-10 bg-white">
+        <div className="sticky bottom-0 z-10 bg-white dark:bg-gray-800">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

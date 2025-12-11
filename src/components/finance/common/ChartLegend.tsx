@@ -71,7 +71,7 @@ const ChartLegend = ({ data, totalRevenue }: ChartLegendProps) => {
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-6 relative">
-      <div className="space-y-2 text-sm text-gray-700 font-medium">
+      <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
         {data.map((item, index) => (
           <li key={index} className="flex items-center space-x-2">
             <span className={`w-3 h-3 rounded-full ${item.color}`}></span>
@@ -102,14 +102,14 @@ const ChartLegend = ({ data, totalRevenue }: ChartLegendProps) => {
             style={{ height: "200px", width: "200px" }}
           />
         ) : (
-          <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
-            <span className="text-xs text-gray-400">No data</span>
+          <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+            <span className="text-xs text-gray-400 dark:text-gray-500">No data</span>
           </div>
         )}
 
         <div className="absolute inset-0 flex flex-col items-center justify-center p-2 pointer-events-none">
-          <span className="text-sm font-bold">Total Collection</span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm font-bold text-gray-800 dark:text-gray-200">Total Collection</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             ₦{formatCurrency(totalRevenue!)}
           </span>
         </div>

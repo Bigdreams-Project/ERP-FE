@@ -101,14 +101,14 @@ export default function UsersTable({
 
   return (
     <div className="font-inter text-gray-200 mt-6">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent text="User" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-full border-collapse text-[14px] text-gray-700">
+            <table className="min-w-full border-collapse text-[14px] text-gray-700 dark:text-gray-300">
               <thead>
-                <tr className="font-medium text-[13px] text-left text-gray-500 bg-gray-100">
+                <tr className="font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
                   <th className="p-4 flex items-center">
                     <input
                       type="checkbox"
@@ -135,7 +135,7 @@ export default function UsersTable({
                 {paginatedData.map((user, index) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-gray-100 cursor-pointer transition-all"
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-all"
                   >
                     <td className="p-4 flex items-center">
                       <input type="checkbox" className="mr-2" />
@@ -144,7 +144,7 @@ export default function UsersTable({
                     <td className="p-4 font-bold">
                       <Link
                         href={`/dashboard/settings/users/${user.id}`}
-                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                        className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                       >
                         {user.firstname} {user.lastname} <Link2Icon size={12} />
                       </Link>
@@ -164,21 +164,21 @@ export default function UsersTable({
                       </button>
 
                       {openDropdown === user.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/settings/users/${user.id}`
                               )
                             }
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             View
                           </button>
 
                           <button
                             onClick={() => handleDelete(user.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            className="hidden flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             Delete
                           </button>
@@ -192,7 +192,7 @@ export default function UsersTable({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white">
+        <div className="sticky bottom-0 bg-white dark:bg-gray-800">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

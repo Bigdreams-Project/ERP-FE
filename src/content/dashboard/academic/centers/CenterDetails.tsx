@@ -43,7 +43,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
 
   return (
     <div className="w-full">
-      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-8 pb-0">
+      <div className="max-w-7xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900 p-8 pb-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
@@ -58,17 +58,17 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="lucide lucide-chevron-left"
+                className="lucide lucide-chevron-left text-indigo-600 dark:text-indigo-400"
               >
                 <path d="m15 18-6-6 6-6" />
               </svg>
-              <p className="text-indigo-600 hover:text-indigo-800 font-medium">
+              <p className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                 Academic &gt; Centers &gt; {center.name}
               </p>
             </div>
             <a
               href="/dashboard/academic/centers"
-              className="mt-2 text-blue-600 hover:underline text-sm font-semibold flex items-center"
+              className="mt-2 text-blue-600 dark:text-blue-400 hover:underline text-sm font-semibold flex items-center"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +76,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-4 h-4 mr-1"
+                className="w-4 h-4 mr-1 text-blue-600 dark:text-blue-400"
               >
                 <path
                   strokeLinecap="round"
@@ -90,7 +90,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="flex gap-2 items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 rounded-lg text-sm font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >
               <MdEdit />
               Edit
@@ -99,13 +99,13 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="border-r-2 border-grey">
+          <div className="border-r-2 border-grey dark:border-gray-700">
             {/* Center Details */}
             <div className="h-80">
-              <h2 className="text-lg font-semibold py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 CENTER DETAILS
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
                 {Object.entries({
                   Name: center.name,
                   Address: center.address,
@@ -124,16 +124,16 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                     : "N/A",
                 }).map(([label, value]) => (
                   <div key={label} className="col-span-1">
-                    <p className="text-gray-500 text-sm font-medium">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
                       {label}:
                     </p>
-                    <p className="mt-1 font-semibold text-gray-900">
+                    <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                       {label === "Status" ? (
                         <span
                           className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
                             value === "New"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                           }`}
                         >
                           {value}
@@ -153,10 +153,10 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
           <div>
             {/* Accounting Information Section */}
             <div className="h-80">
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 ACCOUNTING INFORMATION
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid gap-4">
                 {Object.entries({
                   "Bank Name": "N/A",
                   "Account Number": "N/A",
@@ -167,10 +167,10 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                     key={label}
                     className="col-span-1 flex items-center gap-4"
                   >
-                    <p className="text-gray-500 text-sm font-medium">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
                       {label}:
                     </p>
-                    <p className="mt-1 font-semibold text-gray-900">{value}</p>
+                    <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{value}</p>
                   </div>
                 ))}
               </div>
@@ -178,18 +178,18 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
 
             {/* Recent Activity Log */}
             <div>
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 RECENT ACTIVITY LOG
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6">
-                <h3 className="text-md font-semibold text-gray-800 mb-2">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6">
+                <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">
                   Notes
                 </h3>
                 <div className="space-y-2">
                   {center?.notes?.map(
                     (note, index) =>
                       note.note && (
-                        <p key={index} className="text-sm text-gray-700">
+                        <p key={index} className="text-sm text-gray-700 dark:text-gray-300">
                           <span className="font-semibold">
                             {note.createdAt}
                           </span>{" "}
@@ -198,7 +198,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                       )
                   )}
                 </div>
-                <button className="mt-4 text-blue-600 text-sm font-medium p-3 shadow-md shadow-gray-400 rounded-md flex items-center space-x-1">
+                <button className="mt-4 text-blue-600 dark:text-blue-400 text-sm font-medium p-3 shadow-md shadow-gray-400 dark:shadow-gray-900 rounded-md flex items-center space-x-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                   <IoMdAdd />
                   <span>Add note</span>
                 </button>

@@ -161,7 +161,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
   }, [selectedCenter, isCenterLoading, queryClient]);
 
   return (
-    <div className="bg-white min-h-screen font-sans flex text-gray-800">
+    <div className="bg-white dark:bg-gray-900 min-h-screen font-sans flex text-gray-800 dark:text-gray-100">
       <main className="flex-1 p-8 overflow-y-auto">
         {/* Header */}
         <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6">
@@ -182,13 +182,13 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
             placeholder="Search account name or num"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none"
+            className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
           />
           <div className="flex flex-wrap gap-4">
             <select
               value={centerFilter}
               onChange={(e) => setCenterFilter(e.target.value)}
-              className="p-2 border border-gray-300 rounded-lg focus:outline-none"
+              className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
               <option value="all">Filter by Center</option>
               {uniqueCenters.map((center) => (
@@ -200,7 +200,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
             <select
               value={bankFilter}
               onChange={(e) => setBankFilter(e.target.value)}
-              className="p-2 border border-gray-300 rounded-lg focus:outline-none"
+              className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
               <option value="all">Filter by Bank</option>
               {uniqueBanks.map((bankName) => (
@@ -212,7 +212,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="p-2 border border-gray-300 rounded-lg focus:outline-none"
+              className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
               <option value="all">Filter by Status</option>
               <option value="active">Active</option>
@@ -227,7 +227,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
                 setBankFilter("all");
                 setStatusFilter("all");
               }}
-              className="px-6 text-gray-600 rounded-lg font-medium border border-gray-300 hover:bg-gray-100 transition-colors"
+              className="px-6 text-gray-600 dark:text-gray-300 rounded-lg font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800"
             >
               Reset Filters
             </button>
@@ -235,15 +235,15 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
         </div>
 
         {/* Transactions */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg shadow-gray-400 custom-scroll overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg shadow-gray-400 dark:shadow-gray-900 custom-scroll overflow-x-auto">
           {isLoadingBanks || isCenterLoading ? (
             <div className="flex items-center justify-center h-64">
-              <p className="text-gray-500">Loading banks...</p>
+              <p className="text-gray-500 dark:text-gray-400">Loading banks...</p>
             </div>
           ) : banksError ? (
             <div className="flex flex-col items-center justify-center h-64">
               <p className="text-red-500 font-semibold mb-2">Error loading banks</p>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 {banksError instanceof Error ? banksError.message : "Failed to fetch banks. Please try again."}
               </p>
               <button
@@ -265,7 +265,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
             {/* <button className="px-6 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition-colors shadow-sm">
               Add Bank Account
             </button> */}
-            <button className="px-6 py-1.5 border border-gray-300 text-black rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-sm">
+            <button className="px-6 py-1.5 border border-gray-300 dark:border-gray-600 text-black dark:text-gray-200 rounded-lg font-bold hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm bg-white dark:bg-gray-800">
               Export List
             </button>
           </div>

@@ -58,12 +58,12 @@ const Navbar = ({ user, centers }: NavbarProps) => {
   return (
     <>
       <div className="sticky top-0 flex items-center mt-[0.6rem] font-inter">
-        <div className="w-[70%] flex items-center text-center gap-2 bg-[rgb(238,242,255)] py-[0.4rem] px-[0.8rem] ml-2 rounded-full focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-200">
-          <BiSearchAlt className="text-[rgb(129,140,248)] " size={19} />
+        <div className="w-[70%] flex items-center text-center gap-2 bg-[rgb(238,242,255)] dark:bg-gray-800 py-[0.4rem] px-[0.8rem] ml-2 rounded-full focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-200">
+          <BiSearchAlt className="text-[rgb(129,140,248)] dark:text-indigo-400" size={19} />
           <input
             type="text"
             placeholder="Search for students, courses, batches, invoices..."
-            className="w-full outline-0 border-0 placeholder:text-[rgb(129,140,248)]  flex items-center text-indigo-500 bg-transparent"
+            className="w-full outline-0 border-0 placeholder:text-[rgb(129,140,248)] dark:placeholder:text-indigo-400 flex items-center text-indigo-500 dark:text-indigo-300 bg-transparent"
             name="input"
           />
         </div>
@@ -73,9 +73,9 @@ const Navbar = ({ user, centers }: NavbarProps) => {
             <Centerdropdown user={user} centers={centers} />
           </div>
           <div className="relative cursor-pointer" onClick={handleNotificationClick}>
-            <IoIosNotificationsOutline size={30} className="text-gray-700" />
+            <IoIosNotificationsOutline size={30} className="text-gray-700 dark:text-gray-300" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -left-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></span>
+              <span className="absolute -top-1 -left-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
             )}
           </div>
           <Profile />

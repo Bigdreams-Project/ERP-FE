@@ -218,14 +218,14 @@ export default function ArchiveTable({
     <div className="font-inter text-gray-200">
       {/* Bulk Actions Bar - Show when records are selected */}
       {selectedCount > 0 && isAdmin && !isAdminLoading && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-blue-900">
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-200">
               {selectedCount} record{selectedCount !== 1 ? "s" : ""} selected
             </span>
             <button
               onClick={() => setSelectedRecords([])}
-              className="text-sm text-blue-600 hover:text-blue-800 underline"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               disabled={isBulkDeleting}
             >
               Clear Selection
@@ -235,10 +235,10 @@ export default function ArchiveTable({
             <button
               onClick={handleBulkDelete}
               disabled={isBulkDeleting}
-              className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors ${
+              className={`hidden flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors ${
                 isBulkDeleting
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-red-600 hover:bg-red-700"
+                  ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
+                  : "bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800"
               }`}
             >
               <Trash2 size={16} />
@@ -248,14 +248,14 @@ export default function ArchiveTable({
         </div>
       )}
 
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent text="Archive Record" setIsModalOpen={() => {}} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 dark:text-gray-300">
               <thead>
-                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
                   <th className="p-4 flex items-center">
                     <input
                       type="checkbox"
@@ -289,7 +289,7 @@ export default function ArchiveTable({
                 {paginatedData.map((record: ArchiveRecord, index) => (
                   <tr
                     key={record.id}
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <td className="p-4 flex items-center">
                       <input
@@ -304,7 +304,7 @@ export default function ArchiveTable({
                       {record.newStudentId || record.oldStudentId ? (
                         <Link
                           href={`/dashboard/academic/archive/${record.id}`}
-                          className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                          className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {highlightMatch(record.newStudentId || record.oldStudentId || "-", searchQuery)}
@@ -337,17 +337,17 @@ export default function ArchiveTable({
                           <ChevronDown size={16} className="ml-2" />
                         </button>
                         {openDropdown === record.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                             <button
                               onClick={() => handleView(record)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               <Eye size={16} className="mr-2" />
                               View
                             </button>
                             <button
                               onClick={() => handleEdit(record)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               <Edit size={16} className="mr-2" />
                               Edit
@@ -355,7 +355,7 @@ export default function ArchiveTable({
                             {record.status?.toUpperCase() !== "MIGRATED" && (
                               <button
                                 onClick={() => handleRestore(record)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
+                                className="flex items-center w-full px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                               >
                                 <RotateCcw size={16} className="mr-2" />
                                 Restore Student
@@ -363,7 +363,7 @@ export default function ArchiveTable({
                             )}
                             <button
                               onClick={() => handleDelete(record)}
-                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              className="hidden flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               <Trash2 size={16} className="mr-2" />
                               Delete
@@ -380,7 +380,7 @@ export default function ArchiveTable({
         </div>
 
         {/* Pagination - Always visible */}
-        <div className="sticky w-full bottom-0 z-10 bg-white">
+        <div className="sticky w-full bottom-0 z-10 bg-white dark:bg-gray-800">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -415,11 +415,11 @@ export default function ArchiveTable({
           {/* Delete Confirmation Modal */}
           {isDeleteModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                <h2 className="text-xl font-bold mb-4">Delete Archive Record</h2>
-                <p className="text-gray-700 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Delete Archive Record</h2>
+                <p className="text-gray-700 dark:text-gray-300 mb-6">
                   Are you sure you want to delete the archive record for{" "}
-                  <strong>{selectedRecord.fullname}</strong>? This action cannot be undone.
+                  <strong className="text-gray-900 dark:text-gray-100">{selectedRecord.fullname}</strong>? This action cannot be undone.
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
@@ -427,7 +427,7 @@ export default function ArchiveTable({
                       setIsDeleteModalOpen(false);
                       setSelectedRecord(null);
                     }}
-                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     disabled={isDeleting}
                   >
                     Cancel
@@ -435,7 +435,7 @@ export default function ArchiveTable({
                   <button
                     onClick={handleDeleteConfirm}
                     disabled={isDeleting}
-                    className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
+                    className={`px-4 py-2 text-white bg-red-600 dark:bg-red-700 rounded-md hover:bg-red-700 dark:hover:bg-red-800 transition-colors ${
                       isDeleting ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
@@ -452,10 +452,10 @@ export default function ArchiveTable({
       {/* Bulk Delete Confirmation Modal - Outside selectedRecord block */}
       {isBulkDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold mb-4">Delete Multiple Archive Records</h2>
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to delete <strong>{selectedCount} archive record{selectedCount !== 1 ? "s" : ""}</strong>? 
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Delete Multiple Archive Records</h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              Are you sure you want to delete <strong className="text-gray-900 dark:text-gray-100">{selectedCount} archive record{selectedCount !== 1 ? "s" : ""}</strong>? 
               This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
@@ -463,7 +463,7 @@ export default function ArchiveTable({
                 onClick={() => {
                   setIsBulkDeleteModalOpen(false);
                 }}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 disabled={isBulkDeleting}
               >
                 Cancel
@@ -471,7 +471,7 @@ export default function ArchiveTable({
               <button
                 onClick={handleBulkDeleteConfirm}
                 disabled={isBulkDeleting}
-                className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
+                className={`px-4 py-2 text-white bg-red-600 dark:bg-red-700 rounded-md hover:bg-red-700 dark:hover:bg-red-800 transition-colors ${
                   isBulkDeleting ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >

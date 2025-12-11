@@ -375,15 +375,15 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
-      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
             {mode === "edit" ? "Edit Student" : "Enroll New Student"}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -399,7 +399,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           <div className="w-full flex flex-col relative mb-5">
             <label
               htmlFor="leadId"
-              className="text-sm font-medium text-gray-700 mb-1"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Lead ID
             </label>
@@ -407,7 +407,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <select
                 id="leadId"
                 {...register("leadId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors pr-10 appearance-none"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors pr-10 appearance-none"
               >
                 <option value="">Search lead ID</option>
                 {leads.map((lead) => (
@@ -423,21 +423,21 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 onClick={() => setShowTooltip(!showTooltip)}
               >
                 <Info size={18} />
               </button>
             </div>
             {errors.leadId && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.leadId.message}
               </p>
             )}
             {/* Tooltip */}
             {showTooltip && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white">
-                <p className="text-gray-700">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white dark:before:border-b-gray-800">
+                <p className="text-gray-700 dark:text-gray-300">
                   Use a Lead ID to auto-populate fields from an existing record.
                 </p>
               </div>
@@ -449,7 +449,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-1">
               <label
                 htmlFor="fullName"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Full Name
               </label>
@@ -457,10 +457,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="fullName"
                 {...register("fullName")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.fullName && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.fullName.message}
                 </p>
               )}
@@ -470,7 +470,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-1">
               <label
                 htmlFor="phone"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Phone Number
               </label>
@@ -478,10 +478,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="tel"
                 id="phone"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.phone.message}
                 </p>
               )}
@@ -491,7 +491,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Email
               </label>
@@ -499,10 +499,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="email"
                 id="email"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.email.message}
                 </p>
               )}
@@ -512,7 +512,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="address"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Home Address
               </label>
@@ -520,10 +520,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="address"
                 {...register("address")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.address && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.address.message}
                 </p>
               )}
@@ -534,14 +534,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <div className="flex flex-col relative">
                 <label
                   htmlFor="status"
-                  className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
                 >
                   Status
                 </label>
                 <select
                   id="status"
                   {...register("status")}
-                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                  className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Choose Status</option>
                   {statuses.map((status) => (
@@ -550,11 +550,11 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                     </option>
                   ))}
                 </select>
-                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                   <ChevronDown size={18} />
                 </span>
                 {errors.status && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.status.message}
                   </p>
                 )}
@@ -565,14 +565,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="centerId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Center
               </label>
               <select
                 id="centerId"
                 {...register("centerId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
@@ -585,7 +585,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.courseId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.courseId.message}
                 </p>
               )}
@@ -595,17 +595,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="enrolledDate"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
               >
                 Enquiry Date
               </label>
               <input
                 type="date"
                 {...register("enrolledDate")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.enrolledDate && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.enrolledDate.message}
                 </p>
               )}
@@ -615,17 +615,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="birthDate"
-                className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1"
               >
                 Birth Date
               </label>
               <input
                 type="date"
                 {...register("birthDate")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.birthDate.message}
                 </p>
               )}
@@ -635,7 +635,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="guardianName"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Name
               </label>
@@ -643,10 +643,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="guardianName"
                 {...register("guardianName")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianName && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianName.message}
                 </p>
               )}
@@ -656,7 +656,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col">
               <label
                 htmlFor="guardianPhone"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Phone Number
               </label>
@@ -664,10 +664,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="tel"
                 id="guardianPhone"
                 {...register("guardianPhone")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianPhone && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianPhone.message}
                 </p>
               )}
@@ -677,7 +677,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="guardianEmail"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Email
               </label>
@@ -685,10 +685,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="email"
                 id="guardianEmail"
                 {...register("guardianEmail")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianEmail && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianEmail.message}
                 </p>
               )}
@@ -698,7 +698,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col sm:col-span-2">
               <label
                 htmlFor="guardianAddress"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Guardian Address
               </label>
@@ -706,29 +706,29 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="text"
                 id="guardianAddress"
                 {...register("guardianAddress")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.guardianAddress && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.guardianAddress.message}
                 </p>
               )}
             </div>
 
-            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200"></div>
+            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200 dark:border-gray-700"></div>
 
             {/* Course of Interest */}
             <div className="flex flex-col relative">
               <label
                 htmlFor="courseId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Course of Interest
               </label>
               <select
                 id="courseId"
                 {...register("courseId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
                 {courses.map((course) => {
@@ -753,7 +753,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.courseId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.courseId.message}
                 </p>
               )}
@@ -764,7 +764,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <div className="flex flex-col relative">
                 <label
                   htmlFor="priceType"
-                  className="text-sm font-medium text-gray-700 mb-1"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Price Type
                 </label>
@@ -778,12 +778,12 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                       setValue("courseFee", fee.toString(), { shouldValidate: true });
                     }
                   }}
-                  className="w-full h-10 px-3 text-sm text-black rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                  className="w-full h-10 px-3 text-sm text-black dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Price Type</option>
                   <option value="current">New Price</option>
                 </select>
-                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                   <ChevronDown size={18} />
                 </span>
               </div>
@@ -794,7 +794,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <div className="flex flex-col">
                 <label
                   htmlFor="courseFee"
-                  className="text-sm font-medium text-gray-700 mb-1"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Course Fee
                 </label>
@@ -805,7 +805,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                       id="courseFee-display"
                       value={courseFeeValue ? `₦${Number(courseFeeValue).toLocaleString()}` : `₦${getCurrentFee().toLocaleString()}`}
                       readOnly
-                      className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 text-gray-600 border-2 border-transparent cursor-not-allowed"
+                      className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-transparent cursor-not-allowed"
                     />
                     <input
                       type="hidden"
@@ -821,7 +821,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="amount"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Amount Paid
               </label>
@@ -829,10 +829,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 type="number"
                 id="amount"
                 {...register("amount")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.amount && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.amount.message}
                 </p>
               )}
@@ -842,14 +842,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="bankId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Bank
               </label>
               <select
                 id="bankId"
                 {...register("bankId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Bank</option>
                 {banks.map((bank) => (
@@ -862,7 +862,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.bankId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.bankId.message}
                 </p>
               )}
@@ -872,14 +872,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="batchId"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Batch
               </label>
               <select
                 id="batchId"
                 {...register("batchId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Batch</option>
                 {(selectedCourse?.batches || []).map((batch) => (
@@ -892,7 +892,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.batchId && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.batchId.message}
                 </p>
               )}
@@ -902,7 +902,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="paymentPlan"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Payment Plan
               </label>
@@ -913,7 +913,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   handlePaymentPlan(e);
                 }}
                 disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Payment Plan</option>
                 {paymentPlan?.map((plan) => (
@@ -926,7 +926,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.paymentPlan && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.paymentPlan.message}
                 </p>
               )}
@@ -936,7 +936,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="paymentType"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Payment Type
               </label>
@@ -947,7 +947,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   handlePaymentType(e);
                 }}
                 disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Payment Type</option>
                 {paymentTypes?.map((plan) => (
@@ -960,7 +960,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.paymentType && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.paymentType.message}
                 </p>
               )}
@@ -970,7 +970,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <div className="flex flex-col relative">
               <label
                 htmlFor="paymentMethod"
-                className="text-sm font-medium text-gray-700 mb-1"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Payment Method
               </label>
@@ -981,7 +981,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   handlePaymentMethod(e);
                 }}
                 disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Payment Method</option>
                 {paymentMethods?.map((plan) => (
@@ -994,7 +994,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.paymentMethod && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.paymentMethod.message}
                 </p>
               )}
@@ -1013,10 +1013,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 {...register("lumpSumFee")}
                 value={lumpSum ? `₦${lumpSum.toLocaleString()}` : ""}
                 readOnly
-                className={`w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
+                className={`w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-300 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-white dark:focus:border-gray-600 focus:outline-none transition-colors`}
               />
               {errors.lumpSumFee && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.lumpSumFee.message}
                 </p>
               )}
@@ -1027,7 +1027,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               <div className="flex flex-col relative">
                 <label
                   htmlFor="numberOfInstallments"
-                  className="text-sm font-medium text-gray-700 mb-1"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   No. of Installments
                 </label>
@@ -1054,11 +1054,11 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                       </option>
                     ))}
                 </select>
-                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                   <ChevronDown size={18} />
                 </span>
                 {errors.numberOfInstallments && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.numberOfInstallments.message}
                   </p>
                 )}
@@ -1066,17 +1066,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             )}
           </div>
 
-          <p className="text-sm font-medium text-gray-700 mt-6">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
             Required base fee is ₦
             {(selectedCourse?.courseAssignments?.[0]?.baseFee || 0).toLocaleString()} for
             enrollment
           </p>
-          <p className="text-sm font-medium text-gray-700 mt-1">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
             Total Deposit: ₦{amount && !isNaN(parseFloat(amount)) ? parseFloat(amount).toLocaleString() : '0'}
           </p>
 
           {showBaseFeeError && (
-            <p className="text-red-500 text-sm mt-2 font-semibold">
+            <p className="text-red-500 dark:text-red-400 text-sm mt-2 font-semibold">
               Student does not meet base enrollment fee
             </p>
           )}
@@ -1085,7 +1085,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           <div className="flex flex-col sm:col-span-2 mt-4">
             <label
               htmlFor="notes"
-              className="text-sm font-medium text-gray-700 mb-1"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Note
             </label>
@@ -1093,21 +1093,21 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               id="notes"
               {...register("notes")}
               rows={3}
-              className="w-full p-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
             ></textarea>
             {errors.notes && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.notes.message}
               </p>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-auto pt-4 border-t border-gray-200 flex justify-end gap-3">
+          <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
@@ -1115,8 +1115,8 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               type="submit"
               className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
                 isValid && !showBaseFeeError && !isLoading
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-blue-400 cursor-not-allowed opacity-70"
+                  ? "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600"
+                  : "bg-blue-400 dark:bg-blue-600 cursor-not-allowed opacity-70"
               }`}
               disabled={!isValid || showBaseFeeError || isLoading}
             >

@@ -89,7 +89,7 @@ export default function CenterTable({
 
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
-        <span key={i} className=" text-primary">
+        <span key={i} className="text-primary dark:text-indigo-400">
           {part}
         </span>
       ) : (
@@ -148,14 +148,14 @@ export default function CenterTable({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent text="Center" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700">
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 dark:text-gray-300">
               <thead>
-                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
                   <th className="p-4">#</th>
                   <th className="p-4">Center Code</th>
                   <th className="p-4">Center Name</th>
@@ -173,41 +173,41 @@ export default function CenterTable({
                 {paginatedData.map((center: Center, index) => (
                   <tr
                     key={center.id}
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
-                    <td className="p-4">
+                    <td className="p-4 text-gray-700 dark:text-gray-300">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="p-3">
                       <Link
                         href={`/dashboard/academic/centers/${center.id}`}
-                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                        className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                       >
                         {center.code} <Link2Icon size={12} />
                       </Link>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.name, searchQuery)}
                     </td>
-                    <td className="p-3 font-bold">
+                    <td className="p-3 font-bold text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.manager?.fullname, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.email, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.phone, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {highlightMatch(center.address, searchQuery)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {center.students ? center.students.length : ""}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 text-gray-700 dark:text-gray-300">
                       {center.leads ? center.leads.length : ""}
                     </td>
-                    <td className="p-3">{center.status}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300">{center.status}</td>
                     <td className="p-3 relative text-right">
                       <button
                         onClick={() => toggleDropdown(center.id)}
@@ -217,14 +217,14 @@ export default function CenterTable({
                         <ChevronDown size={16} className="ml-2" />
                       </button>
                       {openDropdown === center.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/academic/centers/${center.id}`
                               )
                             }
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <Eye size={16} />
                             View
@@ -232,7 +232,7 @@ export default function CenterTable({
                           {isAdmin && !isAdminLoading && (
                             <button
                               onClick={() => handleDelete(center)}
-                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               <Trash2 size={16} />
                               Delete
@@ -249,7 +249,7 @@ export default function CenterTable({
         </div>
       </div>
 
-      <div className="sticky w-full bottom-0 z-10 bg-white">
+      <div className="sticky w-full bottom-0 z-10 bg-white dark:bg-gray-800">
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

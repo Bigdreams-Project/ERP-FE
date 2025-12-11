@@ -40,7 +40,7 @@ export default function TransactionDetailTable({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {data.length === 0 ? (
             <NotFoundComponent
@@ -48,10 +48,10 @@ export default function TransactionDetailTable({
               setIsModalOpen={setIsModalOpen}
             />
           ) : (
-            <table className="min-w-full divide-y divide-gray-300">
-              <thead className="bg-white">
+            <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+              <thead className="bg-white dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 dark:text-gray-300 uppercase tracking-wider">
                     Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -74,7 +74,7 @@ export default function TransactionDetailTable({
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-300">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-300 dark:divide-gray-700">
                 {data.map((transaction, index) => (
                   <tr
                     key={index}
@@ -83,26 +83,26 @@ export default function TransactionDetailTable({
                         `/dashboard/finance/banking/transactions/${transaction.id}`
                       )
                     }
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-semibold">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 font-semibold">
                       {transaction.updatedAt
                         ? formatDate(transaction.updatedAt)
                         : formatDate(transaction.createdAt)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100">
                       {getPaymentMethod(transaction.paymentMethod)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100">
                       {getPaymentType(transaction.paymentType)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100">
                       {getPaymentPlan(transaction.paymentPlan.name)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       ₦{transaction.amount.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       ₦
                       {transaction.paymentPlan &&
                         transaction.paymentPlan.pending.toLocaleString()}
@@ -111,8 +111,8 @@ export default function TransactionDetailTable({
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           transaction.message === "Inflow"
-                            ? "text-green-400 bg-gray-100"
-                            : "text-red-400 bg-gray-100"
+                            ? "text-green-400 dark:text-green-300 bg-gray-100 dark:bg-gray-700"
+                            : "text-red-400 dark:text-red-300 bg-gray-100 dark:bg-gray-700"
                         }`}
                       >
                         {transaction.paymentPlan &&

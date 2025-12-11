@@ -55,11 +55,11 @@ export const DetailRow = ({
   icon: Icon,
   label,
   value,
-  valueClassName = "font-medium text-gray-800",
+  valueClassName = "font-medium text-gray-800 dark:text-gray-200",
 }: any) => (
-  <div className="flex items-start justify-between py-2 border-b border-gray-100 last:border-b-0">
-    <div className="flex items-center text-gray-500">
-      <Icon className="w-4 h-4 mr-3 text-gray-400" />
+  <div className="flex items-start justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+    <div className="flex items-center text-gray-500 dark:text-gray-400">
+      <Icon className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
       <span className="text-sm">{label}</span>
     </div>
     <span className={valueClassName}>{value}</span>
@@ -70,11 +70,11 @@ export const DetailRow2 = ({
   icon: Icon,
   label,
   value,
-  valueClassName = "font-medium text-gray-800",
+  valueClassName = "font-medium text-gray-800 dark:text-gray-200",
 }: any) => (
-  <div className="flex items-start gap-4 justify-between py-2 border-b border-gray-100 last:border-b-0">
-    <div className="flex items-center text-gray-500">
-      <Icon className="w-4 h-4 mr-3 text-gray-400" />
+  <div className="flex items-start gap-4 justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+    <div className="flex items-center text-gray-500 dark:text-gray-400">
+      <Icon className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
       <span className="text-sm">{label}</span>
     </div>
     <span className={valueClassName}>{value}</span>
@@ -88,26 +88,26 @@ export const PaymentSummary = ({ data }: Props) => {
 
   if (!data || !data.paymentPlan) {
     return (
-      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
-        <p className="text-gray-500">Transaction data not available</p>
+      <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
+        <p className="text-gray-500 dark:text-gray-400">Transaction data not available</p>
       </div>
     );
   }
 
   const statusColor =
     getStatus(parseFloat(data.paymentPlan.pending || "0")) === "Paid"
-      ? "bg-green-100 text-green-700"
-      : "bg-red-100 text-red-700";
+      ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200"
+      : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200";
 
   return (
-    <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
-      <h2 className="text-xl font-semibold mb-6 text-gray-700">
+    <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
+      <h2 className="text-xl font-semibold mb-6 text-gray-700 dark:text-gray-200">
         Payment Summary
       </h2>
 
       {/* Amount and Status */}
       <div className="flex items-center justify-between mb-6">
-        <span className="text-3xl font-bold text-gray-900">
+        <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           ₦{data.amount.toLocaleString()}
         </span>
         <span
@@ -118,7 +118,7 @@ export const PaymentSummary = ({ data }: Props) => {
       </div>
 
       {/* Details List */}
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 dark:divide-gray-700">
         <DetailRow
           icon={Calendar}
           label="Date"
@@ -140,19 +140,19 @@ export const PaymentSummary = ({ data }: Props) => {
 export const PaymentDetails = ({ data }: Props) => {
   if (!data || !data.paymentPlan) {
     return (
-      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
-        <p className="text-gray-500">Payment details not available</p>
+      <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
+        <p className="text-gray-500 dark:text-gray-400">Payment details not available</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
-      <h2 className="text-xl font-semibold mb-6 text-gray-700">
+    <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
+      <h2 className="text-xl font-semibold mb-6 text-gray-700 dark:text-gray-200">
         Payment Details
       </h2>
 
-      <div className="divide-y divide-gray-100 mb-6">
+      <div className="divide-y divide-gray-100 dark:divide-gray-700 mb-6">
         <DetailRow2
           icon={Book}
           label="Course"
@@ -166,18 +166,18 @@ export const PaymentDetails = ({ data }: Props) => {
         />
       </div>
 
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 dark:divide-gray-700">
         <DetailRow
           icon={Percent}
           label="Total Fee"
           value={`₦${(data.paymentPlan.amount || 0).toLocaleString()}`}
-          valueClassName="font-bold text-gray-900"
+          valueClassName="font-bold text-gray-900 dark:text-gray-100"
         />
         <DetailRow
           icon={CheckCircle}
           label="Paid So Far"
           value={`₦${(data.paymentPlan.paid || "0").toLocaleString()}`}
-          valueClassName="font-bold text-gray-900"
+          valueClassName="font-bold text-gray-900 dark:text-gray-100"
         />
         <DetailRow
           icon={Receipt}
@@ -185,7 +185,7 @@ export const PaymentDetails = ({ data }: Props) => {
           value={`₦${parseFloat(
             data.paymentPlan.pending || "0"
           ).toLocaleString()}`}
-          valueClassName="font-extrabold text-red-600"
+          valueClassName="font-extrabold text-red-600 dark:text-red-400"
         />
       </div>
     </div>
@@ -199,8 +199,8 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
 
   if (!data || !data.paymentPlan) {
     return (
-      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
-        <p className="text-gray-500">Actions not available</p>
+      <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+        <p className="text-gray-500 dark:text-gray-400">Actions not available</p>
       </div>
     );
   }
@@ -209,8 +209,8 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
   const isPaid = pending === 0;
   const statusText = isPaid ? "Paid" : "Pending";
   const statusColor = isPaid
-    ? "bg-green-100 text-green-700"
-    : "bg-red-100 text-red-700";
+    ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200"
+    : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200";
 
   const ActionButton = ({
     icon: Icon,
@@ -226,13 +226,13 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
             ? "bg-green-500 hover:bg-green-600 text-white shadow-md"
             : isDestructive
             ? "bg-red-500 hover:bg-red-600 text-white shadow-md"
-            : "text-gray-700 bg-gray-50 hover:bg-gray-100"
+            : "text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
         }`}
       onClick={onClick}
     >
       <Icon
         className={`w-4 h-4 mr-3 ${
-          isSuccess || isDestructive ? "text-white" : "text-gray-500"
+          isSuccess || isDestructive ? "text-white" : "text-gray-500 dark:text-gray-400"
         }`}
       />
       {label}
@@ -262,9 +262,9 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
 
   return (
     <>
-      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+      <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-700">
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
             Additional Actions
           </h2>
           <span
@@ -321,10 +321,10 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
 export const PayerInformation = ({ data }: Props) => {
   const PayerDetail = ({ icon: Icon, label, value }: any) => (
     <div className="flex items-start mb-4">
-      <Icon className="w-4 h-4 mr-3 text-gray-400 mt-1" />
+      <Icon className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500 mt-1" />
       <div className="flex-grow flex justify-between">
-        <span className="text-sm text-gray-500">{label}</span>
-        <span className="text-sm font-medium text-gray-800 text-right">
+        <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
+        <span className="text-sm font-medium text-gray-800 dark:text-gray-200 text-right">
           {value || "N/A"}
         </span>
       </div>
@@ -333,8 +333,8 @@ export const PayerInformation = ({ data }: Props) => {
 
   if (!data) {
     return (
-      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm mb-6">
-        <p className="text-gray-500">Payer information not available</p>
+      <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
+        <p className="text-gray-500 dark:text-gray-400">Payer information not available</p>
       </div>
     );
   }
@@ -343,25 +343,25 @@ export const PayerInformation = ({ data }: Props) => {
   const hasStudentLink = !!studentId;
 
   const content = (
-    <div className={`p-6 bg-white border rounded-xl shadow-sm mb-6 transition-all duration-200 ${
+    <div className={`p-6 bg-white dark:bg-gray-800 border rounded-xl shadow-sm mb-6 transition-all duration-200 ${
       hasStudentLink 
-        ? "border-blue-300 hover:border-blue-500 hover:shadow-md cursor-pointer" 
-        : "border-gray-200"
+        ? "border-blue-300 dark:border-blue-600 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md cursor-pointer" 
+        : "border-gray-200 dark:border-gray-700"
     }`}>
       <div className="flex items-center justify-between mb-6">
         <h2 className={`text-xl font-semibold ${
-          hasStudentLink ? "text-blue-700" : "text-gray-700"
+          hasStudentLink ? "text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-200"
         }`}>
           Payer Information
         </h2>
         {hasStudentLink && (
-          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1">
+          <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-700 flex items-center gap-1">
             <User className="w-3 h-3" />
             View Student →
           </span>
         )}
       </div>
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 dark:divide-gray-700">
         <PayerDetail icon={User} label="Name" value={data.student?.fullName} />
         <PayerDetail icon={User} label="Relationship" value={"Student"} />
         <PayerDetail icon={Mail} label="Contact" value={data.student?.phone} />
@@ -396,22 +396,22 @@ export const ProofOfPayment = ({ data }: any) => {
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   const UploadedInfo = ({ uploadedBy, uploadedDate, proofStatus }: any) => (
-    <div className="my-4 text-sm text-gray-600">
+    <div className="my-4 text-sm text-gray-600 dark:text-gray-400">
       {/* <p>
         Uploaded by
-        <span className="font-semibold text-gray-800">{uploadedBy}</span> on{" "}
+        <span className="font-semibold text-gray-800 dark:text-gray-200">{uploadedBy}</span> on{" "}
         {uploadedDate}
       </p> */}
-      <p className="text-xs text-gray-500 mt-1">{proofStatus}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{proofStatus}</p>
     </div>
   );
 
   const SecondaryButton = ({ icon: Icon, label, onClick }: any) => (
     <button
-      className="flex items-center text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded-lg transition duration-150 ease-in-out"
+      className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 px-3 py-2 rounded-lg transition duration-150 ease-in-out"
       onClick={onClick}
     >
-      <Icon className="w-4 h-4 mr-2 text-gray-500" />
+      <Icon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
       {label}
     </button>
   );
@@ -727,16 +727,16 @@ export const ProofOfPayment = ({ data }: any) => {
 
   return (
     <>
-      <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 text-gray-700">
+      <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+        <h2 className="text-xl font-semibold mb-6 text-gray-700 dark:text-gray-200">
           Proof of Payment
         </h2>
 
         <button
-          className="flex items-center justify-center w-full px-4 py-3 bg-white border border-gray-300 text-sm font-medium rounded-xl text-gray-700 hover:bg-gray-50 transition duration-150 ease-in-out"
+          className="flex items-center justify-center w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition duration-150 ease-in-out"
           onClick={handleViewReceipt}
         >
-          <Receipt className="w-5 h-5 mr-3 text-blue-600" />
+          <Receipt className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" />
           View Receipt
         </button>
 

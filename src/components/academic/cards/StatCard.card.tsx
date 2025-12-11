@@ -17,14 +17,14 @@ const StatCard = ({
 
   return (
     <div
-      className={`bg-white p-6 border-1 border-gray-700 rounded-xl shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl`}
+      className={`bg-white dark:bg-gray-800 p-6 border-1 border-gray-700 dark:border-gray-600 rounded-xl shadow-sm shadow-gray-400 dark:shadow-gray-900 transition-all duration-300 hover:shadow-2xl`}
     >
       <div className="flex justify-between items-start mb-2">
-        <h3 className="text-sm font-semibold text-gray-400">{title}</h3>
-        {Icon && <Icon className="text-gray-500" size={20} />}
+        <h3 className="text-sm font-semibold text-gray-400 dark:text-gray-400">{title}</h3>
+        {Icon && <Icon className="text-gray-500 dark:text-gray-400" size={20} />}
       </div>
       <div className="flex items-end space-x-2">
-        <span className="text-3xl font-bold text-[#242524FF]">{value}</span>
+        <span className="text-3xl font-bold text-[#242524FF] dark:text-gray-100">{value}</span>
         {change && (
           <div
             className={`flex items-center text-sm font-medium ${changeColor}`}
@@ -34,8 +34,8 @@ const StatCard = ({
           </div>
         )}
       </div>
-      {subText && <p className="text-gray-400 text-xs mt-1">{subText}</p>}
-      {changeText && <p className="text-gray-400 text-xs mt-1">{changeText}</p>}
+      {subText && <p className="text-gray-400 dark:text-gray-400 text-xs mt-1">{subText}</p>}
+      {changeText && <p className="text-gray-400 dark:text-gray-400 text-xs mt-1">{changeText}</p>}
     </div>
   );
 };

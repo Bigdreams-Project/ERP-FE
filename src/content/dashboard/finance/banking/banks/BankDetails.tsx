@@ -320,15 +320,15 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
   };
 
   return (
-    <div className="bg-white text-white min-h-screen font-sans">
+    <div className="bg-white dark:bg-gray-900 text-white min-h-screen font-sans">
       <main className="flex-1 p-8 overflow-y-auto">
         {/* Statement of Account - Off-screen element for PDF/Print */}
         <div
           id="statement-of-account"
-          className="absolute left-[-9999px] top-0 w-[800px] bg-white"
+          className="absolute left-[-9999px] top-0 w-[800px] bg-white dark:bg-white"
           style={{ position: "absolute", left: "-9999px" }}
         >
-          <div className="max-w-4xl mx-auto bg-white p-8">
+          <div className="max-w-4xl mx-auto bg-white dark:bg-white p-8">
             {/* Header */}
             <div className="mb-6 border-b-2 border-gray-300 pb-4">
               <div className="flex items-center gap-3 mb-4">
@@ -338,7 +338,7 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
                   className="h-12 w-auto"
                 />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                 Statement of Account
               </h1>
             </div>
@@ -347,59 +347,59 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
             <div className="mb-6 space-y-2 text-sm">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-gray-700 dark:text-gray-700">
                     Bank Name:
                   </span>
-                  <span className="ml-2 text-gray-900">{bank.bankName}</span>
+                  <span className="ml-2 text-gray-900 dark:text-gray-900">{bank.bankName}</span>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-gray-700 dark:text-gray-700">
                     Account Name:
                   </span>
-                  <span className="ml-2 text-gray-900">{bank.accountName}</span>
+                  <span className="ml-2 text-gray-900 dark:text-gray-900">{bank.accountName}</span>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-gray-700 dark:text-gray-700">
                     Account Number:
                   </span>
-                  <span className="ml-2 text-gray-900">
+                  <span className="ml-2 text-gray-900 dark:text-gray-900">
                     {bank.accountNumber}
                   </span>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-700">Center:</span>
-                  <span className="ml-2 text-gray-900">
+                  <span className="font-semibold text-gray-700 dark:text-gray-700">Center:</span>
+                  <span className="ml-2 text-gray-900 dark:text-gray-900">
                     {bank.center?.name || "N/A"}
                   </span>
                 </div>
                 {canViewBalance && (
                   <div>
-                    <span className="font-semibold text-gray-700">
+                    <span className="font-semibold text-gray-700 dark:text-gray-700">
                       Current Balance:
                     </span>
-                    <span className="ml-2 text-gray-900 font-bold">
+                    <span className="ml-2 text-gray-900 dark:text-gray-900 font-bold">
                       ₦{parseInt(bank.balance).toLocaleString()}
                     </span>
                   </div>
                 )}
                 <div>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-gray-700 dark:text-gray-700">
                     Date Range:
                   </span>
-                  <span className="ml-2 text-gray-900">{displayRange}</span>
+                  <span className="ml-2 text-gray-900 dark:text-gray-900">{displayRange}</span>
                 </div>
               </div>
             </div>
 
             {/* Transactions Table */}
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-4">
                 Transactions
               </h2>
               <table className="min-w-full border border-gray-300">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 border border-gray-300">
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-700 border border-gray-300">
                       Date
                     </th>
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 border border-gray-300">
@@ -441,26 +441,26 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
                         const isPaid = pending === 0;
                         return (
                           <tr key={index}>
-                            <td className="px-4 py-2 text-sm text-gray-900 border border-gray-300">
+                            <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-900 border border-gray-300">
                               {formatDate(payment.paymentDate)}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 border border-gray-300">
+                            <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-900 border border-gray-300">
                               {getPaymentMethod(payment.paymentMethod) || "N/A"}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 border border-gray-300">
+                            <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-900 border border-gray-300">
                               {getPaymentType(payment.paymentType) || "N/A"}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 border border-gray-300">
+                            <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-900 border border-gray-300">
                               {getPaymentPlan(payment.paymentPlan?.name) ||
                                 "N/A"}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 border border-gray-300">
+                            <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-900 border border-gray-300">
                               ₦{payment.amount.toLocaleString()}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 border border-gray-300">
+                            <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-900 border border-gray-300">
                               ₦{payment.paymentPlan?.pending || "0"}
                             </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 border border-gray-300">
+                            <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-900 border border-gray-300">
                               {isPaid ? "Paid" : "Pending"}
                             </td>
                           </tr>
@@ -526,9 +526,9 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
             </button>
             <button
               onClick={() => setShowFilterModal(!showFilterModal)}
-              className="px-6 py-3 border border-gray-300 text-black rounded-xl font-semibold transition-colors shadow-sm flex items-center gap-2 hover:bg-gray-50"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-black dark:text-gray-200 rounded-xl font-semibold transition-colors shadow-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800"
             >
-              <IoFilter className="w-5 h-5" />
+              <IoFilter className="w-5 h-5 text-black dark:text-gray-200" />
               Filter
             </button>
           </div>
@@ -536,14 +536,14 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
           {/* Filter Modal */}
           {showFilterModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     Filters
                   </h3>
                   <button
                     onClick={() => setShowFilterModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -565,7 +565,7 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
                 <div className="space-y-4">
                   {/* Date Range */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Date Range
                     </label>
                     <input
@@ -576,19 +576,19 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
                         setShowPicker(!showPicker);
                         setShowFilterModal(false);
                       }}
-                      className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     />
                   </div>
 
                   {/* Payment Method Filter */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Payment Method
                     </label>
                     <select
                       value={paymentMethodFilter}
                       onChange={(e) => setPaymentMethodFilter(e.target.value)}
-                      className="w-full px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     >
                       <option value="all">All Methods</option>
                       <option value="bank-transfer">Bank Transfer</option>
@@ -599,13 +599,13 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
 
                   {/* Payment Type Filter */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Payment Type
                     </label>
                     <select
                       value={paymentTypeFilter}
                       onChange={(e) => setPaymentTypeFilter(e.target.value)}
-                      className="w-full px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     >
                       <option value="all">All Types</option>
                       <option value="monthly">Monthly</option>
@@ -616,13 +616,13 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
 
                   {/* Status Filter */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Status
                     </label>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     >
                       <option value="all">All Statuses</option>
                       <option value="paid">Paid</option>
@@ -647,13 +647,13 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
                         },
                       ]);
                     }}
-                    className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800"
                   >
                     Reset
                   </button>
                   <button
                     onClick={() => setShowFilterModal(false)}
-                    className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                    className="px-4 py-2 text-sm bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600"
                   >
                     Apply
                   </button>
@@ -665,14 +665,14 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
           {/* Date Picker */}
           {showPicker && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-xl p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     Select Date Range
                   </h3>
                   <button
                     onClick={() => setShowPicker(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -701,8 +701,8 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-lg shadow-gray-400 overflow-x-auto">
-          <h2 className="text-xl font-semibold mb-4 text-black">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg shadow-gray-400 dark:shadow-gray-900 overflow-x-auto">
+          <h2 className="text-xl font-semibold mb-4 text-black dark:text-gray-100">
             Transactions
           </h2>
           <TransactionDetailTable

@@ -120,8 +120,8 @@ const CenterContent = ({
         <div className="flex items-center  gap-7 p-2">
           {/* Search Input */}
           <div className="w-[250px]">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:border-indigo-500 transition-all duration-150">
-              <BiSearchAlt size={18} className="ml-2 text-gray-600" />
+            <div className="flex items-center gap-1 py-1.5 border-2 border-gray-300 dark:border-gray-600 rounded focus-within:border-indigo-500 dark:focus-within:border-indigo-400 transition-all duration-150 bg-white dark:bg-gray-800">
+              <BiSearchAlt size={18} className="ml-2 text-gray-600 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search centers..."
@@ -130,10 +130,10 @@ const CenterContent = ({
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
-                className="outline-none w-full bg-transparent px-2 text-sm"
+                className="outline-none w-full bg-transparent px-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
-            {error && <p className="text-xs text-red-500 mt-1 ml-1">{error}</p>}
+            {error && <p className="text-xs text-red-500 dark:text-red-400 mt-1 ml-1">{error}</p>}
           </div>
 
           {/* Add Button */}

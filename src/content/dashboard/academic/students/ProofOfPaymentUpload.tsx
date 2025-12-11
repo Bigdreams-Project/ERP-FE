@@ -112,7 +112,7 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
 
   return (
     <Card title="Upload Proof of Payment" className="h-">
-      <p className="text-xs text-gray-500 mb-4">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
         Accepted formats: PDF, JPG, PNG (max 5MB)
       </p>
 
@@ -120,8 +120,8 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
       <div
         className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl mb-6 text-center cursor-pointer transition duration-150 ${
           isDragging
-            ? "border-blue-500 bg-blue-100"
-            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+            ? "border-blue-500 dark:border-blue-400 bg-blue-100 dark:bg-blue-900/40"
+            : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
         } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -130,13 +130,13 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
       >
         {isUploading ? (
           <>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-            <p className="text-sm font-medium text-gray-600">Uploading...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mb-2"></div>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Uploading...</p>
           </>
         ) : (
           <>
-            <CloudUpload className="text-gray-400 mb-2" />
-            <p className="text-sm font-medium text-gray-600">
+            <CloudUpload className="text-gray-400 dark:text-gray-500 mb-2" />
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
               Drag & drop files here or click to upload
             </p>
           </>
@@ -152,7 +152,7 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
       </div>
 
       {/* Recently Uploaded */}
-      <h3 className="text-sm font-medium text-gray-700 mb-2">
+      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Recently Uploaded:
       </h3>
       <div className="space-y-1 max-h-40 overflow-y-auto">
@@ -163,13 +163,13 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
               href={file.fileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-xs text-blue-600 hover:underline cursor-pointer"
+              className="block text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
             >
               {file.fileName} - {formatDate(file.uploadedAt)}
             </a>
           ))
         ) : (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             No receipts available. Please upload.
           </p>
         )}

@@ -22,15 +22,15 @@ export default function BreadCrumb({ paths }: BreadcrumbProps) {
           }
         }}
         disabled={isOverview}
-        className={`text-indigo-600 hover:text-indigo-800 mr-2 ${
+        className={`text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mr-2 ${
           isOverview ? "opacity-50 cursor-not-allowed" : ""
         }`}
       >
-        <FiChevronLeft size={28} className="text-[rgba(0,0,0,0.8)]" />
+        <FiChevronLeft size={28} className="text-gray-800 dark:text-gray-200" />
       </button>
 
       {/* Static Academic label */}
-      <div className="flex items-center text-[17px] font-inter text-indigo-500">
+      <div className="flex items-center text-[17px] font-inter text-indigo-500 dark:text-indigo-400">
         Academic
       </div>
 
@@ -40,17 +40,17 @@ export default function BreadCrumb({ paths }: BreadcrumbProps) {
           key={index}
           className="flex items-center space-x-1 text-[17px] font-inter"
         >
-          <span className="text-[rgba(0,0,0,0.7)]">
+          <span className="text-gray-600 dark:text-gray-400">
             <FiChevronRight size={16} />
           </span>
           {path.href ? (
             <Link href={path.href}>
-              <span className="text-indigo-500 hover:underline cursor-pointer">
+              <span className="text-indigo-500 dark:text-indigo-400 hover:underline cursor-pointer">
                 {path.name}
               </span>
             </Link>
           ) : (
-            <span className="text-indigo-500">{path.name}</span>
+            <span className="text-indigo-500 dark:text-indigo-400">{path.name}</span>
           )}
         </div>
       ))}

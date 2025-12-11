@@ -164,18 +164,18 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
           {/* Filter */}
           <div className="relative" ref={dropdownRef}>
             <div
-              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               onClick={() => setIsFilterDropdown(!isFilterDropdown)}
             >
               <IoFilter size={20} />
-              <p className="font-medium text-gray-900">Filter</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Filter</p>
             </div>
             {isFilterDropdown && (
-              <div className="absolute right-0 mt-2 bg-white rounded-md w-[200px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400">
+              <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 rounded-md w-[200px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400 dark:shadow-gray-900">
                 <div className="flex flex-col gap-3">
                   {/* Status Filter */}
                   <div className="flex flex-col gap-1">
-                    <p className="font-semibold text-gray-800">Status</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200">Status</p>
                     <ul className="flex flex-col gap-1">
                       {courseStatus.map((status) => (
                         <li
@@ -204,7 +204,7 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
 
                   {/* Type Filter */}
                   <div className="flex flex-col gap-1">
-                    <p className="font-semibold text-gray-800">Course Type</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200">Course Type</p>
                     <ul className="flex flex-col gap-1">
                       {courseTypes.map((type) => (
                         <li

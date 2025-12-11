@@ -411,7 +411,7 @@ const OverviewContent = ({
   }, [user?.role]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-100 p-4 md:py-8 md:px-3 font-inter">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-100 p-4 md:py-8 md:px-3 font-inter">
       <div className="max-w-7xl mx-auto">
         {/* Overview Header */}
         <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -440,14 +440,14 @@ const OverviewContent = ({
               readOnly
               value={displayRange || "Select a date range"}
               onClick={() => setShowPicker(!showPicker)}
-              className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
           </div>
         </div>
 
         {/* Date Picker */}
         {showPicker && (
-          <div className="absolute right-0 z-50 bg-white shadow-lg rounded-lg p-2">
+          <div className="absolute right-0 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-2">
             <DateRangePicker
               ranges={range}
               onChange={handleSelect}
@@ -467,8 +467,8 @@ const OverviewContent = ({
         {/* Charts & Latest Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Chart */}
-          <div className="lg:col-span-2 bg-white shadow-sm shadow-gray-400 p-6 rounded-xl flex flex-col">
-            <h2 className="text-lg font-bold mb-4 text-[#242524FF]">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 shadow-sm shadow-gray-400 dark:shadow-gray-900 p-6 rounded-xl flex flex-col">
+            <h2 className="text-lg font-bold mb-4 text-[#242524FF] dark:text-gray-100">
               Enrollment Funnel
             </h2>
             <div className="h-64">
@@ -501,8 +501,8 @@ const OverviewContent = ({
           </div>
 
           {/* Latest Insights */}
-          <div className="bg-white p-6 rounded-xl shadow-sm shadow-gray-400 relative">
-            <h2 className="text-lg font-bold mb-4 text-[#242524FF]">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm shadow-gray-400 dark:shadow-gray-900 relative">
+            <h2 className="text-lg font-bold mb-4 text-[#242524FF] dark:text-gray-100">
               Latest Insights
             </h2>
 
@@ -511,7 +511,7 @@ const OverviewContent = ({
               {computedData.insights.map((insight, index) => (
                 <li
                   key={index}
-                  className="flex items-center gap-2 text-sm text-[#8C8D8BFF]"
+                  className="flex items-center gap-2 text-sm text-[#8C8D8BFF] dark:text-gray-300"
                 >
                   {insight.icon}
                   <span>{insight.text}</span>
@@ -531,8 +531,8 @@ const OverviewContent = ({
         </div> */}
 
         {/* Recent Activity */}
-        <div className="bg-white p-6 rounded-xl shadow-sm shadow-gray-400">
-          <h2 className="text-lg font-bold mb-4 text-[#242524FF]">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm shadow-gray-400 dark:shadow-gray-900">
+          <h2 className="text-lg font-bold mb-4 text-[#242524FF] dark:text-gray-100">
             Recent Activity
           </h2>
           <div className="space-y-6">
@@ -543,7 +543,7 @@ const OverviewContent = ({
           {computedData.recentActivity.length >= 10 && (
             <button
               onClick={() => setShowActivityModal(true)}
-              className="mt-4 w-full px-4 py-2 text-sm font-medium text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
+              className="mt-4 w-full px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
             >
               View More
             </button>
@@ -553,15 +553,15 @@ const OverviewContent = ({
         {/* Activity Modal */}
         {showActivityModal && (
           <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
-            <div className="relative bg-white p-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
               {/* Header */}
-              <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800">
+              <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                   Recent Activity (Last 30 Days)
                 </h2>
                 <button
                   onClick={() => setShowActivityModal(false)}
-                  className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   aria-label="Close modal"
                 >
                   <X size={20} />
@@ -572,7 +572,7 @@ const OverviewContent = ({
               <div className="flex-1 overflow-y-auto py-4">
                 <div className="space-y-6">
                   {computedData.modalActivities.length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
                       No activities in the last 30 days
                     </p>
                   ) : (

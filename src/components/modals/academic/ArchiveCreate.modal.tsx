@@ -104,13 +104,13 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
-      <div className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">Add Archive Record</h2>
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Add Archive Record</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -122,12 +122,12 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Center */}
             <div className="flex flex-col relative md:col-span-2">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Center *
               </label>
               <select
                 {...register("centerId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Center</option>
                 {centers.map((center) => (
@@ -136,83 +136,83 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
                   </option>
                 ))}
               </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
               {errors.centerId && (
-                <p className="text-red-500 text-xs mt-1">{errors.centerId.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.centerId.message}</p>
               )}
             </div>
 
             {/* Full Name */}
             <div className="flex flex-col md:col-span-2">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Full Name *
               </label>
               <input
                 type="text"
                 {...register("fullname")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.fullname && (
-                <p className="text-red-500 text-xs mt-1">{errors.fullname.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.fullname.message}</p>
               )}
             </div>
 
             {/* Old Student ID (Legacy ID) */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Old Student ID (Legacy ID) *
               </label>
               <input
                 type="text"
                 {...register("oldStudentId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
                 placeholder="Enter legacy ID or leave empty for auto-generation"
               />
               {errors.oldStudentId && (
-                <p className="text-red-500 text-xs mt-1">{errors.oldStudentId.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.oldStudentId.message}</p>
               )}
             </div>
 
             {/* Email */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email *
               </label>
               <input
                 type="email"
                 {...register("email")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>
               )}
             </div>
 
             {/* Phone */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Phone *
               </label>
               <input
                 type="text"
                 {...register("phone")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.phone.message}</p>
               )}
             </div>
 
             {/* Course Enrolled */}
             <div className="flex flex-col relative">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Course Enrolled *
               </label>
               <select
                 {...register("courseEnrolled")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Course</option>
                 {courses.map((course) => {
@@ -237,96 +237,96 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.courseEnrolled && (
-                <p className="text-red-500 text-xs mt-1">{errors.courseEnrolled.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.courseEnrolled.message}</p>
               )}
             </div>
 
             {/* Course Price */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Course Price *
               </label>
               <input
                 type="number"
                 step="0.01"
                 {...register("coursePrice", { valueAsNumber: true })}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.coursePrice && (
-                <p className="text-red-500 text-xs mt-1">{errors.coursePrice.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.coursePrice.message}</p>
               )}
             </div>
 
             {/* Enrollment Date */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Enrollment Date *
               </label>
               <input
                 type="date"
                 {...register("enrollmentDate")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.enrollmentDate && (
-                <p className="text-red-500 text-xs mt-1">{errors.enrollmentDate.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.enrollmentDate.message}</p>
               )}
             </div>
 
             {/* Birth Date */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Birth Date *
               </label>
               <input
                 type="date"
                 {...register("birthDate")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
-                <p className="text-red-500 text-xs mt-1">{errors.birthDate.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.birthDate.message}</p>
               )}
             </div>
 
             {/* Total Payment */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Total Payment *
               </label>
               <input
                 type="number"
                 step="0.01"
                 {...register("totalPayment", { valueAsNumber: true })}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.totalPayment && (
-                <p className="text-red-500 text-xs mt-1">{errors.totalPayment.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.totalPayment.message}</p>
               )}
             </div>
 
             {/* Pending Payment */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Pending Payment *
               </label>
               <input
                 type="number"
                 step="0.01"
                 {...register("pendingPayment", { valueAsNumber: true })}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.pendingPayment && (
-                <p className="text-red-500 text-xs mt-1">{errors.pendingPayment.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.pendingPayment.message}</p>
               )}
             </div>
 
             {/* Status */}
             <div className="flex flex-col relative">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Status *
               </label>
               <select
                 {...register("status")}
-                className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Status</option>
                 <option value="Owing">Owing</option>
@@ -338,40 +338,40 @@ const ArchiveCreateModal: React.FC<ArchiveCreateModalProps> = ({
                 <ChevronDown size={18} />
               </span>
               {errors.status && (
-                <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.status.message}</p>
               )}
             </div>
 
             {/* Source */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Source
               </label>
               <select
                 {...register("source")}
-                className="w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               >
                 <option value="">Select Source</option>
                 <option value="legacy_erp">Legacy ERP</option>
                 <option value="graduated">Graduated</option>
               </select>
               {errors.source && (
-                <p className="text-red-500 text-xs mt-1">{errors.source.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.source.message}</p>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 sticky bottom-0 bg-white">
+          <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+              className="px-6 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-white bg-add-button rounded-md hover:bg-indigo-700 transition-colors"
+              className="px-6 py-2 text-white bg-add-button dark:bg-indigo-700 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 transition-colors"
             >
               Create Archive Record
             </button>

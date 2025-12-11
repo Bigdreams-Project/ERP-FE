@@ -354,16 +354,16 @@ const ArchiveContent = ({
           {/* Status Filter Dropdown */}
           <div className="relative flex-shrink-0" ref={dropdownRef}>
             <div
-              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors border border-gray-300"
+              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-300 dark:border-gray-600"
               onClick={() => setIsFilterDropdown(!isFilterDropdown)}
             >
-              <IoFilter size={20} />
-              <p className="font-medium text-gray-900">
+              <IoFilter size={20} className="text-gray-700 dark:text-gray-300" />
+              <p className="font-medium text-gray-900 dark:text-gray-100">
                 {statusFilter || "Status"}
               </p>
             </div>
             {isFilterDropdown && (
-              <div className="absolute right-0 mt-2 bg-white rounded-md w-[180px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400 border border-gray-200">
+              <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 rounded-md w-[180px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400 dark:shadow-gray-900 border border-gray-200 dark:border-gray-700">
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => {
@@ -373,8 +373,8 @@ const ArchiveContent = ({
                     }}
                     className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
                       statusFilter === ""
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
                     All
@@ -387,8 +387,8 @@ const ArchiveContent = ({
                     }}
                     className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
                       statusFilter === "Graduated"
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
                     Graduated
@@ -401,8 +401,8 @@ const ArchiveContent = ({
                     }}
                     className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
                       statusFilter === "Owing"
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
                     Owing
@@ -415,8 +415,8 @@ const ArchiveContent = ({
                     }}
                     className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
                       statusFilter === "Dropout"
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
                     Dropout
@@ -434,12 +434,12 @@ const ArchiveContent = ({
                 readOnly
                 value={displayDateRange || "Select enrollment date range"}
                 onClick={() => setShowDatePicker(!showDatePicker)}
-                className="w-[200px] min-w-[180px] px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50"
+                className="w-[200px] min-w-[180px] px-3 py-2 text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700"
               />
               {isDateFilterActive && (
                 <button
                   onClick={handleClearDateFilter}
-                  className="px-2 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                  className="px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                   title="Clear date filter"
                 >
                   ✕
@@ -447,12 +447,12 @@ const ArchiveContent = ({
               )}
             </div>
             {showDatePicker && (
-              <div className="absolute right-0 mt-2 z-50 bg-white shadow-lg rounded-lg p-2">
+              <div className="absolute right-0 mt-2 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-2">
                 <DateRangePicker
                   ranges={dateRange}
                   onChange={handleDateSelect}
                   moveRangeOnFirstSelection={false}
-                  className="text-black"
+                  className="text-black dark:text-white"
                 />
               </div>
             )}
@@ -460,8 +460,8 @@ const ArchiveContent = ({
 
           {/* Search */}
           <div className="w-[200px] min-w-[150px] flex-shrink-0">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-              <BiSearchAlt size={18} className="ml-2" />
+            <div className="flex items-center gap-1 py-1.5 border-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)] dark:placeholder:text-gray-400">
+              <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search"
@@ -469,7 +469,7 @@ const ArchiveContent = ({
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
-                className="outline-none"
+                className="outline-none bg-transparent text-gray-900 dark:text-gray-100"
               />
             </div>
           </div>

@@ -179,14 +179,14 @@ export default function LeadTable({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="w-full bg-white rounded-lg relative overflow-hidden">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
         <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
           {filteredData.length === 0 ? (
             <NotFoundComponent text="Lead" setIsModalOpen={setIsModalOpen} />
           ) : (
-            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 overflow-x-auto">
+            <table className="min-w-max relative border-collapse text-[14px] text-gray-700 dark:text-gray-300 overflow-x-auto">
               <thead>
-                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 bg-gray-100">
+                <tr className="font-inter font-medium text-[13px] text-left text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-800">
                   <th className="p-4">#</th>
                   <th className="p-4">Inquiry ID</th>
                   <th className="p-4">Full Name</th>
@@ -204,7 +204,7 @@ export default function LeadTable({
                 {paginatedData.map((lead: Lead, index) => (
                   <tr
                     key={lead.id}
-                    className="hover:shadow-sm hover:bg-gray-100 cursor-pointer"
+                    className="hover:shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <td className="pt-6">
                       {(currentPage - 1) * itemsPerPage + index + 1}
@@ -212,7 +212,7 @@ export default function LeadTable({
                     <td className="p-4">
                       <Link
                         href={`/dashboard/academic/leads/${lead.id}`}
-                        className="font-bold text-blue-700 hover:underline flex items-center gap-1"
+                        className="font-bold text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1"
                       >
                         {lead.code} <Link2Icon size={12} />
                       </Link>
@@ -236,10 +236,10 @@ export default function LeadTable({
                       </button>
 
                       {openDropdown === lead.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <button
                             onClick={() => handleEnroll(lead.id)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <UserPlus size={16} />
                             Enroll
@@ -251,7 +251,7 @@ export default function LeadTable({
                                 `/dashboard/academic/leads/${lead.id}`
                               )
                             }
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <Eye size={16} />
                             View
@@ -260,7 +260,7 @@ export default function LeadTable({
                           {isAdmin && !isAdminLoading && (
                             <button
                               onClick={() => handleDelete(lead)}
-                              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               <Trash2 size={16} />
                               Delete
@@ -276,7 +276,7 @@ export default function LeadTable({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white">
+        <div className="sticky bottom-0 bg-white dark:bg-gray-800">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

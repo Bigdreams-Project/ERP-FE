@@ -253,20 +253,20 @@ const BatchesContent = ({
         <div className="w-full flex items-center justify-end gap-7 p-2">
           <div className="relative" ref={dropdownRef}>
             <div
-              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               onClick={() => {
                 setIsFilterDropdown(!isFilterDropdown);
                 setDateFilterName("");
               }}
             >
               <IoFilter size={20} />
-              <p className="font-medium text-gray-900">Filter</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Filter</p>
             </div>
             {isFilterDropdown && (
               <div
                 className={`absolute ${
                   dateFilterName ? "-right-60" : "right-0"
-                } mt-2 pt-1 bg-white flex flex-row rounded-md z-50 animate-in fade-in-0 duration-300 border-t border-gray-300 shadow-lg shadow-gray-400`}
+                } mt-2 pt-1 bg-white dark:bg-gray-800 flex flex-row rounded-md z-50 animate-in fade-in-0 duration-300 border-t border-gray-300 dark:border-gray-700 shadow-lg shadow-gray-400 dark:shadow-gray-900`}
               >
                 {dateFilterName && (
                   <div className="p-1">
@@ -275,28 +275,28 @@ const BatchesContent = ({
                         type="text"
                         readOnly
                         value={displayRange || "Select a date range"}
-                        className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                       />
                     </div>
 
-                    <div className="bg-white">
+                    <div className="bg-white dark:bg-gray-800">
                       <DateRangePicker
                         ranges={range}
                         onChange={handleSelect}
                         moveRangeOnFirstSelection={false}
-                        className="text-black"
+                        className="text-black dark:text-white"
                       />
                     </div>
                   </div>
                 )}
 
-                <div className="bg-white w-[200px] p-4 pl-0 animate-in fade-in-0 duration-300 shadow-md shadow-gray-400">
+                <div className="bg-white dark:bg-gray-800 w-[200px] p-4 pl-0 animate-in fade-in-0 duration-300 shadow-md shadow-gray-400 dark:shadow-gray-900">
                   <div className="flex flex-col gap-3">
                     <div className="pl-3">
                       <select
                         name="date"
                         id=""
-                        className="w-fit font-bold px-0 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-0"
+                        className="w-fit font-bold px-0 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-0 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         onChange={(e) => setDateFilterName(e.target.value)}
                       >
                         <option value="">Select a date</option>
@@ -313,12 +313,12 @@ const BatchesContent = ({
                     </div>
 
                     <div className="flex flex-col gap-1 pl-4">
-                      <p className="font-semibold text-gray-800">Status</p>
+                      <p className="font-semibold text-gray-800 dark:text-gray-200">Status</p>
                       <ul className="flex flex-col gap-1">
                         {batchStatus?.map((status) => (
                           <li
                             key={status}
-                            className="flex items-center gap-2 text-sm text-gray-700"
+                            className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                           >
                             <input
                               id={`status-${status}`}
@@ -361,8 +361,8 @@ const BatchesContent = ({
           </div>
 
           <div className="w-[250px]">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-              <BiSearchAlt size={18} className="ml-2" />
+            <div className="flex items-center gap-1 py-1.5 border-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100">
+              <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search"
@@ -370,7 +370,7 @@ const BatchesContent = ({
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
-                className="outline-none"
+                className="outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -386,7 +386,7 @@ const BatchesContent = ({
       </div>
 
       {isLoadingBatches || isCenterLoading ? (
-        <div className="w-full bg-white rounded-lg p-8">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-8">
           <Loading text="Loading batches..." />
         </div>
       ) : (
