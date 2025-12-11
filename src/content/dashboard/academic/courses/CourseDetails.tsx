@@ -105,7 +105,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
   };
 
   return (
-    <div className="flex bg-white font-sans text-gray-800 min-h-screen">
+    <div className="flex bg-white dark:bg-gray-900 font-sans text-gray-800 dark:text-gray-200 min-h-screen">
       <main className="flex-1 p-8 pb-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -121,17 +121,17 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="lucide lucide-chevron-left"
+                className="lucide lucide-chevron-left text-indigo-600 dark:text-indigo-400"
               >
                 <path d="m15 18-6-6 6-6" />
               </svg>
-              <p className="text-indigo-600 hover:text-indigo-800 font-medium">
+              <p className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                 Academic &gt; Courses &gt; {course.name}
               </p>
             </div>
             <a
               href="/dashboard/academic/courses"
-              className="mt-2 text-blue-600 hover:underline text-sm font-semibold flex items-center"
+              className="mt-2 text-blue-600 dark:text-blue-400 hover:underline text-sm font-semibold flex items-center"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -139,7 +139,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="w-4 h-4 mr-1"
+                className="w-4 h-4 mr-1 text-blue-600 dark:text-blue-400"
               >
                 <path
                   strokeLinecap="round"
@@ -153,7 +153,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="flex gap-2 items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 rounded-lg text-sm font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >
               <MdEdit />
               Edit
@@ -161,7 +161,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
 
             <button
               onClick={handleCenterToggle}
-              className="flex gap-2 items-center px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="flex gap-2 items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 rounded-lg text-sm font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >
               <MdAdd />
               Add Center
@@ -171,13 +171,13 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
 
         {/* Content */}
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="border-r-2 border-grey">
+          <div className="border-r-2 border-grey dark:border-gray-700">
             {/* Course Details */}
             <div className="h-96">
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 COURSE DETAILS
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid gap-4">
                 {Object.entries({
                   "Course Title": "name",
                   Code: "code",
@@ -186,16 +186,16 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                   Duration: "duration",
                 }).map(([label, key]) => (
                   <div key={label} className="col-span-1">
-                    <p className="text-gray-500 text-sm font-medium">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
                       {label}:
                     </p>
-                    <p className="mt-1 font-semibold text-gray-900">
+                    <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                       {key === "status" ? (
                         <span
                           className={`py-0.5 text-md font-semibold rounded-full ${
                             course.status === "New"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                           }`}
                         >
                           {course.status}
@@ -213,19 +213,19 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
 
             {/* Batches */}
             <div>
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 BATCHES
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6 grid gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid gap-4">
                 {course.batches?.map((batch, index) => (
                   <div
                     key={index}
-                    className="flex flex-col pb-3 border-b border-gray-300"
+                    className="flex flex-col pb-3 border-b border-gray-300 dark:border-gray-700"
                   >
-                    <span className="text-gray-800 font-bold">
+                    <span className="text-gray-800 dark:text-gray-200 font-bold">
                       {batch.faculty?.fullname} - {batch.code}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {formatDate(batch.startDate)} -{" "}
                       {formatDate(batch.endDate)}
                     </span>
@@ -238,28 +238,28 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
           <div>
             {/* Pricing by Center */}
             <div className="h96">
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 PRICING BY CENTER
               </h2>
-              <div className="bg-white rounded-lg px-2 pt-4 grid gap-2">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 pt-4 grid gap-2">
                 {course.courseAssignments.map((item, index) => (
-                  <div key={index} className="pb-3 border-b border-gray-300">
-                    <span className="text-gray-800 font-bold block mb-2">
+                  <div key={index} className="pb-3 border-b border-gray-300 dark:border-gray-700">
+                    <span className="text-gray-800 dark:text-gray-200 font-bold block mb-2">
                       {item.center?.name}
                     </span>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <p>
-                        <span className="font-medium text-gray-600">
+                      <p className="text-gray-700 dark:text-gray-300">
+                        <span className="font-medium text-gray-600 dark:text-gray-400">
                           Course Fee:{" "}
                         </span>
                         ₦{item.lumpSumFee.toLocaleString()}
                         <MdEdit
-                          className="inline ml-1 text-indigo-600 cursor-pointer"
+                          className="inline ml-1 text-indigo-600 dark:text-indigo-400 cursor-pointer hover:text-indigo-800 dark:hover:text-indigo-300"
                           onClick={() => handleOpenEditModal(item)}
                         />
                       </p>
-                      <p>
-                        <span className="font-medium text-gray-600">
+                      <p className="text-gray-700 dark:text-gray-300">
+                        <span className="font-medium text-gray-600 dark:text-gray-400">
                           Max Installments:{" "}
                         </span>
                         {item.maxInstallments}
@@ -272,22 +272,22 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
 
             {/* Materials */}
             <div>
-              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 border-t-2 border-b-2 border-grey">
+              <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 MATERIALS
               </h2>
-              <div className="bg-white rounded-lg px-2 py-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6">
                 <div className="space-y-4">
                   {course.documents?.map((document, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between pb-1 pr-1 border-b border-gray-300"
+                      className="flex items-center justify-between pb-1 pr-1 border-b border-gray-300 dark:border-gray-700"
                     >
                       <div className="flex items-center space-x-2">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
                           fill="currentColor"
-                          className="w-5 h-5 text-gray-500"
+                          className="w-5 h-5 text-gray-500 dark:text-gray-400"
                         >
                           <path
                             fillRule="evenodd"
@@ -297,18 +297,18 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                           <path d="M14.25 5.25a.75.75 0 00-.75.75v5.25a.75.75 0 001.5 0V6a.75.75 0 00-.75-.75z" />
                         </svg>
                         <Link href={document.url}>
-                          <span className="text-gray-800 font-medium">
+                          <span className="text-gray-800 dark:text-gray-200 font-medium">
                             {document.name}
                           </span>
                         </Link>
                       </div>
                       <Link href={document.url}>
-                        <Download size={16} className="text-indigo-600" />
+                        <Download size={16} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300" />
                       </Link>
                     </div>
                   ))}
-                  <div className="flex items-center space-x-2 text-indigo-600 cursor-pointer">
-                    <button className="mt-4 text-blue-600 text-sm font-medium p-3 shadow-md shadow-gray-400 rounded-md flex items-center space-x-1">
+                  <div className="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 cursor-pointer">
+                    <button className="mt-4 text-blue-600 dark:text-blue-400 text-sm font-medium p-3 shadow-md shadow-gray-400 dark:shadow-gray-900 rounded-md flex items-center space-x-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                       <IoMdAdd />
                       <span>Upload File</span>
                     </button>

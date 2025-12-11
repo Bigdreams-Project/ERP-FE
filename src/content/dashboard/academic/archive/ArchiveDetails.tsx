@@ -95,15 +95,15 @@ const ArchiveDetails = ({
   };
 
   const renderSection = (title: string, content: string | React.ReactNode, Icon: any) => (
-    <div className="bg-white px-2 py-4 rounded-lg flex items-center mb-4 border border-gray-200">
+    <div className="bg-white dark:bg-gray-800 px-2 py-4 rounded-lg flex items-center mb-4 border border-gray-200 dark:border-gray-700">
       {Icon && (
-        <div className="text-xl mr-3 text-gray-500">
+        <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
           <Icon size={20} />
         </div>
       )}
       <div className="flex-1">
-        <div className="font-semibold text-gray-800">{title}</div>
-        <div className="text-sm text-gray-600">{content}</div>
+        <div className="font-semibold text-gray-800 dark:text-gray-200">{title}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-300">{content}</div>
       </div>
     </div>
   );
@@ -112,22 +112,22 @@ const ArchiveDetails = ({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="min-h-screen bg-white p-8">
+      <div className="min-h-screen bg-white dark:bg-gray-900 p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 relative left-[-7px]">
               <button
                 onClick={() => router.push("/dashboard/academic/archive")}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
               >
-                <ArrowLeft size={20} className="text-gray-600" />
+                <ArrowLeft size={20} className="text-gray-600 dark:text-gray-400" />
               </button>
-              <h1 className="text-2xl font-bold text-gray-800">
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                 Archive Record Details
               </h1>
             </div>
-            <p className="text-sm text-gray-500 mt-1 ml-10">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-10">
               View archived student information
             </p>
           </div>
@@ -142,7 +142,7 @@ const ArchiveDetails = ({
               </button>
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                className="hidden flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
               >
                 <Trash2 size={18} />
                 Delete
@@ -156,9 +156,9 @@ const ArchiveDetails = ({
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <CircleUserRound size={24} className="text-indigo-600" />
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                <CircleUserRound size={24} className="text-indigo-600 dark:text-indigo-400" />
                 Personal Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,9 +174,9 @@ const ArchiveDetails = ({
             </div>
 
             {/* Student IDs */}
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Archive size={24} className="text-indigo-600" />
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                <Archive size={24} className="text-indigo-600 dark:text-indigo-400" />
                 Student IDs
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -194,9 +194,9 @@ const ArchiveDetails = ({
             </div>
 
             {/* Course Information */}
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <BookOpen size={24} className="text-indigo-600" />
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                <BookOpen size={24} className="text-indigo-600 dark:text-indigo-400" />
                 Course Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -227,9 +227,9 @@ const ArchiveDetails = ({
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             {/* Payment Summary */}
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Coins size={24} className="text-indigo-600" />
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                <Coins size={24} className="text-indigo-600 dark:text-indigo-400" />
                 Payment Summary
               </h2>
               <div className="space-y-4">
@@ -246,9 +246,9 @@ const ArchiveDetails = ({
                 {renderSection(
                   "Payment Status",
                   archiveRecord.pendingPayment > 0 ? (
-                    <span className="text-red-600 font-semibold">Owing</span>
+                    <span className="text-red-600 dark:text-red-400 font-semibold">Owing</span>
                   ) : (
-                    <span className="text-green-600 font-semibold">Paid</span>
+                    <span className="text-green-600 dark:text-green-400 font-semibold">Paid</span>
                   ),
                   Coins
                 )}
@@ -257,9 +257,9 @@ const ArchiveDetails = ({
 
             {/* Center Information */}
             {center && (
-              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Building2 size={24} className="text-indigo-600" />
+              <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                  <Building2 size={24} className="text-indigo-600 dark:text-indigo-400" />
                   Center Information
                 </h2>
                 {renderSection("Center Name", center.name, Building2)}
@@ -268,9 +268,9 @@ const ArchiveDetails = ({
             )}
 
             {/* Source Information */}
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Archive size={24} className="text-indigo-600" />
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                <Archive size={24} className="text-indigo-600 dark:text-indigo-400" />
                 Archive Information
               </h2>
               <div className="space-y-4">
@@ -313,16 +313,16 @@ const ArchiveDetails = ({
       {/* Delete Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold mb-4">Delete Archive Record</h2>
-            <p className="text-gray-700 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Delete Archive Record</h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
               Are you sure you want to delete the archive record for{" "}
-              <strong>{archiveRecord.fullname}</strong>? This action cannot be undone.
+              <strong className="text-gray-900 dark:text-gray-100">{archiveRecord.fullname}</strong>? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 disabled={isDeleting}
               >
                 Cancel
@@ -330,7 +330,7 @@ const ArchiveDetails = ({
               <button
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className={`px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors ${
+                className={`px-4 py-2 text-white bg-red-600 dark:bg-red-700 rounded-md hover:bg-red-700 dark:hover:bg-red-800 transition-colors ${
                   isDeleting ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >

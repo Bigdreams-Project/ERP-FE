@@ -39,7 +39,7 @@ const StudentCourses = ({ data }: Props) => {
   if (loading) {
     return (
       <Card title="Courses" className="h-full">
-        <p className="text-gray-500 text-sm">Loading courses...</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Loading courses...</p>
       </Card>
     );
   }
@@ -47,17 +47,17 @@ const StudentCourses = ({ data }: Props) => {
   return (
     <Card title="Courses" className="h-full">
       {courses.length === 0 ? (
-        <p className="text-gray-500 text-sm">No courses enrolled yet.</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">No courses enrolled yet.</p>
       ) : (
         <div className="space-y-4">
           {courses.map((course) => {
             return (
               <div
                 key={course.id}
-                className="border border-gray-200 rounded-lg p-4 shadow-sm"
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-gray-800">
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200">
                     {course.course.name}
                   </h3>
                   <div className="flex gap-2">
@@ -68,7 +68,7 @@ const StudentCourses = ({ data }: Props) => {
                           action: "discount",
                         })
                       }
-                      className="bg-indigo-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-indigo-700 transition"
+                      className="bg-indigo-600 dark:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-indigo-700 dark:hover:bg-indigo-600 transition"
                     >
                       Offer Discount
                     </button>
@@ -76,7 +76,7 @@ const StudentCourses = ({ data }: Props) => {
                       onClick={() =>
                         setSelectedCourse({ course: course, action: "payment" })
                       }
-                      className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 transition"
+                      className="bg-blue-600 dark:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 dark:hover:bg-blue-600 transition"
                     >
                       Add Payment
                     </button>
@@ -99,7 +99,7 @@ const StudentCourses = ({ data }: Props) => {
                         ? `₦${course?.paymentPlan.paid.toLocaleString()}`
                         : "N/A"
                     }
-                    valueColor="text-green-600"
+                    valueColor="text-green-600 dark:text-green-400"
                   />
                   <InfoItem
                     label="Balance Due"
@@ -108,7 +108,7 @@ const StudentCourses = ({ data }: Props) => {
                         ? `₦${course?.paymentPlan.pending.toLocaleString()}`
                         : "N/A"
                     }
-                    valueColor="text-red-600"
+                    valueColor="text-red-600 dark:text-red-400"
                   />
                   <InfoItem
                     label="Next Payment Due"
@@ -117,7 +117,7 @@ const StudentCourses = ({ data }: Props) => {
                         ? formatDate(course.paymentPlan.nextPaymentDate)
                         : "N/A"
                     }
-                    valueColor="text-gray-700"
+                    valueColor="text-gray-700 dark:text-gray-300"
                   />
                 </div>
               </div>

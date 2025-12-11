@@ -14,7 +14,7 @@ export default function ConversionProgress({
   const progress = ((currentIndex + 1) / ConversionSteps.length) * 100;
 
   return (
-    <div className="w-full p-4 bg-white">
+    <div className="w-full p-4 bg-white dark:bg-gray-800">
       <div className="mt-4 flex items-center flex-wrap text-sm">
         {ConversionSteps.map((step, idx) => {
           const isCompleted = idx <= currentIndex;
@@ -26,14 +26,14 @@ export default function ConversionProgress({
                 </span>
                 <span
                   className={
-                    isCompleted ? "text-gray-900 font-medium" : "text-gray-500"
+                    isCompleted ? "text-gray-900 dark:text-gray-100 font-medium" : "text-gray-500 dark:text-gray-400"
                   }
                 >
                   {step.label}
                 </span>
               </span>
               {idx < ConversionSteps.length - 1 && (
-                <span className="mx-2 text-gray-400">→</span>
+                <span className="mx-2 text-gray-400 dark:text-gray-500">→</span>
               )}
             </div>
           );
@@ -41,15 +41,15 @@ export default function ConversionProgress({
       </div>
 
       <div className="flex flex-col gap-4">
-        <p className="mt-4 text-sm text-gray-800">
+        <p className="mt-4 text-sm text-gray-800 dark:text-gray-200">
           Progress: {progress.toFixed(0)}%
         </p>
 
         <div className="relative flex items-center">
           {/* Progress bar */}
-          <div className="absolute top-1/2 left-0 w-full h-2 bg-gray-200 rounded-full -translate-y-1/2">
+          <div className="absolute top-1/2 left-0 w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full -translate-y-1/2">
             <div
-              className="h-2 bg-blue-500 rounded-full transition-all duration-500"
+              className="h-2 bg-blue-500 dark:bg-blue-600 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
@@ -92,8 +92,8 @@ const renderStep = (
       <div
         className={`rounded-full transition-all duration-300 ${
           isCompleted
-            ? `bg-white ${getStepBgColor(step.id)}`
-            : `bg-white ${getStepBgColor(step.id)}`
+            ? `bg-white dark:bg-gray-800 ${getStepBgColor(step.id)}`
+            : `bg-white dark:bg-gray-800 ${getStepBgColor(step.id)}`
         }`}
       >
         {isCompleted ? (

@@ -196,9 +196,9 @@ const LeadContent = ({
             <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <PopoverTrigger asChild>
                 <div className="relative">
-                  <div className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white hover:bg-gray-100 transition-colors">
-                    <IoFilter size={20} />
-                    <p className="font-medium text-gray-900">Filter</p>
+                  <div className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <IoFilter size={20} className="text-gray-700 dark:text-gray-300" />
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Filter</p>
                   </div>
                 </div>
               </PopoverTrigger>
@@ -213,8 +213,8 @@ const LeadContent = ({
             </Popover>
 
             <div className="w-[250px]">
-              <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)]">
-                <BiSearchAlt size={18} className="ml-2" />
+              <div className="flex items-center gap-1 py-1.5 border-2 border-gray-300 dark:border-gray-600 rounded focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100 bg-white dark:bg-gray-800 placeholder:text-[rgba(0,0,0,0.7)] dark:placeholder:text-gray-400">
+                <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search"
@@ -222,7 +222,7 @@ const LeadContent = ({
                     setSearchInput(e.target.value);
                     if (!isTyping) setIsTyping(true);
                   }}
-                  className="outline-none"
+                  className="outline-none bg-transparent text-gray-900 dark:text-gray-100"
                 />
               </div>
             </div>
@@ -239,7 +239,7 @@ const LeadContent = ({
       </div>
 
       {isLoadingLeads || isCenterLoading ? (
-        <div className="w-full bg-white rounded-lg p-8">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-lg p-8">
           <Loading text="Loading leads..." />
         </div>
       ) : (

@@ -202,7 +202,7 @@ const SidebarMenu = ({
           className={`flex items-center px-[1.5rem] py-[0.4rem] ${
             sidebarExpanded ? "" : "items-start !px-[2rem]"
           } transition-all duration-500 font-inter ${
-            isActiveDashboard ? "bg-indigo-50 text-indigo-500 font-bold" : ""
+            isActiveDashboard ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-300 font-bold" : ""
           }`}
           onClick={(e) => {
             if (!sidebarExpanded) {
@@ -217,7 +217,7 @@ const SidebarMenu = ({
               sidebarExpanded
                 ? "md:opacity-100 md:visible md:ml-2 md:w-auto opacity-0 invisible ml-0 w-0"
                 : "opacity-0 invisible ml-0 w-0"
-            } ${!isActiveDashboard && "text-[rgba(0,0,0,0.7)]"}`}
+            } ${!isActiveDashboard && "text-[rgba(0,0,0,0.7)] dark:text-gray-300"}`}
             onClick={() => {
               if (!sidebarExpanded) toggleSidebar();
             }}
@@ -239,7 +239,7 @@ const SidebarMenu = ({
                 <div
                   ref={hoverRef}
                   className={`flex items-center justify-between font-inter mt-[0.5rem] text-[16px] cursor-pointer px-[1.5rem] py-[0.4rem] ${
-                    isMenuActive && "bg-indigo-50"
+                    isMenuActive && "bg-indigo-50 dark:bg-indigo-900/30"
                   }`}
                   onClick={() => {
                     if (!sidebarExpanded) {
@@ -255,8 +255,8 @@ const SidebarMenu = ({
                     {menu.icon({
                       className: `${
                         isMenuActive
-                          ? "text-indigo-500"
-                          : "text-[rgba(0,0,0,0.7)]"
+                          ? "text-indigo-500 dark:text-indigo-300"
+                          : "text-[rgba(0,0,0,0.7)] dark:text-gray-300"
                       } w-[20px] h-[20px]`,
                     })}
                     <span
@@ -264,8 +264,8 @@ const SidebarMenu = ({
                         sidebarExpanded
                           ? "md:opacity-100 md:scale-100 md:ml-2 md:w-auto opacity-0 scale-0 ml-0 w-0"
                           : "opacity-0 scale-0 ml-0 w-0"
-                      } text-[rgba(0,0,0,0.7)] font-inter ${
-                        isMenuActive && "text-indigo-500 font-bold"
+                      } text-[rgba(0,0,0,0.7)] dark:text-gray-300 font-inter ${
+                        isMenuActive && "text-indigo-500 dark:text-indigo-300 font-bold"
                       }`}
                     >
                       {menu.label}
@@ -276,7 +276,7 @@ const SidebarMenu = ({
                     <div
                       className={`transform transition-all duration-500 ease-in-out ${
                         expandedIndex === index ? "rotate-90" : "rotate-0"
-                      } ${isMenuActive && "text-indigo-500"}`}
+                      } ${isMenuActive && "text-indigo-500 dark:text-indigo-300"}`}
                     >
                       <FiChevronRight size={20} />
                     </div>
@@ -297,9 +297,9 @@ const SidebarMenu = ({
                         onClick={() => {
                           if (!sidebarExpanded) toggleSidebar();
                         }}
-                        className={`block hover:bg-indigo-50 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] text-[16px] ${
+                        className={`block hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 pl-[3.2rem] px-[0.6rem] py-1 font-inter text-[rgba(0,0,0,0.7)] dark:text-gray-300 text-[16px] ${
                           pathname === link.href
-                            ? "font-bold text-[rgba(0,0,0,0.8)]"
+                            ? "font-bold text-[rgba(0,0,0,0.8)] dark:text-indigo-300"
                             : ""
                         }`}
                       >
@@ -316,7 +316,7 @@ const SidebarMenu = ({
 
       {/* Sign out */}
       <div
-        className={`flex gap-1 border-t justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
+        className={`flex gap-1 border-t border-gray-300 dark:border-gray-700 justify-center items-center text-[16px] cursor-pointer md:py-[0.7rem] px-[1rem] py-2 ${
           sidebarExpanded ? "" : "px-[0rem] pl-[0.1rem]"
         }`}
       >
@@ -326,7 +326,7 @@ const SidebarMenu = ({
             <h1 className="ml-1 text-red-600">Sign out</h1>
           </div>
         ) : (
-          <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)]" />
+          <PiSignInFill size={20} className="text-[rgba(0,0,0,0.7)] dark:text-gray-300" />
         )}
       </div>
     </div>

@@ -68,12 +68,12 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: Props) => {
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="w-full pt-3 pl-2 pr-4 flex justify-between items-center text-sm text-gray-700 min-h-[50px]">
+    <div className="w-full pt-3 pl-2 pr-4 flex justify-between items-center text-sm text-gray-700 dark:text-gray-300 min-h-[50px]">
       <div className="flex justify-start items-center space-x-2 flex-wrap gap-1 min-w-0 flex-1">
         <button
           onClick={() => onPageChange(Math.max(1, safeCurrentPage - 1))}
           disabled={safeCurrentPage === 1}
-          className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 hover:bg-gray-200 transition-colors"
+          className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600"
           aria-label="Previous page"
         >
           <ChevronLeft size={18} />
@@ -84,7 +84,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: Props) => {
             return (
               <span
                 key={`ellipsis-${index}`}
-                className="px-2 py-1 text-gray-500 flex-shrink-0"
+                className="px-2 py-1 text-gray-500 dark:text-gray-400 flex-shrink-0"
               >
                 ...
               </span>
@@ -98,8 +98,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: Props) => {
               onClick={() => onPageChange(pageNum)}
               className={`px-3 py-1 rounded-md min-w-[40px] flex-shrink-0 transition-colors ${
                 safeCurrentPage === pageNum
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
+                  ? "bg-indigo-600 dark:bg-indigo-700 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
               }`}
               aria-label={`Page ${pageNum}`}
               aria-current={safeCurrentPage === pageNum ? "page" : undefined}
@@ -112,14 +112,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: Props) => {
         <button
           onClick={() => onPageChange(Math.min(safeTotalPages, safeCurrentPage + 1))}
           disabled={safeCurrentPage === safeTotalPages}
-          className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 hover:bg-gray-200 transition-colors"
+          className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600"
           aria-label="Next page"
         >
           <ChevronRight size={18} />
         </button>
       </div>
 
-      <p className="text-gray-400 self-end flex-shrink-0 ml-4">
+      <p className="text-gray-400 dark:text-gray-500 self-end flex-shrink-0 ml-4">
         © 2025 TecTerminal ERP. All rights reserved.
       </p>
     </div>

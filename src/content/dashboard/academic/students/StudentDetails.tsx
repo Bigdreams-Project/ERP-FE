@@ -182,15 +182,15 @@ const StudentDetails = ({
   const displayImageUrl = profileImageFile?.fileUrl || student.image;
 
   const renderSection = (title: string, content: string, Icon: any) => (
-    <div className="bg-white px-2 py-4 rounded-lg flex items-center mb-4">
+    <div className="bg-white dark:bg-gray-800 px-2 py-4 rounded-lg flex items-center mb-4">
       {Icon && (
-        <div className="text-xl mr-3 text-gray-500">
+        <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
           <Icon size={20} />
         </div>
       )}
       <div className="flex-1">
-        <div className="font-semibold text-gray-800">{title}</div>
-        <div className="text-sm text-gray-600">{content}</div>
+        <div className="font-semibold text-gray-800 dark:text-gray-200">{title}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">{content}</div>
       </div>
     </div>
   );
@@ -198,7 +198,7 @@ const StudentDetails = ({
 
   return (
     <div className="font-inter text-gray-200">
-      <div className="min-h-screen bg-white p-8">
+      <div className="min-h-screen bg-white dark:bg-gray-900 p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
@@ -265,7 +265,7 @@ const StudentDetails = ({
         </div>
 
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-extrabold text-gray-900">
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
             Student Profile: {student.fullName}
           </h2>
           {false && (
@@ -278,7 +278,7 @@ const StudentDetails = ({
           )}
         </div>
 
-        <div className="bg-white rounded-lg w-full max-w-6xl py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-6xl py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-2 p-4 pt-6 border-t border-gray-300 rounded-lg shadow-md shadow-gray-400">
             <div className="flex flex-col items-center">
               <div className="relative">
@@ -319,7 +319,7 @@ const StudentDetails = ({
                 />
               </div>
 
-              <div className="text-xl font-semibold text-gray-800">
+              <div className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                 {student.fullName}
               </div>
               <div className="text-sm text-gray-500">{student.studentId}</div>
@@ -380,13 +380,13 @@ const StudentDetails = ({
                     : "Start and end dates not available",
                   Clock
                 )}
-                <div className="bg-white p-4 rounded-lg flex items-center">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg flex items-center">
                   <div className="text-xl mr-3 text-gray-500">
                     <FileText size={20} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-800">Status</div>
-                    <div className="w-full text-sm text-gray-600 bg-white border-none focus:ring-0">
+                    <div className="font-semibold text-gray-800 dark:text-gray-200">Status</div>
+                    <div className="w-full text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border-none focus:ring-0">
                       <span>{student.status}</span>
                     </div>
                   </div>
@@ -409,15 +409,15 @@ const StudentDetails = ({
                 Financial & Attendance
               </h3>
               <div className="space-y-4">
-                <div className="bg-gray-100 p-4 rounded-lg flex items-center">
-                  <div className="text-xl mr-3 text-gray-500">
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg flex items-center">
+                  <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
                     <Coins size={20} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-800">
+                    <div className="font-semibold text-gray-800 dark:text-gray-200">
                       Payment Status
                     </div>
-                    <div className="text-sm text-gray-600 flex items-center justify-between">
+                    <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center justify-between">
                       <span>
                         {student.payments && student.payments.length > 0
                           ? (() => {
@@ -429,7 +429,7 @@ const StudentDetails = ({
                             })()
                           : "No payments found"}
                       </span>
-                      <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                      <span className="bg-blue-500 dark:bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
                         {student.payments && student.payments.length > 0
                           ? (() => {
                               const lastPayment = student.payments[student.payments.length - 1];
@@ -443,18 +443,18 @@ const StudentDetails = ({
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-100 p-4 rounded-lg flex items-center">
-                  <div className="text-xl mr-3 text-gray-500">
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg flex items-center">
+                  <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
                     <Percent size={20} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-800">
+                    <div className="font-semibold text-gray-800 dark:text-gray-200">
                       Attendance
                     </div>
-                    <div className="text-sm text-gray-600 flex items-center">
-                      <div className="w-full h-2 bg-blue-200 rounded-full mr-2">
+                    <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+                      <div className="w-full h-2 bg-blue-200 dark:bg-blue-900/40 rounded-full mr-2">
                         <div
-                          className="bg-blue-500 h-full rounded-full"
+                          className="bg-blue-500 dark:bg-blue-600 h-full rounded-full"
                           style={{
                             width: `${2}%`,
                           }}
@@ -491,14 +491,14 @@ const StudentDetails = ({
 
           <div className="lg:col-span-2 space-y-8 p-4 border-t border-gray-300 rounded-lg shadow-md shadow-gray-400">
             {/* Home Address */}
-            <div className="bg-white py-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
+            <div className="bg-white dark:bg-gray-800 py-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
                 Home Address
               </h3>
               {renderSection("", student.address, Home)}
             </div>
-            <div className="bg-white py-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
+            <div className="bg-white dark:bg-gray-800 py-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
                 Parent/Guardian
               </h3>
               {renderSection(
@@ -519,7 +519,7 @@ const StudentDetails = ({
 
             {/* Notes */}
             <div>
-              <h3 className="text-md font-semibold text-gray-800 mb-2">
+              <h3 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">
                 Notes
               </h3>
               <div className="space-y-2">
@@ -532,7 +532,7 @@ const StudentDetails = ({
                             {note.createdAt || note.updatedAt ? formatDate(note.createdAt || note.updatedAt) : "N/A"}
                           </span>
                         </p>
-                        <p className="text-gray-800">{note.note}</p>
+                        <p className="text-gray-800 dark:text-gray-200">{note.note}</p>
                       </div>
                     )
                 )}
@@ -591,3 +591,4 @@ const StudentDetails = ({
 };
 
 export default StudentDetails;
+

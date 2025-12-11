@@ -1,6 +1,7 @@
 import { CenterProvider } from "@/context/CenterContext";
 import { ProviderProvider } from "@/context/ProviderContext";
 import { UserProvider } from "@/context/UserContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import type { Metadata } from "next";
 import { ToastContainer } from "react-toastify";
@@ -20,14 +21,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <UserProvider>
-          <CenterProvider>
-            <ProviderProvider>
-              <ReactQueryProvider>{children}</ReactQueryProvider>
-              <ToastContainer />
-            </ProviderProvider>
-          </CenterProvider>
-        </UserProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <CenterProvider>
+              <ProviderProvider>
+                <ReactQueryProvider>{children}</ReactQueryProvider>
+                <ToastContainer />
+              </ProviderProvider>
+            </CenterProvider>
+          </UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

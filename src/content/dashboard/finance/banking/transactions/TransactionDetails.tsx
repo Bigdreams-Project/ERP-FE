@@ -20,23 +20,23 @@ const TransactionDetail = ({ transaction }: TransactionDetailsProps) => {
 
   if (!data || !data.id) {
     return (
-      <div className="min-h-screen bg-white font-sans">
+      <div className="min-h-screen bg-white dark:bg-gray-900 font-sans">
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
           <header className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Transaction Details
             </h1>
             <button
               onClick={() => router.back()}
-              className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150"
+              className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition duration-150"
             >
               <ArrowLeft className="mr-1 w-4 h-4" />
               Transaction List
             </button>
-            <hr className="mt-4 border-gray-200" />
+            <hr className="mt-4 border-gray-200 dark:border-gray-700" />
           </header>
-          <div className="p-6 bg-red-50 border border-red-200 rounded-xl">
-            <p className="text-red-800">Transaction not found or failed to load.</p>
+          <div className="p-6 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-800 dark:text-red-200">Transaction not found or failed to load.</p>
           </div>
         </div>
       </div>
@@ -44,21 +44,21 @@ const TransactionDetail = ({ transaction }: TransactionDetailsProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="min-h-screen bg-white dark:bg-gray-900 font-sans">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Transaction Details
           </h1>
           <button
             onClick={() => router.back()}
-            className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition duration-150"
+            className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition duration-150"
           >
             <ArrowLeft className="mr-1 w-4 h-4" />
             Transaction List
           </button>
-          <hr className="mt-4 border-gray-200" />
+          <hr className="mt-4 border-gray-200 dark:border-gray-700" />
         </header>
 
         {/* Content */}

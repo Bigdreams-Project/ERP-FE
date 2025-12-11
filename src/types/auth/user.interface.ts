@@ -6,6 +6,7 @@ export interface User {
   status: string;
   role: string;
   centers: any[];
+  profilePicture?: string;
   createdAt: string;
   requestedAt: string;
   approvedAt: string;

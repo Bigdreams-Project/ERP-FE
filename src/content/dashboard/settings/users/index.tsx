@@ -64,8 +64,8 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
 
         <div className="w-full flex items-center justify-end p-2 mt-4">
           <div className="flex items-center gap-1 w-[250px]">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded focus-within:outline-2 focus-within:outline-indigo-500 transition-all duration-100">
-              <BiSearchAlt size={18} className="ml-2" />
+            <div className="flex items-center gap-1 py-1.5 border-2 border-gray-300 dark:border-gray-600 rounded focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100 bg-white dark:bg-gray-800">
+              <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search user"
@@ -74,7 +74,7 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
                   setSearchInput(e.target.value);
                   if (!isTyping) setIsTyping(true);
                 }}
-                className="outline-none w-full"
+                className="outline-none w-full bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
           </div>

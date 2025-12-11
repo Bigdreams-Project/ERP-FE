@@ -176,10 +176,10 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
   }, []);
 
   return (
-    <div className="flex bg-white font-sans text-gray-800">
+    <div className="flex bg-white dark:bg-gray-900 font-sans text-gray-800 dark:text-gray-200">
       <main className="flex-1 py-8 px-3">
         {/* Header */}
-        <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div className="overview-gradient p-6 rounded-xl shadow-sm shadow-gray-400 dark:shadow-gray-900 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <h1 className="text-white text-4xl font-extrabold">
             Finance Overview
           </h1>
@@ -229,19 +229,19 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
                   readOnly
                   value={displayRange || "Select a date range"}
                   onClick={() => setShowPicker(!showPicker)}
-                  className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
               </div>
             </div>
 
             {/* Date Picker */}
             {showPicker && (
-              <div className="absolute right-0 z-50 bg-white shadow-lg rounded-lg p-2">
+              <div className="absolute right-0 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-2">
                 <DateRangePicker
                   ranges={range}
                   onChange={handleSelect}
                   moveRangeOnFirstSelection={false}
-                  className="text-black"
+                  className="text-black dark:text-white"
                 />
               </div>
             )}
@@ -251,11 +251,11 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
         {/* Charts and Top Centers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Revenue Distribution */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl">
-            <h3 className="text-lg font-semibold mb-2">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm shadow-gray-400 dark:shadow-gray-900 transition-all duration-300 hover:shadow-2xl">
+            <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
               Revenue Distribution by Center
             </h3>
-            <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
+            <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
               <span>{displayRange}</span>
             </div>
             <div className="flex items-center space-x-4">
@@ -267,11 +267,11 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
           </div>
 
           {/* Pending Payments */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl">
-            <h3 className="text-lg font-semibold mb-2">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm shadow-gray-400 dark:shadow-gray-900 transition-all duration-300 hover:shadow-2xl">
+            <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
               Pending Payments by Center
             </h3>
-            <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
+            <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
               <span>{displayRange}</span>
             </div>
             <div className="flex items-center space-x-4">
@@ -283,8 +283,8 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
           </div>
 
           {/* Top Performing Centers */}
-          <div className="bg-gray-50 rounded-lg p-6 shadow-sm shadow-gray-400 transition-all duration-300 hover:shadow-2xl border border-gray-200">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow-sm shadow-gray-400 dark:shadow-gray-900 transition-all duration-300 hover:shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
               Top Performing Centers
             </h2>
             <ul className="space-y-4">

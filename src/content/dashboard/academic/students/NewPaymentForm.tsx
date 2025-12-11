@@ -117,12 +117,12 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Course */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Course of Interest
           </label>
           <select
             {...register("courseId")}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value="">Select Course</option>
             {courses.map((course) => {
@@ -144,7 +144,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
             })}
           </select>
           {errors.courseId && (
-            <p className="text-red-500 text-sm">{errors.courseId.message}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm">{errors.courseId.message}</p>
           )}
         </div>
 
@@ -152,13 +152,13 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
         {selectedCourse?.courseAssignments &&
           selectedCourse?.courseAssignments?.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Select Center
               </label>
               <select
                 onChange={(e) => setCenterId(e.target.value)}
                 value={centerId}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="">Select Center</option>
                 {selectedCourse.courseAssignments.map((assignment) => (
@@ -177,7 +177,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
         <div className="flex flex-col">
           <label
             htmlFor="courseFee"
-            className="text-sm font-medium text-gray-700 mb-1"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
             Course Fee
           </label>
@@ -191,7 +191,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
                 : ""
             }
             readOnly
-            className="w-full h-10 px-4 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none text-gray-600 cursor-not-allowed"
+            className="w-full h-10 px-4 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
           />
         </div>
 
@@ -199,7 +199,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
         <div className="flex flex-col">
           <label
             htmlFor="numberOfInstallments"
-            className="text-sm font-medium text-gray-700 mb-1"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
             Max Installments
           </label>
@@ -213,36 +213,36 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
                 : ""
             }
             readOnly
-            className="w-full h-10 px-4 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none text-gray-600 cursor-not-allowed"
+            className="w-full h-10 px-4 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
           />
         </div>
 
         {/* Amount */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Amount
           </label>
           <input
             type="number"
             step="0.01"
             {...register("amount")}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-bold"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none font-bold bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
             placeholder="0.00"
           />
           {errors.amount && (
-            <p className="text-red-500 text-sm">{errors.amount.message}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm">{errors.amount.message}</p>
           )}
         </div>
 
         {/* Bank */}
         {banks && banks.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Bank
             </label>
             <select
               {...register("bankId")}
-              className="w-full p-3 text-black border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+              className="w-full p-3 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none bg-white dark:bg-gray-700"
             >
               <option value="">Select Bank</option>
               {banks.map((bank) => (
@@ -252,19 +252,19 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
               ))}
             </select>
             {errors.bankId && (
-              <p className="text-red-500 text-sm">{errors.bankId.message}</p>
+              <p className="text-red-500 dark:text-red-400 text-sm">{errors.bankId.message}</p>
             )}
           </div>
         )}
 
         {/* Payment Plan */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Payment Plan
           </label>
           <select
             {...register("paymentPlan")}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value="">Select Payment Plan</option>
             {paymentPlan?.map((plan) => (
@@ -274,18 +274,18 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
             ))}
           </select>
           {errors.paymentPlan && (
-            <p className="text-red-500 text-sm">{errors.paymentPlan.message}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm">{errors.paymentPlan.message}</p>
           )}
         </div>
 
         {/* Payment Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Payment Type
           </label>
           <select
             {...register("paymentType")}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value="">Select Payment Type</option>
             {paymentTypes?.map((plan) => (
@@ -298,12 +298,12 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
 
         {/* Payment Method */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Payment Method
           </label>
           <select
             {...register("paymentMethod")}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value="">Select Payment Method</option>
             {paymentMethods?.map((plan) => (
@@ -318,7 +318,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 mt-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out shadow-md"
+          className="w-full py-3 mt-4 bg-blue-600 dark:bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition duration-150 ease-in-out shadow-md"
         >
           {isSubmitting ? "Recording..." : "Record Payment"}
         </button>

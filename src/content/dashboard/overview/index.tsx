@@ -987,7 +987,7 @@ const DashboardOverview = ({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
       {/* PDF Preview Modal */}
       {showPdfPreview && pdfPreviewUrl && (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
@@ -1092,7 +1092,7 @@ const DashboardOverview = ({
             <div className="p-2 bg-white rounded-xl shadow-md">
               <BarChart3 className="text-indigo-600" size={20} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Key Metrics</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Key Metrics</h2>
           </div>
 
           <div className="flex items-center gap-4">
@@ -1122,7 +1122,7 @@ const DashboardOverview = ({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Target className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700">
+            <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200">
               Financial Performance
             </h3>
             {!isAllCentersView && (
@@ -1215,7 +1215,7 @@ const DashboardOverview = ({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <GraduationCap className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700">
+            <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200">
               Academic Metrics
             </h3>
             {!isAllCentersView && (
@@ -1299,7 +1299,7 @@ const DashboardOverview = ({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <School className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700">
+            <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200">
               Operational Overview
             </h3>
             {!isAllCentersView && (
@@ -1348,7 +1348,7 @@ const DashboardOverview = ({
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <GraduationCap className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700">
+            <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200">
               Programs
             </h3>
             {!isAllCentersView && (
@@ -1432,52 +1432,52 @@ const DashboardOverview = ({
             ) : (
               <>
                 {/* Center-specific performance cards */}
-                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md">
                       <School className="text-white" size={18} />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
                       {selectedCenterName} Overview
                     </h3>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                    <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border-2 border-emerald-200 dark:border-emerald-700">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">
                         Revenue
                       </p>
-                      <p className="text-2xl font-bold text-emerald-700">
+                      <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
                         {formatCurrency(
                           dashboardData.centerPerformance[0]?.totalRevenue || 0
                         )}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                    <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">
                         Billing
                       </p>
-                      <p className="text-2xl font-bold text-blue-700">
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                         {formatCurrency(
                           dashboardData.centerPerformance[0]?.totalBilling || 0
                         )}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                    <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border-2 border-amber-200 dark:border-amber-700">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">
                         Pending
                       </p>
-                      <p className="text-2xl font-bold text-amber-700">
+                      <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
                         {formatCurrency(
                           dashboardData.centerPerformance[0]?.pendingPayments ||
                             0
                         )}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border-2 border-purple-200">
-                      <p className="text-xs text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                    <div className="p-5 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">
                         Conversion
                       </p>
-                      <p className="text-2xl font-bold text-purple-700">
+                      <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
                         {dashboardData.centerPerformance[0]?.conversionRate.toFixed(
                           1
                         ) || 0}

@@ -42,9 +42,10 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 rounded-md border bg-[rgb(255,255,255)] p-1 text-popover-foreground shadow-lg",
+          "z-50 rounded-md border bg-white dark:bg-gray-800 p-1 text-popover-foreground shadow-lg",
           "min-w-[8rem] transition-all duration-200 ease-in-out will-change-[opacity,transform]",
           "animate-dropdown-in data-[state=closed]:animate-dropdown-out",
+          "border-gray-200 dark:border-gray-700",
           className
         )}
         {...props}
@@ -77,7 +78,7 @@ function DropdownMenuItem({
       data-variant={variant}
       className={cn(
         "cursor-pointer   p-0 py-2 px-3 transition-colors duration-200 ease-in-out rounded-sm select-none flex items-center text-center gap-2 text-sm text-foreground font-inter",
-        "hover:bg-gray-100 focus:bg-gray-100",
+        "hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700",
         "data-[variant=destructive]:text-destructive data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "data-[inset]:pl-8",
         className
@@ -175,7 +176,7 @@ function DropdownMenuSeparator({
   return (
     <DropdownMenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn("bg-border -mx-1 my-1 h-px", className)}
+      className={cn("bg-border dark:bg-gray-700 -mx-1 my-1 h-px", className)}
       {...props}
     />
   )
