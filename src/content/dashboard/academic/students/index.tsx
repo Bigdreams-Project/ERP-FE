@@ -15,9 +15,9 @@ import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
 import { User } from "@/types/auth/user.interface";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
@@ -98,6 +98,7 @@ const StudentContent = ({
     }
   }, [selectedCenter, isCenterLoading, queryClient]);
   
+  const searchParams = useSearchParams();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,10 +108,40 @@ const StudentContent = ({
   const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
   const [isFilterDropdown, setIsFilterDropdown] = useState(false);
   const [isBulkUploading, setIsBulkUploading] = useState(false);
+  
+  // Initialize filters from URL query params if present
+  // Normalize status from URL (DROPOUT/GRADUATED) to match studentStatus array format (Dropout/Graduated)
+  const statusFromUrl = searchParams?.get("status");
+  const normalizeStatus = (status: string | null): string | null => {
+    if (!status) return null;
+    // Map uppercase status to the format used in studentStatus array
+    const statusMap: Record<string, string> = {
+      "DROPOUT": "Dropout",
+      "GRADUATED": "Graduated",
+      "ACTIVE": "Active",
+      "PENDING APPROVAL": "Pending Approval",
+      "ON HOLD": "On Hold",
+    };
+    return statusMap[status.toUpperCase()] || status;
+  };
+  
+  const normalizedStatusFromUrl = normalizeStatus(statusFromUrl);
   const [appliedFilters, setAppliedFilters] = useState<any>({
-    status: [],
+    status: normalizedStatusFromUrl ? [normalizedStatusFromUrl] : [],
     programType: [],
   });
+
+  // Update filters when URL changes
+  useEffect(() => {
+    const statusFromUrl = searchParams?.get("status");
+    const normalizedStatus = normalizeStatus(statusFromUrl);
+    if (normalizedStatus) {
+      setAppliedFilters((prev: any) => ({
+        ...prev,
+        status: [normalizedStatus],
+      }));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isTyping && searchInput.length > 0) setIsTyping(true);
@@ -155,9 +186,17 @@ const StudentContent = ({
     const matchesSearch =
       (student.fullName?.toLowerCase() || "").includes(query) ||
       (student.email?.toLowerCase() || "").includes(query);
+    
+    // Match status - handle both "DROPOUT"/"GRADUATED" (from DB) and "Dropout"/"Graduated" (from filter)
     const matchesStatus =
       appliedFilters.status.length === 0 ||
-      appliedFilters.status.includes(student.status);
+      appliedFilters.status.some((filterStatus: string) => {
+        // Check if student status matches filter status (case-insensitive)
+        const studentStatusUpper = (student.status || "").toUpperCase();
+        const filterStatusUpper = filterStatus.toUpperCase();
+        return studentStatusUpper === filterStatusUpper;
+      });
+    
     const matchesProgramType =
       appliedFilters.programType.length === 0 ||
       appliedFilters.programType.includes(student.programType || "REGULAR_STUDENT");

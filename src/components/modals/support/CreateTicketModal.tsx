@@ -64,8 +64,9 @@ const CreateTicketModal = ({
       description: description.trim(),
       category,
       priority,
-      paymentId: payment?.id,
-      studentId: payment?.student?.id,
+      // Only include optional fields if they have values
+      ...(payment?.id && { paymentId: payment.id }),
+      ...(payment?.student?.id && { studentId: payment.student.id }),
     };
 
     try {

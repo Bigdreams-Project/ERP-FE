@@ -82,6 +82,7 @@ export interface CourseFeeAssignment {
   baseFee: number;
   maxInstallments: number;
   costPerInstallment: number;
+  oldCourseFee?: number;
   center: Center
 }
 
@@ -91,6 +92,7 @@ export interface ICourseFeeAssignment {
   baseFee: number;
   maxInstallments: number;
   costPerInstallment: number;
+  oldCourseFee?: number;
 }
 
 export interface IEditCourseFeeAssignment {
@@ -100,6 +102,7 @@ export interface IEditCourseFeeAssignment {
   baseFee: number;
   maxInstallments: number;
   costPerInstallment: number;
+  oldCourseFee?: number;
 }
 
 export interface ICoursePricingModalProps {

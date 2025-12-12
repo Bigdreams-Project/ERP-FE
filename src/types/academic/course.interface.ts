@@ -12,6 +12,7 @@ export interface CourseAssignment {
   baseFee: number;
   maxInstallments: number;
   costPerInstallment: number;
+  oldCourseFee?: number;
 }
 
 export interface Course {

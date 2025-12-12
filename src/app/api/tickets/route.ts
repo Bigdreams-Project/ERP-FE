@@ -38,6 +38,17 @@ export async function GET(request: NextRequest) {
       params,
     });
 
+    console.log("Tickets API - Backend response:", {
+      status: response.status,
+      dataLength: Array.isArray(response.data) ? response.data.length : "not an array",
+      dataType: typeof response.data,
+      hasData: !!response.data,
+      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'N/A',
+      sampleData: Array.isArray(response.data) && response.data.length > 0 
+        ? response.data[0] 
+        : response.data,
+    });
+
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error("Failed to fetch tickets:", error);
@@ -58,13 +69,14 @@ export async function GET(request: NextRequest) {
  * POST handler - Create a new ticket
  */
 export async function POST(request: NextRequest) {
+  let payload: any = null;
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = await request.json();
+    payload = await request.json();
     const centerId = request.headers.get("X-Center-Id");
 
     const headers: Record<string, string> = {
@@ -86,8 +98,12 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Failed to create ticket:", error);
     if (error.response) {
+      console.error("Backend error response:", error.response.data);
+      if (payload) {
+        console.error("Payload sent:", JSON.stringify(payload, null, 2));
+      }
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to create ticket" },
+        { error: error.response.data?.message || error.response.data?.error || "Failed to create ticket" },
         { status: error.response.status || 500 }
       );
     }

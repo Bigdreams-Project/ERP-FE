@@ -264,6 +264,14 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                         </span>
                         {item.maxInstallments}
                       </p>
+                      {item.oldCourseFee !== undefined && item.oldCourseFee !== null && (
+                        <p className="text-gray-700 dark:text-gray-300">
+                          <span className="font-medium text-gray-600 dark:text-gray-400">
+                            Old Course Fee:{" "}
+                          </span>
+                          ₦{item.oldCourseFee.toLocaleString()}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}

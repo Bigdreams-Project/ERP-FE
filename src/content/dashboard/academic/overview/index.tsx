@@ -146,12 +146,18 @@ const OverviewContent = ({
       includesDate(s.enrolledDate, start, end)
     );
 
-    const totalLeads = leadsInRange.length;
+    // New Leads: All leads except ENROLLED status within date range
+    const newLeadsInRange = leadsInRange.filter(
+      (l: Lead) => l.status !== leadStatusEnum.Enrolled
+    );
+    const totalLeads = newLeadsInRange.length;
+    
+    // New Enrollments: All students registered within date range
     const totalStudents = studentsInRange.length;
     const totalCourses = courses.length;
     const totalCenters = centers.length;
 
-    // Funnel
+    // Funnel: Based on leads in date range (all statuses for funnel)
     const leadsContacted = leadsInRange.filter(
       (l: Lead) => l.status === leadStatusEnum.Contacted
     ).length;
@@ -164,17 +170,18 @@ const OverviewContent = ({
       (l: Lead) => l.status === leadStatusEnum.Enrolled
     ).length;
 
-    // Conversions
-    const leadsInRangeIds = new Set(leadsInRange.map((l: Lead) => l.id));
-    const convertedFromLeadsInRange = studentsInRange.filter(
-      (s: Student) => s.leadId && leadsInRangeIds.has(s.leadId)
+    // Conversion Rate: Leads that went from NEW to ENROLLED
+    // Since all leads start as NEW, we count leads that are ENROLLED and created in date range
+    const leadsNewToEnrolled = leadsInRange.filter(
+      (l: Lead) => l.status === leadStatusEnum.Enrolled
     ).length;
-
-    // General conversion rate (students in range / leads in range)
+    
+    // Total leads that started as NEW in the range (all leads in range start as NEW)
+    const totalNewLeadsInRange = leadsInRange.length;
+    
+    // Conversion rate: (leads that went from NEW to ENROLLED) / (total new leads in range)
     const conversionRate =
-      totalLeads === 0 ? 0 : (totalStudents / totalLeads) * 100;
-    const conversionFromLeads =
-      totalLeads === 0 ? 0 : (convertedFromLeadsInRange / totalLeads) * 100;
+      totalNewLeadsInRange === 0 ? 0 : (leadsNewToEnrolled / totalNewLeadsInRange) * 100;
 
     const changeText = getChangeText(start, end);
 
@@ -191,7 +198,7 @@ const OverviewContent = ({
       {
         title: "New Enrollments",
         value: formatNumber(totalStudents),
-        change: `${percent(totalStudents, Math.max(1, leads.length))} of all`,
+        change: `${percent(totalStudents, Math.max(1, students.length))} of all`,
         direction: "up",
         icon: GraduationCap,
         changeText,
@@ -199,7 +206,7 @@ const OverviewContent = ({
       {
         title: "Conversion Rate",
         value: `${conversionRate.toFixed(1)}%`,
-        change: `${conversionFromLeads.toFixed(1)}% from leads in range`,
+        change: `${leadsNewToEnrolled} of ${totalNewLeadsInRange} leads converted`,
         direction: conversionRate > 0 ? "up" : "down",
         icon: BookOpen,
         changeText,
@@ -217,9 +224,9 @@ const OverviewContent = ({
       },
     ];
 
-    // Funnel data for chart
+    // Funnel data for chart - based on leads in date range
     const funnel = [
-      { name: "Leads", value: totalLeads },
+      { name: "Leads", value: leadsInRange.length },
       { name: "Contacted", value: leadsContacted },
       { name: "Deposited", value: leadsDeposited },
       { name: "Enrolled", value: leadsEnrolled },
@@ -234,8 +241,8 @@ const OverviewContent = ({
       courseMap.set(c.id!, { id: c.id!, name: c.name, leads: 0, enrolls: 0 });
     });
 
-    // Count leads per course
-    leadsInRange.forEach((l: Lead) => {
+    // Count leads per course (excluding ENROLLED status for new leads card)
+    newLeadsInRange.forEach((l: Lead) => {
       if (!l.courseId) return;
       const entry = courseMap.get(l.courseId);
       if (entry) entry.leads += 1;
@@ -312,20 +319,7 @@ const OverviewContent = ({
       ) => b.date.getTime() - a.date.getTime()
     );
 
-    // Activities for last 30 days (for modal)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const activitiesLast30Days = allActivity.filter(
-      (a: {
-        type: string;
-        id: string;
-        title: string;
-        date: Date;
-        meta: string;
-      }) => a.date >= thirtyDaysAgo
-    );
-
-    // Recent activity (first 10 for display)
+    // Recent activity (last 10 for display)
     const recentActivity = allActivity
       .slice(0, 10)
       .map(
@@ -342,8 +336,8 @@ const OverviewContent = ({
         })
       );
 
-    // Activities for modal (last 30 days)
-    const modalActivities = activitiesLast30Days.map(
+    // Activities for modal (all activities)
+    const modalActivities = allActivity.map(
       (a: {
         type: string;
         id: string;
@@ -360,8 +354,8 @@ const OverviewContent = ({
     const insights = [
       {
         icon: <FiPieChart size={16} color="#FFC105FF" />,
-        text: `You received ${totalLeads} lead${
-          totalLeads !== 1 ? "s" : ""
+        text: `You received ${newLeadsInRange.length} lead${
+          newLeadsInRange.length !== 1 ? "s" : ""
         } in the selected range.`,
       },
       {
@@ -536,16 +530,22 @@ const OverviewContent = ({
             Recent Activity
           </h2>
           <div className="space-y-6">
-            {computedData.recentActivity.map((activity, index) => (
-              <ActivityItem key={index} {...activity} />
-            ))}
+            {computedData.recentActivity.length === 0 ? (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                No recent activity
+              </p>
+            ) : (
+              computedData.recentActivity.map((activity, index) => (
+                <ActivityItem key={index} {...activity} />
+              ))
+            )}
           </div>
-          {computedData.recentActivity.length >= 10 && (
+          {computedData.modalActivities.length > 10 && (
             <button
               onClick={() => setShowActivityModal(true)}
               className="mt-4 w-full px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
             >
-              View More
+              View All
             </button>
           )}
         </div>
@@ -557,7 +557,7 @@ const OverviewContent = ({
               {/* Header */}
               <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                  Recent Activity (Last 30 Days)
+                  All Recent Activity
                 </h2>
                 <button
                   onClick={() => setShowActivityModal(false)}
@@ -573,7 +573,7 @@ const OverviewContent = ({
                 <div className="space-y-6">
                   {computedData.modalActivities.length === 0 ? (
                     <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-                      No activities in the last 30 days
+                      No activities found
                     </p>
                   ) : (
                     computedData.modalActivities.map((activity, index) => (

@@ -17,6 +17,7 @@ const KPICard = ({
   formatValue,
   sparklineType = "area",
   layout = "default",
+  onClick,
 }: KPICardProps) => {
   const isUp = direction === "up";
   const isDown = direction === "down";
@@ -97,7 +98,8 @@ const KPICard = ({
 
     return (
       <div
-        className={`${colors.bg} ${colors.border} border-2 p-6 rounded-2xl shadow-lg ${colors.glow} transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 relative overflow-hidden group`}
+        onClick={onClick}
+        className={`${colors.bg} ${colors.border} border-2 p-6 rounded-2xl shadow-lg ${colors.glow} transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 relative overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
       >
         {/* Animated background gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -230,7 +232,8 @@ const KPICard = ({
   // Default enhanced layout
   return (
     <div
-      className={`${colors.bg} ${colors.border} border-2 p-6 rounded-2xl shadow-lg ${colors.glow} transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 relative overflow-hidden group`}
+      onClick={onClick}
+      className={`${colors.bg} ${colors.border} border-2 p-6 rounded-2xl shadow-lg ${colors.glow} transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 relative overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
     >
       {/* Animated background gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

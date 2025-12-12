@@ -39,7 +39,9 @@ const StudentCourses = ({ data }: Props) => {
   if (loading) {
     return (
       <Card title="Courses" className="h-full">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">Loading courses...</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Loading courses...
+        </p>
       </Card>
     );
   }
@@ -47,10 +49,17 @@ const StudentCourses = ({ data }: Props) => {
   return (
     <Card title="Courses" className="h-full">
       {courses.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400 text-sm">No courses enrolled yet.</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          No courses enrolled yet.
+        </p>
       ) : (
         <div className="space-y-4">
           {courses.map((course) => {
+            // Check if course is fully paid (pending <= 0)
+            const isFullyPaid = course?.paymentPlan 
+              ? course.paymentPlan.pending <= 0 
+              : false;
+
             return (
               <div
                 key={course.id}
@@ -60,27 +69,29 @@ const StudentCourses = ({ data }: Props) => {
                   <h3 className="font-semibold text-gray-800 dark:text-gray-200">
                     {course.course.name}
                   </h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        setSelectedCourse({
-                          course: course,
-                          action: "discount",
-                        })
-                      }
-                      className="bg-indigo-600 dark:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-indigo-700 dark:hover:bg-indigo-600 transition"
-                    >
-                      Offer Discount
-                    </button>
-                    <button
-                      onClick={() =>
-                        setSelectedCourse({ course: course, action: "payment" })
-                      }
-                      className="bg-blue-600 dark:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 dark:hover:bg-blue-600 transition"
-                    >
-                      Add Payment
-                    </button>
-                  </div>
+                  {!isFullyPaid && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          setSelectedCourse({
+                            course: course,
+                            action: "discount",
+                          })
+                        }
+                        className="bg-indigo-600 dark:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-indigo-700 dark:hover:bg-indigo-600 transition"
+                      >
+                        Offer Discount
+                      </button>
+                      <button
+                        onClick={() =>
+                          setSelectedCourse({ course: course, action: "payment" })
+                        }
+                        className="bg-blue-600 dark:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+                      >
+                        Add Payment
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-6">
@@ -105,10 +116,16 @@ const StudentCourses = ({ data }: Props) => {
                     label="Balance Due"
                     value={
                       course?.paymentPlan
-                        ? `₦${course?.paymentPlan.pending.toLocaleString()}`
+                        ? course.paymentPlan.pending <= 0
+                          ? "Fully Paid"
+                          : `₦${course.paymentPlan.pending.toLocaleString()}`
                         : "N/A"
                     }
-                    valueColor="text-red-600 dark:text-red-400"
+                    valueColor={
+                      course?.paymentPlan && course.paymentPlan.pending <= 0
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }
                   />
                   <InfoItem
                     label="Next Payment Due"

@@ -18,6 +18,7 @@ export interface BulkUploadCourseRecord {
   oldId: string;
   title: string;
   duration: number;
+  amount?: number;
 }
 
 export interface BulkUploadCoursesRequest {
@@ -41,4 +42,15 @@ export interface BulkUploadCoursesResponse {
     reason: string;
   }>;
   total: number;
+}
+
+export interface BulkUploadRegularCourseRecord {
+  title: string;
+  duration: number;
+  course_type: string;
+  amount?: number;
+}
+
+export interface BulkUploadRegularCoursesRequest {
+  records: BulkUploadRegularCourseRecord[];
 }

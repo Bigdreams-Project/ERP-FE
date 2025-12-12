@@ -18,6 +18,7 @@ import {
 import {
   BulkUploadCoursesRequest,
   BulkUploadCoursesResponse,
+  BulkUploadRegularCoursesRequest,
 } from "@/types/requests/course.interface";
 import {
   BulkUploadArchiveRequest,
@@ -274,6 +275,35 @@ export const bulkUploadCoursesClient = async (
   }
 };
 
+export const bulkUploadRegularCoursesClient = async (
+  payload: BulkUploadRegularCoursesRequest
+): Promise<any> => {
+  try {
+    const res = await fetch("/api/courses/bulk-upload-regular", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error ||
+          `Failed to bulk upload regular courses: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to bulk upload regular courses:", err.message);
+    throw err;
+  }
+};
+
 // Students - Client-side functions
 export const getStudentsClient = async (centerId?: string | null) => {
   try {
@@ -304,11 +334,45 @@ export const getStudentsClient = async (centerId?: string | null) => {
     const data = await res.json();
     // Frontend safety filter: exclude soft-deleted students
     const students = Array.isArray(data) ? data : [];
-    const filteredStudents = students.filter((student: any) => !student.deletedAt);
-    console.log(`getStudentsClient: Received ${students.length} total students, ${filteredStudents.length} after filtering deleted`);
+    const filteredStudents = students.filter(
+      (student: any) => !student.deletedAt
+    );
+    console.log(
+      `getStudentsClient: Received ${students.length} total students, ${filteredStudents.length} after filtering deleted`
+    );
     return filteredStudents;
   } catch (err: any) {
     console.error("Failed to fetch students:", err.message);
+    throw err;
+  }
+};
+
+export const getStudentsSummaryClient = async (centerId?: string | null) => {
+  try {
+    // Use Next.js API route to avoid CORS issues
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add X-Center-Id header ONLY if centerId is provided and not "all" or null
+    if (centerId && centerId !== "all" && centerId !== null) {
+      headers["X-Center-Id"] = centerId;
+    }
+
+    const res = await fetch("/api/students/summary", {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch student summary: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch student summary:", err.message);
     throw err;
   }
 };
@@ -471,13 +535,19 @@ export const getLeadsClient = async (centerId?: string | null) => {
     if (!res.ok) {
       const errorText = await res.text();
       let errorMessage = `Failed to fetch leads: ${res.statusText}`;
-      
+
       if (res.status === 403) {
-        errorMessage = "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
-        console.error("403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers.");
+        errorMessage =
+          "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
+        console.error(
+          "403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers."
+        );
       }
-      
-      console.error(`getLeadsClient error: ${res.status} ${res.statusText}`, errorText);
+
+      console.error(
+        `getLeadsClient error: ${res.status} ${res.statusText}`,
+        errorText
+      );
       throw new Error(errorMessage);
     }
 
@@ -767,6 +837,28 @@ export const getLoggedInUserClient = async () => {
   }
 };
 
+export const getUserClient = async (id: string) => {
+  try {
+    const res = await fetch(`/api/users/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch user: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    console.error("Failed to fetch user:", err.message);
+    throw err;
+  }
+};
+
 // Center Context - Client-side function
 export const getCenterContextClient = async () => {
   try {
@@ -816,13 +908,19 @@ export const getBanksClient = async (centerId?: string | null) => {
     if (!res.ok) {
       const errorText = await res.text();
       let errorMessage = `Failed to fetch banks: ${res.statusText}`;
-      
+
       if (res.status === 403) {
-        errorMessage = "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
-        console.error("403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers.");
+        errorMessage =
+          "Access denied. The backend may be restricting access to this center. Please contact your administrator.";
+        console.error(
+          "403 Forbidden - Backend denied access. This may be a backend permission issue for ADMIN users accessing specific centers."
+        );
       }
-      
-      console.error(`getBanksClient error: ${res.status} ${res.statusText}`, errorText);
+
+      console.error(
+        `getBanksClient error: ${res.status} ${res.statusText}`,
+        errorText
+      );
       throw new Error(errorMessage);
     }
 
@@ -871,9 +969,14 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
     // When centerId is null or "all", we don't send the header to get all records
     if (centerId && centerId !== "all" && centerId !== null) {
       headers["X-Center-Id"] = centerId;
-      console.log("[getFinanceOverviewClient] Fetching finance overview for center:", centerId);
+      console.log(
+        "[getFinanceOverviewClient] Fetching finance overview for center:",
+        centerId
+      );
     } else {
-      console.log("[getFinanceOverviewClient] Fetching ALL finance overview (no center filter)");
+      console.log(
+        "[getFinanceOverviewClient] Fetching ALL finance overview (no center filter)"
+      );
     }
 
     const res = await fetch("/api/payment/overview", {
@@ -882,12 +985,18 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
       credentials: "include",
     });
 
-    console.log("[getFinanceOverviewClient] Response status:", res.status, res.statusText);
+    console.log(
+      "[getFinanceOverviewClient] Response status:",
+      res.status,
+      res.statusText
+    );
 
     if (!res.ok) {
       // Handle 404 gracefully - return default data instead of throwing
       if (res.status === 404) {
-        console.warn("[getFinanceOverviewClient] Finance overview endpoint not found (404), returning default data");
+        console.warn(
+          "[getFinanceOverviewClient] Finance overview endpoint not found (404), returning default data"
+        );
         return {
           totalRevenue: 0,
           totalPending: 0,
@@ -902,13 +1011,20 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
       let errorText = "";
       try {
         errorText = await res.text();
-        console.error(`[getFinanceOverviewClient] Error response (${res.status}):`, errorText);
+        console.error(
+          `[getFinanceOverviewClient] Error response (${res.status}):`,
+          errorText
+        );
       } catch (e) {
-        console.error(`[getFinanceOverviewClient] Could not read error response`);
+        console.error(
+          `[getFinanceOverviewClient] Could not read error response`
+        );
       }
-      
+
       if (res.status === 403) {
-        console.error("[getFinanceOverviewClient] 403 Forbidden - Backend denied access");
+        console.error(
+          "[getFinanceOverviewClient] 403 Forbidden - Backend denied access"
+        );
         // For 403, also return default data instead of throwing
         return {
           totalRevenue: 0,
@@ -919,9 +1035,12 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
           topPerformingCenter: null,
         };
       }
-      
+
       // For other errors, log but still return default data
-      console.error(`[getFinanceOverviewClient] Unexpected error (${res.status}):`, errorText || res.statusText);
+      console.error(
+        `[getFinanceOverviewClient] Unexpected error (${res.status}):`,
+        errorText || res.statusText
+      );
       return {
         totalRevenue: 0,
         totalPending: 0,
@@ -934,17 +1053,28 @@ export const getFinanceOverviewClient = async (centerId?: string | null) => {
 
     // Success - parse and return data
     const data = await res.json();
-    console.log("[getFinanceOverviewClient] Successfully fetched finance overview data:", {
-      totalRevenue: data.totalRevenue,
-      totalPending: data.totalPending,
-      totalPayments: data.totalPayments,
-      topCentersCount: Array.isArray(data.topCenters) ? data.topCenters.length : 0,
-      topPendingCentersCount: Array.isArray(data.topPendingCenters) ? data.topPendingCenters.length : 0,
-    });
+    console.log(
+      "[getFinanceOverviewClient] Successfully fetched finance overview data:",
+      {
+        totalRevenue: data.totalRevenue,
+        totalPending: data.totalPending,
+        totalPayments: data.totalPayments,
+        topCentersCount: Array.isArray(data.topCenters)
+          ? data.topCenters.length
+          : 0,
+        topPendingCentersCount: Array.isArray(data.topPendingCenters)
+          ? data.topPendingCenters.length
+          : 0,
+      }
+    );
     return data;
   } catch (err: any) {
     // Network errors or other issues - log and return default data
-    console.error("[getFinanceOverviewClient] Network or parsing error:", err.message, err);
+    console.error(
+      "[getFinanceOverviewClient] Network or parsing error:",
+      err.message,
+      err
+    );
     return {
       totalRevenue: 0,
       totalPending: 0,
@@ -1613,7 +1743,10 @@ import {
   CreateTicketCommentRequest,
 } from "@/types/support/ticket.interface";
 
-export const getTicketsClient = async (centerId?: string | null) => {
+export const getTicketsClient = async (
+  centerId?: string | null,
+  filters?: { status?: string; priority?: string; category?: string }
+) => {
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -1623,18 +1756,64 @@ export const getTicketsClient = async (centerId?: string | null) => {
       headers["X-Center-Id"] = centerId;
     }
 
-    const res = await fetch("/api/tickets", {
+    // Build query string from filters
+    const queryParams = new URLSearchParams();
+    if (filters?.status && filters.status !== "all") {
+      queryParams.append("status", filters.status);
+    }
+    if (filters?.priority && filters.priority !== "all") {
+      queryParams.append("priority", filters.priority);
+    }
+    if (filters?.category && filters.category !== "all") {
+      queryParams.append("category", filters.category);
+    }
+
+    const queryString = queryParams.toString();
+    const url = `/api/tickets${queryString ? `?${queryString}` : ""}`;
+
+    const res = await fetch(url, {
       method: "GET",
       headers,
       credentials: "include",
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch tickets: ${res.statusText}`);
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to fetch tickets: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
-    return Array.isArray(data) ? data : [];
+
+    // Handle different response formats
+    // Case 1: Direct array
+    if (Array.isArray(data)) {
+      console.log(
+        `getTicketsClient: Received ${data.length} tickets (direct array)`
+      );
+      return data;
+    }
+
+    // Case 2: Wrapped in data property
+    if (data && Array.isArray(data.data)) {
+      console.log(
+        `getTicketsClient: Received ${data.data.length} tickets (wrapped in data)`
+      );
+      return data.data;
+    }
+
+    // Case 3: Wrapped in tickets property
+    if (data && Array.isArray(data.tickets)) {
+      console.log(
+        `getTicketsClient: Received ${data.tickets.length} tickets (wrapped in tickets)`
+      );
+      return data.tickets;
+    }
+
+    // Case 4: Empty or unexpected format
+    console.warn("getTicketsClient: Unexpected response format:", data);
+    return [];
   } catch (err: any) {
     console.error("Failed to fetch tickets:", err.message);
     throw err;
@@ -1720,6 +1899,28 @@ export const updateTicketClient = async (
     return data;
   } catch (err: any) {
     console.error("Failed to update ticket:", err.message);
+    throw err;
+  }
+};
+
+export const getTicketCommentsClient = async (ticketId: string) => {
+  try {
+    const res = await fetch(`/api/tickets/${ticketId}/comments`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch comments: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    console.error("Failed to fetch comments:", err.message);
     throw err;
   }
 };
@@ -1867,7 +2068,8 @@ export const enrollStudentToProgramClient = async (
         .json()
         .catch(() => ({ error: res.statusText }));
       throw new Error(
-        errorData.error || `Failed to enroll student to program: ${res.statusText}`
+        errorData.error ||
+          `Failed to enroll student to program: ${res.statusText}`
       );
     }
 

@@ -10,6 +10,7 @@ import {
   getCentersClient,
   getLeadsClient,
   getLoggedInUserClient,
+  getStudentsSummaryClient,
 } from "@/lib/client-network";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
@@ -69,6 +70,7 @@ import {
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useRouter } from "next/navigation";
 
 interface DashboardOverviewProps {
   user: User;
@@ -125,6 +127,7 @@ const DashboardOverview = ({
   leads: initialLeads,
   financeOverview: initialFinanceOverview,
 }: DashboardOverviewProps) => {
+  const router = useRouter();
   const { selectedCenter } = useCenter();
   const { selectedProvider } = useProvider();
   const [range, setRange] = useState([
@@ -195,6 +198,16 @@ const DashboardOverview = ({
     () => getLeadsClient(),
     {
       initialData: initialLeads,
+      staleTime: 1000 * 60 * 5,
+    }
+  );
+
+  // Fetch student summary counts
+  const centerIdForSummary = selectedCenter === "all" ? null : selectedCenter;
+  const { data: studentsSummary } = useQuery(
+    ["students-summary", selectedCenter],
+    () => getStudentsSummaryClient(centerIdForSummary),
+    {
       staleTime: 1000 * 60 * 5,
     }
   );
@@ -360,14 +373,10 @@ const DashboardOverview = ({
     // Total students (all students, regardless of date range or deletion)
     const totalStudents = filteredStudents.length;
     
-    // Dropouts (students with DROPOUT status)
-    const dropouts = filteredStudents.filter((s) => s.status === "DROPOUT").length;
-    
-    // Graduated (students with GRADUATED status)
-    const graduated = filteredStudents.filter((s) => s.status === "GRADUATED").length;
-    
-    // Archived (students with deletedAt set)
-    const archived = filteredStudents.filter((s) => s.deletedAt !== null).length;
+    // Use summary data if available, otherwise fallback to local calculation
+    const dropouts = studentsSummary?.dropouts ?? filteredStudents.filter((s) => s.status === "DROPOUT").length;
+    const graduated = studentsSummary?.graduated ?? filteredStudents.filter((s) => s.status === "GRADUATED").length;
+    const archived = studentsSummary?.archived ?? filteredStudents.filter((s) => s.deletedAt !== null).length;
 
     // Operational metrics (filtered by center)
     const { courses: filteredCourses } = filteredData;
@@ -788,7 +797,7 @@ const DashboardOverview = ({
       activities,
       insights,
     };
-  }, [range, filteredData, courses, initialFinanceOverview]);
+  }, [range, filteredData, courses, initialFinanceOverview, studentsSummary]);
 
   const handleRangeChange = (newRange: Array<{ startDate: Date; endDate: Date; key: string }>) => {
     setRange(newRange);
@@ -1281,18 +1290,21 @@ const DashboardOverview = ({
               value={formatNumber(dashboardData.metrics.dropouts)}
               icon={UserX}
               color="red"
+              onClick={() => router.push("/dashboard/academic/students?status=DROPOUT")}
             />
             <KPICard
               title="Graduated"
               value={formatNumber(dashboardData.metrics.graduated)}
               icon={Award}
               color="green"
+              onClick={() => router.push("/dashboard/academic/students?status=GRADUATED")}
             />
             <KPICard
               title="Archived Students"
               value={formatNumber(dashboardData.metrics.archived)}
               icon={Archive}
               color="amber"
+              onClick={() => router.push("/dashboard/academic/archive")}
             />
           </div>
         </div>

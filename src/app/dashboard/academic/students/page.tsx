@@ -6,6 +6,7 @@ import {
   getLoggedInUser,
   getStudents
 } from "@/lib/network";
+import { Suspense } from "react";
 
 export default async function Students() {
   // Fetch all data in parallel for maximum speed
@@ -18,12 +19,14 @@ export default async function Students() {
   ]);
 
   return (
-    <StudentContent
-      students={students}
-      courses={courses}
-      centers={centers}
-      leads={leads}
-      user={user}
-    />
+    <Suspense fallback={<div>Loading...</div>}>
+      <StudentContent
+        students={students}
+        courses={courses}
+        centers={centers}
+        leads={leads}
+        user={user}
+      />
+    </Suspense>
   );
 }

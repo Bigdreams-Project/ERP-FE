@@ -81,6 +81,10 @@ export interface BulkUploadStudentRecord {
   courseId: string;
   courseFee: number;
   payments: BulkUploadStudentPayment[];
+  guardianName?: string;
+  guardianEmail?: string | null;
+  guardianPhone?: string;
+  guardianAddress?: string;
 }
 
 export interface BulkUploadStudentsRequest {

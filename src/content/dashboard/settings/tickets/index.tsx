@@ -27,27 +27,51 @@ const TicketsContent = () => {
     return selectedCenter === "all" ? null : selectedCenter;
   }, [isCenterLoading, centerContext, selectedCenter]);
 
-  const { data: tickets = [], isLoading } = useQuery({
+  const { data: tickets = [], isLoading, error } = useQuery({
     queryKey: ["tickets", centerIdForQuery, statusFilter, priorityFilter],
     queryFn: () => {
-      const params: Record<string, string> = {};
-      if (statusFilter !== "all") params.status = statusFilter;
-      if (priorityFilter !== "all") params.priority = priorityFilter;
-      return getTicketsClient(centerIdForQuery);
+      return getTicketsClient(centerIdForQuery, {
+        status: statusFilter,
+        priority: priorityFilter,
+      });
     },
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
     enabled: !isCenterLoading,
   });
 
+  // Log tickets for debugging
+  useEffect(() => {
+    if (!isLoading && tickets) {
+      console.log("Tickets loaded:", tickets.length, tickets);
+    }
+    if (error) {
+      console.error("Error loading tickets:", error);
+    }
+  }, [tickets, isLoading, error]);
+
   const filteredTickets = useMemo(() => {
-    if (!searchQuery.trim()) return tickets;
+    console.log("Filtering tickets:", {
+      totalTickets: tickets.length,
+      searchQuery,
+      statusFilter,
+      priorityFilter,
+    });
+    
+    if (!searchQuery.trim()) {
+      console.log("No search query, returning all tickets:", tickets.length);
+      return tickets;
+    }
+    
     const query = searchQuery.toLowerCase();
-    return tickets.filter((ticket: Ticket) =>
+    const filtered = tickets.filter((ticket: Ticket) =>
       ticket.title.toLowerCase().includes(query) ||
       ticket.description.toLowerCase().includes(query) ||
       ticket.createdByName?.toLowerCase().includes(query)
     );
+    
+    console.log("After search filter:", filtered.length);
+    return filtered;
   }, [tickets, searchQuery]);
 
   const getStatusColor = (status: TicketStatus) => {
@@ -192,6 +216,21 @@ const TicketsContent = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
           {isLoading ? (
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading tickets...</div>
+          ) : error ? (
+            <div className="p-8 text-center">
+              <div className="text-red-600 dark:text-red-400 mb-2">
+                Failed to load tickets
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {error instanceof Error ? error.message : "An error occurred"}
+              </div>
+              <button
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["tickets"] })}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Retry
+              </button>
+            </div>
           ) : filteredTickets.length === 0 ? (
             <NotFoundComponent text="Support Tickets" setIsModalOpen={setIsModalOpen} />
           ) : (

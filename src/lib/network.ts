@@ -344,6 +344,7 @@ export const assignCenterFee = async (
       baseFee: payload.baseFee,
       maxInstallments: payload.maxInstallments,
       costPerInstallment: payload.costPerInstallment,
+      oldCourseFee: payload.oldCourseFee,
     });
     return res.data;
   } catch (err: any) {
@@ -364,6 +365,7 @@ export const updateCenterFee = async (
       baseFee: payload.baseFee,
       maxInstallments: payload.maxInstallments,
       costPerInstallment: payload.costPerInstallment,
+      oldCourseFee: payload.oldCourseFee,
     });
     return res.data;
   } catch (err: any) {

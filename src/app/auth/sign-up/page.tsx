@@ -53,7 +53,7 @@ export default function Signup() {
   const formReady = isDirty && isValid;
 
   return (
-    <div className="w-full h-screen md:flex md:justify-center md:items-center min-h-screen md:gap-[2rem] md:px-[3rem] md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem]">
+    <div className="w-full h-screen md:flex md:justify-center md:items-center min-h-screen md:gap-[2rem] md:px-[3rem] md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem] bg-white text-gray-900">
       {/* Logo */}
       <div className="w-full md:w-[60%] flex justify-between items-center md:flex-row">
         <img src="/Logo.png" alt="" />
@@ -66,10 +66,10 @@ export default function Signup() {
           style={{ boxShadow: "0rem 0rem 0.7rem rgba(0, 0, 0, 0.1)" }}
         >
           <div className="flex flex-col gap-1">
-            <h2 className="text-[32px] font-bold">
+            <h2 className="text-[32px] font-bold text-gray-900">
               {showTransition ? "Thank You!" : "Welcome Back 👋"}
             </h2>
-            <p className="text-[20px] font-semibold text-[rgba(0,0,0,0.5)]">
+            <p className="text-[20px] font-semibold text-gray-600">
               {showTransition ? "" : "Register an account"}
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function Signup() {
           {showTransition ? (
             <div className="flex flex-col items-center justify-center py-10 gap-4">
               <div className="max-w-md w-full bg-white p-6 rounded text-center space-y-4">
-                <p className="text-l font-bold">
+                <p className="text-l font-bold text-gray-900">
                   Your access request has been sent. An administrator will
                   review and approve your account shortly.
                 </p>
@@ -100,7 +100,7 @@ export default function Signup() {
                 <input
                   type="text"
                   placeholder="Enter your first name"
-                  className="w-full bg-transparent outline-none text-[16px]"
+                  className="w-full bg-transparent outline-none text-[16px] text-gray-900 placeholder:text-gray-500"
                   {...register("firstname")}
                 />
               </div>
@@ -116,7 +116,7 @@ export default function Signup() {
                 <input
                   type="text"
                   placeholder="Enter your last name"
-                  className="w-full bg-transparent outline-none text-[16px]"
+                  className="w-full bg-transparent outline-none text-[16px] text-gray-900 placeholder:text-gray-500"
                   {...register("lastname")}
                 />
               </div>
@@ -140,7 +140,7 @@ export default function Signup() {
                 <input
                   type="email"
                   placeholder="What is your e-mail?"
-                  className="w-full bg-transparent outline-none text-[16px]"
+                  className="w-full bg-transparent outline-none text-[16px] text-gray-900 placeholder:text-gray-500"
                   {...register("email")}
                 />
                 {!errors.email && watch("email") && (
@@ -167,7 +167,7 @@ export default function Signup() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="w-full outline-none text-[16px] bg-transparent"
+                  className="w-full outline-none text-[16px] bg-transparent text-gray-900 placeholder:text-gray-500"
                   {...register("password")}
                 />
                 {errors.password ? (
@@ -208,7 +208,7 @@ export default function Signup() {
                 <input
                   type={showConfirmPass ? "text" : "password"}
                   placeholder="Confirm your password"
-                  className="w-full outline-none text-[16px] bg-transparent"
+                  className="w-full outline-none text-[16px] bg-transparent text-gray-900 placeholder:text-gray-500"
                   {...register("confirmPassword")}
                 />
                 {errors.confirmPassword ? (
@@ -243,7 +243,7 @@ export default function Signup() {
                 <input
                   type="text"
                   placeholder="Company/Organization name"
-                  className="w-full bg-transparent outline-none text-[16px]"
+                  className="w-full bg-transparent outline-none text-[16px] text-gray-900 placeholder:text-gray-500"
                   {...register("company")}
                 />
               </div>
@@ -257,7 +257,7 @@ export default function Signup() {
                 <input
                   type="text"
                   placeholder="Job title (Optional)"
-                  className="w-full bg-transparent outline-none text-[16px]"
+                  className="w-full bg-transparent outline-none text-[16px] text-gray-900 placeholder:text-gray-500"
                   {...register("job")}
                 />
               </div>
@@ -270,7 +270,7 @@ export default function Signup() {
                     id="check"
                     className="accent-[#636AE8]"
                   />
-                  <span>Remember me</span>
+                  <span className="text-gray-700">Remember me</span>
                 </label>
               </div>
 
@@ -308,15 +308,15 @@ export default function Signup() {
 
           {!showTransition && (
             <div className="mt-[2rem]">
-              <p className="text-[15px] text-center">
-                Already have an account?{" "}
-                <a
-                  href={AppAuthRoutes.LOGIN}
-                  className="text-[#636ae8] font-semibold"
-                >
-                  Login
-                </a>
-              </p>
+            <p className="text-[15px] text-center text-gray-700">
+              Already have an account?{" "}
+              <a
+                href={AppAuthRoutes.LOGIN}
+                className="text-[#636ae8] font-semibold"
+              >
+                Login
+              </a>
+            </p>
             </div>
           )}
         </div>

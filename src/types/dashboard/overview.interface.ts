@@ -128,5 +128,6 @@ export interface KPICardProps {
   formatValue?: (value: number) => string;
   sparklineType?: "area" | "line";
   layout?: "default" | "simple"; // Simple layout matches the design exactly
+  onClick?: () => void; // Optional click handler
 }
 

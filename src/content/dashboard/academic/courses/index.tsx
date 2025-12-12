@@ -6,7 +6,7 @@ import CoursesTable from "@/components/academic/tables/Courses.table";
 import CourseModal from "@/components/modals/academic/Course.modal";
 import BulkUploadCoursesModal from "@/components/modals/academic/BulkUploadCourses.modal";
 import { courseStatus, courseTypes } from "@/data/constants/status.constants";
-import { createCourseClient, getCoursesClient, bulkUploadCoursesClient } from "@/lib/client-network";
+import { createCourseClient, getCoursesClient, bulkUploadCoursesClient, bulkUploadRegularCoursesClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatCourseType } from "@/lib/utils";
 import { Course } from "@/types/academic/course.interface";
@@ -127,13 +127,20 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
     createCourseMutation({ payload, isDraft });
   };
 
-  const handleBulkUpload = async (payload: any) => {
+  const handleBulkUpload = async (payload: any, uploadType: "old" | "new" | null) => {
     setIsBulkUploading(true);
     try {
-      const result = await bulkUploadCoursesClient(payload);
-      if (result.success > 0) {
+      let result;
+      if (uploadType === "old") {
+        result = await bulkUploadCoursesClient(payload);
+      } else {
+        result = await bulkUploadRegularCoursesClient(payload);
+      }
+
+      if (result.success > 0 || (result.success === undefined && result.message)) {
+        const successCount = result.success || payload.records?.length || 0;
         showSuccess(
-          `Successfully uploaded ${result.success} course(s). ${result.failed > 0 ? `${result.failed} failed.` : ""}`
+          `Successfully uploaded ${successCount} course(s). ${result.failed > 0 ? `${result.failed} failed.` : ""}`
         );
         // Refetch courses
         await queryClient.refetchQueries({ queryKey: ["courses"] });

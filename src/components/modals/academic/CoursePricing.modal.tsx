@@ -27,6 +27,7 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
       baseFee: 0,
       maxInstallments: 0,
       costPerInstallment: 0,
+      oldCourseFee: undefined,
     },
     mode: "onTouched",
   });
@@ -175,6 +176,23 @@ const CoursePricingModal: React.FC<ICoursePricingModalProps> = ({
                 {...register("costPerInstallment", { valueAsNumber: true })}
                 readOnly
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-300 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 cursor-not-allowed"
+              />
+            </div>
+
+            {/* Old Course Fee (Optional) */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="oldCourseFee"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Old Course Fee <span className="text-gray-500 dark:text-gray-400 text-xs">(Optional)</span>
+              </label>
+              <input
+                type="number"
+                id="oldCourseFee"
+                {...register("oldCourseFee", { valueAsNumber: true })}
+                placeholder="e.g., 4000"
+                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-300 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
           </div>

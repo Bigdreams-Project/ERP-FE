@@ -5,7 +5,8 @@ import {
   paymentPlan,
   paymentTypes,
 } from "@/data/view/student.data";
-import { enrollStudentCourse, getCenterBanks, getCourse } from "@/lib/network";
+import { enrollStudentCourse, getCourse } from "@/lib/network";
+import { getCenterBanksClient, getBanksClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { Course } from "@/types/academic/course.interface";
 import { Bank } from "@/types/finance/bank.interface";
@@ -35,6 +36,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
     reset,
     watch,
     setValue,
+    clearErrors,
   } = useForm<CreateStudentPayment>({
     resolver: yupResolver(addStudentPaymentSchema),
     defaultValues: {
@@ -74,17 +76,47 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
 
   useEffect(() => {
     const fetchBanks = async () => {
-      if (!centerId) return;
+      if (!centerId) {
+        setBanks([]);
+        clearErrors("bankId"); // Clear bank validation error if no center selected
+        return;
+      }
       try {
-        const response = await getCenterBanks(centerId);
-        setBanks(response);
-      } catch (error) {
-        console.error("Failed to fetch center's banks:", error);
+        // Try to fetch center-specific banks first
+        const response = await getCenterBanksClient(centerId);
+        const bankList = Array.isArray(response) ? response : [];
+        setBanks(bankList);
+        // If no banks available, clear the bankId error
+        if (bankList.length === 0) {
+          clearErrors("bankId");
+        }
+      } catch (error: any) {
+        // If center-specific banks fail (403/401), try to fetch all banks as fallback
+        if (error?.message?.includes('403') || error?.message?.includes('401') || error?.message?.includes('Failed to fetch banks')) {
+          console.log("Center-specific bank access restricted. Attempting to fetch all banks...");
+          try {
+            const allBanks = await getBanksClient(null);
+            const bankList = Array.isArray(allBanks) ? allBanks : [];
+            setBanks(bankList);
+            // If no banks available, clear the bankId error
+            if (bankList.length === 0) {
+              clearErrors("bankId");
+            }
+          } catch (fallbackError: any) {
+            console.log("Unable to fetch banks. Bank selection will be unavailable.");
+            setBanks([]);
+            clearErrors("bankId"); // Clear validation error when banks unavailable
+          }
+        } else {
+          console.error("Failed to fetch center's banks:", error);
+          setBanks([]);
+          clearErrors("bankId");
+        }
       }
     };
 
     fetchBanks();
-  }, [centerId]);
+  }, [centerId, clearErrors]);
 
   useEffect(() => {
     if (selectedCourse) {
@@ -100,6 +132,13 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
   }, [selectedCourse]);
 
   const onSubmit = async (payload: CreateStudentPayment) => {
+    // Clear bankId error if banks are not available
+    if (banks.length === 0) {
+      clearErrors("bankId");
+      // Set bankId to empty string to bypass validation if banks unavailable
+      payload.bankId = "";
+    }
+    
     try {
       await enrollStudentCourse(payload);
       showSuccess("Payment recorded successfully!");

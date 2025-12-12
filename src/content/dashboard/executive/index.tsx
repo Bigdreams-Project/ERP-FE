@@ -313,8 +313,67 @@ const ExecutiveDashboard = ({
       includesDate(s.enrolledDate, yoyStart, yoyEnd)
     );
 
+    // Helper function to check if payment is legacy
+    const isLegacyPayment = (payment: any): boolean => {
+      if (!payment) return false;
+
+      // Check paymentType (case-insensitive)
+      const paymentType = String(payment?.paymentType || "")
+        .toUpperCase()
+        .trim();
+      // Check message field
+      const message = String(payment?.message || "")
+        .toUpperCase()
+        .trim();
+      // Check paymentPlan name
+      const paymentPlanName = String(payment?.paymentPlan?.name || "")
+        .toUpperCase()
+        .trim();
+      // Check disclaimer
+      const disclaimer = String(payment?.disclaimer || "")
+        .toUpperCase()
+        .trim();
+      // Check if there's a status field (in case it exists)
+      const status = String(payment?.status || "")
+        .toUpperCase()
+        .trim();
+
+      // Check for "LEGACY" in any of these fields
+      const hasLegacy =
+        paymentType === "LEGACY" ||
+        paymentType.includes("LEGACY") ||
+        message === "LEGACY" ||
+        message.includes("LEGACY") ||
+        paymentPlanName === "LEGACY" ||
+        paymentPlanName.includes("LEGACY") ||
+        disclaimer === "LEGACY" ||
+        disclaimer.includes("LEGACY") ||
+        status === "LEGACY" ||
+        status.includes("LEGACY");
+
+      return hasLegacy;
+    };
+
+    // Helper function to check if student has LEGACY payment plan
+    const hasLegacyPaymentPlan = (student: Student): boolean => {
+      // Check paymentPlan field
+      const paymentPlan = String(student.paymentPlan || "")
+        .toUpperCase()
+        .trim();
+      if (paymentPlan === "LEGACY" || paymentPlan.includes("LEGACY")) {
+        return true;
+      }
+
+      // Check if any payment has LEGACY paymentType
+      if (student.payments && student.payments.length > 0) {
+        return student.payments.some((p: any) => isLegacyPayment(p));
+      }
+
+      return false;
+    };
+
     // Use billing, revenue, and pending from backend API (financeOverview)
-    // The backend calculates these correctly based on actual course enrollments
+    // BUT filter out LEGACY payments and payment plans
     // IMPORTANT: Log the raw data first to see what we're actually getting
     console.log("🔍 [useMemo] initialFinanceOverview:", initialFinanceOverview);
     console.log(
@@ -334,10 +393,46 @@ const ExecutiveDashboard = ({
       initialFinanceOverview?.collectionRate
     );
 
-    const totalBilling = initialFinanceOverview?.totalBilling ?? 0;
-    const totalRevenue = initialFinanceOverview?.totalRevenue ?? 0;
-    const totalPending = initialFinanceOverview?.totalPending ?? 0;
-    const paymentCollectionRate = initialFinanceOverview?.collectionRate ?? 0;
+    // Calculate revenue from non-legacy payments only
+    const allPayments = filteredStudents.flatMap((s) => s.payments || []);
+    const nonLegacyPayments = allPayments.filter(
+      (p: any) => !isLegacyPayment(p)
+    );
+    const totalRevenue = nonLegacyPayments.reduce(
+      (sum, p: any) => sum + (p.amount || 0),
+      0
+    );
+
+    // Calculate billing from non-legacy students only
+    // Billing = sum of course fees for students without LEGACY payment plans
+    const nonLegacyStudents = filteredStudents.filter(
+      (s) => !hasLegacyPaymentPlan(s)
+    );
+    const totalBilling = nonLegacyStudents.reduce((sum, student) => {
+      if (student.courses && student.courses.length > 0) {
+        const studentBilling = student.courses.reduce(
+          (courseSum: number, course: Course) => {
+            const fee =
+              course.courseAssignments?.[0]?.lumpSumFee ||
+              course.courseAssignments?.[0]?.baseFee ||
+              course.lumpSumFee ||
+              course.baseFee ||
+              0;
+            return courseSum + fee;
+          },
+          0
+        );
+        return sum + studentBilling;
+      }
+      return sum;
+    }, 0);
+
+    // Calculate pending = billing - revenue (for non-legacy only)
+    const totalPending = Math.max(0, totalBilling - totalRevenue);
+
+    // Calculate collection rate
+    const paymentCollectionRate =
+      totalBilling > 0 ? (totalRevenue / totalBilling) * 100 : 0;
 
     // Log extracted values to console for debugging
     console.log("=== FINANCE OVERVIEW DATA FROM BACKEND (useMemo) ===");
@@ -352,8 +447,8 @@ const ExecutiveDashboard = ({
     console.log("==========================================");
 
     // Calculate revenue from payments for trend data and MoM/YoY calculations
-    const allPayments = filteredStudents.flatMap((s) => s.payments || []);
-    const paymentsInRange = allPayments.filter((p: any) =>
+    // Filter out LEGACY payments
+    const paymentsInRange = nonLegacyPayments.filter((p: any) =>
       includesDate(p.paymentDate || p.createdAt, start, end)
     );
 
@@ -363,8 +458,8 @@ const ExecutiveDashboard = ({
       0
     );
 
-    // Previous period revenue
-    const paymentsPreviousPeriod = allPayments.filter((p: any) =>
+    // Previous period revenue (non-legacy only)
+    const paymentsPreviousPeriod = nonLegacyPayments.filter((p: any) =>
       includesDate(p.paymentDate || p.createdAt, previousStart, previousEnd)
     );
     const revenuePreviousPeriod = paymentsPreviousPeriod.reduce(
@@ -372,8 +467,8 @@ const ExecutiveDashboard = ({
       0
     );
 
-    // YoY revenue
-    const paymentsYoY = allPayments.filter((p: any) =>
+    // YoY revenue (non-legacy only)
+    const paymentsYoY = nonLegacyPayments.filter((p: any) =>
       includesDate(p.paymentDate || p.createdAt, yoyStart, yoyEnd)
     );
     const revenueYoY = paymentsYoY.reduce(
@@ -519,11 +614,13 @@ const ExecutiveDashboard = ({
           (l) => l.centerId === center.id
         );
 
-        // Calculate center revenue (collected payments)
+        // Calculate center revenue (collected payments, excluding legacy)
         const centerRevenue = centerStudents.reduce((sum, s) => {
-          const studentPayments = (s.payments || []).filter((p: any) =>
-            includesDate(p.paymentDate || p.createdAt, start, end)
-          );
+          const studentPayments = (s.payments || [])
+            .filter((p: any) => !isLegacyPayment(p))
+            .filter((p: any) =>
+              includesDate(p.paymentDate || p.createdAt, start, end)
+            );
           return (
             sum +
             studentPayments.reduce(
@@ -533,8 +630,11 @@ const ExecutiveDashboard = ({
           );
         }, 0);
 
-        // Calculate center billing (sum of ALL course fees for ALL students in this center)
-        const centerBilling = centerStudents.reduce((sum, student) => {
+        // Calculate center billing (sum of course fees for non-legacy students only)
+        const centerNonLegacyStudents = centerStudents.filter(
+          (s) => !hasLegacyPaymentPlan(s)
+        );
+        const centerBilling = centerNonLegacyStudents.reduce((sum, student) => {
           if (student.courses && student.courses.length > 0) {
             const studentBilling = student.courses.reduce(
               (courseSum: number, course: Course) => {
@@ -601,7 +701,7 @@ const ExecutiveDashboard = ({
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-      const monthPayments = allPayments.filter((p: any) =>
+      const monthPayments = nonLegacyPayments.filter((p: any) =>
         includesDate(p.paymentDate || p.createdAt, monthStart, monthEnd)
       );
       const monthRevenue = monthPayments.reduce(
@@ -613,8 +713,11 @@ const ExecutiveDashboard = ({
         includesDate(s.enrolledDate, monthStart, monthEnd)
       );
 
-      // Calculate billing for students enrolled in this month
-      const monthBilling = monthStudents.reduce((sum, student) => {
+      // Calculate billing for students enrolled in this month (non-legacy only)
+      const monthNonLegacyStudents = monthStudents.filter(
+        (s) => !hasLegacyPaymentPlan(s)
+      );
+      const monthBilling = monthNonLegacyStudents.reduce((sum, student) => {
         if (student.courses && student.courses.length > 0) {
           const studentBilling = student.courses.reduce(
             (courseSum: number, course: Course) => {
@@ -671,16 +774,19 @@ const ExecutiveDashboard = ({
         meta: `${(s.courses && s.courses[0]?.name) || "—"}`,
         centerId: s.centerId,
       })),
-      ...paymentsInRange.slice(-10).map((p: any) => ({
-        type: "payment" as const,
-        id: p.id,
-        title: `Payment of ${formatCurrency(p.amount)} received from ${
-          p.student?.fullName || "student"
-        } for ${p.course?.name || "course"}.`,
-        date: new Date(p.paymentDate || p.createdAt),
-        meta: `${p.course?.name || "—"}`,
-        centerId: p.student?.centerId,
-      })),
+      ...paymentsInRange
+        .filter((p: any) => !isLegacyPayment(p))
+        .slice(-10)
+        .map((p: any) => ({
+          type: "payment" as const,
+          id: p.id,
+          title: `Payment of ${formatCurrency(p.amount)} received from ${
+            p.student?.fullName || "student"
+          } for ${p.course?.name || "course"}.`,
+          date: new Date(p.paymentDate || p.createdAt),
+          meta: `${p.course?.name || "—"}`,
+          centerId: p.student?.centerId,
+        })),
     ]
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, 20);
@@ -992,14 +1098,6 @@ const ExecutiveDashboard = ({
 
         {/* Row 1: Financial KPIs */}
         <div className="mb-6">
-          {/* DEBUG: Show raw values */}
-          <div className="mb-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded">
-            <strong>DEBUG VALUES:</strong> Billing=
-            {dashboardData.metrics.totalBilling}, Revenue=
-            {dashboardData.metrics.totalRevenue}, Pending=
-            {dashboardData.metrics.totalPending}, Rate=
-            {dashboardData.metrics.paymentCollectionRate}%
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <KPICard
               title="Total Collection"

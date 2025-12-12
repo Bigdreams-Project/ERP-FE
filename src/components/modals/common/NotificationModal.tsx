@@ -108,22 +108,22 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-start justify-center z-50 p-4 pt-44 font-sans">
-      <div className="relative bg-white px-6 pt-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white dark:bg-gray-800 px-6 pt-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">Notifications</h2>
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Notifications</h2>
           <div className="flex items-center gap-4">
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
               >
                 Mark all as read
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               aria-label="Close modal"
             >
               <X size={20} />
@@ -134,16 +134,16 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
         {/* Notifications List */}
         <div className="flex-1 overflow-y-auto py-2">
           {loading ? (
-            <div className="py-8 text-center text-gray-500">Loading...</div>
+            <div className="py-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                <Bell className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
+                <Bell className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Oops! No notifications found.
               </h3>
-              <p className="text-sm text-gray-500 text-center max-w-sm">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">
                 You're all caught up! There are no notifications at the moment.
               </p>
             </div>
@@ -154,8 +154,8 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
                   key={notification.id}
                   className={`p-4 rounded-lg cursor-pointer transition-colors ${
                     !notification.read
-                      ? "bg-indigo-50 border-l-4 border-indigo-500"
-                      : "bg-white hover:bg-gray-50"
+                      ? "bg-indigo-50 dark:bg-indigo-900/30 border-l-4 border-indigo-500 dark:border-indigo-400"
+                      : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -165,20 +165,20 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
                         <h4
                           className={`text-sm font-semibold ${
                             !notification.read
-                              ? "text-gray-900"
-                              : "text-gray-700"
+                              ? "text-gray-900 dark:text-gray-100"
+                              : "text-gray-700 dark:text-gray-300"
                           }`}
                         >
                           {notification.title}
                         </h4>
                         {!notification.read && (
-                          <div className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0 mt-1.5"></div>
+                          <div className="w-2 h-2 bg-indigo-500 dark:bg-indigo-400 rounded-full flex-shrink-0 mt-1.5"></div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {notification.message}
                       </p>
-                      <span className="text-xs text-gray-400 mt-2 block">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 mt-2 block">
                         {formatDate(notification.createdAt)}
                       </span>
                     </div>

@@ -62,7 +62,7 @@ export default function Login() {
     .isValidSync(passwordValue);
 
   return (
-    <div className="w-full md:flex md:justify-center md:items-center min-h-screen md:gap-[2rem] md:px-[3rem] md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem]">
+    <div className="w-full md:flex md:justify-center md:items-center min-h-screen md:gap-[2rem] md:px-[3rem] md:py-[2rem] md:flex-row p-[1rem] flex flex-col gap-[2.5rem] bg-white text-gray-900">
       <div
         className={`w-full md:w-[60%] flex justify-between items-center md:flex-row`}
       >
@@ -76,8 +76,8 @@ export default function Login() {
           style={{ boxShadow: "0rem 0rem 0.7rem rgba(0, 0, 0, 0.1)" }}
         >
           <div className="flex flex-col gap-1">
-            <h2 className="text-[32px] font-bold">Welcome Back 👋</h2>
-            <p className="">Login to your account</p>
+            <h2 className="text-[32px] font-bold text-gray-900">Welcome Back 👋</h2>
+            <p className="text-gray-700">Login to your account</p>
           </div>
 
           {isPending ? (
@@ -110,7 +110,7 @@ export default function Login() {
                 <input
                   type="email"
                   placeholder="What is your e-mail?"
-                  className="w-full bg-transparent outline-none text-[16px]"
+                  className="w-full bg-transparent outline-none text-[16px] text-gray-900 placeholder:text-gray-500"
                   {...register("email")}
                   disabled={isPending}
                 />
@@ -144,7 +144,7 @@ export default function Login() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="w-full outline-none text-[16px] bg-transparent"
+                  className="w-full outline-none text-[16px] bg-transparent text-gray-900 placeholder:text-gray-500"
                   {...register("password")}
                   disabled={isPending}
                 />
@@ -180,7 +180,7 @@ export default function Login() {
                     id="check"
                     className="accent-[#636AE8]"
                   />
-                  <span className="">Remember me</span>
+                  <span className="text-gray-700">Remember me</span>
                 </label>
                 <a href="/forgot-password" className="text-[#636AE8]">
                   Forgot password?
@@ -216,7 +216,7 @@ export default function Login() {
             </form>
           )}
           <div className={`mt-[2rem]`}>
-            <p className="text-[15px] text-center">
+            <p className="text-[15px] text-center text-gray-700">
               Don't have an account?{" "}
               <Link
                 href={AppAuthRoutes.SIGNUP}
