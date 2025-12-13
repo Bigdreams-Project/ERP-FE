@@ -261,14 +261,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
             />
           )}
 
-          <div className="flex justify-end gap-4 mt-6">
-            {/* <button className="px-6 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition-colors shadow-sm">
-              Add Bank Account
-            </button> */}
-            <button className="px-6 py-1.5 border border-gray-300 dark:border-gray-600 text-black dark:text-gray-200 rounded-lg font-bold hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm bg-white dark:bg-gray-800">
-              Export List
-            </button>
-          </div>
+          {/* Export List button removed */}
         </div>
 
         {/* <div className="flex justify-between sticky bottom-0 bg-white mt-6">

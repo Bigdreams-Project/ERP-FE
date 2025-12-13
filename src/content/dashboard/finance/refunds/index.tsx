@@ -279,10 +279,32 @@ const RefundsContent = () => {
                     <tr key={refund.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {refund.student?.fullname || "N/A"}
+                          {(() => {
+                            // Check refund.student with both property name variations
+                            const refundStudent = refund.student as any;
+                            const studentName = refundStudent?.fullname || refundStudent?.fullName;
+                            
+                            // Fallback to payment.student if refund.student doesn't have name
+                            if (!studentName && refund.payment?.student) {
+                              const paymentStudent = refund.payment.student as any;
+                              return paymentStudent?.fullname || paymentStudent?.fullName || "N/A";
+                            }
+                            
+                            return studentName || "N/A";
+                          })()}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {refund.student?.email || "N/A"}
+                          {(() => {
+                            const refundStudent = refund.student as any;
+                            const studentEmail = refundStudent?.email;
+                            
+                            if (!studentEmail && refund.payment?.student) {
+                              const paymentStudent = refund.payment.student as any;
+                              return paymentStudent?.email || "N/A";
+                            }
+                            
+                            return studentEmail || "N/A";
+                          })()}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

@@ -46,6 +46,9 @@ import { createRefundRequestClient } from "@/lib/client-network";
 import { createTicketClient } from "@/lib/client-network";
 import { approveTransactionClient } from "@/lib/client-network";
 import { showSuccess, showError } from "@/lib/toast";
+import { useQuery } from "@tanstack/react-query";
+import { getLoggedInUserClient } from "@/lib/client-network";
+import { User as UserType } from "@/types/auth/user.interface";
 
 interface Props {
   data: Payment;
@@ -258,6 +261,19 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
 
+  // Fetch user to check role
+  const { data: user } = useQuery<UserType>({
+    queryKey: ["user"],
+    queryFn: () => getLoggedInUserClient(),
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnMount: false,
+  });
+
+  // Check if user is FINANCE_OFFICER or ADMIN
+  const userRole = user?.role?.toUpperCase();
+  const canApproveTransaction =
+    userRole === "FINANCE_OFFICER" || userRole === "ADMIN";
+
   if (!data || !data.paymentPlan) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
@@ -357,7 +373,7 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
         </div>
 
         <div className="space-y-3">
-          {!isApproved && (
+          {!isApproved && canApproveTransaction && (
             <ActionButton
               icon={CheckCircle}
               label="Approve Transaction"
