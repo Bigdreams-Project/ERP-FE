@@ -30,11 +30,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       setThemeState(savedTheme);
       document.documentElement.classList.toggle("dark", savedTheme === "dark");
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initialTheme = prefersDark ? "dark" : "light";
+      // Default to light mode
+      const initialTheme = "light";
       setThemeState(initialTheme);
-      document.documentElement.classList.toggle("dark", initialTheme === "dark");
+      document.documentElement.classList.toggle("dark", false);
     }
   }, []);
 
