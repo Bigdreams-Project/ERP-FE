@@ -76,6 +76,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   const [maxInstallment, setMaxInstallment] = useState<number>(2);
   const [lumpSum, setLumpSum] = useState<number>(0);
 
+  // Get the course assignment for the selected center
+  const getCourseAssignmentForCenter = useCallback(() => {
+    if (!selectedCourse || !centerId) return null;
+    return selectedCourse.courseAssignments?.find(
+      (assignment) => assignment.centerId === centerId || assignment.center?.id === centerId
+    ) || selectedCourse.courseAssignments?.[0] || null;
+  }, [selectedCourse, centerId]);
+
   const getCurrentFee = useCallback(() => {
     if (!selectedCourse) return 0;
     const courseName = selectedCourse.name?.toLowerCase() || "";
@@ -87,8 +95,14 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     for (const [key, value] of Object.entries(fees)) {
       if (courseName.includes(key)) return value;
     }
-    return selectedCourse.courseAssignments[0]?.baseFee || 0;
-  }, [selectedCourse]);
+    const assignment = getCourseAssignmentForCenter();
+    return assignment?.lumpSumFee || 0;
+  }, [selectedCourse, getCourseAssignmentForCenter]);
+
+  const getOldFee = useCallback(() => {
+    const assignment = getCourseAssignmentForCenter();
+    return assignment?.oldCourseFee || null;
+  }, [getCourseAssignmentForCenter]);
 
   useEffect(() => {
     const fetchBanks = async () => {
@@ -112,19 +126,24 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
   useEffect(() => {
     if (!selectedCourse) return;
 
-    // Get the effective fee: use current price if selected, otherwise use baseFee
+    // Get the course assignment for the selected center
+    const assignment = getCourseAssignmentForCenter();
+    const lumpSumFee = assignment?.lumpSumFee || 0;
+    
+    // Get the effective fee: use current price if selected, old price if "old" is selected, otherwise use lumpSumFee
     let effectiveFee: number = 0;
-    const baseFee = selectedCourse.courseAssignments?.[0]?.baseFee || 0;
     
     if (paymentType === "current") {
       effectiveFee = getCurrentFee();
+    } else if (paymentType === "old") {
+      effectiveFee = getOldFee() || lumpSumFee;
     } else {
-      effectiveFee = baseFee;
+      effectiveFee = lumpSumFee;
     }
 
     // Ensure effectiveFee is a valid number
     if (isNaN(effectiveFee) || effectiveFee < 0) {
-      effectiveFee = baseFee;
+      effectiveFee = lumpSumFee;
     }
 
     if (plan === "lumpsum") {
@@ -139,11 +158,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 
     if (paymentType === "current") {
       setValue("courseFee", getCurrentFee().toString());
+    } else if (paymentType === "old") {
+      const oldFee = getOldFee();
+      if (oldFee) {
+        setValue("courseFee", oldFee.toString());
+      } else {
+        // If no old fee exists, reset payment type
+        setPaymentType("");
+        setValue("courseFee", lumpSumFee.toString());
+      }
     } else if (!paymentType) {
-      setValue("courseFee", baseFee.toString());
+      setValue("courseFee", lumpSumFee.toString());
     }
     setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse, paymentType, courseFeeValue, setValue, getCurrentFee]);
+  }, [plan, maxInstallment, selectedCourse, paymentType, courseFeeValue, centerId, setValue, getCurrentFee, getOldFee, getCourseAssignmentForCenter]);
 
   useEffect(() => {
     if (!leadId) return;
@@ -203,6 +231,17 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       setValue("leadId", initialData.leadId);
     }
   }, [initialData, setValue]);
+
+  // Reset payment type when center changes to ensure correct price options
+  useEffect(() => {
+    if (centerId && selectedCourse) {
+      const assignment = getCourseAssignmentForCenter();
+      // If payment type is "old" but no old fee exists for new center, reset it
+      if (paymentType === "old" && !assignment?.oldCourseFee) {
+        setPaymentType("");
+      }
+    }
+  }, [centerId, selectedCourse, paymentType, getCourseAssignmentForCenter]);
 
   // Pre-fill form when in edit mode with initialData
   useEffect(() => {
@@ -297,9 +336,13 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     if (paymentType === "current") {
       // For new price, ensure it's set to the current fee
       data.courseFee = getCurrentFee().toString();
+    } else if (paymentType === "old") {
+      // For old price, use the old course fee
+      data.courseFee = (getOldFee() || getCurrentFee()).toString();
     } else if (!data.courseFee && selectedCourse) {
-      // Fallback to baseFee if not set
-      data.courseFee = selectedCourse.courseAssignments[0]?.baseFee?.toString() || null;
+      // Fallback to lumpSumFee if not set
+      const assignment = getCourseAssignmentForCenter();
+      data.courseFee = assignment?.lumpSumFee?.toString() || null;
     }
     
     // Ensure courseFee is numeric string (remove any remaining formatting)
@@ -307,7 +350,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       data.courseFee = data.courseFee.replace(/[^\d.]/g, '');
       // Convert empty string to null
       if (data.courseFee === '' || isNaN(parseFloat(data.courseFee))) {
-        data.courseFee = selectedCourse?.courseAssignments[0]?.baseFee?.toString() || null;
+        data.courseFee = selectedCourse?.courseAssignments[0]?.lumpSumFee?.toString() || null;
       }
     }
     
@@ -318,7 +361,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
         // Recalculate based on effective fee
         const effectiveFee = paymentType === "current" 
           ? getCurrentFee() 
-          : selectedCourse?.courseAssignments[0]?.baseFee || 0;
+          : selectedCourse?.courseAssignments[0]?.lumpSumFee || 0;
         
         if (plan === "lumpsum") {
           data.lumpSumFee = effectiveFee.toString();
@@ -356,12 +399,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     }
     if (data.amount !== null && data.amount !== undefined) {
       data.amount = String(data.amount);
-    }
-    
-    // Ensure paidBy is properly handled (trim and include if not empty)
-    if (data.paidBy !== null && data.paidBy !== undefined) {
-      const trimmedPaidBy = String(data.paidBy).trim();
-      data.paidBy = trimmedPaidBy || undefined;
     }
     
     // Set status to PENDING_APPROVAL for new enrollments
@@ -782,12 +819,20 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                     if (e.target.value === "current") {
                       const fee = getCurrentFee();
                       setValue("courseFee", fee.toString(), { shouldValidate: true });
+                    } else if (e.target.value === "old") {
+                      const fee = getOldFee();
+                      if (fee) {
+                        setValue("courseFee", fee.toString(), { shouldValidate: true });
+                      }
                     }
                   }}
                   className="w-full h-10 px-3 text-sm text-black dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Price Type</option>
                   <option value="current">New Price</option>
+                  {getOldFee() && (
+                    <option value="old">Old Price</option>
+                  )}
                 </select>
                 <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                   <ChevronDown size={18} />
@@ -804,7 +849,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 >
                   Course Fee
                 </label>
-                {paymentType === "current" && (
+                {paymentType === "current" ? (
                   <>
                     <input
                       type="text"
@@ -817,6 +862,36 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                       type="hidden"
                       {...register("courseFee")}
                       value={getCurrentFee().toString()}
+                    />
+                  </>
+                ) : paymentType === "old" ? (
+                  <>
+                    <input
+                      type="text"
+                      id="courseFee-display"
+                      value={courseFeeValue ? `₦${Number(courseFeeValue).toLocaleString()}` : `₦${(getOldFee() || 0).toLocaleString()}`}
+                      readOnly
+                      className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-transparent cursor-not-allowed"
+                    />
+                    <input
+                      type="hidden"
+                      {...register("courseFee")}
+                      value={(getOldFee() || 0).toString()}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      id="courseFee-display"
+                      value={courseFeeValue ? `₦${Number(courseFeeValue).toLocaleString()}` : `₦${(getCourseAssignmentForCenter()?.lumpSumFee || 0).toLocaleString()}`}
+                      readOnly
+                      className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-transparent cursor-not-allowed"
+                    />
+                    <input
+                      type="hidden"
+                      {...register("courseFee")}
+                      value={(getCourseAssignmentForCenter()?.lumpSumFee || 0).toString()}
                     />
                   </>
                 )}
@@ -1006,33 +1081,11 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
-            {/* Paid By */}
-            <div className="flex flex-col">
-              <label
-                htmlFor="paidBy"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Paid By
-              </label>
-              <input
-                type="text"
-                id="paidBy"
-                {...register("paidBy")}
-                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
-                placeholder="Enter payer name"
-              />
-              {errors.paidBy && (
-                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.paidBy.message}
-                </p>
-              )}
-            </div>
-
             {/* Lump Sum */}
             <div className="flex flex-col">
               <label
                 htmlFor="lumpSum"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 {paymentplan === "installment" ? "Installment Sum" : "Lump Sum"}
               </label>
@@ -1065,8 +1118,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                   disabled={
                     !selectedCourse?.courseAssignments[0]?.maxInstallments
                   }
-                  className="w-full h-10 px-3 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent 
-             focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                  className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
                 >
                   <option value="">Select Installments</option>
                   {selectedCourse?.courseAssignments[0]?.maxInstallments &&

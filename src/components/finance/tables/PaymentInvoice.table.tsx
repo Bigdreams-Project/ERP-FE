@@ -83,7 +83,7 @@ export default function PaymentInvoiceTable({
                       {invoice.dueDate}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-gray-100 font-medium">
-                      ${invoice.amount}
+                      ₦{invoice.amount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

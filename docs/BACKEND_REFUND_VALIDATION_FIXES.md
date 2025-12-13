@@ -1,6 +1,7 @@
 # Backend Refund Request Validation Fixes
 
 ## Problem
+
 Frontend receives "Validation failed" error when submitting refund requests. The error message is too generic and doesn't provide specific validation details.
 
 ## Frontend Payload Structure
@@ -25,33 +26,33 @@ The frontend sends the following payload to `POST /refunds`:
 
 ```typescript
 // Pseudo-code validation
-if (!payload.paymentId || typeof payload.paymentId !== 'string') {
+if (!payload.paymentId || typeof payload.paymentId !== "string") {
   return res.status(400).json({
     error: "Validation failed",
     message: "paymentId is required and must be a string",
     details: {
-      paymentId: "paymentId is required"
-    }
+      paymentId: "paymentId is required",
+    },
   });
 }
 
-if (!payload.amount || typeof payload.amount !== 'number') {
+if (!payload.amount || typeof payload.amount !== "number") {
   return res.status(400).json({
     error: "Validation failed",
     message: "amount is required and must be a number",
     details: {
-      amount: "amount is required and must be a number"
-    }
+      amount: "amount is required and must be a number",
+    },
   });
 }
 
-if (!payload.reason || typeof payload.reason !== 'string') {
+if (!payload.reason || typeof payload.reason !== "string") {
   return res.status(400).json({
     error: "Validation failed",
     message: "reason is required and must be a string",
     details: {
-      reason: "reason is required"
-    }
+      reason: "reason is required",
+    },
   });
 }
 ```
@@ -67,8 +68,8 @@ if (!payment) {
     error: "Validation failed",
     message: "Payment not found",
     details: {
-      paymentId: "Payment with this ID does not exist"
-    }
+      paymentId: "Payment with this ID does not exist",
+    },
   });
 }
 ```
@@ -83,8 +84,8 @@ if (payload.amount <= 0) {
     error: "Validation failed",
     message: "Refund amount must be greater than 0",
     details: {
-      amount: "Refund amount must be greater than 0"
-    }
+      amount: "Refund amount must be greater than 0",
+    },
   });
 }
 
@@ -93,8 +94,8 @@ if (payload.amount > payment.amount) {
     error: "Validation failed",
     message: "Refund amount cannot exceed payment amount",
     details: {
-      amount: `Refund amount (${payload.amount}) exceeds payment amount (${payment.amount})`
-    }
+      amount: `Refund amount (${payload.amount}) exceeds payment amount (${payment.amount})`,
+    },
   });
 }
 ```
@@ -110,7 +111,7 @@ const validReasons = [
   "payment_error",
   "duplicate_payment",
   "service_issue",
-  "other"
+  "other",
 ];
 
 if (!validReasons.includes(payload.reason)) {
@@ -118,8 +119,8 @@ if (!validReasons.includes(payload.reason)) {
     error: "Validation failed",
     message: "Invalid refund reason",
     details: {
-      reason: `Reason must be one of: ${validReasons.join(", ")}`
-    }
+      reason: `Reason must be one of: ${validReasons.join(", ")}`,
+    },
   });
 }
 ```
@@ -129,13 +130,16 @@ if (!validReasons.includes(payload.reason)) {
 **If reason is "other", reasonDescription is required:**
 
 ```typescript
-if (payload.reason === "other" && (!payload.reasonDescription || payload.reasonDescription.trim() === "")) {
+if (
+  payload.reason === "other" &&
+  (!payload.reasonDescription || payload.reasonDescription.trim() === "")
+) {
   return res.status(400).json({
     error: "Validation failed",
     message: "reasonDescription is required when reason is 'other'",
     details: {
-      reasonDescription: "reasonDescription is required when reason is 'other'"
-    }
+      reasonDescription: "reasonDescription is required when reason is 'other'",
+    },
   });
 }
 ```
@@ -147,7 +151,7 @@ if (payload.reason === "other" && (!payload.reasonDescription || payload.reasonD
 ```typescript
 const existingRefund = await RefundRequest.findOne({
   paymentId: payload.paymentId,
-  status: { $in: ["REQUESTED", "APPROVED"] } // Check for pending or approved refunds
+  status: { $in: ["REQUESTED", "APPROVED"] }, // Check for pending or approved refunds
 });
 
 if (existingRefund) {
@@ -155,8 +159,9 @@ if (existingRefund) {
     error: "Validation failed",
     message: "A refund request already exists for this payment",
     details: {
-      paymentId: "A refund request with status REQUESTED or APPROVED already exists for this payment"
-    }
+      paymentId:
+        "A refund request with status REQUESTED or APPROVED already exists for this payment",
+    },
   });
 }
 ```
@@ -188,15 +193,15 @@ async function createRefundRequest(req, res) {
       return res.status(400).json({
         error: "Validation failed",
         message: "paymentId is required",
-        details: { paymentId: "paymentId is required" }
+        details: { paymentId: "paymentId is required" },
       });
     }
 
-    if (typeof payload.amount !== 'number' || payload.amount <= 0) {
+    if (typeof payload.amount !== "number" || payload.amount <= 0) {
       return res.status(400).json({
         error: "Validation failed",
         message: "amount must be a positive number",
-        details: { amount: "amount must be a positive number" }
+        details: { amount: "amount must be a positive number" },
       });
     }
 
@@ -204,7 +209,7 @@ async function createRefundRequest(req, res) {
       return res.status(400).json({
         error: "Validation failed",
         message: "reason is required",
-        details: { reason: "reason is required" }
+        details: { reason: "reason is required" },
       });
     }
 
@@ -214,7 +219,7 @@ async function createRefundRequest(req, res) {
       return res.status(404).json({
         error: "Validation failed",
         message: "Payment not found",
-        details: { paymentId: "Payment with this ID does not exist" }
+        details: { paymentId: "Payment with this ID does not exist" },
       });
     }
 
@@ -224,8 +229,8 @@ async function createRefundRequest(req, res) {
         error: "Validation failed",
         message: "Refund amount cannot exceed payment amount",
         details: {
-          amount: `Refund amount (${payload.amount}) exceeds payment amount (${payment.amount})`
-        }
+          amount: `Refund amount (${payload.amount}) exceeds payment amount (${payment.amount})`,
+        },
       });
     }
 
@@ -236,33 +241,37 @@ async function createRefundRequest(req, res) {
       "payment_error",
       "duplicate_payment",
       "service_issue",
-      "other"
+      "other",
     ];
     if (!validReasons.includes(payload.reason)) {
       return res.status(400).json({
         error: "Validation failed",
         message: "Invalid refund reason",
         details: {
-          reason: `Reason must be one of: ${validReasons.join(", ")}`
-        }
+          reason: `Reason must be one of: ${validReasons.join(", ")}`,
+        },
       });
     }
 
     // 5. Validate reasonDescription if reason is "other"
-    if (payload.reason === "other" && (!payload.reasonDescription || payload.reasonDescription.trim() === "")) {
+    if (
+      payload.reason === "other" &&
+      (!payload.reasonDescription || payload.reasonDescription.trim() === "")
+    ) {
       return res.status(400).json({
         error: "Validation failed",
         message: "reasonDescription is required when reason is 'other'",
         details: {
-          reasonDescription: "reasonDescription is required when reason is 'other'"
-        }
+          reasonDescription:
+            "reasonDescription is required when reason is 'other'",
+        },
       });
     }
 
     // 6. Check for duplicate refund requests
     const existingRefund = await RefundRequest.findOne({
       paymentId: payload.paymentId,
-      status: { $in: ["REQUESTED", "APPROVED"] }
+      status: { $in: ["REQUESTED", "APPROVED"] },
     });
 
     if (existingRefund) {
@@ -270,8 +279,9 @@ async function createRefundRequest(req, res) {
         error: "Validation failed",
         message: "A refund request already exists for this payment",
         details: {
-          paymentId: "A refund request with status REQUESTED or APPROVED already exists for this payment"
-        }
+          paymentId:
+            "A refund request with status REQUESTED or APPROVED already exists for this payment",
+        },
       });
     }
 
@@ -292,7 +302,7 @@ async function createRefundRequest(req, res) {
     console.error("Error creating refund request:", error);
     return res.status(500).json({
       error: "Internal server error",
-      message: error.message
+      message: error.message,
     });
   }
 }
@@ -319,7 +329,7 @@ CREATE TABLE refund_requests (
   notes VARCHAR NULL,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  
+
   FOREIGN KEY (paymentId) REFERENCES payments(id),
   FOREIGN KEY (studentId) REFERENCES students(id),
   FOREIGN KEY (requestedBy) REFERENCES users(id)
@@ -363,4 +373,3 @@ This allows the frontend to display specific field-level errors to the user.
 8. ✅ Reason = "other" without reasonDescription → Should return 400 with field-specific error
 9. ✅ Duplicate refund request → Should return 400 with appropriate message
 10. ✅ Valid request → Should return 201 with created refund request
-

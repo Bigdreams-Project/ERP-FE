@@ -308,15 +308,25 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
               Top Performing Centers
             </h2>
             <ul className="space-y-4">
-              {overviewData.topCenters?.map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => (
-                <TopPerformingCenter
-                  key={index}
-                  number={index + 1}
-                  name={center.center}
-                  percentage={100}
-                  status={center.status}
-                />
-              ))}
+              {overviewData.topCenters?.map((center: { center: string; status: string; pending: string; revenue: string }, index: number) => {
+                // Calculate performance percentage: (revenue / (revenue + pending)) * 100
+                const revenue = parseFloat(center.revenue) || 0;
+                const pending = parseFloat(center.pending) || 0;
+                const totalExpected = revenue + pending;
+                const percentage = totalExpected > 0 
+                  ? Math.round((revenue / totalExpected) * 100) 
+                  : 0;
+                
+                return (
+                  <TopPerformingCenter
+                    key={index}
+                    number={index + 1}
+                    name={center.center}
+                    percentage={percentage}
+                    status={center.status}
+                  />
+                );
+              })}
             </ul>
           </div>
         </div>
@@ -326,3 +336,4 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
 };
 
 export default OverviewContent;
+

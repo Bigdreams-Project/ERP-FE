@@ -63,9 +63,18 @@ export const enrollmentSchema = yup.object().shape({
     .optional()
     .nullable()
     .notRequired() as yup.StringSchema<string | null>,
-  paymentPlan: yup.string().required("Payment plan is required"),
-  paymentType: yup.string().required("Payment type is required"),
-  paymentMethod: yup.string().required("Payment method is required"),
+  paymentPlan: yup
+    .string()
+    .required("Payment plan is required")
+    .test("not-empty", "Payment plan is required", (value) => value !== "" && value != null),
+  paymentType: yup
+    .string()
+    .required("Payment type is required")
+    .test("not-empty", "Payment type is required", (value) => value !== "" && value != null),
+  paymentMethod: yup
+    .string()
+    .required("Payment method is required")
+    .test("not-empty", "Payment method is required", (value) => value !== "" && value != null),
   paidBy: yup.string().optional().nullable().notRequired() as yup.StringSchema<
     string | null
   >,

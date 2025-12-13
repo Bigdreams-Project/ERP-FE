@@ -16,7 +16,7 @@ import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
-import { ChevronDown, Link2Icon, Archive, Eye, Trash2, DollarSign, GraduationCap, Briefcase } from "lucide-react";
+import { ChevronDown, Link2Icon, Archive, Eye, Trash2, GraduationCap, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -284,7 +284,7 @@ export default function StudentTable({
                             }
                             className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
-                            <DollarSign size={16} />
+                            <span className="text-base font-semibold">₦</span>
                             View Payments
                           </button>
                           {(student.programType !== "JPTP" && (!student.programType || student.programType === "REGULAR_STUDENT")) && (
