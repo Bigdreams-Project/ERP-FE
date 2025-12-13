@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/utils";
 import { Eye, MessageSquare, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { FaPlus } from "react-icons/fa";
 
 const TicketsContent = () => {
   const { selectedCenter, isLoading: isCenterLoading, centerContext } = useCenter();
@@ -211,13 +212,22 @@ const TicketsContent = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Support Tickets
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage and track all support tickets and customer inquiries
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Support Tickets
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Manage and track all support tickets and customer inquiries
+            </p>
+          </div>
+          <button
+            className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <FaPlus className="text-white" size={16} />
+            <span className="text-white text-sm">Add Ticket</span>
+          </button>
         </div>
 
         {/* Filters and Search */}

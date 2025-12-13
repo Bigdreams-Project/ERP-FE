@@ -7,11 +7,13 @@ import {
 } from "@/lib/client-network";
 import { X, Bell } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 const NotificationModal: React.FC<INotificationModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -74,12 +76,115 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
     }
   };
 
+  /**
+   * Routes to the appropriate page based on notification type and content
+   */
+  const getNotificationRoute = (notification: Notification): string | null => {
+    const { type, title, message, metadata } = notification;
+    
+    // Normalize text for matching (case-insensitive)
+    const normalizedTitle = title.toLowerCase();
+    const normalizedMessage = message.toLowerCase();
+    const normalizedType = type?.toLowerCase() || "";
+
+    // Refund notifications
+    if (
+      normalizedType.includes("refund") ||
+      normalizedTitle.includes("refund") ||
+      normalizedMessage.includes("refund request")
+    ) {
+      return "/dashboard/finance/refunds";
+    }
+
+    // Discount notifications
+    if (
+      normalizedType.includes("discount") ||
+      normalizedTitle.includes("discount") ||
+      normalizedMessage.includes("discount request")
+    ) {
+      return "/dashboard/finance/discounts";
+    }
+
+    // Ticket/Support notifications
+    if (
+      normalizedType.includes("ticket") ||
+      normalizedTitle.includes("ticket") ||
+      normalizedMessage.includes("support ticket")
+    ) {
+      // If metadata contains a ticket ID, route to specific ticket
+      if (metadata?.ticketId) {
+        return `/dashboard/settings/tickets/${metadata.ticketId}`;
+      }
+      return "/dashboard/settings/tickets";
+    }
+
+    // Payment/Transaction notifications
+    if (
+      normalizedType.includes("payment") ||
+      normalizedType.includes("transaction") ||
+      normalizedTitle.includes("payment") ||
+      normalizedMessage.includes("payment")
+    ) {
+      if (metadata?.transactionId) {
+        return `/dashboard/finance/banking/transactions/${metadata.transactionId}`;
+      }
+      return "/dashboard/finance/banking/banks";
+    }
+
+    // Student-related notifications
+    if (
+      normalizedType.includes("student") ||
+      normalizedTitle.includes("student") ||
+      normalizedMessage.includes("student")
+    ) {
+      if (metadata?.studentId) {
+        return `/dashboard/academic/students/${metadata.studentId}`;
+      }
+      return "/dashboard/academic/students";
+    }
+
+    // Course-related notifications
+    if (
+      normalizedType.includes("course") ||
+      normalizedTitle.includes("course") ||
+      normalizedMessage.includes("course")
+    ) {
+      if (metadata?.courseId) {
+        return `/dashboard/academic/courses/${metadata.courseId}`;
+      }
+      return "/dashboard/academic/courses";
+    }
+
+    // Batch-related notifications
+    if (
+      normalizedType.includes("batch") ||
+      normalizedTitle.includes("batch") ||
+      normalizedMessage.includes("batch")
+    ) {
+      if (metadata?.batchId) {
+        return `/dashboard/academic/batches/${metadata.batchId}`;
+      }
+      return "/dashboard/academic/batches";
+    }
+
+    // If notification has a link, use it
+    if (notification.link) {
+      return notification.link;
+    }
+
+    // Default to dashboard if no match
+    return null;
+  };
+
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read) {
       handleMarkAsRead(notification.id);
     }
-    if (notification.link) {
-      window.location.href = notification.link;
+    
+    const route = getNotificationRoute(notification);
+    if (route) {
+      onClose(); // Close modal before navigation
+      router.push(route);
     }
   };
 
@@ -107,8 +212,8 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-65 flex items-start justify-center z-50 p-4 pt-44 font-sans">
-      <div className="relative bg-white dark:bg-gray-800 px-6 pt-6 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
+      <div className="relative bg-white dark:bg-gray-800 px-6 pt-6 pb-4 rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Notifications</h2>
