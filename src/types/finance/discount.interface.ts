@@ -10,27 +10,40 @@ export enum DiscountStatus {
   CANCELLED = "cancelled",
 }
 
+// Also accept uppercase variants from backend
+export type DiscountStatusType = 
+  | "pending" | "PENDING"
+  | "approved" | "APPROVED"
+  | "rejected" | "REJECTED"
+  | "applied" | "APPLIED"
+  | "cancelled" | "CANCELLED";
+
 export enum DiscountType {
   PERCENTAGE = "percentage",
   FIXED_AMOUNT = "fixed_amount",
 }
 
+// Also accept uppercase variants from backend
+export type DiscountTypeType = 
+  | "percentage" | "PERCENTAGE"
+  | "fixed_amount" | "FIXED_AMOUNT";
+
 export interface DiscountRequest {
   id: string;
   studentId: string;
-  student: Student;
+  student?: Student; // Made optional in case backend doesn't populate
   courseId: string;
-  course: Course;
+  course?: Course; // Made optional in case backend doesn't populate
   paymentPlanId?: string;
   requestedBy: string; // User ID
   requestedByName?: string; // User full name
-  discountType: DiscountType;
+  discountType: DiscountType | DiscountTypeType; // Accept both enum and string types
   discountValue: number; // Percentage (0-100) or fixed amount in NGN
   originalAmount: number; // Original course fee
   discountedAmount: number; // Amount after discount
   reason: string;
   notes?: string;
-  status: DiscountStatus;
+  status: DiscountStatus | DiscountStatusType | null; // Accept both enum and string types, allow null
   approvedBy?: string; // CEO User ID
   approvedByName?: string; // CEO full name
   approvedAt?: string;
@@ -46,6 +59,8 @@ export interface CreateDiscountRequest {
   paymentPlanId?: string;
   discountType: DiscountType;
   discountValue: number;
+  originalAmount: number; // Original course fee (required for validation)
+  discountedAmount: number; // Amount after discount (required for validation)
   reason: string;
   notes?: string;
 }

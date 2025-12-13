@@ -106,6 +106,9 @@ const PaymentReceiptModal = ({ data }: any) => {
             value={data?.paymentMethod}
             span={2}
           />
+          {data?.paidBy && (
+            <DetailItem label="Paid By" value={data.paidBy} span={2} />
+          )}
 
           {/* Transaction ID spans 4 columns on mobile/2 on desktop */}
           <DetailItem

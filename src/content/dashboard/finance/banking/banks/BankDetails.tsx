@@ -15,9 +15,10 @@ import {
   getPaymentType,
   getPaymentPlan,
 } from "@/components/academic/utils/payment";
-import { Download, Printer, FileText } from "lucide-react";
+import { Download, Printer, FileText, ArrowLeft } from "lucide-react";
 import { IoFilter } from "react-icons/io5";
 import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 interface BankDetailsProps {
   bank: Bank;
@@ -25,6 +26,7 @@ interface BankDetailsProps {
 
 const BankDetails = ({ bank }: BankDetailsProps) => {
   const { user } = useUser();
+  const router = useRouter();
 
   // Check if user can view balance (CEO, Executive Director, Finance Officer)
   const canViewBalance = useMemo(() => {
@@ -483,6 +485,15 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
         </div>
 
         <div className="mb-8">
+          <div className="mb-4">
+            <button
+              onClick={() => router.push("/dashboard/finance/banking/banks")}
+              className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition duration-150 mb-4"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Banks
+            </button>
+          </div>
           <div className="flex items-center justify-between text-gray-400">
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
               Account - {bank.bankName}

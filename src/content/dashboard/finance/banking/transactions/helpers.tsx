@@ -89,7 +89,9 @@ export const PaymentSummary = ({ data }: Props) => {
   if (!data || !data.paymentPlan) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
-        <p className="text-gray-500 dark:text-gray-400">Transaction data not available</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Transaction data not available
+        </p>
       </div>
     );
   }
@@ -129,6 +131,9 @@ export const PaymentSummary = ({ data }: Props) => {
           label="Payment Method"
           value={getPaymentMethod(data.paymentMethod)}
         />
+        {data.paidBy && (
+          <DetailRow icon={User} label="Paid By" value={data.paidBy} />
+        )}
         <DetailRow icon={Hash} label="Reference ID" value={data.id} />
         <DetailRow icon={Landmark} label="Bank" value={data.bank?.bankName} />
         {/* <DetailRow icon={MapPin} label="Center Info" value={data.centerInfo} /> */}
@@ -141,10 +146,21 @@ export const PaymentDetails = ({ data }: Props) => {
   if (!data || !data.paymentPlan) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
-        <p className="text-gray-500 dark:text-gray-400">Payment details not available</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Payment details not available
+        </p>
       </div>
     );
   }
+
+  // Check for applied discount
+  const appliedDiscount = data.paymentPlan?.discountRequests?.find(
+    (d: any) => d.status === "APPLIED" || d.status === "applied"
+  );
+  const hasDiscount = !!appliedDiscount;
+  const discountSavings = appliedDiscount
+    ? appliedDiscount.originalAmount - appliedDiscount.discountedAmount
+    : 0;
 
   return (
     <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
@@ -166,12 +182,48 @@ export const PaymentDetails = ({ data }: Props) => {
         />
       </div>
 
+      {hasDiscount && (
+        <div className="mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+              🎁 Discount Applied
+            </span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">
+              {appliedDiscount.discountType === "PERCENTAGE" ||
+              appliedDiscount.discountType === "percentage"
+                ? `${appliedDiscount.discountValue}% OFF`
+                : `₦${appliedDiscount.discountValue.toLocaleString()} OFF`}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="divide-y divide-gray-100 dark:divide-gray-700">
         <DetailRow
           icon={Percent}
           label="Total Fee"
-          value={`₦${(data.paymentPlan.amount || 0).toLocaleString()}`}
-          valueClassName="font-bold text-gray-900 dark:text-gray-100"
+          value={
+            hasDiscount ? (
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="line-through text-gray-400 dark:text-gray-500 text-sm">
+                    ₦{appliedDiscount.originalAmount.toLocaleString()}
+                  </span>
+                  <span className="font-bold text-gray-900 dark:text-gray-100">
+                    → ₦{(data.paymentPlan.amount || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="text-xs text-green-600 dark:text-green-400 font-medium">
+                  Saved ₦{discountSavings.toLocaleString()}
+                </div>
+              </div>
+            ) : (
+              `₦${(data.paymentPlan.amount || 0).toLocaleString()}`
+            )
+          }
+          valueClassName={
+            hasDiscount ? "" : "font-bold text-gray-900 dark:text-gray-100"
+          }
         />
         <DetailRow
           icon={CheckCircle}
@@ -182,10 +234,19 @@ export const PaymentDetails = ({ data }: Props) => {
         <DetailRow
           icon={Receipt}
           label="Balance"
-          value={`₦${parseFloat(
-            data.paymentPlan.pending || "0"
-          ).toLocaleString()}`}
-          valueClassName="font-extrabold text-red-600 dark:text-red-400"
+          value={
+            <div>
+              <span className="font-extrabold text-red-600 dark:text-red-400">
+                ₦{parseFloat(data.paymentPlan.pending || "0").toLocaleString()}
+              </span>
+              {hasDiscount && (
+                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                  (after discount)
+                </span>
+              )}
+            </div>
+          }
+          valueClassName=""
         />
       </div>
     </div>
@@ -200,17 +261,36 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
   if (!data || !data.paymentPlan) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-        <p className="text-gray-500 dark:text-gray-400">Actions not available</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Actions not available
+        </p>
       </div>
     );
   }
 
+  // Check if payment is approved
+  const isApproved =
+    !!data.approvedAt ||
+    data.status === "approved" ||
+    data.status === "APPROVED";
+
   const pending = parseFloat(data.paymentPlan.pending || "0") || 0;
   const isPaid = pending === 0;
-  const statusText = isPaid ? "Paid" : "Pending";
-  const statusColor = isPaid
-    ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200"
-    : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200";
+
+  // Priority: Approved > Paid > Pending
+  let statusText = "Pending";
+  let statusColor =
+    "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200";
+
+  if (isApproved) {
+    statusText = "Approved";
+    statusColor =
+      "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200";
+  } else if (isPaid) {
+    statusText = "Paid";
+    statusColor =
+      "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200";
+  }
 
   const ActionButton = ({
     icon: Icon,
@@ -232,7 +312,9 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
     >
       <Icon
         className={`w-4 h-4 mr-3 ${
-          isSuccess || isDestructive ? "text-white" : "text-gray-500 dark:text-gray-400"
+          isSuccess || isDestructive
+            ? "text-white"
+            : "text-gray-500 dark:text-gray-400"
         }`}
       />
       {label}
@@ -275,12 +357,14 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
         </div>
 
         <div className="space-y-3">
-          <ActionButton
-            icon={CheckCircle}
-            label="Approve Transaction"
-            isSuccess={true}
-            onClick={() => setShowApprovalModal(true)}
-          />
+          {!isApproved && (
+            <ActionButton
+              icon={CheckCircle}
+              label="Approve Transaction"
+              isSuccess={true}
+              onClick={() => setShowApprovalModal(true)}
+            />
+          )}
           <ActionButton
             icon={RefreshCcw}
             label="Issue Refund"
@@ -323,7 +407,9 @@ export const PayerInformation = ({ data }: Props) => {
     <div className="flex items-start mb-4">
       <Icon className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500 mt-1" />
       <div className="flex-grow flex justify-between">
-        <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {label}
+        </span>
         <span className="text-sm font-medium text-gray-800 dark:text-gray-200 text-right">
           {value || "N/A"}
         </span>
@@ -334,7 +420,9 @@ export const PayerInformation = ({ data }: Props) => {
   if (!data) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
-        <p className="text-gray-500 dark:text-gray-400">Payer information not available</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Payer information not available
+        </p>
       </div>
     );
   }
@@ -343,15 +431,21 @@ export const PayerInformation = ({ data }: Props) => {
   const hasStudentLink = !!studentId;
 
   const content = (
-    <div className={`p-6 bg-white dark:bg-gray-800 border rounded-xl shadow-sm mb-6 transition-all duration-200 ${
-      hasStudentLink 
-        ? "border-blue-300 dark:border-blue-600 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md cursor-pointer" 
-        : "border-gray-200 dark:border-gray-700"
-    }`}>
+    <div
+      className={`p-6 bg-white dark:bg-gray-800 border rounded-xl shadow-sm mb-6 transition-all duration-200 ${
+        hasStudentLink
+          ? "border-blue-300 dark:border-blue-600 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md cursor-pointer"
+          : "border-gray-200 dark:border-gray-700"
+      }`}
+    >
       <div className="flex items-center justify-between mb-6">
-        <h2 className={`text-xl font-semibold ${
-          hasStudentLink ? "text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-200"
-        }`}>
+        <h2
+          className={`text-xl font-semibold ${
+            hasStudentLink
+              ? "text-blue-700 dark:text-blue-400"
+              : "text-gray-700 dark:text-gray-200"
+          }`}
+        >
           Payer Information
         </h2>
         {hasStudentLink && (
@@ -365,6 +459,9 @@ export const PayerInformation = ({ data }: Props) => {
         <PayerDetail icon={User} label="Name" value={data.student?.fullName} />
         <PayerDetail icon={User} label="Relationship" value={"Student"} />
         <PayerDetail icon={Mail} label="Contact" value={data.student?.phone} />
+        {data.paidBy && (
+          <PayerDetail icon={User} label="Paid By" value={data.paidBy} />
+        )}
         <PayerDetail
           icon={User}
           label="Sponsor"
@@ -402,7 +499,9 @@ export const ProofOfPayment = ({ data }: any) => {
         <span className="font-semibold text-gray-800 dark:text-gray-200">{uploadedBy}</span> on{" "}
         {uploadedDate}
       </p> */}
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{proofStatus}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        {proofStatus}
+      </p>
     </div>
   );
 

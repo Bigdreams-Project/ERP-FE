@@ -1,4 +1,4 @@
-import { Center } from "../academic/center.interface";
+import type { Center } from "../academic/center.interface";
 import { Payment } from "./payment.interface";
 
 export interface Bank {
@@ -8,8 +8,9 @@ export interface Bank {
   balance: string;
   bankName: string;
   status: string;
-  center: Center;
-  payments: Payment[];
+  centerId?: string; // For API responses
+  center?: Center; // Optional for backward compatibility
+  payments?: Payment[];
 }
 
 export interface IBank {

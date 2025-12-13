@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTicketsClient, createTicketClient } from "@/lib/client-network";
+import { useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
+import { getTicketsClient, createTicketClient, getUserClient } from "@/lib/client-network";
 import { useCenter } from "@/context/CenterContext";
 import { Ticket, TicketStatus, TicketPriority, TicketCategory, CreateTicketRequest } from "@/types/support/ticket.interface";
+import { User } from "@/types/auth/user.interface";
 import NotFoundComponent from "@/components/NotFoundComponent";
 import CreateTicketModal from "@/components/modals/support/CreateTicketModal";
 import { formatDate } from "@/lib/utils";
@@ -39,6 +40,69 @@ const TicketsContent = () => {
     refetchOnMount: true,
     enabled: !isCenterLoading,
   });
+
+  // Get unique user IDs from tickets that don't have createdByName
+  const userIdsToFetch = useMemo(() => {
+    if (!tickets.length) return [];
+    const uniqueIds = new Set<string>();
+    tickets.forEach((ticket: Ticket) => {
+      if (ticket.createdBy && !ticket.createdByName) {
+        uniqueIds.add(ticket.createdBy);
+      }
+    });
+    return Array.from(uniqueIds);
+  }, [tickets]);
+
+  // Fetch user data for all unique user IDs using useQueries
+  const userQueries = useQueries({
+    queries: userIdsToFetch.map((userId) => ({
+      queryKey: ["user", userId],
+      queryFn: () => getUserClient(userId),
+      enabled: !!userId,
+      staleTime: 1000 * 60 * 10, // Cache for 10 minutes
+      retry: 1,
+    })),
+  });
+
+  // Create a map of user ID to user name
+  const userMap = useMemo(() => {
+    const map = new Map<string, string>();
+    userQueries.forEach((query, index) => {
+      const userId = userIdsToFetch[index];
+      if (query.data) {
+        const fullName = `${query.data.firstname} ${query.data.lastname}`.trim();
+        if (fullName) {
+          map.set(userId, fullName);
+        }
+      }
+    });
+    return map;
+  }, [userQueries, userIdsToFetch]);
+
+  // Helper function to get creator name
+  const getCreatorName = (ticket: Ticket) => {
+    // If createdByName is provided, use it
+    if (ticket.createdByName) {
+      return ticket.createdByName;
+    }
+    // If we have the user in our map, use it
+    if (userMap.has(ticket.createdBy)) {
+      return userMap.get(ticket.createdBy)!;
+    }
+    // Check if we're still loading this user
+    const userIndex = userIdsToFetch.indexOf(ticket.createdBy);
+    if (userIndex !== -1) {
+      const userQuery = userQueries[userIndex];
+      if (userQuery.isLoading) {
+        return "Loading...";
+      }
+      if (userQuery.error) {
+        return `User ID: ${ticket.createdBy}`;
+      }
+    }
+    // Fallback
+    return "N/A";
+  };
 
   // Log tickets for debugging
   useEffect(() => {
@@ -298,7 +362,7 @@ const TicketsContent = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {ticket.createdByName || "N/A"}
+                        {getCreatorName(ticket)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {ticket.assignedToName || "Unassigned"}

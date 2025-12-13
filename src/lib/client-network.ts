@@ -1463,7 +1463,17 @@ import {
   DiscountRequest,
 } from "@/types/finance/discount.interface";
 
-export const getRefundsClient = async (centerId?: string | null) => {
+export const getRefundsClient = async (
+  centerId?: string | null,
+  filters?: {
+    status?: string;
+    search?: string;
+    studentId?: string;
+    paymentId?: string;
+    page?: number;
+    limit?: number;
+  }
+) => {
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -1473,7 +1483,25 @@ export const getRefundsClient = async (centerId?: string | null) => {
       headers["X-Center-Id"] = centerId;
     }
 
-    const res = await fetch("/api/refunds", {
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== "" &&
+          value !== "all"
+        ) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = queryParams.toString();
+    const url = `/api/refunds${queryString ? `?${queryString}` : ""}`;
+
+    const res = await fetch(url, {
       method: "GET",
       headers,
       credentials: "include",
@@ -1484,7 +1512,19 @@ export const getRefundsClient = async (centerId?: string | null) => {
     }
 
     const data = await res.json();
-    return Array.isArray(data) ? data : [];
+
+    // Handle paginated response format
+    if (data && typeof data === "object" && "data" in data) {
+      return data; // Return full response with pagination info
+    }
+
+    // Fallback for non-paginated response
+    return {
+      data: Array.isArray(data) ? data : [],
+      total: Array.isArray(data) ? data.length : 0,
+      page: 1,
+      limit: 10,
+    };
   } catch (err: any) {
     console.error("Failed to fetch refunds:", err.message);
     throw err;
@@ -1535,8 +1575,25 @@ export const createRefundRequestClient = async (
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      const errorMessage =
-        errorData.error || `Failed to create refund request: ${res.statusText}`;
+      let errorMessage =
+        errorData.error ||
+        errorData.message ||
+        `Failed to create refund request: ${res.statusText}`;
+
+      // Include validation details if available
+      if (errorData.details) {
+        if (Array.isArray(errorData.details)) {
+          errorMessage += `: ${errorData.details.join(", ")}`;
+        } else if (typeof errorData.details === "object") {
+          const detailMessages = Object.entries(errorData.details)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(", ");
+          errorMessage += `: ${detailMessages}`;
+        } else {
+          errorMessage += `: ${errorData.details}`;
+        }
+      }
+
       throw new Error(errorMessage);
     }
 
@@ -1560,7 +1617,12 @@ export const approveRefundClient = async (id: string, notes?: string) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to approve refund: ${res.statusText}`);
+      const errorData = await res.json().catch(() => ({}));
+      const errorMessage =
+        errorData.error ||
+        errorData.message ||
+        `Failed to approve refund: ${res.statusText}`;
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
@@ -1586,7 +1648,12 @@ export const rejectRefundClient = async (
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to reject refund: ${res.statusText}`);
+      const errorData = await res.json().catch(() => ({}));
+      const errorMessage =
+        errorData.error ||
+        errorData.message ||
+        `Failed to reject refund: ${res.statusText}`;
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
@@ -1608,20 +1675,97 @@ export const getDiscountsClient = async (centerId?: string | null) => {
       headers["X-Center-Id"] = centerId;
     }
 
+    console.log("[getDiscountsClient] Fetching discounts:", {
+      centerId,
+      headers: Object.keys(headers),
+      url: "/api/discounts",
+    });
+
     const res = await fetch("/api/discounts", {
       method: "GET",
       headers,
       credentials: "include",
     });
 
+    console.log("[getDiscountsClient] Response received:", {
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok,
+      headers: Object.fromEntries(res.headers.entries()),
+    });
+
     if (!res.ok) {
-      throw new Error(`Failed to fetch discounts: ${res.statusText}`);
+      const errorText = await res.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+
+      console.error("[getDiscountsClient] Error response:", {
+        status: res.status,
+        statusText: res.statusText,
+        errorData,
+      });
+
+      throw new Error(
+        errorData.error || `Failed to fetch discounts: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
-    return Array.isArray(data) ? data : [];
+
+    // Handle both response formats:
+    // 1. Backend format: { data: Discount[], total: number }
+    // 2. Direct array format: Discount[]
+    let discounts: any[] = [];
+
+    if (data && typeof data === "object") {
+      if (Array.isArray(data)) {
+        // Direct array response
+        discounts = data;
+      } else if (Array.isArray(data.data)) {
+        // Wrapped response with data field (backend format)
+        discounts = data.data;
+      } else if (data.discounts && Array.isArray(data.discounts)) {
+        // Alternative wrapped format
+        discounts = data.discounts;
+      }
+    }
+
+    // Debug logging
+    console.log(
+      `[getDiscountsClient] Successfully fetched ${discounts.length} discounts`,
+      {
+        centerId,
+        responseType: typeof data,
+        isArray: Array.isArray(data),
+        hasDataField: !!(data && typeof data === "object" && "data" in data),
+        total: data?.total || discounts.length,
+        rawData: data,
+        discounts: discounts.map((d: any) => ({
+          id: d.id,
+          status: d.status,
+          studentId: d.studentId,
+          courseId: d.courseId,
+          discountType: d.discountType,
+          discountValue: d.discountValue,
+          student: d.student
+            ? { id: d.student.id, fullName: d.student.fullName }
+            : null,
+          course: d.course ? { id: d.course.id, name: d.course.name } : null,
+        })),
+      }
+    );
+
+    return discounts;
   } catch (err: any) {
-    console.error("Failed to fetch discounts:", err.message);
+    console.error("[getDiscountsClient] Exception caught:", {
+      message: err.message,
+      stack: err.stack,
+      name: err.name,
+    });
     throw err;
   }
 };
@@ -1672,10 +1816,50 @@ export const createDiscountRequestClient = async (
       const errorData = await res
         .json()
         .catch(() => ({ error: res.statusText }));
-      throw new Error(
+
+      // Extract more detailed error message if available
+      const errorMessage =
         errorData.error ||
-          `Failed to create discount request: ${res.statusText}`
-      );
+        errorData.message ||
+        errorData.details ||
+        res.statusText;
+      const validationErrors = errorData.errors || errorData.validationErrors;
+      const backendError = errorData.backendError;
+
+      // Log the full error for debugging
+      console.error("API Error Response:", {
+        status: res.status,
+        errorData,
+        errorMessage,
+        validationErrors,
+        backendError,
+      });
+
+      let fullErrorMessage =
+        errorMessage || "Failed to create discount request";
+
+      // Add validation errors if available
+      if (validationErrors && Array.isArray(validationErrors)) {
+        fullErrorMessage += `\nValidation errors: ${validationErrors.join(
+          ", "
+        )}`;
+      } else if (validationErrors && typeof validationErrors === "object") {
+        const errorList = Object.entries(validationErrors)
+          .map(([field, message]) => `${field}: ${message}`)
+          .join(", ");
+        fullErrorMessage += `\nValidation errors: ${errorList}`;
+      }
+
+      // Add backend error details if available
+      if (backendError) {
+        if (typeof backendError === "string") {
+          fullErrorMessage += `\nBackend: ${backendError}`;
+        } else if (backendError.message) {
+          fullErrorMessage += `\nBackend: ${backendError.message}`;
+        }
+      }
+
+      throw new Error(fullErrorMessage);
     }
 
     const data = await res.json();
@@ -1688,6 +1872,8 @@ export const createDiscountRequestClient = async (
 
 export const approveDiscountClient = async (id: string, notes?: string) => {
   try {
+    console.log("[approveDiscountClient] Approving discount:", { id, notes });
+
     const res = await fetch(`/api/discounts/${id}/approve`, {
       method: "PATCH",
       headers: {
@@ -1697,14 +1883,43 @@ export const approveDiscountClient = async (id: string, notes?: string) => {
       body: JSON.stringify({ notes }),
     });
 
+    console.log(
+      "[approveDiscountClient] Response status:",
+      res.status,
+      res.statusText
+    );
+
     if (!res.ok) {
-      throw new Error(`Failed to approve discount: ${res.statusText}`);
+      const errorText = await res.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+
+      console.error("[approveDiscountClient] Error response:", {
+        status: res.status,
+        statusText: res.statusText,
+        errorData,
+      });
+
+      const errorMessage =
+        errorData?.error ||
+        errorData?.message ||
+        `Failed to approve discount: ${res.statusText}`;
+
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
+    console.log("[approveDiscountClient] Success:", data);
     return data;
   } catch (err: any) {
-    console.error("Failed to approve discount:", err.message);
+    console.error("[approveDiscountClient] Exception:", {
+      message: err.message,
+      stack: err.stack,
+    });
     throw err;
   }
 };
@@ -1714,6 +1929,11 @@ export const rejectDiscountClient = async (
   rejectionReason: string
 ) => {
   try {
+    console.log("[rejectDiscountClient] Rejecting discount:", {
+      id,
+      rejectionReason,
+    });
+
     const res = await fetch(`/api/discounts/${id}/reject`, {
       method: "PATCH",
       headers: {
@@ -1723,14 +1943,43 @@ export const rejectDiscountClient = async (
       body: JSON.stringify({ rejectionReason }),
     });
 
+    console.log(
+      "[rejectDiscountClient] Response status:",
+      res.status,
+      res.statusText
+    );
+
     if (!res.ok) {
-      throw new Error(`Failed to reject discount: ${res.statusText}`);
+      const errorText = await res.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+
+      console.error("[rejectDiscountClient] Error response:", {
+        status: res.status,
+        statusText: res.statusText,
+        errorData,
+      });
+
+      const errorMessage =
+        errorData?.error ||
+        errorData?.message ||
+        `Failed to reject discount: ${res.statusText}`;
+
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
+    console.log("[rejectDiscountClient] Success:", data);
     return data;
   } catch (err: any) {
-    console.error("Failed to reject discount:", err.message);
+    console.error("[rejectDiscountClient] Exception:", {
+      message: err.message,
+      stack: err.stack,
+    });
     throw err;
   }
 };

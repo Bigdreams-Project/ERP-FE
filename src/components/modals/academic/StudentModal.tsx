@@ -358,6 +358,12 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       data.amount = String(data.amount);
     }
     
+    // Ensure paidBy is properly handled (trim and include if not empty)
+    if (data.paidBy !== null && data.paidBy !== undefined) {
+      const trimmedPaidBy = String(data.paidBy).trim();
+      data.paidBy = trimmedPaidBy || undefined;
+    }
+    
     // Set status to PENDING_APPROVAL for new enrollments
     if (mode === "enroll") {
       data.status = "PENDING_APPROVAL";
@@ -996,6 +1002,28 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               {errors.paymentMethod && (
                 <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.paymentMethod.message}
+                </p>
+              )}
+            </div>
+
+            {/* Paid By */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="paidBy"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Paid By
+              </label>
+              <input
+                type="text"
+                id="paidBy"
+                {...register("paidBy")}
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+                placeholder="Enter payer name"
+              />
+              {errors.paidBy && (
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                  {errors.paidBy.message}
                 </p>
               )}
             </div>

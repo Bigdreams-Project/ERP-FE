@@ -41,7 +41,15 @@ const TicketComments = ({ ticketId }: TicketCommentsProps) => {
     if (!comments.length) return [];
     const uniqueIds = new Set<string>();
     comments.forEach((comment) => {
-      if (comment.createdBy && !comment.createdByName) {
+      // Only fetch if createdBy looks like a UUID/user ID (not a name)
+      // UUIDs typically have hyphens and are 36 characters long
+      // If it contains spaces, it's likely a name, not an ID
+      const looksLikeId = comment.createdBy && 
+        !comment.createdBy.includes(' ') && 
+        (comment.createdBy.length > 10 || comment.createdBy.includes('-'));
+      
+      // Fetch user if we have createdBy that looks like an ID and no createdByName
+      if (looksLikeId && (!comment.createdByName || !comment.createdByName.trim())) {
         uniqueIds.add(comment.createdBy);
       }
     });
@@ -76,26 +84,54 @@ const TicketComments = ({ ticketId }: TicketCommentsProps) => {
 
   // Helper function to get comment creator name
   const getCommentCreatorName = (comment: TicketComment) => {
-    // If createdByName is provided, use it
-    if (comment.createdByName) {
-      return comment.createdByName;
+    // If createdByName is provided and not empty, use it
+    if (comment.createdByName && comment.createdByName.trim()) {
+      return comment.createdByName.trim();
     }
-    // If we have the user in our map, use it
+    
+    if (!comment.createdBy) {
+      return "Unknown User";
+    }
+
+    // Check if createdBy looks like a name (contains spaces) - use it directly
+    if (comment.createdBy.includes(' ') && comment.createdBy.length > 3) {
+      return comment.createdBy;
+    }
+
+    // First, check if we have the user in our map (most reliable)
     if (userMap.has(comment.createdBy)) {
-      return userMap.get(comment.createdBy)!;
+      const name = userMap.get(comment.createdBy)!;
+      if (name && name.trim()) {
+        return name.trim();
+      }
     }
-    // Check if we're still loading this user
+
+    // Check if we're fetching this user - check queries for fresh data
     const userIndex = userIdsToFetch.indexOf(comment.createdBy);
-    if (userIndex !== -1) {
+    if (userIndex !== -1 && userIndex < userQueries.length) {
       const userQuery = userQueries[userIndex];
-      if (userQuery.isLoading) {
+      
+      // Check for data first (even if map hasn't updated yet)
+      if (userQuery.data) {
+        const firstname = userQuery.data.firstname || "";
+        const lastname = userQuery.data.lastname || "";
+        const fullName = `${firstname} ${lastname}`.trim();
+        if (fullName) {
+          return fullName;
+        }
+      }
+      
+      // Only show loading if we're actually still loading and have no data
+      if (userQuery.isLoading && !userQuery.data) {
         return "Loading...";
       }
-      if (userQuery.error) {
-        return `User ID: ${comment.createdBy}`;
-      }
+      
+      // If query failed or returned no data, fall through to final fallback
+      // (removed console logs to reduce noise)
     }
-    // Fallback
+    
+    // Final fallback - if createdBy exists but we couldn't resolve it, 
+    // it might be an ID we couldn't fetch, so show Unknown User
     return "Unknown User";
   };
 

@@ -20,6 +20,14 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
   const queryClient = useQueryClient();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  // Get banks from center object (provided by backend API)
+  const banks = center.banks || [];
+
+  // Get regional manager name - check if regional manager exists
+  const regionalManagerName = center.regionalManager
+    ? center.regionalManager.fullname || "N/A"
+    : "N/A";
+
   const handleSave = async (payload: CreateCenter, isDraft: boolean) => {
     try {
       const updatePayload: UpdateCenter = {
@@ -111,17 +119,18 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                   Address: center.address,
                   Created: formatDate(center.createdAt),
                   Location: center.address,
-                  "Center Manager": center?.manager?.fullname,
-                  "Academic Head": center.academicHead?.fullname,
-                  "Student Count": center.students
+                  "Center Manager": center?.manager?.fullname || "N/A",
+                  "Regional Manager": regionalManagerName,
+                  "Student Count": center.studentCount !== undefined
+                    ? center.studentCount
+                    : center.students
                     ? center.students?.length
                     : "0",
-                  "Faculty Count": center.faculties
+                  "Faculty Count": center.facultyCount !== undefined
+                    ? center.facultyCount
+                    : center.faculties
                     ? center.faculties?.length
                     : "0",
-                  "Regional Manager": center.regionalManager
-                    ? center.regionalManager?.fullname
-                    : "N/A",
                 }).map(([label, value]) => (
                   <div key={label} className="col-span-1">
                     <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
@@ -152,27 +161,70 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
 
           <div>
             {/* Accounting Information Section */}
-            <div className="h-80">
+            <div className="min-h-80">
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 ACCOUNTING INFORMATION
               </h2>
-              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid gap-4">
-                {Object.entries({
-                  "Bank Name": "N/A",
-                  "Account Number": "N/A",
-                  "Total Collection": "N/A",
-                  "Overdue Payments": getOverduePayment("", "") || "N/A",
-                }).map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="col-span-1 flex items-center gap-4"
-                  >
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                      {label}:
-                    </p>
-                    <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{value}</p>
-                  </div>
-                ))}
+              <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6">
+                {/* Banks Section */}
+                <div className="banks-section">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    Bank Accounts ({banks.length})
+                  </h3>
+                  {banks && banks.length > 0 ? (
+                    <div className="space-y-4">
+                      {banks.map((bank, index) => (
+                        <div
+                          key={bank.id || index}
+                          className="bank-card border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="bank-card-header flex justify-between items-center mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                            <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                              {bank.bankName || "N/A"}
+                            </h4>
+                            {bank.status && (
+                              <span
+                                className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  bank.status === "ACTIVE"
+                                    ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200"
+                                    : bank.status === "INACTIVE"
+                                    ? "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200"
+                                    : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200"
+                                }`}
+                              >
+                                {bank.status}
+                              </span>
+                            )}
+                          </div>
+                          <div className="bank-card-body space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                                Account Name:
+                              </span>
+                              <span className="text-gray-900 dark:text-gray-100 font-semibold text-sm">
+                                {bank.accountName || "N/A"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                                Account Number:
+                              </span>
+                              <span className="text-gray-900 dark:text-gray-100 font-semibold text-sm">
+                                {bank.accountNumber || "N/A"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-state text-center py-6">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm italic">
+                        No bank accounts registered for this center
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -229,7 +281,12 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
               | "SUSPENDED"
               | "CLOSED") || "",
           type: (center.type as "" | "OWNED" | "PARTNERED") || "",
-          banks: [], // Banks not available in Center interface
+          banks: center.banks?.map((bank) => ({
+            bankName: bank.bankName,
+            accountNumber: bank.accountNumber,
+            accountName: bank.accountName,
+            balance: Number(bank.balance) || 0,
+          })) || [],
         }}
       />
     </div>

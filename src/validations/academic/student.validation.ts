@@ -66,6 +66,9 @@ export const enrollmentSchema = yup.object().shape({
   paymentPlan: yup.string().required("Payment plan is required"),
   paymentType: yup.string().required("Payment type is required"),
   paymentMethod: yup.string().required("Payment method is required"),
+  paidBy: yup.string().optional().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
   notes: yup.string().optional().nullable().notRequired() as yup.StringSchema<
     string | null
   >,
@@ -157,4 +160,7 @@ export const addStudentPaymentSchema = yup.object().shape({
   paymentPlan: yup.string().required("Payment plan is required"),
   paymentType: yup.string().required("Payment type is required"),
   paymentMethod: yup.string().required("Payment method is required"),
+  paidBy: yup.string().optional().nullable().notRequired() as yup.StringSchema<
+    string | null
+  >,
 });

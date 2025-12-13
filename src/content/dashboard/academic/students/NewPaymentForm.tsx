@@ -49,6 +49,7 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
       paymentPlan: "",
       paymentType: "",
       paymentMethod: "",
+      paidBy: "",
     },
   });
 
@@ -137,6 +138,12 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
       clearErrors("bankId");
       // Set bankId to empty string to bypass validation if banks unavailable
       payload.bankId = "";
+    }
+    
+    // Ensure paidBy is properly handled (trim and include if not empty)
+    if (payload.paidBy !== null && payload.paidBy !== undefined) {
+      const trimmedPaidBy = String(payload.paidBy).trim();
+      (payload as any).paidBy = trimmedPaidBy || undefined;
     }
     
     try {
@@ -351,6 +358,22 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Paid By */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Paid By
+          </label>
+          <input
+            type="text"
+            {...register("paidBy")}
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            placeholder="Enter payer name"
+          />
+          {errors.paidBy && (
+            <p className="text-red-500 dark:text-red-400 text-sm">{errors.paidBy.message}</p>
+          )}
         </div>
 
         {/* Submit Button */}

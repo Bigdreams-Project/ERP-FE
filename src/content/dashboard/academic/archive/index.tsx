@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BiSearchAlt } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { IoFilter } from "react-icons/io5";
+import { Upload } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { User } from "@/types/auth/user.interface";
 import { DateRangePicker } from "react-date-range";
@@ -345,163 +346,163 @@ const ArchiveContent = ({
     <div className="w-full">
       <BreadCrumb paths={[{ name: "Archive" }]} />
 
-      <div className="w-full flex items-center">
-        <div className="flex items-center mt-4">
-          <AcademicTabs />
-        </div>
+      {/* Tabs Section - Full Width */}
+      <div className="w-full mt-4">
+        <AcademicTabs />
+      </div>
 
-        <div className="w-full flex items-center justify-end gap-3 p-2 flex-wrap">
-          {/* Status Filter Dropdown */}
-          <div className="relative flex-shrink-0" ref={dropdownRef}>
-            <div
-              className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-300 dark:border-gray-600"
-              onClick={() => setIsFilterDropdown(!isFilterDropdown)}
-            >
-              <IoFilter size={20} className="text-gray-700 dark:text-gray-300" />
-              <p className="font-medium text-gray-900 dark:text-gray-100">
-                {statusFilter || "Status"}
-              </p>
-            </div>
-            {isFilterDropdown && (
-              <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 rounded-md w-[180px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400 dark:shadow-gray-900 border border-gray-200 dark:border-gray-700">
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => {
-                      setStatusFilter("");
-                      setIsFilterDropdown(false);
-                      setCurrentPage(1);
-                    }}
-                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      statusFilter === ""
-                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
-                  >
-                    All
-                  </button>
-                  <button
-                    onClick={() => {
-                      setStatusFilter("Graduated");
-                      setIsFilterDropdown(false);
-                      setCurrentPage(1);
-                    }}
-                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      statusFilter === "Graduated"
-                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
-                  >
-                    Graduated
-                  </button>
-                  <button
-                    onClick={() => {
-                      setStatusFilter("Owing");
-                      setIsFilterDropdown(false);
-                      setCurrentPage(1);
-                    }}
-                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      statusFilter === "Owing"
-                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
-                  >
-                    Owing
-                  </button>
-                  <button
-                    onClick={() => {
-                      setStatusFilter("Dropout");
-                      setIsFilterDropdown(false);
-                      setCurrentPage(1);
-                    }}
-                    className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      statusFilter === "Dropout"
-                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
-                  >
-                    Dropout
-                  </button>
-                </div>
-              </div>
-            )}
+      {/* Controls Section - Below Tabs (Everything on the right) */}
+      <div className="w-full flex items-center justify-end gap-4 p-2 mt-2">
+        {/* Filter Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <div
+            className="flex items-center gap-2 p-2 rounded-md cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            onClick={() => setIsFilterDropdown(!isFilterDropdown)}
+          >
+            <IoFilter size={20} />
+            <p className="font-medium text-gray-900 dark:text-gray-100">
+              {statusFilter || "Status"}
+            </p>
           </div>
-
-          {/* Date Range Filter */}
-          <div className="relative flex-shrink-0" ref={datePickerRef}>
-            <div className="flex items-center gap-1">
-              <input
-                type="text"
-                readOnly
-                value={displayDateRange || "Select enrollment date range"}
-                onClick={() => setShowDatePicker(!showDatePicker)}
-                className="w-[200px] min-w-[180px] px-3 py-2 text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-              />
-              {isDateFilterActive && (
+          {isFilterDropdown && (
+            <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 rounded-md w-[180px] z-50 p-4 animate-in fade-in-0 duration-300 shadow-lg shadow-gray-400 dark:shadow-gray-900 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col gap-2">
                 <button
-                  onClick={handleClearDateFilter}
-                  className="px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                  title="Clear date filter"
+                  onClick={() => {
+                    setStatusFilter("");
+                    setIsFilterDropdown(false);
+                    setCurrentPage(1);
+                  }}
+                  className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    statusFilter === ""
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
                 >
-                  ✕
+                  All
                 </button>
-              )}
-            </div>
-            {showDatePicker && (
-              <div className="absolute right-0 mt-2 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-2">
-                <DateRangePicker
-                  ranges={dateRange}
-                  onChange={handleDateSelect}
-                  moveRangeOnFirstSelection={false}
-                  className="text-black dark:text-white"
-                />
+                <button
+                  onClick={() => {
+                    setStatusFilter("Graduated");
+                    setIsFilterDropdown(false);
+                    setCurrentPage(1);
+                  }}
+                  className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    statusFilter === "Graduated"
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Graduated
+                </button>
+                <button
+                  onClick={() => {
+                    setStatusFilter("Owing");
+                    setIsFilterDropdown(false);
+                    setCurrentPage(1);
+                  }}
+                  className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    statusFilter === "Owing"
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Owing
+                </button>
+                <button
+                  onClick={() => {
+                    setStatusFilter("Dropout");
+                    setIsFilterDropdown(false);
+                    setCurrentPage(1);
+                  }}
+                  className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    statusFilter === "Dropout"
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Dropout
+                </button>
               </div>
-            )}
-          </div>
-
-          {/* Search */}
-          <div className="w-[200px] min-w-[150px] flex-shrink-0">
-            <div className="flex items-center gap-1 py-1.5 border-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)] dark:placeholder:text-gray-400">
-              <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search"
-                onChange={(e) => {
-                  setSearchInput(e.target.value);
-                  if (!isTyping) setIsTyping(true);
-                }}
-                className="outline-none bg-transparent text-gray-900 dark:text-gray-100"
-              />
             </div>
-          </div>
-
-          {/* Add Archive Record Button - Admin Only */}
-          {isAdmin && !isAdminLoading && (
-            <button
-              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              onClick={() => setIsCreateModalOpen(true)}
-              disabled={isCreating}
-            >
-              <FaPlus className="text-white" size={16} />
-              <span className="text-white text-sm">
-                {isCreating ? "Creating..." : "Add Archive Record"}
-              </span>
-            </button>
-          )}
-
-          {/* Upload Archive Button - Admin Only */}
-          {isAdmin && !isAdminLoading && (
-            <button
-              className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-amber-600 rounded-md shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-              onClick={() => setIsUploadModalOpen(true)}
-              disabled={isUploading}
-            >
-              <FaPlus className="text-white" size={16} />
-              <span className="text-white text-sm">
-                {isUploading ? "Uploading..." : "Upload Archive"}
-              </span>
-            </button>
           )}
         </div>
+
+        {/* Date Range Filter */}
+        <div className="relative flex-shrink-0" ref={datePickerRef}>
+          <div className="flex items-center gap-1">
+            <input
+              type="text"
+              readOnly
+              value={displayDateRange || "Select enrollment date range"}
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              className="w-[200px] min-w-[180px] px-3 py-2 text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+            />
+            {isDateFilterActive && (
+              <button
+                onClick={handleClearDateFilter}
+                className="px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                title="Clear date filter"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {showDatePicker && (
+            <div className="absolute right-0 mt-2 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-2">
+              <DateRangePicker
+                ranges={dateRange}
+                onChange={handleDateSelect}
+                moveRangeOnFirstSelection={false}
+                className="text-black dark:text-white"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Search */}
+        <div className="w-[200px] min-w-[150px] flex-shrink-0">
+          <div className="flex items-center gap-1 py-1.5 border-2 rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus-within:outline-2 focus-within:outline-indigo-500 dark:focus-within:outline-indigo-400 transition-all duration-100 placeholder:text-[rgba(0,0,0,0.7)] dark:placeholder:text-gray-400">
+            <BiSearchAlt size={18} className="ml-2 text-gray-500 dark:text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search"
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                if (!isTyping) setIsTyping(true);
+              }}
+              className="outline-none bg-transparent text-gray-900 dark:text-gray-100"
+            />
+          </div>
+        </div>
+
+        {/* Add Archive Record Button - Admin Only */}
+        {isAdmin && !isAdminLoading && (
+          <button
+            className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-add-button rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+            onClick={() => setIsCreateModalOpen(true)}
+            disabled={isCreating}
+          >
+            <FaPlus className="text-white" size={16} />
+            <span className="text-white text-sm">
+              {isCreating ? "Creating..." : "Add Archive Record"}
+            </span>
+          </button>
+        )}
+
+        {/* Upload Archive Button - Admin Only */}
+        {isAdmin && !isAdminLoading && (
+          <button
+            className="flex items-center justify-between gap-2 px-3 py-2 text-white bg-green-600 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+            onClick={() => setIsUploadModalOpen(true)}
+            disabled={isUploading}
+          >
+            <Upload className="text-white" size={16} />
+            <span className="text-white text-sm">
+              {isUploading ? "Uploading..." : "Upload Archive"}
+            </span>
+          </button>
+        )}
       </div>
 
       <ArchiveTable

@@ -18,8 +18,11 @@ export async function GET(request: NextRequest) {
     const centerId = request.headers.get("X-Center-Id");
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const search = searchParams.get("search");
     const studentId = searchParams.get("studentId");
     const paymentId = searchParams.get("paymentId");
+    const page = searchParams.get("page");
+    const limit = searchParams.get("limit");
 
     const headers: Record<string, string> = {
       Authorization: `Bearer ${session.accessToken}`,
@@ -31,9 +34,12 @@ export async function GET(request: NextRequest) {
     }
 
     const params: Record<string, string> = {};
-    if (status) params.status = status;
+    if (status && status !== "all") params.status = status;
+    if (search) params.search = search;
     if (studentId) params.studentId = studentId;
     if (paymentId) params.paymentId = paymentId;
+    if (page) params.page = page;
+    if (limit) params.limit = limit;
 
     const response = await axios.get(`${AuthRoutes.BASE_URL}/refunds`, {
       headers,
@@ -89,8 +95,23 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Failed to create refund request:", error);
     if (error.response) {
+      const errorData = error.response.data;
+      const errorMessage = errorData?.message || errorData?.error || "Failed to create refund request";
+      const errorDetails = errorData?.details || errorData?.errors || errorData?.validationErrors;
+      
+      console.error("Backend error response:", {
+        status: error.response.status,
+        data: errorData,
+        message: errorMessage,
+        details: errorDetails,
+      });
+
       return NextResponse.json(
-        { error: error.response.data?.message || "Failed to create refund request" },
+        { 
+          error: errorMessage,
+          details: errorDetails,
+          status: error.response.status,
+        },
         { status: error.response.status || 500 }
       );
     }

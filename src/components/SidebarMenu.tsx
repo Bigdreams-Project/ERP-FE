@@ -146,6 +146,10 @@ const SidebarMenu = ({
           label: "Refunds",
           href: "/dashboard/finance/refunds",
         },
+        {
+          label: "Discounts",
+          href: "/dashboard/finance/discounts",
+        },
         // { label: "Fee Plans", href: "/dashboard/finance/fee-plans" },
         // {
         //   label: "Payments & Receipts",

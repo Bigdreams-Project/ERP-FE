@@ -148,6 +148,9 @@ export const ReceiptPreview = ({
             <div className="flex flex-col gap-3">
               <DetailItem label="Center" value={center} />
               <DetailItem label="Payment Type" value={paymentType} />
+              {data.paidBy && (
+                <DetailItem label="Paid By" value={data.paidBy} />
+              )}
               <DetailItem label="Transaction ID" value={transactionId} />
             </div>
           </div>

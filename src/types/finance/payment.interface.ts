@@ -20,6 +20,17 @@ export interface IPayment {
   updatedAt: string;
 }
 
+export interface AppliedDiscount {
+  id: string;
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT" | "percentage" | "fixed_amount";
+  discountValue: number;
+  originalAmount: number;
+  discountedAmount: number;
+  appliedAt: string;
+  status: "APPLIED" | "applied";
+  reason?: string;
+}
+
 export interface PaymentPlan {
   id: string;
   userId: string;
@@ -38,6 +49,7 @@ export interface PaymentPlan {
   payments: IPayment[];
   createdAt: string;
   updatedAt: string;
+  discountRequests?: AppliedDiscount[];
 }
 
 export interface Payment {
@@ -52,9 +64,13 @@ export interface Payment {
   paymentPlan: PaymentPlan;
   paymentType: string;
   paymentMethod: string;
+  paidBy?: string | null;
   bank: Bank;
   course: Course;
   student: Student;
   createdAt: string;
   updatedAt: string;
+  approvedAt?: string | null;
+  approvedBy?: string | null;
+  status?: string | null;
 }

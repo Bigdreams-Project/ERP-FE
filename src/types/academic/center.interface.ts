@@ -2,6 +2,7 @@ import { IBank } from "../finance/bank.interface";
 import { CreateCenter } from "../requests/center.interface";
 import { Lead } from "./lead.interface";
 import { Student } from "./student.interface";
+import type { Bank } from "../finance/bank.interface";
 
 export type CenterStatus = "ACTIVE" | "IN_SETUP" | "SUSPENDED" | "CLOSED";
 
@@ -47,10 +48,14 @@ export interface Center {
   students: Student[];
   leads: Lead[];
   notes: CenterNote[];
-  regionalManager: Manager;
+  regionalManager: Manager | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  // New fields from backend API
+  banks?: Bank[];
+  studentCount?: number;
+  facultyCount?: number;
 }
 
 export interface ICenter {

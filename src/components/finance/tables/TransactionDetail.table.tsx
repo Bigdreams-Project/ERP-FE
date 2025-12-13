@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 import { Payment } from "@/types/finance/payment.interface";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Clock } from "lucide-react";
 
 type Props = {
   transactions: Payment[];
@@ -66,6 +67,9 @@ export default function TransactionDetailTable({
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Amount (₦)
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 dark:text-gray-300 uppercase tracking-wider">
+                    Paid By
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Balance (₦)
                   </th>
@@ -100,7 +104,22 @@ export default function TransactionDetailTable({
                       {getPaymentPlan(transaction.paymentPlan.name)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                      ₦{transaction.amount.toLocaleString()}
+                      <div className="flex items-center gap-2">
+                        <span>₦{transaction.amount.toLocaleString()}</span>
+                        {/* Show "Pending Approval" badge if payment is not approved */}
+                        {/* Payment is approved if: approvedAt exists OR status is "approved"/"APPROVED" */}
+                        {!transaction.approvedAt && 
+                         transaction.status?.toUpperCase() !== "APPROVED" && 
+                         transaction.status?.toUpperCase() !== "approved" && (
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Pending Approval
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                      {(transaction.paidBy && transaction.paidBy.trim()) || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       ₦

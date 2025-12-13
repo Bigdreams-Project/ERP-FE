@@ -95,6 +95,7 @@ export interface IStudent {
   paymentPlan: string;
   paymentType: string;
   paymentMethod: string;
+  paidBy: string | null;
   notes: string | null;
   courseId: string;
   bankId: string;

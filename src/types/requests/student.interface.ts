@@ -21,6 +21,7 @@ export interface CreateStudent {
   paymentPlan: string;
   paymentType: string;
   paymentMethod: string;
+  paidBy?: string;
   notes: string;
   courseId: string;
   bankId: string;
@@ -62,6 +63,7 @@ export interface CreateStudentPayment {
   paymentPlan: string;
   paymentType: string;
   paymentMethod: string;
+  paidBy: string | null;
 }
 
 export interface BulkUploadStudentPayment {
