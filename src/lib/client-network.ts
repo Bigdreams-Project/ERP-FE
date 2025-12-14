@@ -379,8 +379,20 @@ export const getStudentsSummaryClient = async (centerId?: string | null) => {
 
 export const getStudentClient = async (id: string) => {
   try {
-    const res = await client.get(`/students/${id}`);
-    return res.data;
+    const res = await fetch(`/api/students/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch student: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     console.error("Failed to fetch student:", err.message);
     throw err;
@@ -2258,6 +2270,19 @@ export const getStudentFilesClient = async (
     }
 
     const data = await res.json();
+
+    // Log the backend response to see presignedURL
+    console.log("=== Backend Files Response ===");
+    console.log("Full response:", data);
+    if (Array.isArray(data) && data.length > 0) {
+      console.log("First file object:", data[0]);
+      console.log("First file presignedUrl:", data[0]?.presignedUrl);
+      console.log("First file presignedURL (capital):", data[0]?.presignedURL);
+      console.log("First file fileUrl:", data[0]?.fileUrl);
+      console.log("All file keys:", Object.keys(data[0] || {}));
+    }
+    console.log("============================");
+
     return Array.isArray(data) ? data : [];
   } catch (err: any) {
     console.error("Failed to fetch files:", err.message);

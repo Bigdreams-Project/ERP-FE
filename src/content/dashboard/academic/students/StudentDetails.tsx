@@ -4,6 +4,7 @@ import StudentDeleteModal from "@/components/modals/academic/StudentDeleteModal"
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
   hardDeleteStudentClient,
+  getStudentClient,
 } from "@/lib/client-network";
 import { updateStudentClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
@@ -32,6 +33,7 @@ import {
   Archive,
   Upload,
   X,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,13 +65,38 @@ const StudentDetails = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadedPresignedUrl, setUploadedPresignedUrl] = useState<string | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch student data with refetch capability
+  const { data: currentStudent = student, refetch: refetchStudent } = useQuery({
+    queryKey: ["student", student.id],
+    queryFn: () => getStudentClient(student.id),
+    initialData: student,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
   // Fetch profile image
-  const { data: profileImageFile } = useQuery({
+  const { data: profileImageFile, refetch: refetchProfileImage } = useQuery({
     queryKey: ["student-profile-image", student.id],
     queryFn: () => getStudentFilesClient(student.id, "profile_image"),
-    select: (files) => files?.[0] || null,
+    select: (files) => {
+      console.log("=== Select Function Debug ===");
+      console.log("Files array:", files);
+      console.log("Files length:", files?.length);
+      console.log("First file:", files?.[0]);
+      if (files && files.length > 0) {
+        console.log("First file presignedUrl:", files[0]?.presignedUrl);
+        console.log("First file fileType:", files[0]?.fileType);
+      }
+      console.log("Selected file:", files?.[0] || null);
+      console.log("============================");
+      return files?.[0] || null;
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   // Debug: Log student data structure
@@ -88,6 +115,34 @@ const StudentDetails = ({
       }
     }
   }, [student, courses]);
+
+  // Debug: Log profile image changes
+  useEffect(() => {
+    if (profileImageFile) {
+      console.log("=== Profile Image File Debug ===");
+      console.log("Full profile image file object:", profileImageFile);
+      console.log("Profile image file URL:", profileImageFile.fileUrl);
+      console.log("Profile image presignedUrl:", profileImageFile.presignedUrl);
+      console.log("All keys in profileImageFile:", Object.keys(profileImageFile));
+      console.log("Type of presignedUrl:", typeof profileImageFile.presignedUrl);
+      console.log("Is presignedUrl truthy?", !!profileImageFile.presignedUrl);
+      console.log("=================================");
+    }
+  }, [profileImageFile]);
+
+  // Debug: Log student image changes and clear temporary presigned URL when we have presignedURL from backend
+  useEffect(() => {
+    if (currentStudent?.image) {
+      console.log("Student image from refetched data:", currentStudent.image);
+    }
+    
+    // Clear temporary presigned URL when backend returns presignedUrl in file object
+    if (uploadedPresignedUrl && profileImageFile?.presignedUrl) {
+      console.log("Clearing temporary presigned URL, using presignedUrl from backend:", profileImageFile.presignedUrl);
+      setUploadedPresignedUrl(null);
+    }
+  }, [currentStudent, uploadedPresignedUrl, profileImageFile?.presignedUrl]);
+
 
   const handleSave = async (payload: CreateStudent | UpdateStudent) => {
     try {
@@ -156,12 +211,35 @@ const StudentDetails = ({
 
     setIsUploadingImage(true);
     try {
-      await uploadFileClient(file, student.id, "profile_image");
+      const uploadResponse = await uploadFileClient(file, student.id, "profile_image");
+      
+      // Extract presignedUrl from response (backend returns presignedUrl with lowercase 'u')
+      const presignedUrl = uploadResponse?.presignedUrl || uploadResponse?.presignedURL || uploadResponse?.studentImageUrl || uploadResponse?.fileUrl;
+      
+      // Log the presignedURL to console
+      console.log("Upload response:", uploadResponse);
+      console.log("Presigned URL:", presignedUrl);
+      
+      if (presignedUrl) {
+        console.log("Using presigned URL from upload response:", presignedUrl);
+        // Store the presigned URL to use immediately
+        setUploadedPresignedUrl(presignedUrl);
+      }
+      
       showSuccess("Profile image uploaded successfully!");
-      queryClient.invalidateQueries({ queryKey: ["student-profile-image", student.id] });
-      queryClient.invalidateQueries({ queryKey: ["student", student.id] });
+      
+      // Refetch student data to get updated image with presigned URL
+      await refetchStudent();
+      
+      // Invalidate and refetch the profile image query
+      await queryClient.invalidateQueries({ queryKey: ["student-profile-image", student.id] });
+      await refetchProfileImage();
       queryClient.invalidateQueries({ queryKey: ["students"] });
+      
+      // Note: The temporary presigned URL will be cleared automatically by useEffect 
+      // when currentStudent.image is available from the refetched data
     } catch (error: any) {
+      console.error("Upload error:", error);
       showError(error.message || "Failed to upload image");
     } finally {
       setIsUploadingImage(false);
@@ -178,8 +256,64 @@ const StudentDetails = ({
     }
   };
 
-  // Get the image URL - prefer uploaded profile image, fallback to student.image
-  const displayImageUrl = profileImageFile?.fileUrl || student.image;
+  // Get the image URL - prefer presignedUrl from upload, then uploaded profile image, then student.image
+  // Get the image URL - prioritize in this order:
+  // 1. presignedUrl from file object (backend returns this)
+  // 2. Presigned URL from upload (temporary, until refetch)
+  // 3. Student image (backend converts S3 URLs to presigned URLs automatically)
+  // Note: Backend returns presignedUrl (lowercase 'u') in the file object
+  const getImageUrl = () => {
+    // First priority: presignedUrl from file object (backend returns this)
+    if (profileImageFile?.presignedUrl) {
+      console.log("Using presignedUrl from file object:", profileImageFile.presignedUrl);
+      return profileImageFile.presignedUrl;
+    }
+    
+    // Second priority: presigned URL from upload (temporary, until refetch completes)
+    if (uploadedPresignedUrl) {
+      console.log("Using presigned URL from upload:", uploadedPresignedUrl);
+      return uploadedPresignedUrl;
+    }
+    
+    // Third priority: student image (backend converts S3 URLs to presigned URLs automatically)
+    if (currentStudent?.image) {
+      console.log("Using student image:", currentStudent.image);
+      return currentStudent.image;
+    }
+    
+    // Fallback to original student image
+    if (student.image) {
+      console.log("Using original student image:", student.image);
+      return student.image;
+    }
+    
+    return null;
+  };
+  
+  const displayImageUrl = getImageUrl();
+  
+  // Reset image loading state when image URL changes
+  useEffect(() => {
+    if (displayImageUrl) {
+      setIsImageLoading(true);
+    } else {
+      setIsImageLoading(false);
+    }
+  }, [displayImageUrl]);
+  
+  // Debug log the display URL
+  useEffect(() => {
+    console.log("=== Image URL Debug ===");
+    console.log("Display image URL:", displayImageUrl);
+    console.log("Profile image file:", profileImageFile);
+    console.log("Profile image file URL:", profileImageFile?.fileUrl);
+    console.log("Profile image presignedUrl:", profileImageFile?.presignedUrl);
+    console.log("Current student image:", currentStudent?.image);
+    console.log("Uploaded presigned URL:", uploadedPresignedUrl);
+    console.log("Original student image:", student.image);
+    console.log("Is display URL presigned?", displayImageUrl?.includes('?') || displayImageUrl?.includes('X-Amz-'));
+    console.log("======================");
+  }, [displayImageUrl, currentStudent?.image, uploadedPresignedUrl, profileImageFile, student.image]);
 
   const renderSection = (title: string, content: string, Icon: any) => (
     <div className="bg-white dark:bg-gray-800 px-2 py-4 rounded-lg flex items-center mb-4">
@@ -283,14 +417,49 @@ const StudentDetails = ({
             <div className="flex flex-col items-center">
               <div className="relative">
                 {displayImageUrl ? (
-                  <Image
-                    src={displayImageUrl}
-                    alt={student.fullName}
-                    width={128}
-                    height={128}
-                    priority
-                    className="rounded-full object-cover border-4 border-gray-200"
-                  />
+                  <>
+                    {/* Loading indicator */}
+                    {isImageLoading && (
+                      <div className="absolute inset-0 w-32 h-32 rounded-full border-4 border-gray-200 bg-gray-100 dark:bg-gray-700 flex items-center justify-center z-10">
+                        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                      </div>
+                    )}
+                    {/* Use regular img tag for ALL S3 URLs (both presigned and regular) */}
+                    {/* S3 URLs may not work with Next.js Image optimization and may require authentication */}
+                    {displayImageUrl.includes('tecterminal.s3') || displayImageUrl.includes('?') || displayImageUrl.includes('X-Amz-') ? (
+                      <img
+                        src={displayImageUrl}
+                        alt={student.fullName}
+                        width={128}
+                        height={128}
+                        className={`w-32 h-32 rounded-full object-cover border-4 border-gray-200 ${isImageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+                        onLoad={() => {
+                          setIsImageLoading(false);
+                        }}
+                        onError={(e) => {
+                          console.error("Image failed to load:", displayImageUrl);
+                          console.error("Error event:", e);
+                          setIsImageLoading(false);
+                        }}
+                      />
+                    ) : (
+                      <Image
+                        src={displayImageUrl}
+                        alt={student.fullName}
+                        width={128}
+                        height={128}
+                        priority
+                        className={`rounded-full object-cover border-4 border-gray-200 ${isImageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+                        unoptimized={displayImageUrl.startsWith('http')}
+                        onLoad={() => {
+                          setIsImageLoading(false);
+                        }}
+                        onError={() => {
+                          setIsImageLoading(false);
+                        }}
+                      />
+                    )}
+                  </>
                 ) : (
                   <div className="relative w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-gray-200">
                     <CircleUserRound className="w-full h-full text-gray-400" />
@@ -404,86 +573,89 @@ const StudentDetails = ({
               </div>
             </div>
 
-            <div className="mt-8">
-              <h3 className="text-lg font-bold text-gray-700 mb-4">
-                Financial & Attendance
-              </h3>
-              <div className="space-y-4">
-                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg flex items-center">
-                  <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
-                    <Coins size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-800 dark:text-gray-200">
-                      Payment Status
+            {/* Financial & Attendance section hidden */}
+            {false && (
+              <div className="mt-8">
+                <h3 className="text-lg font-bold text-gray-700 mb-4">
+                  Financial & Attendance
+                </h3>
+                <div className="space-y-4">
+                  <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg flex items-center">
+                    <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
+                      <Coins size={20} />
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center justify-between">
-                      <span>
-                        {student.payments && student.payments.length > 0
-                          ? (() => {
-                              const lastPayment = student.payments[student.payments.length - 1];
-                              const pending = lastPayment.paymentPlan?.pending;
-                              return !pending || pending === "0" || (pending && isNaN(Number(pending)))
-                                ? "Paid"
-                                : "Pending";
-                            })()
-                          : "No payments found"}
-                      </span>
-                      <span className="bg-blue-500 dark:bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                        {student.payments && student.payments.length > 0
-                          ? (() => {
-                              const lastPayment = student.payments[student.payments.length - 1];
-                              const pending = lastPayment.paymentPlan?.pending;
-                              return !pending || pending === "0" || (pending && isNaN(Number(pending)))
-                                ? "Paid"
-                                : "Pending";
-                            })()
-                          : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg flex items-center">
-                  <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
-                    <Percent size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-800 dark:text-gray-200">
-                      Attendance
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
-                      <div className="w-full h-2 bg-blue-200 dark:bg-blue-900/40 rounded-full mr-2">
-                        <div
-                          className="bg-blue-500 dark:bg-blue-600 h-full rounded-full"
-                          style={{
-                            width: `${2}%`,
-                          }}
-                        ></div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-800 dark:text-gray-200">
+                        Payment Status
                       </div>
-                      <span>{2}%</span>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center justify-between">
+                        <span>
+                          {student.payments && student.payments.length > 0
+                            ? (() => {
+                                const lastPayment = student.payments[student.payments.length - 1];
+                                const pending = lastPayment.paymentPlan?.pending;
+                                return !pending || pending === "0" || (pending && isNaN(Number(pending)))
+                                  ? "Paid"
+                                  : "Pending";
+                              })()
+                            : "No payments found"}
+                        </span>
+                        <span className="bg-blue-500 dark:bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                          {student.payments && student.payments.length > 0
+                            ? (() => {
+                                const lastPayment = student.payments[student.payments.length - 1];
+                                const pending = lastPayment.paymentPlan?.pending;
+                                return !pending || pending === "0" || (pending && isNaN(Number(pending)))
+                                  ? "Paid"
+                                  : "Pending";
+                              })()
+                            : "N/A"}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg flex items-center">
+                    <div className="text-xl mr-3 text-gray-500 dark:text-gray-400">
+                      <Percent size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-800 dark:text-gray-200">
+                        Attendance
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center">
+                        <div className="w-full h-2 bg-blue-200 dark:bg-blue-900/40 rounded-full mr-2">
+                          <div
+                            className="bg-blue-500 dark:bg-blue-600 h-full rounded-full"
+                            style={{
+                              width: `${2}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <span>{2}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  {renderSection(
+                    "Next Payment Due",
+                    student.payments && student.payments.length > 0
+                      ? (() => {
+                          const lastPayment = student.payments[student.payments.length - 1];
+                          const nextPaymentDate = lastPayment.paymentPlan?.nextPaymentDate;
+                          
+                          if (!nextPaymentDate) return "N/A";
+                          
+                          // Validate date before formatting
+                          const date = new Date(nextPaymentDate);
+                          if (isNaN(date.getTime())) return "N/A";
+                          
+                          return formatDate(nextPaymentDate);
+                        })()
+                      : "No payments found",
+                    CalendarDays
+                  )}
                 </div>
-                {renderSection(
-                  "Next Payment Due",
-                  student.payments && student.payments.length > 0
-                    ? (() => {
-                        const lastPayment = student.payments[student.payments.length - 1];
-                        const nextPaymentDate = lastPayment.paymentPlan?.nextPaymentDate;
-                        
-                        if (!nextPaymentDate) return "N/A";
-                        
-                        // Validate date before formatting
-                        const date = new Date(nextPaymentDate);
-                        if (isNaN(date.getTime())) return "N/A";
-                        
-                        return formatDate(nextPaymentDate);
-                      })()
-                    : "No payments found",
-                  CalendarDays
-                )}
               </div>
-            </div>
+            )}
             <button className="mt-8 w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-500 transition-colors">
               Add Note
             </button>

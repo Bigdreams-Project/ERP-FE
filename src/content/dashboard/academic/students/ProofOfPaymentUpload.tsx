@@ -19,7 +19,7 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
   const queryClient = useQueryClient();
 
   // Fetch uploaded files
-  const { data: files = [], refetch } = useQuery({
+  const { data: files = [], refetch, isLoading: isLoadingFiles } = useQuery({
     queryKey: ["student-files", data.id, "payment_receipt"],
     queryFn: () => getStudentFilesClient(data.id, "payment_receipt"),
   });
@@ -156,11 +156,18 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
         Recently Uploaded:
       </h3>
       <div className="space-y-1 max-h-40 overflow-y-auto">
-        {paymentReceipts.length > 0 ? (
+        {isLoadingFiles ? (
+          <div className="flex items-center gap-2 py-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 dark:border-blue-400"></div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Loading receipts...
+            </p>
+          </div>
+        ) : paymentReceipts.length > 0 ? (
           paymentReceipts.map((file: StudentFile) => (
             <a
               key={file.id}
-              href={file.fileUrl}
+              href={file.presignedUrl || file.fileUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="block text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
