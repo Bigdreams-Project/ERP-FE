@@ -28,22 +28,14 @@ export async function GET(request: NextRequest) {
     // When centerId is null or "all", we don't send the header to get all records
     if (centerId && centerId !== "all") {
       headers["X-Center-Id"] = centerId;
-      console.log(`[API /students] Forwarding request with X-Center-Id: ${centerId}`);
-    } else {
-      console.log(`[API /students] Forwarding request WITHOUT X-Center-Id header (requesting all students)`);
     }
-
-    console.log(`[API /students] Request headers being sent to backend:`, Object.keys(headers).join(", "));
 
     const response = await axios.get(`${AuthRoutes.BASE_URL}/students`, {
       headers,
     });
 
-    console.log(`[API /students] Backend returned ${Array.isArray(response.data) ? response.data.length : 0} students`);
-
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch students:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch students" },
@@ -95,11 +87,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to create student:", error);
     if (error.response) {
-      if (payload) {
-        console.error("Payload sent:", JSON.stringify(payload, null, 2));
-      }
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to create student" },
         { status: error.response.status || 500 }

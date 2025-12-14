@@ -27,7 +27,6 @@ export async function GET(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch ticket:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch ticket" },
@@ -70,7 +69,6 @@ export async function PATCH(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to update ticket:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to update ticket" },

@@ -12,7 +12,6 @@ export const ProviderProvider = ({ children }: { children: React.ReactNode }) =>
   const [selectedProvider, _setSelectedProvider] = useState("all");
 
   const setSelectedProvider = (provider: string) => {
-    console.log("Updating selected provider to:", provider);
     _setSelectedProvider(provider);
   };
 

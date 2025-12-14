@@ -39,7 +39,6 @@ const StudentDeleteModal: React.FC<StudentDeleteModalProps> = ({
       // Don't close modal here - let parent handle closing after toast is shown
       // Parent will close modal after operation completes
     } catch (error) {
-      console.error("Failed to delete student:", error);
       setIsDeleting(false);
     }
     // Note: isDeleting will be reset by parent when modal closes

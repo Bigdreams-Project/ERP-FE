@@ -29,7 +29,6 @@ export default function ApproveRefundModal({
       onClose();
       setNotes("");
     } catch (error) {
-      console.error("Failed to approve refund:", error);
     } finally {
       setIsSubmitting(false);
     }

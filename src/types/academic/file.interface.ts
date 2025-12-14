@@ -4,7 +4,7 @@ export interface File {
   fileName: string;
   fileType: "payment_receipt" | "profile_image";
   fileUrl: string;
-  presignedUrl?: string; // Presigned URL for accessing the file (returned by backend)
+  presignedURL?: string; // Presigned URL for accessing the file (returned by backend with capital URL)
   fileSize: number;
   mimeType: string;
   uploadedBy?: string;

@@ -50,14 +50,6 @@ const DiscountsContent = () => {
     userRole.includes("REGIONAL");
 
   // Debug logging
-  console.log("[DiscountsContent] User role check:", {
-    userRole,
-    rawRole: user?.role,
-    roleType: typeof user?.role,
-    canApproveDiscounts,
-    user: user ? { id: user.id, role: user.role, fullUser: user } : null,
-  });
-
   const centerIdForQuery = useMemo(() => {
     if (!isCenterLoading && centerContext && !centerContext.canSwitch && centerContext.currentCenterId) {
       return centerContext.currentCenterId;
@@ -68,13 +60,10 @@ const DiscountsContent = () => {
   const { data: discounts = [], isLoading, error, isError } = useQuery({
     queryKey: ["discounts", centerIdForQuery],
     queryFn: async () => {
-      console.log("[DiscountsContent] useQuery queryFn called", { centerIdForQuery });
       try {
         const result = await getDiscountsClient(centerIdForQuery);
-        console.log("[DiscountsContent] useQuery queryFn result:", result);
         return result;
       } catch (err: any) {
-        console.error("[DiscountsContent] useQuery queryFn error:", err);
         throw err;
       }
     },
@@ -84,46 +73,8 @@ const DiscountsContent = () => {
     retry: 1,
   });
 
-  // Log query state
-  console.log("[DiscountsContent] useQuery state:", {
-    isLoading,
-    isError,
-    error: error instanceof Error ? error.message : error,
-    dataLength: discounts?.length,
-    centerIdForQuery,
-    isCenterLoading,
-    enabled: !isCenterLoading,
-  });
-
-  // Debug logging
-  console.log("[DiscountsContent] Discounts data:", {
-    totalDiscounts: discounts.length,
-    centerIdForQuery,
-    discounts: discounts.map((d: DiscountRequest) => ({
-      id: d.id,
-      status: d.status,
-      studentName: d.student?.fullName,
-      courseName: d.course?.name,
-    })),
-  });
-
   const filteredDiscounts = useMemo(() => {
     let filtered = discounts;
-    
-    // Debug: Log all discounts before filtering
-    console.log("[DiscountsContent] All discounts before filtering:", {
-      total: discounts.length,
-      discounts: discounts.map((d: DiscountRequest) => ({
-        id: d.id,
-        status: d.status,
-        hasStatus: !!d.status,
-        statusType: typeof d.status,
-        studentName: d.student?.fullName,
-        courseName: d.course?.name,
-        discountType: d.discountType,
-        discountValue: d.discountValue,
-      })),
-    });
     
     if (statusFilter !== "all") {
       // Normalize status comparison (handle case differences and null/undefined)
@@ -146,13 +97,6 @@ const DiscountsContent = () => {
         discount.reason?.toLowerCase().includes(query)
       );
     }
-    
-    console.log("[DiscountsContent] Filtered discounts:", {
-      total: filtered.length,
-      statusFilter,
-      searchQuery,
-      filteredIds: filtered.map((d: DiscountRequest) => d.id),
-    });
     
     return filtered;
   }, [discounts, statusFilter, searchQuery]);

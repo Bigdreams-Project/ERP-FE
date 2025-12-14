@@ -11,7 +11,6 @@ export async function isAdmin(): Promise<boolean> {
     const user = await getLoggedInUser();
     return user?.role === "ADMIN";
   } catch (error) {
-    console.error("Failed to check admin status:", error);
     return false;
   }
 }
@@ -25,7 +24,6 @@ export async function getUserRole(): Promise<string | null> {
     const user = await getLoggedInUser();
     return user?.role || null;
   } catch (error) {
-    console.error("Failed to get user role:", error);
     return null;
   }
 }
@@ -41,7 +39,6 @@ export async function canApproveRefunds(): Promise<boolean> {
     const role = user?.role?.toUpperCase();
     return role === "CEO" || role === "ADMIN" || role === "REGIONAL_MANAGER";
   } catch (error) {
-    console.error("Failed to check refund approval permission:", error);
     return false;
   }
 }

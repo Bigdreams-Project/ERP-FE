@@ -43,14 +43,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log(`Bulk upload: ${payload.records.length} course records`);
-
-    // Log first record for debugging
-    if (payload.records.length > 0) {
-      console.log("First record sample:", JSON.stringify(payload.records[0], null, 2));
-    }
-
     const response = await axios.post(
       `${AuthRoutes.BASE_URL}/courses/bulk-upload`,
       payload,
@@ -64,11 +56,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to bulk upload courses:", error);
     if (error.response) {
-      if (payload) {
-        console.error("Payload sent:", JSON.stringify(payload, null, 2));
-      }
       return NextResponse.json(
         {
           error:

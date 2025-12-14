@@ -140,7 +140,6 @@ const BatchesContent = ({
       await queryClient.refetchQueries({ queryKey: ["batches", selectedCenter] });
     },
     onError: (error: any) => {
-      console.error("Failed to save batch:", error);
       showError("Failed to create batch. Please try again.");
     },
   });

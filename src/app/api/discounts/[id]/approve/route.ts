@@ -13,22 +13,12 @@ export async function PATCH(
   try {
     const session = await getSession();
     if (!session) {
-      console.error("[API /discounts/[id]/approve] No session found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
     const payload = await request.json();
-
-    console.log("[API /discounts/[id]/approve] Request:", {
-      id,
-      payload,
-      userId: session.user?.id,
-    });
-
     const backendUrl = `${AuthRoutes.BASE_URL}/discounts/${id}/approve`;
-    console.log("[API /discounts/[id]/approve] Calling backend:", backendUrl);
-
     const response = await axios.patch(
       backendUrl,
       payload,
@@ -39,24 +29,8 @@ export async function PATCH(
         },
       }
     );
-
-    console.log("[API /discounts/[id]/approve] Backend response:", {
-      status: response.status,
-      data: response.data,
-    });
-
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("[API /discounts/[id]/approve] Error:", {
-      message: error.message,
-      response: error.response ? {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data,
-      } : null,
-      stack: error.stack,
-    });
-    
     if (error.response) {
       const errorData = error.response.data;
       const errorMessage = errorData?.message || 

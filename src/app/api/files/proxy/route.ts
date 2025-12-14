@@ -66,13 +66,11 @@ export async function GET(request: NextRequest) {
               presignedUrl = presignedResponse.data.presignedUrl || presignedResponse.data.url;
             } catch (presignedError: any) {
               // If presigned URL endpoint doesn't exist, use the fileUrl directly
-              console.log("Presigned URL endpoint not available, using fileUrl:", file.fileUrl);
               presignedUrl = file.fileUrl;
             }
           }
         }
       } catch (error: any) {
-        console.error("Failed to get file info:", error);
         return NextResponse.json(
           { error: "Failed to get file information" },
           { status: 500 }
@@ -102,7 +100,6 @@ export async function GET(request: NextRequest) {
           presignedUrl = presignedResponse.data.presignedUrl || presignedResponse.data.url;
         } catch (error: any) {
           // If presigned URL endpoint doesn't exist, use the URL directly
-          console.log("Presigned URL endpoint not available, using provided URL:", fileUrl);
           presignedUrl = fileUrl;
         }
       }
@@ -123,7 +120,6 @@ export async function GET(request: NextRequest) {
       });
 
       if (imageResponse.status !== 200) {
-        console.error("Failed to fetch image, status:", imageResponse.status);
         return NextResponse.json(
           { error: "Failed to fetch image" },
           { status: imageResponse.status }
@@ -148,14 +144,12 @@ export async function GET(request: NextRequest) {
         },
       });
     } catch (error: any) {
-      console.error("Failed to fetch image:", error);
       return NextResponse.json(
         { error: "Failed to fetch image" },
         { status: 500 }
       );
     }
   } catch (error: any) {
-    console.error("Failed to proxy image:", error);
     if (error.response) {
       return NextResponse.json(
         {

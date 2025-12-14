@@ -60,7 +60,12 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
 
     setIsUploading(true);
     try {
-      await uploadFileClient(file, data.id, "payment_receipt");
+      const uploadResponse = await uploadFileClient(file, data.id, "payment_receipt");
+      
+      // Log the upload response to see presignedURL
+      console.log("Upload response:", uploadResponse);
+      console.log("Presigned URL from upload:", uploadResponse?.presignedURL);
+      
       showSuccess("File uploaded successfully!");
       await refetch();
       queryClient.invalidateQueries({ queryKey: ["student-files"] });
@@ -164,17 +169,23 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
             </p>
           </div>
         ) : paymentReceipts.length > 0 ? (
-          paymentReceipts.map((file: StudentFile) => (
-            <a
-              key={file.id}
-              href={file.presignedUrl || file.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            >
-              {file.fileName} - {formatDate(file.uploadedAt)}
-            </a>
-          ))
+          paymentReceipts.map((file: StudentFile) => {
+            // Use presignedURL (capital URL) from backend, fallback to fileUrl
+            const fileUrl = file.presignedURL || file.fileUrl;
+            console.log(`File ${file.fileName} - presignedURL:`, file.presignedURL, "fileUrl:", file.fileUrl);
+            
+            return (
+              <a
+                key={file.id}
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              >
+                {file.fileName} - {formatDate(file.uploadedAt)}
+              </a>
+            );
+          })
         ) : (
           <p className="text-xs text-gray-500 dark:text-gray-400">
             No receipts available. Please upload.

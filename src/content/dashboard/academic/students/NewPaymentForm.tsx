@@ -68,7 +68,6 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
         const course = await getCourse(courseId);
         setSelectedCourse(course);
       } catch (err) {
-        console.error("Failed to fetch course details:", err);
       }
     };
 
@@ -94,7 +93,6 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
       } catch (error: any) {
         // If center-specific banks fail (403/401), try to fetch all banks as fallback
         if (error?.message?.includes('403') || error?.message?.includes('401') || error?.message?.includes('Failed to fetch banks')) {
-          console.log("Center-specific bank access restricted. Attempting to fetch all banks...");
           try {
             const allBanks = await getBanksClient(null);
             const bankList = Array.isArray(allBanks) ? allBanks : [];
@@ -104,12 +102,10 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
               clearErrors("bankId");
             }
           } catch (fallbackError: any) {
-            console.log("Unable to fetch banks. Bank selection will be unavailable.");
             setBanks([]);
             clearErrors("bankId"); // Clear validation error when banks unavailable
           }
         } else {
-          console.error("Failed to fetch center's banks:", error);
           setBanks([]);
           clearErrors("bankId");
         }
@@ -153,7 +149,6 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
       queryClient.invalidateQueries(["student", studentId]); 
       reset();
     } catch (error) {
-      console.error("Failed to record payment:", error);
       showError("Failed to record payment.");
     }
   };

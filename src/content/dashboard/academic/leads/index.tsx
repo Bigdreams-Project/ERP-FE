@@ -56,7 +56,6 @@ const LeadContent = ({
   // This ensures data is filtered correctly when user selects a different center from dropdown
   useEffect(() => {
     if (!isCenterLoading && selectedCenter) {
-      console.log("Refetching leads for selectedCenter:", selectedCenter);
       // Invalidate cache to ensure fresh data, then refetch
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       queryClient.refetchQueries({ 
@@ -114,7 +113,6 @@ const LeadContent = ({
       await queryClient.refetchQueries({ queryKey: ["leads", selectedCenter] });
     },
     onError: (error: any) => {
-      console.error("Failed to save lead:", error);
       showError("Failed to save lead");
     },
   });
@@ -159,12 +157,6 @@ const LeadContent = ({
           note: payload.note,
         }),
     };
-
-    // Log the payload for debugging
-    console.log(
-      "Transformed payload being sent:",
-      JSON.stringify(transformedPayload, null, 2)
-    );
 
     createLeadMutation(transformedPayload);
   };

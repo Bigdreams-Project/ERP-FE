@@ -62,15 +62,12 @@ const StudentContent = ({
   
   // Debug logging
   useEffect(() => {
-    console.log("Students page - selectedCenter:", selectedCenter, "centerIdForFetch:", centerIdForFetch, "isCenterLoading:", isCenterLoading);
   }, [selectedCenter, centerIdForFetch, isCenterLoading]);
   
   const { data: students, isLoading: isLoadingStudents } = useQuery({
     queryKey: ["students", selectedCenter],
     queryFn: async () => {
-      console.log("Fetching students with centerId:", centerIdForFetch);
       const result = await getStudentsClient(centerIdForFetch);
-      console.log("Received students:", result?.length || 0, "students");
       return result;
     },
     // Don't use initialData - always fetch fresh data based on selectedCenter
@@ -88,7 +85,6 @@ const StudentContent = ({
   // This ensures non-center-managers see all records when selectedCenter is "all"
   useEffect(() => {
     if (!isCenterLoading && selectedCenter) {
-      console.log("Refetching students for selectedCenter:", selectedCenter);
       // Invalidate all student queries to clear cache, then refetch
       queryClient.invalidateQueries({ queryKey: ["students"] });
       queryClient.refetchQueries({ 
@@ -216,7 +212,6 @@ const StudentContent = ({
       await queryClient.refetchQueries({ queryKey: ["students", selectedCenter] });
     },
     onError: (error: any) => {
-      console.error("Failed to save student:", error);
       showError("Student enrollment failed");
     },
   });
@@ -251,7 +246,6 @@ const StudentContent = ({
       }
       return result;
     } catch (error: any) {
-      console.error("Bulk upload failed:", error);
       showError(error.message || "Bulk upload failed");
       throw error;
     } finally {

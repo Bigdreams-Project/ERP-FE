@@ -54,7 +54,6 @@ export class EntityDeleteService {
       const data = await res.json();
       return data;
     } catch (err: any) {
-      console.error(`Failed to soft delete ${entityType.slice(0, -1)}:`, err.message);
       throw err;
     }
   }
@@ -88,7 +87,6 @@ export class EntityDeleteService {
       const data = await res.json();
       return data;
     } catch (err: any) {
-      console.error(`Failed to hard delete ${entityType.slice(0, -1)}:`, err.message);
       throw err;
     }
   }

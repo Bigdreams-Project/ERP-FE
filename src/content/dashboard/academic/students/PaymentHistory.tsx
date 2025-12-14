@@ -78,7 +78,6 @@ const PaymentHistory = ({ data }: Props) => {
   const printReceiptContent = () => {
     const receiptElement = document.getElementById("receipt-content");
     if (!receiptElement) {
-      console.error("Receipt element not found");
       return;
     }
 
@@ -194,7 +193,6 @@ const PaymentHistory = ({ data }: Props) => {
 
       const receiptElement = document.getElementById("receipt-content");
       if (!receiptElement) {
-        console.error("Receipt element not found");
         return;
       }
 
@@ -240,7 +238,6 @@ const PaymentHistory = ({ data }: Props) => {
       pdf.save(filename);
       setIsDownloadingPDF(false);
     } catch (error) {
-      console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
       setIsDownloadingPDF(false);
     }

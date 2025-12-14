@@ -40,7 +40,6 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
       queryClient.invalidateQueries(["center", center.id]);
       setIsEditModalOpen(false);
     } catch (error: any) {
-      console.error("Failed to update center:", error);
       showError("Failed to update center");
     }
   };

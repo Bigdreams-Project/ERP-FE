@@ -37,13 +37,8 @@ export default async function ArchiveRecord({ params }: any) {
       />
     );
   } catch (error: any) {
-    console.error("Error loading archive record:", error);
     if (archiveId) {
-      console.error("Archive ID:", archiveId);
     }
-    console.error("Error response:", error.response?.data);
-    console.error("Error status:", error.response?.status);
-    
     // If it's a 404 or not found error, show 404 page
     if (error.response?.status === 404 || error.message?.includes("not found")) {
       notFound();
@@ -51,8 +46,6 @@ export default async function ArchiveRecord({ params }: any) {
     
     // If it's a 500 error, log more details and redirect
     if (error.response?.status === 500) {
-      console.error("Backend 500 error - Check backend logs for details");
-      console.error("Backend error message:", error.response?.data?.message || error.response?.data?.error);
     }
     
     // For other errors, redirect back to archive list

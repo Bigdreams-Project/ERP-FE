@@ -53,7 +53,6 @@ const ArchiveDetails = ({
       setIsEditModalOpen(false);
     },
     onError: (error: any) => {
-      console.error(error);
       showError(error.message || "Failed to update archive record");
     },
   });
@@ -68,7 +67,6 @@ const ArchiveDetails = ({
       router.push("/dashboard/academic/archive");
     },
     onError: (error: any) => {
-      console.error(error);
       showError(error.message || "Failed to delete archive record");
     },
   });

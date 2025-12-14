@@ -30,18 +30,8 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
   // This ensures admin/CEO can switch even if API fails
   const canSwitch = canSwitchByRole || (centerContext?.canSwitch ?? false);
 
-  // Debug logging (remove in production)
   useEffect(() => {
     if (!isLoading && centerContext) {
-      console.log("Center Context:", {
-        canSwitch,
-        currentCenterId: centerContext.currentCenterId,
-        currentCenterName: centerContext.currentCenterName,
-        selectedCenter,
-        centersCount: centers.length,
-        centers: centers.map((c) => ({ id: c.id, name: c.name })),
-      });
-
       // If we have a currentCenterId but no name, try to find it in centers array
       if (
         !canSwitch &&
@@ -53,16 +43,7 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
           (c) => c.id === centerContext.currentCenterId
         );
         if (foundCenter) {
-          console.log("Found center in array:", foundCenter.name);
-        } else {
-          console.warn(
-            "Center ID not found in centers array. Looking for:",
-            centerContext.currentCenterId
-          );
-          console.warn(
-            "Available center IDs:",
-            centers.map((c) => c.id)
-          );
+          // Center found
         }
       }
     }
@@ -127,19 +108,6 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
 
   const selectedCenterName = getSelectedCenterName();
 
-  // Debug: Log the state to help diagnose issues
-  useEffect(() => {
-    console.log("Centerdropdown Debug:", {
-      userRole: user?.role,
-      canSwitchByRole,
-      canSwitch,
-      centerContextCanSwitch: centerContext?.canSwitch,
-      isLoading,
-      centersCount: centers.length,
-      selectedCenter,
-    });
-  }, [user?.role, canSwitchByRole, canSwitch, centerContext?.canSwitch, isLoading, centers.length, selectedCenter]);
-
   // If user cannot switch centers (and it's confirmed after loading), show fixed center name without dropdown
   if (!canSwitch && !isLoading) {
     return (
@@ -188,7 +156,6 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
               className="outline-none text-left border-none transition-all duration-300 flex justify-between"
               key={center.id}
               onClick={() => {
-                console.log("Center dropdown: Selecting center:", center.name, "ID:", center.id);
                 setSelectedCenter(center.id);
               }}
             >

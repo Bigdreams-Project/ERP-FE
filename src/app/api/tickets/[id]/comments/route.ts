@@ -30,7 +30,6 @@ export async function GET(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch comments:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch comments" },
@@ -73,7 +72,6 @@ export async function POST(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to add comment:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to add comment" },

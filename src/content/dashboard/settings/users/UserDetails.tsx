@@ -33,7 +33,6 @@ const UserDetails = ({ user }: UserDetailsProps) => {
       queryClient.invalidateQueries(["user", user.id]);
     },
     onError: (error: any) => {
-      console.error(error);
       showError("Failed to update user");
     },
   });

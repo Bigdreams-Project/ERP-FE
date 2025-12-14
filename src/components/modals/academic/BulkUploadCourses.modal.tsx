@@ -136,7 +136,6 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
 
       setValidationErrors(errors);
     } catch (error: any) {
-      console.error("Failed to parse file:", error);
       alert(`Failed to parse file: ${error.message}`);
     } finally {
       setIsProcessing(false);
@@ -290,7 +289,6 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
       setUploadResult(result);
       setShowFailedRecords(false);
     } catch (error) {
-      console.error("Upload error:", error);
     }
   };
 

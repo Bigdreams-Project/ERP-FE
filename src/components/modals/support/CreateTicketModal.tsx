@@ -82,7 +82,6 @@ const CreateTicketModal = ({
       );
       setPriority(TicketPriority.MEDIUM);
     } catch (error: any) {
-      console.error("Error creating ticket:", error);
       toast.error(
         error.message || "Failed to create support ticket. Please try again."
       );

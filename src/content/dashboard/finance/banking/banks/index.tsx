@@ -58,7 +58,6 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
   
   // Debug logging
   useEffect(() => {
-    console.log("Banks page - selectedCenter:", selectedCenter, "centerIdForFetch:", centerIdForFetch, "isCenterLoading:", isCenterLoading);
   }, [selectedCenter, centerIdForFetch, isCenterLoading]);
 
   // Use React Query to fetch and cache banks
@@ -66,9 +65,7 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
   const { data: banks, isLoading: isLoadingBanks, error: banksError } = useQuery({
     queryKey: ["banks", selectedCenter],
     queryFn: async () => {
-      console.log("Fetching banks with centerId:", centerIdForFetch);
       const result = await getBanksClient(centerIdForFetch);
-      console.log("Received banks:", result?.length || 0, "banks");
       return result;
     },
     // Don't use initialData - always fetch fresh data based on selectedCenter
@@ -150,7 +147,6 @@ const BanksContent = ({ banks: initialBanks }: BankContentProps) => {
   // This ensures data is filtered correctly when user selects a different center from dropdown
   useEffect(() => {
     if (!isCenterLoading && selectedCenter) {
-      console.log("Refetching banks for selectedCenter:", selectedCenter);
       // Invalidate cache to ensure fresh data, then refetch
       queryClient.invalidateQueries({ queryKey: ["banks"] });
       queryClient.refetchQueries({ 

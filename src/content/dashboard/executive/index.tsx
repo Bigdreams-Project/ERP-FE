@@ -121,50 +121,9 @@ const ExecutiveDashboard = ({
   const { selectedCenter } = useCenter();
 
   // Log the received props IMMEDIATELY (runs on every render, client-side)
-  console.log("🚨🚨🚨 CLIENT COMPONENT RENDER 🚨🚨🚨");
-  console.log("initialFinanceOverview:", initialFinanceOverview);
-  console.log(
-    "initialFinanceOverview?.totalBilling:",
-    initialFinanceOverview?.totalBilling
-  );
-  console.log(
-    "initialFinanceOverview?.totalRevenue:",
-    initialFinanceOverview?.totalRevenue
-  );
-  console.log(
-    "initialFinanceOverview?.totalPending:",
-    initialFinanceOverview?.totalPending
-  );
-  console.log(
-    "initialFinanceOverview?.collectionRate:",
-    initialFinanceOverview?.collectionRate
-  );
-
   // Also log in useEffect to catch any changes
   useEffect(() => {
-    console.log("=== EXECUTIVE DASHBOARD PROPS (CLIENT-SIDE useEffect) ===");
-    console.log("initialFinanceOverview received:", initialFinanceOverview);
-    console.log(
-      "initialFinanceOverview?.totalBilling:",
-      initialFinanceOverview?.totalBilling
-    );
-    console.log(
-      "initialFinanceOverview?.totalRevenue:",
-      initialFinanceOverview?.totalRevenue
-    );
-    console.log(
-      "initialFinanceOverview?.totalPending:",
-      initialFinanceOverview?.totalPending
-    );
-    console.log(
-      "initialFinanceOverview?.collectionRate:",
-      initialFinanceOverview?.collectionRate
-    );
-    console.log(
-      "Full initialFinanceOverview:",
-      JSON.stringify(initialFinanceOverview, null, 2)
-    );
-    console.log("=================================");
+    // Debug logging removed
   }, [initialFinanceOverview]);
   const [showPicker, setShowPicker] = useState(false);
   const [range, setRange] = useState([
@@ -375,24 +334,6 @@ const ExecutiveDashboard = ({
     // Use billing, revenue, and pending from backend API (financeOverview)
     // BUT filter out LEGACY payments and payment plans
     // IMPORTANT: Log the raw data first to see what we're actually getting
-    console.log("🔍 [useMemo] initialFinanceOverview:", initialFinanceOverview);
-    console.log(
-      "🔍 [useMemo] initialFinanceOverview?.totalBilling:",
-      initialFinanceOverview?.totalBilling
-    );
-    console.log(
-      "🔍 [useMemo] initialFinanceOverview?.totalRevenue:",
-      initialFinanceOverview?.totalRevenue
-    );
-    console.log(
-      "🔍 [useMemo] initialFinanceOverview?.totalPending:",
-      initialFinanceOverview?.totalPending
-    );
-    console.log(
-      "🔍 [useMemo] initialFinanceOverview?.collectionRate:",
-      initialFinanceOverview?.collectionRate
-    );
-
     // Calculate revenue from non-legacy payments only
     const allPayments = filteredStudents.flatMap((s) => s.payments || []);
     const nonLegacyPayments = allPayments.filter(
@@ -433,18 +374,6 @@ const ExecutiveDashboard = ({
     // Calculate collection rate
     const paymentCollectionRate =
       totalBilling > 0 ? (totalRevenue / totalBilling) * 100 : 0;
-
-    // Log extracted values to console for debugging
-    console.log("=== FINANCE OVERVIEW DATA FROM BACKEND (useMemo) ===");
-    console.log("✅ Extracted totalBilling:", totalBilling);
-    console.log("✅ Extracted totalRevenue:", totalRevenue);
-    console.log("✅ Extracted totalPending:", totalPending);
-    console.log("✅ Extracted collectionRate:", paymentCollectionRate);
-    console.log(
-      "Full financeOverview object:",
-      JSON.stringify(initialFinanceOverview, null, 2)
-    );
-    console.log("==========================================");
 
     // Calculate revenue from payments for trend data and MoM/YoY calculations
     // Filter out LEGACY payments
@@ -875,17 +804,6 @@ const ExecutiveDashboard = ({
     };
 
     // Log the metrics object to verify values are correct
-    console.log("=== METRICS OBJECT BEING USED ===");
-    console.log("metrics.totalRevenue:", metrics.totalRevenue);
-    console.log("metrics.totalBilling:", metrics.totalBilling);
-    console.log("metrics.totalPending:", metrics.totalPending);
-    console.log(
-      "metrics.paymentCollectionRate:",
-      metrics.paymentCollectionRate
-    );
-    console.log("Full metrics object:", metrics);
-    console.log("==================================");
-
     return {
       metrics,
       centerPerformance,
@@ -989,25 +907,7 @@ const ExecutiveDashboard = ({
   // Log dashboardData values when it changes (client-side)
   useEffect(() => {
     if (dashboardData) {
-      console.log("=== DASHBOARD DATA VALUES (CLIENT-SIDE) ===");
-      console.log(
-        "dashboardData.metrics.totalBilling:",
-        dashboardData.metrics.totalBilling
-      );
-      console.log(
-        "dashboardData.metrics.totalRevenue:",
-        dashboardData.metrics.totalRevenue
-      );
-      console.log(
-        "dashboardData.metrics.totalPending:",
-        dashboardData.metrics.totalPending
-      );
-      console.log(
-        "dashboardData.metrics.paymentCollectionRate:",
-        dashboardData.metrics.paymentCollectionRate
-      );
-      console.log("Full dashboardData.metrics:", dashboardData.metrics);
-      console.log("===========================================");
+      // Debug logging removed
     }
   }, [dashboardData]);
 

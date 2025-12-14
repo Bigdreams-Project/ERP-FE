@@ -27,7 +27,6 @@ export const CenterProvider = ({ children }: { children: React.ReactNode }) => {
     const fetchCenterContext = async () => {
       try {
         const context = await getCenterContextClient();
-        console.log("Center Context API Response (raw):", JSON.stringify(context, null, 2));
         
         // Handle different possible field names from API
         // Also handle case where API returns center object directly
@@ -50,7 +49,6 @@ export const CenterProvider = ({ children }: { children: React.ReactNode }) => {
           currentCenterName,
         };
         
-        console.log("Processed Center Context:", centerContextData);
         setCenterContext(centerContextData);
         
         // If user cannot switch centers (and doesn't have a role that allows it),
@@ -58,11 +56,9 @@ export const CenterProvider = ({ children }: { children: React.ReactNode }) => {
         // Note: Role-based permission checking happens in components, not here
         // This is a fallback for users locked to a specific center
         if (!context.canSwitch && context.currentCenterId) {
-          console.log("Setting selectedCenter to:", context.currentCenterId);
           _setSelectedCenter(context.currentCenterId);
         }
       } catch (error) {
-        console.error("Failed to fetch center context:", error);
         // Default to allowing center switch if API fails (fallback)
         setCenterContext({
           canSwitch: true,
@@ -80,7 +76,6 @@ export const CenterProvider = ({ children }: { children: React.ReactNode }) => {
   const setSelectedCenter = (centerId: string) => {
     // Allow switching - permission checking is handled by components (e.g., Centerdropdown)
     // Components check user role before calling this function
-    console.log("Updating selected center to:", centerId);
     _setSelectedCenter(centerId);
   };
 

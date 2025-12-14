@@ -113,8 +113,6 @@ export function createAdminProtectedRoute<T = any>(
       // 8. Return success response
       return NextResponse.json(result);
     } catch (error: any) {
-      console.error("Route handler error:", error);
-      
       // Handle axios errors (from backend calls)
       if (error.response) {
         return NextResponse.json(

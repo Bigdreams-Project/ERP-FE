@@ -48,14 +48,6 @@ const StudentCourses = ({ data }: Props) => {
     userRole.includes("REGIONAL");
 
   // Debug logging
-  console.log("[StudentCourses] User role check:", {
-    userRole,
-    rawRole: user?.role,
-    roleType: typeof user?.role,
-    canApproveDiscounts,
-    user: user ? { id: user.id, role: user.role, fullUser: user } : null,
-  });
-
   // Fetch all discounts for this student (for approval and to check if discount exists)
   const { data: allStudentDiscounts = [] } = useQuery({
     queryKey: ["student-discounts", data.id],
@@ -85,15 +77,6 @@ const StudentCourses = ({ data }: Props) => {
       // Debug: Log payment plan structure to see if discountRequests are included
       formattedCourses.forEach((course: any) => {
         if (course.paymentPlan) {
-          console.log("Payment Plan for", course.course.name, ":", {
-            amount: course.paymentPlan.amount,
-            pending: course.paymentPlan.pending,
-            discountRequests: course.paymentPlan.discountRequests,
-            hasDiscount: course.paymentPlan.hasDiscount,
-            discountTag: course.paymentPlan.discountTag,
-            originalAmount: course.paymentPlan.originalAmount,
-            fullPaymentPlan: course.paymentPlan,
-          });
         }
       });
       
@@ -349,7 +332,6 @@ const StudentCourses = ({ data }: Props) => {
               queryClient.invalidateQueries({ queryKey: ["student-courses", data.id] });
               await refetch();
             } catch (error) {
-              console.error("Error applying discount:", error);
               throw error; // Re-throw to let the modal handle the error
             }
           }}

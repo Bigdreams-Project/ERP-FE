@@ -66,7 +66,6 @@ export default function UsersTable({
       setIsDeleteModalOpen(false);
       await onRefresh();
     } catch (error) {
-      console.error("Failed to delete user:", error);
       showError("User not deleted");
     }
   };

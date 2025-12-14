@@ -215,7 +215,6 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
       // Download
       XLSX.writeFile(wb, filename);
     } catch (error) {
-      console.error("Error exporting to Excel:", error);
       alert("Failed to export to Excel. Please try again.");
     }
   };
@@ -260,7 +259,6 @@ const BankDetails = ({ bank }: BankDetailsProps) => {
       // Download PDF
       pdf.save(filename);
     } catch (error) {
-      console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
     }
   };

@@ -126,7 +126,6 @@ export default function LeadTable({
       // Invalidate React Query cache - parent component will update via React Query
       queryClient.invalidateQueries({ queryKey: ["leads"], refetchType: "active" });
     } catch (error) {
-      console.error("Failed to save lead:", error);
     }
   };
 
@@ -140,7 +139,6 @@ export default function LeadTable({
         router.push("/dashboard/academic/students");
       })
       .catch((error) => {
-        console.error("Failed to save student:", error);
         showError("Student enrollment failed");
       });
   };

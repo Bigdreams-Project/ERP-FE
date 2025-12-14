@@ -83,16 +83,8 @@ const StudentDetails = ({
     queryKey: ["student-profile-image", student.id],
     queryFn: () => getStudentFilesClient(student.id, "profile_image"),
     select: (files) => {
-      console.log("=== Select Function Debug ===");
-      console.log("Files array:", files);
-      console.log("Files length:", files?.length);
-      console.log("First file:", files?.[0]);
       if (files && files.length > 0) {
-        console.log("First file presignedUrl:", files[0]?.presignedUrl);
-        console.log("First file fileType:", files[0]?.fileType);
       }
-      console.log("Selected file:", files?.[0] || null);
-      console.log("============================");
       return files?.[0] || null;
     },
     refetchOnMount: true,
@@ -102,16 +94,9 @@ const StudentDetails = ({
   // Debug: Log student data structure
   useEffect(() => {
     if (student?.courses) {
-      console.log("Student courses structure:", student.courses);
-      console.log("First course:", student.courses[0]);
-      console.log("All courses prop:", courses);
     }
     if (student?.batches) {
-      console.log("Student batches structure:", student.batches);
-      console.log("First batch:", student.batches[0]);
       if (student.batches[0]) {
-        console.log("Batch startDate:", student.batches[0]?.startDate);
-        console.log("Batch endDate:", student.batches[0]?.endDate);
       }
     }
   }, [student, courses]);
@@ -122,10 +107,9 @@ const StudentDetails = ({
       console.log("=== Profile Image File Debug ===");
       console.log("Full profile image file object:", profileImageFile);
       console.log("Profile image file URL:", profileImageFile.fileUrl);
-      console.log("Profile image presignedUrl:", profileImageFile.presignedUrl);
+      console.log("Profile image presignedURL (capital):", profileImageFile.presignedURL);
+      console.log("Profile image presignedUrl (lowercase):", profileImageFile.presignedUrl);
       console.log("All keys in profileImageFile:", Object.keys(profileImageFile));
-      console.log("Type of presignedUrl:", typeof profileImageFile.presignedUrl);
-      console.log("Is presignedUrl truthy?", !!profileImageFile.presignedUrl);
       console.log("=================================");
     }
   }, [profileImageFile]);
@@ -133,15 +117,15 @@ const StudentDetails = ({
   // Debug: Log student image changes and clear temporary presigned URL when we have presignedURL from backend
   useEffect(() => {
     if (currentStudent?.image) {
-      console.log("Student image from refetched data:", currentStudent.image);
     }
     
-    // Clear temporary presigned URL when backend returns presignedUrl in file object
-    if (uploadedPresignedUrl && profileImageFile?.presignedUrl) {
-      console.log("Clearing temporary presigned URL, using presignedUrl from backend:", profileImageFile.presignedUrl);
+    // Clear temporary presigned URL when backend returns presignedURL in file object
+    if (uploadedPresignedUrl && (profileImageFile?.presignedURL || profileImageFile?.presignedUrl)) {
+      const presignedUrl = profileImageFile?.presignedURL || profileImageFile?.presignedUrl;
+      console.log("Clearing temporary presigned URL, using presignedURL from backend:", presignedUrl);
       setUploadedPresignedUrl(null);
     }
-  }, [currentStudent, uploadedPresignedUrl, profileImageFile?.presignedUrl]);
+  }, [currentStudent, uploadedPresignedUrl, profileImageFile?.presignedURL, profileImageFile?.presignedUrl]);
 
 
   const handleSave = async (payload: CreateStudent | UpdateStudent) => {
@@ -176,7 +160,6 @@ const StudentDetails = ({
       queryClient.invalidateQueries(["student", student.id]);
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Failed to save student:", error);
       showError("Failed to update student.");
     }
   };
@@ -189,7 +172,6 @@ const StudentDetails = ({
       queryClient.invalidateQueries({ queryKey: ["students"] });
       router.push("/dashboard/academic/students");
     } catch (error: any) {
-      console.error("Failed to delete student:", error);
       showError(error.message || "Failed to delete student");
     }
   };
@@ -213,15 +195,11 @@ const StudentDetails = ({
     try {
       const uploadResponse = await uploadFileClient(file, student.id, "profile_image");
       
-      // Extract presignedUrl from response (backend returns presignedUrl with lowercase 'u')
-      const presignedUrl = uploadResponse?.presignedUrl || uploadResponse?.presignedURL || uploadResponse?.studentImageUrl || uploadResponse?.fileUrl;
+      // Extract presignedURL from response (backend returns presignedURL with capital URL)
+      const presignedUrl = uploadResponse?.presignedURL || uploadResponse?.presignedUrl || uploadResponse?.studentImageUrl || uploadResponse?.fileUrl;
       
       // Log the presignedURL to console
-      console.log("Upload response:", uploadResponse);
-      console.log("Presigned URL:", presignedUrl);
-      
       if (presignedUrl) {
-        console.log("Using presigned URL from upload response:", presignedUrl);
         // Store the presigned URL to use immediately
         setUploadedPresignedUrl(presignedUrl);
       }
@@ -239,7 +217,6 @@ const StudentDetails = ({
       // Note: The temporary presigned URL will be cleared automatically by useEffect 
       // when currentStudent.image is available from the refetched data
     } catch (error: any) {
-      console.error("Upload error:", error);
       showError(error.message || "Failed to upload image");
     } finally {
       setIsUploadingImage(false);
@@ -258,32 +235,35 @@ const StudentDetails = ({
 
   // Get the image URL - prefer presignedUrl from upload, then uploaded profile image, then student.image
   // Get the image URL - prioritize in this order:
-  // 1. presignedUrl from file object (backend returns this)
+  // 1. presignedURL from file object (backend returns this with capital URL)
   // 2. Presigned URL from upload (temporary, until refetch)
   // 3. Student image (backend converts S3 URLs to presigned URLs automatically)
-  // Note: Backend returns presignedUrl (lowercase 'u') in the file object
+  // Note: Backend returns presignedURL (capital URL) in the file object
   const getImageUrl = () => {
-    // First priority: presignedUrl from file object (backend returns this)
+    // First priority: presignedURL from file object (backend returns this with capital URL)
+    if (profileImageFile?.presignedURL) {
+      console.log("Using presignedURL from file object:", profileImageFile.presignedURL);
+      return profileImageFile.presignedURL;
+    }
+    
+    // Fallback to lowercase presignedUrl for backward compatibility
     if (profileImageFile?.presignedUrl) {
-      console.log("Using presignedUrl from file object:", profileImageFile.presignedUrl);
+      console.log("Using presignedUrl (lowercase) from file object:", profileImageFile.presignedUrl);
       return profileImageFile.presignedUrl;
     }
     
     // Second priority: presigned URL from upload (temporary, until refetch completes)
     if (uploadedPresignedUrl) {
-      console.log("Using presigned URL from upload:", uploadedPresignedUrl);
       return uploadedPresignedUrl;
     }
     
     // Third priority: student image (backend converts S3 URLs to presigned URLs automatically)
     if (currentStudent?.image) {
-      console.log("Using student image:", currentStudent.image);
       return currentStudent.image;
     }
     
     // Fallback to original student image
     if (student.image) {
-      console.log("Using original student image:", student.image);
       return student.image;
     }
     
@@ -307,7 +287,8 @@ const StudentDetails = ({
     console.log("Display image URL:", displayImageUrl);
     console.log("Profile image file:", profileImageFile);
     console.log("Profile image file URL:", profileImageFile?.fileUrl);
-    console.log("Profile image presignedUrl:", profileImageFile?.presignedUrl);
+    console.log("Profile image presignedURL (capital):", profileImageFile?.presignedURL);
+    console.log("Profile image presignedUrl (lowercase):", profileImageFile?.presignedUrl);
     console.log("Current student image:", currentStudent?.image);
     console.log("Uploaded presigned URL:", uploadedPresignedUrl);
     console.log("Original student image:", student.image);
@@ -437,8 +418,6 @@ const StudentDetails = ({
                           setIsImageLoading(false);
                         }}
                         onError={(e) => {
-                          console.error("Image failed to load:", displayImageUrl);
-                          console.error("Error event:", e);
                           setIsImageLoading(false);
                         }}
                       />

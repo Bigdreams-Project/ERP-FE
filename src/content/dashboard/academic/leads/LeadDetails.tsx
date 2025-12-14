@@ -34,7 +34,6 @@ const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
       queryClient.invalidateQueries(["lead", lead.id]);
       setIsEditModalOpen(false);
     } catch (error: any) {
-      console.error("Failed to update lead:", error);
       showError("Failed to update lead");
     }
   };

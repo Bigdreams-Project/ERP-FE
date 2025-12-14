@@ -106,7 +106,6 @@ export default function CoursesTable({ searchQuery, filteredData }: Props) {
       // Invalidate React Query cache - parent component will update via React Query
       queryClient.invalidateQueries({ queryKey: ["courses"], refetchType: "active" });
     } catch (error) {
-      console.error("Failed to save course:", error);
     }
   };
 
