@@ -352,7 +352,6 @@ export const AdditionalActions = ({ data }: { data: Payment }) => {
       // Optionally refresh the page or update the transaction data
       window.location.reload();
     } catch (error: any) {
-      console.error("Failed to approve transaction:", error);
       showError(error.message || "Failed to approve transaction");
       throw error;
     }
@@ -551,7 +550,6 @@ export const ProofOfPayment = ({ data }: any) => {
   const printReceiptContent = () => {
     const receiptElement = document.getElementById("receipt-content");
     if (!receiptElement) {
-      console.error("Receipt element not found");
       return;
     }
 
@@ -677,7 +675,6 @@ export const ProofOfPayment = ({ data }: any) => {
 
       const receiptElement = document.getElementById("receipt-content");
       if (!receiptElement) {
-        console.error("Receipt element not found");
         return;
       }
 
@@ -722,7 +719,6 @@ export const ProofOfPayment = ({ data }: any) => {
       // Download PDF
       pdf.save(filename);
     } catch (error) {
-      console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
     }
   };
@@ -738,7 +734,6 @@ export const ProofOfPayment = ({ data }: any) => {
 
       const receiptElement = document.getElementById("receipt-content");
       if (!receiptElement) {
-        console.error("Receipt element not found");
         alert("Please open the receipt first to share it.");
         return;
       }
@@ -802,7 +797,6 @@ export const ProofOfPayment = ({ data }: any) => {
           return;
         } catch (shareError) {
           // If share fails, fall through to WhatsApp Web method
-          console.log("Web Share API failed, using WhatsApp Web fallback");
         }
       }
 
@@ -835,7 +829,6 @@ export const ProofOfPayment = ({ data }: any) => {
         "PDF receipt has been downloaded. Please attach it to your WhatsApp message. WhatsApp Web has been opened for you."
       );
     } catch (error) {
-      console.error("Error generating PDF for WhatsApp:", error);
       alert("Failed to generate PDF. Please try again.");
     }
   };

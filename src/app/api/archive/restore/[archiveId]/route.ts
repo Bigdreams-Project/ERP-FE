@@ -55,13 +55,11 @@ export async function POST(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to restore student:", error);
     if (error.response) {
       const errorMessage = error.response.data?.message || 
                           error.response.data?.error || 
                           error.response.data?.details ||
                           `Backend error: ${error.response.statusText}`;
-      console.error("Backend error details:", error.response.data);
       return NextResponse.json(
         { error: errorMessage },
         { status: error.response.status || 500 }

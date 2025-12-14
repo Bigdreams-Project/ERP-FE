@@ -42,7 +42,6 @@ export async function PATCH(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to approve refund:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to approve refund" },

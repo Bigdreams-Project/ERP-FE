@@ -32,7 +32,6 @@ export async function GET(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch student:", error);
     if (error.response) {
       return NextResponse.json(
         {

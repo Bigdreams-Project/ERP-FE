@@ -47,13 +47,11 @@ export async function GET(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch archive record:", error);
     if (error.response) {
       const errorMessage = error.response.data?.message || 
                           error.response.data?.error || 
                           error.response.data?.details ||
                           `Backend error: ${error.response.statusText}`;
-      console.error("Backend error details:", error.response.data);
       return NextResponse.json(
         { error: errorMessage },
         { status: error.response.status || 500 }
@@ -116,19 +114,11 @@ export async function PATCH(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to update archive record:", error);
     if (error.response) {
       const errorMessage = error.response.data?.message || 
                           error.response.data?.error || 
                           error.response.data?.details ||
                           `Backend error: ${error.response.statusText}`;
-      console.error("Backend error details:", error.response.data);
-      if (id) {
-        console.error("Archive ID:", id);
-      }
-      if (payload) {
-        console.error("Payload:", JSON.stringify(payload, null, 2));
-      }
       return NextResponse.json(
         { error: errorMessage },
         { status: error.response.status || 500 }
@@ -184,15 +174,12 @@ export async function DELETE(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to delete archive record:", error);
     if (error.response) {
       const errorMessage = error.response.data?.message || 
                           error.response.data?.error || 
                           error.response.data?.details ||
                           `Backend error: ${error.response.statusText}`;
-      console.error("Backend error details:", error.response.data);
       if (id) {
-        console.error("Archive ID:", id);
       }
       return NextResponse.json(
         { error: errorMessage },

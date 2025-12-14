@@ -77,7 +77,6 @@ export default function BatchTable({
       // Invalidate React Query cache to sync with server
       queryClient.invalidateQueries({ queryKey: ["batches"], refetchType: "active" });
     } catch (error) {
-      console.error("Failed to save batch:", error);
     }
   };
 

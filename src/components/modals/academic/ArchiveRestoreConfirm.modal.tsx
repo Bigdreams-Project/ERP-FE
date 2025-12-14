@@ -28,7 +28,6 @@ const ArchiveRestoreConfirmModal: React.FC<ArchiveRestoreConfirmModalProps> = ({
       await onConfirm(archiveRecord.id);
       handleClose();
     } catch (error) {
-      console.error("Failed to restore student:", error);
     } finally {
       setIsRestoring(false);
     }

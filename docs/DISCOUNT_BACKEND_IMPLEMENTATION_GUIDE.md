@@ -19,34 +19,34 @@ model DiscountRequest {
   course            Course   @relation(fields: [courseId], references: [id])
   paymentPlanId     String?
   paymentPlan       PaymentPlan? @relation(fields: [paymentPlanId], references: [id])
-  
+
   // Discount Details
   discountType      DiscountType // PERCENTAGE or FIXED_AMOUNT
   discountValue     Float    // Percentage (0-100) or fixed amount in NGN
   originalAmount    Float    // Original course fee before discount
   discountedAmount  Float    // Amount after discount is applied
-  
+
   // Request Details
   reason            String   // Required reason for discount
   notes             String?   // Optional additional notes
-  
+
   // Approval Workflow
   status            DiscountStatus @default(PENDING)
   requestedBy       String   // User ID who created the request
   requestedByName   String?  // User full name (for display)
   requestedAt       DateTime @default(now())
-  
+
   approvedBy        String?  // CEO User ID
   approvedByName    String? // CEO full name
   approvedAt        DateTime?
-  
+
   rejectedBy        String?  // User ID who rejected
   rejectedByName    String? // User full name
   rejectedAt        DateTime?
   rejectionReason   String? // Required if rejected
-  
+
   appliedAt         DateTime? // When discount was actually applied to payment plan
-  
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -83,16 +83,16 @@ model PaymentPlan {
   pending           Float    // This should be recalculated when discount is applied
   courseId          String
   course            Course   @relation(fields: [courseId], references: [id])
-  
+
   // Discount Tracking
   hasDiscount       Boolean  @default(false) // Flag to indicate if discount is applied
   discountTag       String?  // "DISCOUNTED" or null
   originalAmount    Float?   // Store original amount before discount for reference
-  
+
   // ... other existing fields
-  
+
   discountRequests  DiscountRequest[] // Relation to discount requests
-  
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -107,6 +107,7 @@ model PaymentPlan {
 **Endpoint:** `POST /discounts`
 
 **Request Body:**
+
 ```typescript
 {
   studentId: string;
@@ -135,11 +136,11 @@ async createDiscountRequest(
 
   // 2. Get current user
   const user = req.user;
-  
+
   // 3. Verify student and course exist
   const student = await this.studentsService.findOne(createDiscountDto.studentId);
   const course = await this.coursesService.findOne(createDiscountDto.courseId);
-  
+
   // 4. Get or find payment plan
   let paymentPlan = null;
   if (createDiscountDto.paymentPlanId) {
@@ -163,7 +164,7 @@ async createDiscountRequest(
     createDiscountDto.discountType,
     createDiscountDto.discountValue
   );
-  
+
   if (Math.abs(calculatedDiscounted - createDiscountDto.discountedAmount) > 0.01) {
     throw new BadRequestException('Discounted amount calculation is incorrect');
   }
@@ -198,6 +199,7 @@ private calculateDiscountedAmount(
 **Endpoint:** `GET /discounts`
 
 **Query Parameters:**
+
 - `status?: DiscountStatus` - Filter by status
 - `studentId?: string` - Filter by student
 - `courseId?: string` - Filter by course
@@ -239,6 +241,7 @@ async getDiscountRequest(@Param('id') id: string) {
 **Endpoint:** `PATCH /discounts/:id/approve`
 
 **Request Body:**
+
 ```typescript
 {
   notes?: string;
@@ -257,10 +260,10 @@ async approveDiscount(
   @Request() req
 ) {
   const user = req.user;
-  
+
   // 1. Get discount request
   const discountRequest = await this.discountsService.findOne(id);
-  
+
   if (discountRequest.status !== DiscountStatus.PENDING) {
     throw new BadRequestException('Only pending discount requests can be approved');
   }
@@ -294,11 +297,11 @@ private async applyDiscountToPaymentPlan(discountRequest: DiscountRequest) {
       discountRequest.studentId,
       discountRequest.courseId
     );
-    
+
     if (!paymentPlan) {
       throw new NotFoundException('Payment plan not found for this student and course');
     }
-    
+
     discountRequest.paymentPlanId = paymentPlan.id;
   }
 
@@ -312,22 +315,22 @@ private async applyDiscountToPaymentPlan(discountRequest: DiscountRequest) {
   await this.paymentPlansService.update(discountRequest.paymentPlanId, {
     // Store original amount if not already stored
     originalAmount: paymentPlan.originalAmount || paymentPlan.amount,
-    
+
     // Update amount to discounted amount
     amount: discountRequest.discountedAmount,
-    
+
     // Recalculate pending
     pending: newPending,
-    
+
     // Tag as discounted
     hasDiscount: true,
     discountTag: 'DISCOUNTED',
-    
+
     // Recalculate perInstallment if needed
-    perInstallment: paymentPlan.installments > 0 
-      ? discountRequest.discountedAmount / paymentPlan.installments 
+    perInstallment: paymentPlan.installments > 0
+      ? discountRequest.discountedAmount / paymentPlan.installments
       : paymentPlan.perInstallment,
-    
+
     // Recalculate estimate
     estimate: newPending,
   });
@@ -342,6 +345,7 @@ private async applyDiscountToPaymentPlan(discountRequest: DiscountRequest) {
 **Endpoint:** `PATCH /discounts/:id/reject`
 
 **Request Body:**
+
 ```typescript
 {
   rejectionReason: string; // Required
@@ -360,10 +364,10 @@ async rejectDiscount(
   @Request() req
 ) {
   const user = req.user;
-  
+
   // 1. Get discount request
   const discountRequest = await this.discountsService.findOne(id);
-  
+
   if (discountRequest.status !== DiscountStatus.PENDING) {
     throw new BadRequestException('Only pending discount requests can be rejected');
   }
@@ -393,10 +397,12 @@ export class DiscountsService {
   constructor(
     @InjectRepository(DiscountRequest)
     private discountRepository: Repository<DiscountRequest>,
-    private paymentPlansService: PaymentPlansService,
+    private paymentPlansService: PaymentPlansService
   ) {}
 
-  async create(createDiscountDto: CreateDiscountRequestDto): Promise<DiscountRequest> {
+  async create(
+    createDiscountDto: CreateDiscountRequestDto
+  ): Promise<DiscountRequest> {
     const discountRequest = this.discountRepository.create(createDiscountDto);
     return this.discountRepository.save(discountRequest);
   }
@@ -407,32 +413,36 @@ export class DiscountsService {
     courseId?: string;
   }): Promise<DiscountRequest[]> {
     const queryBuilder = this.discountRepository
-      .createQueryBuilder('discount')
-      .leftJoinAndSelect('discount.student', 'student')
-      .leftJoinAndSelect('discount.course', 'course')
-      .leftJoinAndSelect('discount.paymentPlan', 'paymentPlan');
+      .createQueryBuilder("discount")
+      .leftJoinAndSelect("discount.student", "student")
+      .leftJoinAndSelect("discount.course", "course")
+      .leftJoinAndSelect("discount.paymentPlan", "paymentPlan");
 
     if (filters?.status) {
-      queryBuilder.andWhere('discount.status = :status', { status: filters.status });
+      queryBuilder.andWhere("discount.status = :status", {
+        status: filters.status,
+      });
     }
 
     if (filters?.studentId) {
-      queryBuilder.andWhere('discount.studentId = :studentId', { studentId: filters.studentId });
+      queryBuilder.andWhere("discount.studentId = :studentId", {
+        studentId: filters.studentId,
+      });
     }
 
     if (filters?.courseId) {
-      queryBuilder.andWhere('discount.courseId = :courseId', { courseId: filters.courseId });
+      queryBuilder.andWhere("discount.courseId = :courseId", {
+        courseId: filters.courseId,
+      });
     }
 
-    return queryBuilder
-      .orderBy('discount.createdAt', 'DESC')
-      .getMany();
+    return queryBuilder.orderBy("discount.createdAt", "DESC").getMany();
   }
 
   async findOne(id: string): Promise<DiscountRequest> {
     const discount = await this.discountRepository.findOne({
       where: { id },
-      relations: ['student', 'course', 'paymentPlan'],
+      relations: ["student", "course", "paymentPlan"],
     });
 
     if (!discount) {
@@ -442,7 +452,10 @@ export class DiscountsService {
     return discount;
   }
 
-  async update(id: string, updateData: Partial<DiscountRequest>): Promise<DiscountRequest> {
+  async update(
+    id: string,
+    updateData: Partial<DiscountRequest>
+  ): Promise<DiscountRequest> {
     await this.discountRepository.update(id, updateData);
     return this.findOne(id);
   }
@@ -465,11 +478,14 @@ export class PaymentPlansService {
         userId: studentId,
         courseId: courseId,
       },
-      relations: ['discountRequests'],
+      relations: ["discountRequests"],
     });
   }
 
-  async update(id: string, updateData: Partial<PaymentPlan>): Promise<PaymentPlan> {
+  async update(
+    id: string,
+    updateData: Partial<PaymentPlan>
+  ): Promise<PaymentPlan> {
     await this.paymentPlanRepository.update(id, updateData);
     return this.findOne(id);
   }
@@ -478,7 +494,7 @@ export class PaymentPlansService {
   async findOne(id: string): Promise<PaymentPlan> {
     const paymentPlan = await this.paymentPlanRepository.findOne({
       where: { id },
-      relations: ['course', 'payments', 'discountRequests'],
+      relations: ["course", "payments", "discountRequests"],
     });
 
     if (!paymentPlan) {
@@ -497,19 +513,22 @@ export class PaymentPlansService {
 
   // When fetching student courses, include discount info
   async findByStudent(studentId: string): Promise<PaymentPlan[]> {
-    return this.paymentPlanRepository.find({
-      where: { userId: studentId },
-      relations: ['course', 'payments', 'discountRequests'],
-      order: { createdAt: 'DESC' },
-    }).then(plans => {
-      // Filter discountRequests to only show APPLIED ones
-      return plans.map(plan => ({
-        ...plan,
-        discountRequests: plan.discountRequests?.filter(
-          (discount) => discount.status === DiscountStatus.APPLIED
-        ) || [],
-      }));
-    });
+    return this.paymentPlanRepository
+      .find({
+        where: { userId: studentId },
+        relations: ["course", "payments", "discountRequests"],
+        order: { createdAt: "DESC" },
+      })
+      .then((plans) => {
+        // Filter discountRequests to only show APPLIED ones
+        return plans.map((plan) => ({
+          ...plan,
+          discountRequests:
+            plan.discountRequests?.filter(
+              (discount) => discount.status === DiscountStatus.APPLIED
+            ) || [],
+        }));
+      });
   }
 }
 ```
@@ -521,7 +540,15 @@ export class PaymentPlansService {
 ### 4.1 Create Discount Request DTO
 
 ```typescript
-import { IsString, IsNumber, IsEnum, IsOptional, Min, Max, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsOptional,
+  Min,
+  Max,
+  ValidateIf,
+} from "class-validator";
 
 export class CreateDiscountRequestDto {
   @IsString()
@@ -595,7 +622,7 @@ private async applyDiscountToPaymentPlan(discountRequest: DiscountRequest) {
       discountRequest.paymentPlanId,
       DiscountStatus.APPLIED
     );
-    
+
     if (existingAppliedDiscount && existingAppliedDiscount.id !== discountRequest.id) {
       throw new BadRequestException('A discount has already been applied to this payment plan');
     }
@@ -607,7 +634,7 @@ private async applyDiscountToPaymentPlan(discountRequest: DiscountRequest) {
   // 4. Calculate new values
   const discountedAmount = discountRequest.discountedAmount;
   const newPending = Math.max(0, discountedAmount - paymentPlan.paid);
-  
+
   // 5. Recalculate installment amounts if needed
   const installments = parseInt(paymentPlan.installments) || 1;
   const newPerInstallment = installments > 0 ? discountedAmount / installments : paymentPlan.perInstallment;
@@ -634,11 +661,13 @@ private async applyDiscountToPaymentPlan(discountRequest: DiscountRequest) {
 ### 5.2 Recalculating Pending Amount
 
 The pending amount should always be calculated as:
+
 ```
 pending = discountedAmount - paid
 ```
 
 This ensures that:
+
 - If a discount is applied, pending is automatically reduced
 - If payments are made after discount, pending continues to decrease correctly
 - The balance reflects the discounted amount, not the original
@@ -653,7 +682,7 @@ When returning payment plans (e.g., in student enrollment endpoint), include dis
 // In your student courses endpoint
 async getStudentCourses(studentId: string) {
   const paymentPlans = await this.paymentPlansService.findByStudent(studentId);
-  
+
   return paymentPlans.map(plan => ({
     id: plan.id,
     course: plan.course,
@@ -679,6 +708,7 @@ async getStudentCourses(studentId: string) {
 ## 7. Testing Checklist
 
 ### 7.1 Discount Request Creation
+
 - [ ] Can create discount request with valid data
 - [ ] Validates discount calculation (percentage and fixed)
 - [ ] Validates originalAmount matches payment plan
@@ -686,6 +716,7 @@ async getStudentCourses(studentId: string) {
 - [ ] Requires reason field
 
 ### 7.2 Discount Approval
+
 - [ ] Only CEO can approve discounts
 - [ ] Only PENDING discounts can be approved
 - [ ] Approval updates payment plan amount
@@ -697,6 +728,7 @@ async getStudentCourses(studentId: string) {
 - [ ] Cannot approve already approved/rejected discounts
 
 ### 7.3 Discount Rejection
+
 - [ ] Only CEO can reject discounts
 - [ ] Only PENDING discounts can be rejected
 - [ ] Requires rejection reason
@@ -704,6 +736,7 @@ async getStudentCourses(studentId: string) {
 - [ ] Rejection changes status to REJECTED
 
 ### 7.4 Payment Plan Updates
+
 - [ ] Pending amount correctly reflects discount
 - [ ] Amount field shows discounted amount
 - [ ] Original amount is preserved
@@ -712,6 +745,7 @@ async getStudentCourses(studentId: string) {
 - [ ] Estimate is updated
 
 ### 7.5 Data Integrity
+
 - [ ] Only one APPLIED discount per payment plan
 - [ ] Discount requests are linked to correct payment plan
 - [ ] Payment plan includes discountRequests in response
@@ -726,30 +760,36 @@ async getStudentCourses(studentId: string) {
 
 // 1. Invalid discount calculation
 if (Math.abs(calculatedDiscounted - dto.discountedAmount) > 0.01) {
-  throw new BadRequestException('Discounted amount calculation is incorrect');
+  throw new BadRequestException("Discounted amount calculation is incorrect");
 }
 
 // 2. Discount already applied
 if (paymentPlan.hasDiscount) {
   const existingDiscount = await this.findAppliedDiscount(paymentPlan.id);
   if (existingDiscount && existingDiscount.id !== discountRequest.id) {
-    throw new BadRequestException('A discount has already been applied to this payment plan');
+    throw new BadRequestException(
+      "A discount has already been applied to this payment plan"
+    );
   }
 }
 
 // 3. Invalid status transition
 if (discountRequest.status !== DiscountStatus.PENDING) {
-  throw new BadRequestException(`Cannot approve/reject discount with status ${discountRequest.status}`);
+  throw new BadRequestException(
+    `Cannot approve/reject discount with status ${discountRequest.status}`
+  );
 }
 
 // 4. Payment plan not found
 if (!paymentPlan) {
-  throw new NotFoundException('Payment plan not found for this student and course');
+  throw new NotFoundException(
+    "Payment plan not found for this student and course"
+  );
 }
 
 // 5. Unauthorized access
-if (user.role !== 'CEO') {
-  throw new ForbiddenException('Only CEO can approve/reject discount requests');
+if (user.role !== "CEO") {
+  throw new ForbiddenException("Only CEO can approve/reject discount requests");
 }
 ```
 
@@ -764,7 +804,7 @@ async sendDiscountApprovedNotification(
   discountRequest: DiscountRequest
 ) {
   const student = await this.studentsService.findOne(studentId);
-  
+
   // Send WhatsApp/SMS notification
   await this.notificationService.send({
     to: student.phone,
@@ -795,10 +835,12 @@ async sendDiscountApprovedNotification(
 ### Key Implementation Points:
 
 1. **Database Schema:**
+
    - `DiscountRequest` table with approval workflow fields
    - `PaymentPlan` table updated with discount tracking fields
 
 2. **API Endpoints:**
+
    - `POST /discounts` - Create discount request
    - `GET /discounts` - List all discount requests
    - `GET /discounts/:id` - Get single discount request
@@ -806,6 +848,7 @@ async sendDiscountApprovedNotification(
    - `PATCH /discounts/:id/reject` - Reject discount (CEO only)
 
 3. **Discount Application Logic:**
+
    - When approved, update payment plan `amount` to `discountedAmount`
    - Recalculate `pending = discountedAmount - paid`
    - Set `hasDiscount = true` and `discountTag = "DISCOUNTED"`
@@ -813,6 +856,7 @@ async sendDiscountApprovedNotification(
    - Recalculate `perInstallment` and `estimate`
 
 4. **Response Format:**
+
    - Include `discountRequests` array in payment plan responses
    - Only return APPLIED discounts
    - Include `hasDiscount` and `discountTag` flags

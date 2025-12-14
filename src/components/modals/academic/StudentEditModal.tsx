@@ -139,7 +139,6 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
         const course = await getCourseClient(courseId);
         setSelectedCourse(course);
       } catch (err) {
-        console.error("Failed to fetch course details:", err);
       } finally {
         setLoadingCourse(false);
       }

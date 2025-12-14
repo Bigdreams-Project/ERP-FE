@@ -26,9 +26,6 @@ export async function GET(request: NextRequest) {
     // Only add X-Center-Id header if it's provided and not "all"
     if (centerId && centerId !== "all") {
       headers["X-Center-Id"] = centerId;
-      console.log(`[API /students/summary] Forwarding request with X-Center-Id: ${centerId}`);
-    } else {
-      console.log(`[API /students/summary] Forwarding request WITHOUT X-Center-Id header (requesting all students)`);
     }
 
     const response = await axios.get(`${AuthRoutes.BASE_URL}/students/summary`, {
@@ -37,7 +34,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch student summary:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch student summary" },

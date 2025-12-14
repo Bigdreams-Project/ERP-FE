@@ -111,7 +111,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
         const formattedBanks = response.map((item: any) => item);
         setBanks(formattedBanks);
       } catch (error) {
-        console.error("Failed to fetch center's banks:", error);
         setBanks([]);
       }
     };
@@ -218,7 +217,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
         const course = await getCourseClient(courseId);
         setSelectedCourse(course);
       } catch (err) {
-        console.error("Failed to fetch course details:", err);
         // Show error but don't break the UI
       }
     };
@@ -410,7 +408,6 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
       }
     }
     
-    console.log("Submitting data:", data);
     onSave(data);
   };
 

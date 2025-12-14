@@ -29,7 +29,6 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
       queryClient.invalidateQueries(["batch", batch.id]);
     },
     onError: (error: any) => {
-      console.error(error);
       showError("Failed to update batch");
     },
   });

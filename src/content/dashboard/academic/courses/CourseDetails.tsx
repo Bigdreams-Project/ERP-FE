@@ -41,7 +41,6 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
       queryClient.invalidateQueries(["course", course.id]);
       setIsEditModalOpen(false);
     } catch (error: any) {
-      console.error("Failed to update course:", error);
       showError("Failed to update course");
     }
   };
@@ -57,7 +56,6 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
       setIsCenterModalOpen(false);
     },
     onError: (error: any) => {
-      console.error(error);
       showError("Failed to assign center and fee structure.");
     },
   });
@@ -74,7 +72,6 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
         setEditCenterModalOpen(false);
       },
       onError: (error: any) => {
-        console.error(error);
         showError("Failed to update center and fee structure.");
       },
     });

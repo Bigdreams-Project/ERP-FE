@@ -68,7 +68,6 @@ const RefundRequestModal = ({
       setReasonDescription("");
       setNotes("");
     } catch (error: any) {
-      console.error("Error submitting refund request:", error);
       toast.error(error.message || "Failed to submit refund request. Please try again.");
     } finally {
       setLoading(false);

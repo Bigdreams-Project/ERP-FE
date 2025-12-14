@@ -12,7 +12,6 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
-      console.error("[API /discounts GET] No session found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -21,15 +20,6 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const studentId = searchParams.get("studentId");
     const courseId = searchParams.get("courseId");
-
-    console.log("[API /discounts GET] Request received:", {
-      centerId,
-      status,
-      studentId,
-      courseId,
-      url: request.url,
-    });
-
     const headers: Record<string, string> = {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
@@ -45,11 +35,6 @@ export async function GET(request: NextRequest) {
     if (courseId) params.courseId = courseId;
 
     const backendUrl = `${AuthRoutes.BASE_URL}/discounts`;
-    console.log("[API /discounts GET] Calling backend:", {
-      url: backendUrl,
-      headers: Object.keys(headers),
-      params,
-    });
 
     const response = await axios.get(backendUrl, {
       headers,
@@ -66,9 +51,6 @@ export async function GET(request: NextRequest) {
     // Debug logging
     console.log(`[API /discounts GET] Backend response:`, {
       status: response.status,
-      responseType: typeof backendResponse,
-      hasDataField: !!backendResponse?.data,
-      isArray: Array.isArray(backendResponse),
       discountsCount: discounts.length,
       total,
       centerId,
@@ -91,16 +73,6 @@ export async function GET(request: NextRequest) {
     // But also include total for reference
     return NextResponse.json(discounts);
   } catch (error: any) {
-    console.error("[API /discounts GET] Error fetching discounts:", {
-      message: error.message,
-      response: error.response ? {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data,
-      } : null,
-      stack: error.stack,
-    });
-    
     if (error.response) {
       return NextResponse.json(
         { 
@@ -131,9 +103,6 @@ export async function POST(request: NextRequest) {
     const payload = await request.json();
     const centerId = request.headers.get("X-Center-Id");
 
-    // Log the payload for debugging
-    console.log("Discount request payload:", JSON.stringify(payload, null, 2));
-
     const headers: Record<string, string> = {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
@@ -142,36 +111,18 @@ export async function POST(request: NextRequest) {
     if (centerId && centerId !== "all") {
       headers["X-Center-Id"] = centerId;
     }
-
-    console.log(`[API /discounts] Calling backend: ${AuthRoutes.BASE_URL}/discounts`);
-    console.log(`[API /discounts] Request headers:`, Object.keys(headers).join(", "));
     
     const response = await axios.post(
       `${AuthRoutes.BASE_URL}/discounts`,
       payload,
       { headers }
     );
-
-    console.log(`[API /discounts] Backend response status: ${response.status}`);
     return NextResponse.json(response.data, { status: 201 });
   } catch (error: any) {
-    console.error("Failed to create discount request - Full error:", error);
-    console.error("Error response:", error.response?.data);
-    console.error("Error status:", error.response?.status);
-    console.error("Error message:", error.message);
-    
     if (error.response) {
       const errorData = error.response.data;
       const errorMessage = errorData?.message || errorData?.error || errorData?.details || "Failed to create discount request";
       const errorDetails = errorData?.details || errorData?.errors || errorData?.validationErrors;
-      
-      console.error("Backend error response:", {
-        status: error.response.status,
-        data: errorData,
-        message: errorMessage,
-        details: errorDetails,
-      });
-
       // Return more detailed error information
       return NextResponse.json(
         { 
@@ -186,8 +137,6 @@ export async function POST(request: NextRequest) {
     
     // Handle cases where axios throws an error without a response
     const errorMessage = error.message || "Failed to create discount request";
-    console.error("Error without response:", errorMessage);
-    
     return NextResponse.json(
       { 
         error: errorMessage,

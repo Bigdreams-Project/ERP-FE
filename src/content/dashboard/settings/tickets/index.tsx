@@ -108,23 +108,13 @@ const TicketsContent = () => {
   // Log tickets for debugging
   useEffect(() => {
     if (!isLoading && tickets) {
-      console.log("Tickets loaded:", tickets.length, tickets);
     }
     if (error) {
-      console.error("Error loading tickets:", error);
     }
   }, [tickets, isLoading, error]);
 
   const filteredTickets = useMemo(() => {
-    console.log("Filtering tickets:", {
-      totalTickets: tickets.length,
-      searchQuery,
-      statusFilter,
-      priorityFilter,
-    });
-    
     if (!searchQuery.trim()) {
-      console.log("No search query, returning all tickets:", tickets.length);
       return tickets;
     }
     
@@ -134,8 +124,6 @@ const TicketsContent = () => {
       ticket.description.toLowerCase().includes(query) ||
       ticket.createdByName?.toLowerCase().includes(query)
     );
-    
-    console.log("After search filter:", filtered.length);
     return filtered;
   }, [tickets, searchQuery]);
 
@@ -202,7 +190,6 @@ const TicketsContent = () => {
       // Invalidate and refetch tickets
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
     } catch (error: any) {
-      console.error("Failed to create ticket:", error);
       toast.error(error.message || "Failed to create support ticket. Please try again.");
       throw error;
     }

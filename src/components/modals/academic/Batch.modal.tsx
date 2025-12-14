@@ -96,7 +96,6 @@ const BatchModal: React.FC<IBatchModalProps> = ({
         const centers = await getCentersClient();
         setAllCenters(centers || []);
       } catch (error) {
-        console.error("Failed to fetch centers:", error);
       }
     };
     if (isOpen) {
@@ -107,16 +106,6 @@ const BatchModal: React.FC<IBatchModalProps> = ({
   // Watch all form values for debugging and manual validation check
   const formValues = watch();
 
-  // Debug: Log validation state
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("Form validation state:", {
-        isValid,
-        errors,
-        formValues,
-      });
-    }
-  }, [isValid, errors, formValues]);
   
   // Manual validation check - ensure all required fields are filled
   const isFormValid = useMemo(() => {

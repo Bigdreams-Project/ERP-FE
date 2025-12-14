@@ -39,7 +39,6 @@ const Navbar = ({ user, centers }: NavbarProps) => {
       const count = await getUnreadCountClient();
       setUnreadCount(count);
     } catch (error) {
-      console.error("Failed to load unread count:", error);
     }
   };
 

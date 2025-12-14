@@ -36,7 +36,6 @@ export default function RejectRefundModal({
       onClose();
       setRejectionReason("");
     } catch (error: any) {
-      console.error("Failed to reject refund:", error);
       setError(error.message || "Failed to reject refund. Please try again.");
     } finally {
       setIsSubmitting(false);

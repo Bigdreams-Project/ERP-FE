@@ -48,7 +48,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch refunds:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch refunds" },
@@ -93,19 +92,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to create refund request:", error);
     if (error.response) {
       const errorData = error.response.data;
       const errorMessage = errorData?.message || errorData?.error || "Failed to create refund request";
       const errorDetails = errorData?.details || errorData?.errors || errorData?.validationErrors;
-      
-      console.error("Backend error response:", {
-        status: error.response.status,
-        data: errorData,
-        message: errorMessage,
-        details: errorDetails,
-      });
-
       return NextResponse.json(
         { 
           error: errorMessage,

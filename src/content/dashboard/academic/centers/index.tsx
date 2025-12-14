@@ -99,7 +99,6 @@ const CenterContent = ({
       await queryClient.refetchQueries({ queryKey: ["centers"] });
     },
     onError: (error: any) => {
-      console.error("Failed to create center:", error);
       showError("Failed to create center");
     },
   });

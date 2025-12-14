@@ -38,20 +38,8 @@ export async function GET(request: NextRequest) {
       params,
     });
 
-    console.log("Tickets API - Backend response:", {
-      status: response.status,
-      dataLength: Array.isArray(response.data) ? response.data.length : "not an array",
-      dataType: typeof response.data,
-      hasData: !!response.data,
-      dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'N/A',
-      sampleData: Array.isArray(response.data) && response.data.length > 0 
-        ? response.data[0] 
-        : response.data,
-    });
-
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch tickets:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch tickets" },
@@ -96,12 +84,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to create ticket:", error);
     if (error.response) {
-      console.error("Backend error response:", error.response.data);
-      if (payload) {
-        console.error("Payload sent:", JSON.stringify(payload, null, 2));
-      }
       return NextResponse.json(
         { error: error.response.data?.message || error.response.data?.error || "Failed to create ticket" },
         { status: error.response.status || 500 }

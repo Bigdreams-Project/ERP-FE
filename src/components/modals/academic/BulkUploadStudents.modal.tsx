@@ -161,7 +161,6 @@ const BulkUploadStudentsModal: React.FC<BulkUploadStudentsModalProps> = ({
 
       setDuplicateRecords(duplicates);
     } catch (error: any) {
-      console.error("Failed to parse file:", error);
       alert(`Failed to parse file: ${error.message}`);
     } finally {
       setIsProcessing(false);
@@ -419,7 +418,6 @@ const BulkUploadStudentsModal: React.FC<BulkUploadStudentsModalProps> = ({
       setUploadResult(result);
       setShowFailedRecords(false);
     } catch (error) {
-      console.error("Upload error:", error);
     }
   };
 

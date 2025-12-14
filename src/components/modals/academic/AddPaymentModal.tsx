@@ -58,7 +58,6 @@ const AddPaymentModal = ({
         showError("Failed to record payment. Please try again.");
       }
     } catch (error: any) {
-      console.error("Error submitting payment:", error);
       showError("An error occurred while submitting payment.");
     } finally {
       setLoading(false);

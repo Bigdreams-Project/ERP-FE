@@ -37,7 +37,6 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
       const response = await getUsers();
       setData(response);
     } catch (error) {
-      console.error("Failed to refresh users:", error);
       showError("Failed to load users");
     } finally {
       setIsRefreshing(false);
@@ -52,7 +51,6 @@ const UsersContent = ({ users: initialUsers, centers }: UsersContentProps) => {
 
       await refreshData();
     } catch (error) {
-      console.error("Failed to save user:", error);
       showError("Failed to create user");
     }
   };

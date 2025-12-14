@@ -103,7 +103,6 @@ export default function StudentTable({
         setIsModalOpen(false);
       })
       .catch((error) => {
-        console.error("Failed to save student:", error);
         showError("Student enrollment failed");
       });
   };
@@ -144,7 +143,6 @@ export default function StudentTable({
       // ✅ Force refetch archive queries immediately (not just invalidate)
       await queryClient.refetchQueries({ queryKey: ["archive"] });
     } catch (error: any) {
-      console.error("Failed to archive student:", error);
       showError(error.message || "Failed to archive student");
       // Keep modal open on error so user can retry
     }
@@ -179,7 +177,6 @@ export default function StudentTable({
       setOpenDropdown(null);
       queryClient.invalidateQueries({ queryKey: ["students"] });
     } catch (error: any) {
-      console.error("Failed to enroll student to program:", error);
       showError(error.message || "Failed to enroll student to program");
     }
   };

@@ -130,7 +130,6 @@ export default function CenterTable({
       // Invalidate React Query cache - parent component will update via React Query
       queryClient.invalidateQueries({ queryKey: ["centers"], refetchType: "active" });
     } catch (error) {
-      console.error("Failed to save center:", error);
     }
   };
 

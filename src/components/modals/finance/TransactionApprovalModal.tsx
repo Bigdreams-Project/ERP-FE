@@ -33,7 +33,6 @@ const TransactionApprovalModal = ({
       reset();
       onClose();
     } catch (error) {
-      console.error("Failed to approve transaction:", error);
     } finally {
       setIsSubmitting(false);
     }

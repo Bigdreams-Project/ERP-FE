@@ -170,7 +170,6 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
       
       setDuplicateRecords(duplicates);
     } catch (error: any) {
-      console.error("Failed to parse file:", error);
       alert(`Failed to parse file: ${error.message}`);
     } finally {
       setIsProcessing(false);
@@ -194,13 +193,7 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
             const firstRow = jsonData[0] as Record<string, any>;
             const columnNames = Object.keys(firstRow);
             const lowercaseColumns = columnNames.map(k => k.toLowerCase().trim());
-            console.log("=== Excel File Debug Info ===");
-            console.log("Total rows in Excel:", jsonData.length);
-            console.log("Excel column names (original):", JSON.stringify(columnNames, null, 2));
-            console.log("Excel column names (lowercase):", JSON.stringify(lowercaseColumns, null, 2));
-            console.log("First row sample (raw):", JSON.stringify(firstRow, null, 2));
             // Show all column values to identify totalPayment field
-            console.log("--- All column values from first row ---");
             const columnInfo: any = {};
             columnNames.forEach(col => {
               const value = firstRow[col];
@@ -211,16 +204,9 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
                 type: typeof value,
                 stringValue: String(value)
               };
-              console.log(`Column: "${col}"`);
-              console.log(`  Lowercase: "${lowerCol}"`);
-              console.log(`  Value:`, value);
-              console.log(`  Type: ${typeof value}`);
-              console.log(`  String representation: "${String(value)}"`);
-              console.log("---");
             });
             // Also log as table for better visibility
             console.table(columnInfo);
-            console.log("=============================");
           }
 
           // Map Excel columns to ArchiveRecord fields
@@ -269,27 +255,16 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
 
               // Debug logging for first row
               if (index === 0 && fieldName) {
-                console.log(`--- Parsing ${fieldName} ---`);
-                console.log(`  Variations tried:`, JSON.stringify(variations, null, 2));
-                console.log(`  Matched variation:`, matchedVariation || "NONE");
-                console.log(`  Raw value found:`, rawValue, `(type: ${typeof rawValue})`);
-                console.log(`  Available lowercase keys:`, JSON.stringify(Object.keys(lowerRow), null, 2));
-                console.log(`  Full lowerRow mapping:`, JSON.stringify(lowerRow, null, 2));
+                // Debug logging removed
               }
 
               if (rawValue === null || rawValue === undefined || rawValue === "") {
-                if (index === 0 && fieldName) {
-                  console.log(`  Result: 0 (no value found)`);
-                }
                 return 0;
               }
 
               // Handle numeric values directly from Excel
               if (typeof rawValue === "number") {
                 const result = isNaN(rawValue) ? 0 : rawValue;
-                if (index === 0 && fieldName) {
-                  console.log(`  Result: ${result} (from number)`);
-                }
                 return result;
               }
 
@@ -300,10 +275,6 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
 
               const parsed = parseFloat(cleaned);
               const result = isNaN(parsed) ? 0 : parsed;
-              if (index === 0 && fieldName) {
-                console.log(`  Cleaned string: "${cleaned}"`);
-                console.log(`  Result: ${result} (from string)`);
-              }
               return result;
             };
 
@@ -357,20 +328,6 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
             const parsedSource = (mapField("source", ["source", "archive source"]) || "legacy_erp") as "legacy_erp" | "graduated";
 
             // Debug: Log parsed values for first row to see what was extracted
-            if (index === 0) {
-              console.log("=== First Row Parsed Values ===");
-              console.log("totalPayment parsed value:", parsedTotalPayment);
-              console.log("pendingPayment parsed value:", parsedPendingPayment);
-              console.log("status parsed value:", parsedStatus);
-              console.log("Full mapped record sample:", {
-                fullname,
-                totalPayment: parsedTotalPayment,
-                pendingPayment: parsedPendingPayment,
-                status: parsedStatus,
-                source: parsedSource,
-              });
-              console.log("===============================");
-            }
 
             return {
               centerId: selectedCenterId, // Use selected center
@@ -425,15 +382,6 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
       centerId: selectedCenterId, // Always use selected center
     }));
 
-    // Debug: Log first record after center assignment
-    if (recordsWithCenter.length > 0) {
-      console.log("=== After Center Assignment ===");
-      console.log("First record totalPayment:", recordsWithCenter[0].totalPayment);
-      console.log("First record pendingPayment:", recordsWithCenter[0].pendingPayment);
-      console.log("First record (full):", JSON.stringify(recordsWithCenter[0], null, 2));
-      console.log("=================================");
-    }
-
     // Filter out records with validation errors AND duplicates
     // Keep only the first occurrence of each oldStudentId
     const seenIds = new Set<string>();
@@ -470,16 +418,6 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
       console.warn(`Found ${duplicateCount} duplicate record(s). Duplicates will be ignored.`, duplicateIds);
     }
 
-    // Debug: Log final payload before sending
-    console.log("=== Final Payload Before Sending ===");
-    console.log("Total records:", validRecords.length);
-    if (validRecords.length > 0) {
-      console.log("First record totalPayment:", validRecords[0].totalPayment);
-      console.log("First record pendingPayment:", validRecords[0].pendingPayment);
-      console.log("First record (full):", JSON.stringify(validRecords[0], null, 2));
-    }
-    console.log("====================================");
-
     // Call onSave and handle the response
     try {
       const result = await onSave({ records: validRecords });
@@ -487,7 +425,6 @@ const ArchiveUploadModal: React.FC<ArchiveUploadModalProps> = ({
       // Keep failed records collapsed by default - user can click "Show Details" to expand
       setShowFailedRecords(false);
     } catch (error) {
-      console.error("Upload error:", error);
     }
   };
 

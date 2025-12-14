@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch centers:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch centers" },
@@ -76,7 +75,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to create center:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to create center" },

@@ -200,7 +200,6 @@ const ArchiveContent = ({
       await queryClient.refetchQueries({ queryKey: ["archive"] });
     },
     onError: (error: any) => {
-      console.error("Failed to upload archive records:", error);
       showError(error.message || "Failed to upload archive records");
       // Still refetch in case some records were uploaded before the error
       queryClient.invalidateQueries({ queryKey: ["archive"] });
@@ -221,7 +220,6 @@ const ArchiveContent = ({
       await queryClient.refetchQueries({ queryKey: ["archive"] });
     },
     onError: (error: any) => {
-      console.error("Failed to create archive record:", error);
       showError(error.message || "Failed to create archive record");
     },
   });

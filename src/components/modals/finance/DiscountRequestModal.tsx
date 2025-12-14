@@ -112,9 +112,6 @@ const DiscountRequestModal = ({
       request.notes = notes.trim();
     }
 
-    // Log the request for debugging
-    console.log("Submitting discount request:", JSON.stringify(request, null, 2));
-
     try {
       setLoading(true);
       await onSubmit(request);
@@ -129,7 +126,6 @@ const DiscountRequestModal = ({
       setReason("");
       setNotes("");
     } catch (error: any) {
-      console.error("Error submitting discount request:", error);
       toast.error(error.message || "Failed to submit discount request. Please try again.");
     } finally {
       setLoading(false);

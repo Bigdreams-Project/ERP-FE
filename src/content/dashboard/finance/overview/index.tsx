@@ -51,7 +51,6 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
   
   // Debug logging
   useEffect(() => {
-    console.log("Finance Overview page - selectedCenter:", selectedCenter, "centerIdForFetch:", centerIdForFetch, "isCenterLoading:", isCenterLoading);
   }, [selectedCenter, centerIdForFetch, isCenterLoading]);
 
   // Use React Query to fetch and cache finance overview
@@ -59,14 +58,11 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
   const { data: overview } = useQuery({
     queryKey: ["financeOverview", selectedCenter],
     queryFn: async () => {
-      console.log("Fetching finance overview with centerId:", centerIdForFetch);
       try {
         const result = await getFinanceOverviewClient(centerIdForFetch);
-        console.log("Received finance overview data");
         return result;
       } catch (err: any) {
         // If there's still an error (shouldn't happen now), return default data
-        console.log("Error fetching finance overview, using default data:", err.message);
         return {
           totalRevenue: 0,
           totalPending: 0,
@@ -118,7 +114,6 @@ const OverviewContent = ({ user, overview: initialOverview }: OverviewContentPro
   // This ensures data is filtered correctly when user selects a different center from dropdown
   useEffect(() => {
     if (!isCenterLoading && selectedCenter) {
-      console.log("Refetching finance overview for selectedCenter:", selectedCenter);
       // Invalidate cache to ensure fresh data, then refetch
       queryClient.invalidateQueries({ queryKey: ["financeOverview"] });
       queryClient.refetchQueries({ 

@@ -48,7 +48,6 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
       const unread = data.filter((n: Notification) => !n.read).length;
       setUnreadCount(unread);
     } catch (error) {
-      console.error("Failed to load notifications:", error);
     } finally {
       setLoading(false);
     }
@@ -62,7 +61,6 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error("Failed to mark notification as read:", error);
     }
   };
 
@@ -72,7 +70,6 @@ const NotificationModal: React.FC<INotificationModalProps> = ({
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error("Failed to mark all as read:", error);
     }
   };
 

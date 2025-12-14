@@ -132,7 +132,6 @@ export default function ArchiveTable({
       // Refetch students list
       await queryClient.refetchQueries({ queryKey: ["students"] });
     } catch (error: any) {
-      console.error("Failed to restore student:", error);
       showError(error.message || "Failed to restore student");
     }
   };
@@ -152,7 +151,6 @@ export default function ArchiveTable({
       // Invalidate all archive queries to refresh the list
       await queryClient.invalidateQueries({ queryKey: ["archive"] });
     } catch (error: any) {
-      console.error("Failed to update archive record:", error);
       showError(error.message || "Failed to update archive record");
     }
   };
@@ -169,7 +167,6 @@ export default function ArchiveTable({
       // Invalidate all archive queries to refresh the list
       await queryClient.invalidateQueries({ queryKey: ["archive"] });
     } catch (error: any) {
-      console.error("Failed to delete archive record:", error);
       showError(error.message || "Failed to delete archive record");
     } finally {
       setIsDeleting(false);
@@ -197,7 +194,6 @@ export default function ArchiveTable({
       // Invalidate all archive queries to refresh the list
       await queryClient.invalidateQueries({ queryKey: ["archive"] });
     } catch (error: any) {
-      console.error("Failed to bulk delete archive records:", error);
       showError(error.message || "Failed to delete archive records");
     } finally {
       setIsBulkDeleting(false);

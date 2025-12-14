@@ -326,13 +326,12 @@ const DashboardOverview = ({
     const paymentCollectionRate = initialFinanceOverview?.collectionRate ?? 0;
     
     // Log values to console for debugging
-    console.log("=== DASHBOARD OVERVIEW: FINANCE DATA FROM BACKEND ===");
-    console.log("totalBilling:", totalBilling);
-    console.log("totalRevenue:", totalRevenue);
-    console.log("totalPending:", totalPending);
-    console.log("collectionRate:", paymentCollectionRate);
-    console.log("Full financeOverview:", initialFinanceOverview);
-    console.log("=====================================================");
+
+
+
+
+
+
 
     // Calculate revenue from payments for trend data and MoM/YoY calculations (still needed for historical data)
     const allPayments = filteredStudents.flatMap((s) => s.payments || []);
@@ -432,10 +431,9 @@ const DashboardOverview = ({
         conversionRate: cp.conversion,
         status: cp.status,
       }));
-      console.log("✅ Using centerPerformanceMatrix from backend:", centerPerformance);
+
     } else {
       // Fallback to local calculation
-      console.log("⚠️ Using local center performance calculation (backend data not available)");
       centerPerformance = filteredCenters.map((center) => {
         const centerStudents = filteredStudents.filter((s) => s.centerId === center.id);
         const centerLeads = filteredLeads.filter((l) => l.centerId === center.id);
@@ -856,7 +854,7 @@ const DashboardOverview = ({
       setPdfPreviewUrl(imgData);
       setShowPdfPreview(true);
     } catch (error) {
-      console.error("Error generating PDF preview:", error);
+
       alert("Failed to generate PDF preview. Please try again.");
     }
   };
@@ -914,7 +912,7 @@ const DashboardOverview = ({
       setShowPdfPreview(false);
       setPdfPreviewUrl(null);
     } catch (error) {
-      console.error("Error generating PDF:", error);
+
       alert("Failed to generate PDF. Please try again.");
     }
   };

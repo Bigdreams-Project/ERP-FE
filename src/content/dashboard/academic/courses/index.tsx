@@ -89,7 +89,6 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
       await queryClient.refetchQueries({ queryKey: ["courses"] });
     },
     onError: (error: any) => {
-      console.error("Failed to save course:", error);
       showError("Failed to create new course");
     },
   });
@@ -149,7 +148,6 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
       }
       return result;
     } catch (error: any) {
-      console.error("Bulk upload failed:", error);
       showError(error.message || "Bulk upload failed");
       throw error;
     } finally {

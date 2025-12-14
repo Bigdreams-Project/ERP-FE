@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Failed to fetch archive records:", error);
     if (error.response) {
       return NextResponse.json(
         { error: error.response.data?.message || "Failed to fetch archive records" },
@@ -92,19 +91,12 @@ export async function POST(request: NextRequest) {
     }
 
     payload = await request.json();
-    console.log("Received payload:", JSON.stringify(payload, null, 2));
 
     // Check if it's a single record or bulk upload
     // Single record has centerId, bulk upload has records array
     if (payload.records && Array.isArray(payload.records)) {
       // Bulk upload
-      console.log(`Bulk upload: ${payload.records.length} records`);
       const bulkPayload: BulkUploadArchiveRequest = payload;
-      
-      // Log first record for debugging
-      if (bulkPayload.records.length > 0) {
-        console.log("First record sample:", JSON.stringify(bulkPayload.records[0], null, 2));
-      }
       
       const response = await axios.post(
         `${AuthRoutes.BASE_URL}/archive/bulk-upload`,
@@ -119,7 +111,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response.data);
     } else {
       // Single record creation
-      console.log("Single record creation");
       const singlePayload: CreateArchiveRecord = payload;
       const response = await axios.post(
         `${AuthRoutes.BASE_URL}/archive`,
@@ -134,18 +125,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response.data);
     }
   } catch (error: any) {
-    console.error("Failed to create/upload archive records:", error);
     if (error.response) {
       const errorMessage = error.response.data?.message || 
                           error.response.data?.error || 
                           error.response.data?.details ||
                           (typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)) ||
                           `Backend error: ${error.response.statusText}`;
-      console.error("Backend error status:", error.response.status);
-      console.error("Backend error data:", JSON.stringify(error.response.data, null, 2));
-      if (payload) {
-        console.error("Request payload sent:", JSON.stringify(payload, null, 2));
-      }
       return NextResponse.json(
         { error: errorMessage },
         { status: error.response.status || 500 }

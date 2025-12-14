@@ -16,10 +16,8 @@ export default async function Leads() {
     return <LeadContent leads={leads} centers={centers} courses={courses} />;
   } catch (err: any) {
     if (err.message === "No active session") {
-      console.error("No active session, redirecting to login.");
       redirect(AppAuthRoutes.LOGIN);
     }
-    console.error("Failed to fetch leads:", err.message);
     return <LeadContent leads={[]} centers={[]} courses={[]} />;
   }
 }
