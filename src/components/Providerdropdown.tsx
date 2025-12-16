@@ -9,14 +9,31 @@ import { useProvider } from "@/context/ProviderContext";
 import { courseTypes } from "@/data/view/course.data";
 import { BookOpen } from "lucide-react";
 import { IoMdArrowDropdown } from "react-icons/io";
+import { useEffect, useState } from "react";
 
 const Providerdropdown = () => {
   const { selectedProvider, setSelectedProvider } = useProvider();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure component only renders on client to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const selectedProviderName =
     selectedProvider === "all"
       ? "All Companies"
       : courseTypes.find((ct) => ct.value === selectedProvider)?.label || "Select Company";
+
+  // Only render DropdownMenu on client to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="flex items-center font-bold gap-[0.5rem]">
+        <BookOpen className="text-indigo-500" size={18} />
+        <span>{selectedProviderName}</span>
+      </div>
+    );
+  }
 
   return (
     <div>

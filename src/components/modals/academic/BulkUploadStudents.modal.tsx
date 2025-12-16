@@ -351,6 +351,12 @@ const BulkUploadStudentsModal: React.FC<BulkUploadStudentsModalProps> = ({
                   "guardianaddress",
                   "guardian_address",
                 ]) || undefined,
+                price_type: mapField("price_type", [
+                  "price type",
+                  "pricetype",
+                  "price_type",
+                  "price-type",
+                ]) || undefined,
               };
             }
           );
@@ -700,6 +706,7 @@ const BulkUploadStudentsModal: React.FC<BulkUploadStudentsModalProps> = ({
                       <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Guardian Name</th>
                       <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Guardian Phone</th>
                       <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Guardian Email</th>
+                      <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Price Type</th>
                       <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Payments</th>
                     </tr>
                   </thead>
@@ -734,6 +741,7 @@ const BulkUploadStudentsModal: React.FC<BulkUploadStudentsModalProps> = ({
                           <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">{record.guardianName || "-"}</td>
                           <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">{record.guardianPhone || "-"}</td>
                           <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">{record.guardianEmail || "-"}</td>
+                          <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">{record.price_type || "-"}</td>
                           <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">
                             {record.payments?.length || 0} payment(s)
                           </td>

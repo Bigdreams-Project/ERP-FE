@@ -6,7 +6,7 @@ import { logoutUser } from "@/lib/auth/login";
 import { getLoggedInUserClient } from "@/lib/client-network";
 import { canAccessCentersPage } from "@/lib/utils/center-permissions";
 import { User } from "@/types/auth/user.interface";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -38,6 +38,7 @@ const SidebarMenu = ({
   toggleSidebar: () => void;
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user: userFromContext } = useUser();
   const { centerContext, isLoading: isCenterLoading } = useCenter();
   
@@ -103,8 +104,10 @@ const SidebarMenu = ({
     return () => clearTimeout(timeoutId);
   }, [sidebarExpanded, isMobile]);
 
-  const logout = () => {
-    logoutUser();
+  const logout = async () => {
+    // Clear React Query cache before logging out
+    queryClient.clear();
+    await logoutUser();
     router.push(AuthRoutes.LOGIN);
   };
 

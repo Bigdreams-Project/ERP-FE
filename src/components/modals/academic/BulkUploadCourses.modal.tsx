@@ -8,7 +8,7 @@ import {
 } from "@/types/requests/course.interface";
 import * as XLSX from "xlsx";
 import { X, Upload, AlertCircle } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 
 type UploadType = "old" | "new" | null;
 
@@ -73,8 +73,8 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
       if (uploadType === "old") {
         (data as BulkUploadCourseRecord[]).forEach((record: BulkUploadCourseRecord, index: number) => {
           const recordErrors: string[] = [];
-          if (!record.oldId) recordErrors.push("Old Course ID (_id) is required");
-          if (!record.title) recordErrors.push("Title is required");
+          if (!record.oldId || String(record.oldId).trim() === "") recordErrors.push("Old Course ID (_id) is required");
+          if (!record.title || String(record.title).trim() === "") recordErrors.push("Title is required");
           if (!record.duration || record.duration < 1)
             recordErrors.push("Duration must be >= 1");
           if (recordErrors.length > 0) {
@@ -104,10 +104,10 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
         // New courses validation
         (data as BulkUploadRegularCourseRecord[]).forEach((record: BulkUploadRegularCourseRecord, index: number) => {
           const recordErrors: string[] = [];
-          if (!record.title) recordErrors.push("Title is required");
+          if (!record.title || String(record.title).trim() === "") recordErrors.push("Title is required");
           if (!record.duration || record.duration < 1)
             recordErrors.push("Duration must be >= 1");
-          if (!record.course_type) recordErrors.push("Course Type is required");
+          if (!record.course_type || String(record.course_type).trim() === "") recordErrors.push("Course Type is required");
           if (recordErrors.length > 0) {
             errors.push({ row: index + 1, errors: recordErrors });
           }
@@ -157,16 +157,19 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
           const mappedData: BulkUploadCourseRecord[] = jsonData
             .filter((row: any) => row._id || row.oldId || row.title)
             .map((row: any) => ({
-              oldId: String(row._id || row.oldId || ""),
-              title: String(row.title || ""),
+              oldId: String(row._id || row.oldId || "").trim(),
+              title: String(row.title || "").trim(),
               duration: parseInt(String(row.duration || 0), 10),
-              amount: row.amount !== undefined && row.amount !== null && row.amount !== "" 
-                ? parseFloat(String(row.amount)) 
+              old_price: row.old_price !== undefined && row.old_price !== null && row.old_price !== "" 
+                ? parseFloat(String(row.old_price)) 
                 : undefined,
-            }))
-            .filter(
-              (record) => record.oldId && record.title && record.duration > 0
-            );
+              new_price: row.new_price !== undefined && row.new_price !== null && row.new_price !== "" 
+                ? parseFloat(String(row.new_price)) 
+                : undefined,
+              course_type: row.course_type !== undefined && row.course_type !== null && row.course_type !== "" 
+                ? String(row.course_type || row.courseType || "").trim()
+                : undefined,
+            }));
 
           resolve(mappedData);
         } catch (error: any) {
@@ -197,13 +200,13 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
               title: String(row.title || "").trim(),
               duration: parseInt(String(row.duration || 0), 10),
               course_type: String(row.course_type || row.courseType || "").trim(),
-              amount: row.amount !== undefined && row.amount !== null && row.amount !== "" 
-                ? parseFloat(String(row.amount)) 
+              old_price: row.old_price !== undefined && row.old_price !== null && row.old_price !== "" 
+                ? parseFloat(String(row.old_price)) 
                 : undefined,
-            }))
-            .filter(
-              (record) => record.title && record.duration > 0 && record.course_type
-            );
+              new_price: row.new_price !== undefined && row.new_price !== null && row.new_price !== "" 
+                ? parseFloat(String(row.new_price)) 
+                : undefined,
+            }));
 
           resolve(mappedData);
         } catch (error: any) {
@@ -309,6 +312,60 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
     handleReset();
   };
 
+  // Calculate valid records count using the same logic as handleUpload
+  // IMPORTANT: This hook must be called before any conditional returns to follow Rules of Hooks
+  const validRecordsCount = useMemo(() => {
+    if (parsedData.length === 0 || !uploadType) return 0;
+    
+    if (uploadType === "old") {
+      const seenIds = new Set<string>();
+      return parsedData.filter((record: BulkUploadCourseRecord, index: number) => {
+        const rowNum = index + 1;
+        
+        // Skip if has validation errors
+        if (validationErrors.some((error) => error.row === rowNum)) {
+          return false;
+        }
+        
+        // Skip if duplicate (keep first occurrence only)
+        if (record.oldId && seenIds.has(record.oldId)) {
+          return false;
+        }
+        
+        // Mark as seen
+        if (record.oldId) {
+          seenIds.add(record.oldId);
+        }
+        
+        return true;
+      }).length;
+    } else {
+      const seenTitles = new Set<string>();
+      return parsedData.filter((record: BulkUploadRegularCourseRecord, index: number) => {
+        const rowNum = index + 1;
+        
+        // Skip if has validation errors
+        if (validationErrors.some((error) => error.row === rowNum)) {
+          return false;
+        }
+        
+        // Skip if duplicate (keep first occurrence only)
+        const titleLower = record.title?.toLowerCase().trim();
+        if (!titleLower || seenTitles.has(titleLower)) {
+          return false;
+        }
+        
+        // Mark as seen
+        seenTitles.add(titleLower);
+        
+        return true;
+      }).length;
+    }
+  }, [parsedData, validationErrors, uploadType]);
+  
+  const errorRecordsCount = validationErrors.length;
+  const canUpload = parsedData.length > 0 && validRecordsCount > 0;
+
   if (!isOpen) return null;
 
   // Show selection dialog if upload type is not selected
@@ -360,11 +417,6 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
       </div>
     );
   }
-
-  const validRecordsCount =
-    parsedData.length - validationErrors.length - duplicateRecords.length;
-  const errorRecordsCount = validationErrors.length;
-  const canUpload = parsedData.length > 0 && validRecordsCount > 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-65 flex items-center justify-center z-50 p-4 font-sans">
@@ -423,8 +475,8 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {uploadType === "old" 
-                ? "Required columns: oldId (or _id), title, duration. Optional: amount"
-                : "Required columns: title, duration, course_type. Optional: amount"}
+                ? "Required columns: oldId (or _id), title, duration. Optional: old_price, new_price, course_type"
+                : "Required columns: title, duration, course_type. Optional: old_price, new_price"}
             </p>
           </div>
 
@@ -597,14 +649,17 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
                           <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Old Course ID</th>
                           <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Title</th>
                           <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Duration (months)</th>
-                          <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Amount</th>
+                          <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Old Price</th>
+                          <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">New Price</th>
+                          <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Course Type</th>
                         </>
                       ) : (
                         <>
                           <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Title</th>
                           <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Duration (months)</th>
                           <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Course Type</th>
-                          <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Amount</th>
+                          <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">Old Price</th>
+                          <th className="p-2 text-left border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">New Price</th>
                         </>
                       )}
                     </tr>
@@ -640,9 +695,17 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
                                 {(record as BulkUploadCourseRecord).duration || "-"} month(s)
                               </td>
                               <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                                {(record as BulkUploadCourseRecord).amount !== undefined 
-                                  ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format((record as BulkUploadCourseRecord).amount!)
+                                {(record as BulkUploadCourseRecord).old_price !== undefined 
+                                  ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format((record as BulkUploadCourseRecord).old_price!)
                                   : "-"}
+                              </td>
+                              <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                                {(record as BulkUploadCourseRecord).new_price !== undefined 
+                                  ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format((record as BulkUploadCourseRecord).new_price!)
+                                  : "-"}
+                              </td>
+                              <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                                {(record as BulkUploadCourseRecord).course_type || "-"}
                               </td>
                             </>
                           ) : (
@@ -653,8 +716,13 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
                               </td>
                               <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">{(record as BulkUploadRegularCourseRecord).course_type || "-"}</td>
                               <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                                {(record as BulkUploadRegularCourseRecord).amount !== undefined 
-                                  ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format((record as BulkUploadRegularCourseRecord).amount!)
+                                {(record as BulkUploadRegularCourseRecord).old_price !== undefined 
+                                  ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format((record as BulkUploadRegularCourseRecord).old_price!)
+                                  : "-"}
+                              </td>
+                              <td className="p-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                                {(record as BulkUploadRegularCourseRecord).new_price !== undefined 
+                                  ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format((record as BulkUploadRegularCourseRecord).new_price!)
                                   : "-"}
                               </td>
                             </>

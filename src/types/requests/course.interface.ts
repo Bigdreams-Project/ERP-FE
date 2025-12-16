@@ -18,7 +18,9 @@ export interface BulkUploadCourseRecord {
   oldId: string;
   title: string;
   duration: number;
-  amount?: number;
+  old_price?: number;
+  new_price?: number;
+  course_type?: string;
 }
 
 export interface BulkUploadCoursesRequest {
@@ -48,7 +50,8 @@ export interface BulkUploadRegularCourseRecord {
   title: string;
   duration: number;
   course_type: string;
-  amount?: number;
+  old_price?: number;
+  new_price?: number;
 }
 
 export interface BulkUploadRegularCoursesRequest {

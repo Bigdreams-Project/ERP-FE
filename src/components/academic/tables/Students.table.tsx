@@ -16,7 +16,7 @@ import { Lead } from "@/types/academic/lead.interface";
 import { Student } from "@/types/academic/student.interface";
 import { Bank } from "@/types/finance/bank.interface";
 import { CreateStudent, UpdateStudent } from "@/types/requests/student.interface";
-import { ChevronDown, Link2Icon, Archive, Eye, Trash2, GraduationCap, Briefcase } from "lucide-react";
+import { ChevronDown, Link2Icon, Eye, Trash2, GraduationCap, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -223,7 +223,16 @@ export default function StudentTable({
                         {student.studentId} <Link2Icon size={12} />
                       </Link>
                     </td>
-                    <td className="p-3 font-bold">{student.fullName}</td>
+                    <td className="p-3 font-bold">
+                      <div className="flex items-center gap-2">
+                        {student.fullName}
+                        {student.programType === "JPTP" && (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
+                            JPTP
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-3">{student.email}</td>
                     <td className="p-3">{student.phone}</td>
                     <td className="p-3">{student.address}</td>
@@ -304,13 +313,6 @@ export default function StudentTable({
                           )}
                           {isAdmin && !isAdminLoading && (
                             <>
-                              <button
-                                onClick={() => handleArchive(student)}
-                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-amber-600 hover:bg-gray-100"
-                              >
-                                <Archive size={16} />
-                                Archive
-                              </button>
                               <button
                                 onClick={() => handleDelete(student)}
                                 className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"

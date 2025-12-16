@@ -31,19 +31,6 @@ export const centerSchema = yup.object().shape({
     .mixed<"OWNED" | "PARTNERED">()
     .oneOf(["OWNED", "PARTNERED"], "Invalid type")
     .required("Type is required"),
-  document: yup
-    .mixed()
-    .test("required", "You need to provide a file", (value) => {
-      return value instanceof FileList && value.length > 0;
-    })
-    .test("fileSize", "The file is too large (max 2MB)", (value) => {
-      return value instanceof FileList && value.length > 0
-        ? value[0].size <= 2000000
-        : true;
-    })
-    .optional()
-    .nullable()
-    .notRequired() as yup.MixedSchema<FileList | null>,
   banks: yup.array().of(bankSchema).min(1, "At least one bank is required.")
     .required("Banks are required"),
 });

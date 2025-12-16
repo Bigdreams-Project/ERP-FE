@@ -67,7 +67,6 @@ export interface ICenter {
   managerId: string;
   status: CenterStatus | "";
   type: CenterType | "";
-  document?: FileList | null;
   banks: IBank[];
 }
 

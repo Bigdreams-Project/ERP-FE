@@ -87,6 +87,7 @@ export interface BulkUploadStudentRecord {
   guardianEmail?: string | null;
   guardianPhone?: string;
   guardianAddress?: string;
+  price_type?: string;
 }
 
 export interface BulkUploadStudentsRequest {

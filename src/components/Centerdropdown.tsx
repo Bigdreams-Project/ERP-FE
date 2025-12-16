@@ -8,7 +8,7 @@ import {
 import { useCenter } from "@/context/CenterContext";
 import { Center } from "@/types/academic/center.interface";
 import { User } from "@/types/auth/user.interface";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FiGlobe } from "react-icons/fi";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { canSwitchCenters } from "@/lib/utils/center-permissions";
@@ -21,6 +21,12 @@ interface CenterdropdownProps {
 const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
   const { selectedCenter, setSelectedCenter, centerContext, isLoading } =
     useCenter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure component only renders on client to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Determine if dropdown should be shown
   // Check both API response and user role as fallback
@@ -130,6 +136,16 @@ const Centerdropdown = ({ user, centers }: CenterdropdownProps) => {
   }
 
   // Show dropdown for users who can switch centers
+  // Only render DropdownMenu on client to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="flex items-center font-bold gap-[0.5rem]">
+        <FiGlobe className="text-indigo-500" />
+        <span>{selectedCenterName}</span>
+      </div>
+    );
+  }
+
   return (
     <div>
       <DropdownMenu>

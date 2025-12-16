@@ -3,7 +3,7 @@ import { ICenter, ICenterModalProps } from "@/types/academic/center.interface";
 import { IBank } from "@/types/finance/bank.interface";
 import { centerSchema } from "@/validations/academic/center.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ChevronDown, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { ChevronDown, Plus, Trash2, X } from "lucide-react";
 import React, { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
@@ -31,7 +31,6 @@ const CenterModal: React.FC<ICenterModalProps> = ({
     email: "",
     status: "",
     type: "",
-    document: null,
     banks: [defaultBank],
   };
 
@@ -40,10 +39,11 @@ const CenterModal: React.FC<ICenterModalProps> = ({
     handleSubmit,
     reset,
     control,
+    trigger,
     formState: { errors, isValid },
   } = useForm<ICenter>({
     resolver: yupResolver(centerSchema as any),
-    mode: "onTouched",
+    mode: "onChange",
     defaultValues: defaultCenterValues,
   });
 
@@ -56,11 +56,15 @@ const CenterModal: React.FC<ICenterModalProps> = ({
     if (isOpen) {
       if (initialData) {
         reset({ ...initialData, banks: initialData.banks && initialData.banks.length > 0 ? initialData.banks : [defaultBank] });
+        // Trigger validation after reset in edit mode
+        setTimeout(() => {
+          trigger();
+        }, 0);
       } else {
         reset(defaultCenterValues);
       }
     }
-  }, [isOpen, initialData, reset]);
+  }, [isOpen, initialData, reset, trigger]);
 
   const onSubmit = (data: ICenter | any) => {
     onSave(data, true);
@@ -427,34 +431,6 @@ const CenterModal: React.FC<ICenterModalProps> = ({
               {errors.type && (
                 <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                   {errors.type.message}
-                </p>
-              )}
-            </div>
-
-            {/* Upload Document */}
-            <div className="flex flex-col  sm:col-span-2 relative">
-              <label
-                htmlFor="document"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Upload Document
-              </label>
-              <input
-                id="document"
-                type="file"
-                {...register("document")}
-                className="hidden"
-              />
-              <label
-                htmlFor="document"
-                className="w-full h-10 flex items-center justify-center gap-2 px-4 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
-              >
-                <UploadCloud size={16} />
-                <span>Choose File</span>
-              </label>
-              {errors.document && (
-                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.document.message}
                 </p>
               )}
             </div>

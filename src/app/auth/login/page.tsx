@@ -4,7 +4,7 @@ import { loginUser } from "@/lib/auth/login";
 import { ILoginUser } from "@/types/auth/login.interface";
 import { loginSchema } from "@/validations/auth/login.validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,6 +20,7 @@ import * as yup from "yup";
 
 export default function Login() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState("");
 
@@ -36,6 +37,8 @@ export default function Login() {
   const { mutate, isPending, isError, error, isSuccess } = useMutation({
     mutationFn: loginUser,
     onSuccess: () => {
+      // Clear React Query cache to ensure fresh user data is fetched
+      queryClient.clear();
       router.push(DashboardAcademicRoutes.DASHBOARD);
     },
     onError: (error: Error) => {

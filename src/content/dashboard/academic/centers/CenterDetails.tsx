@@ -1,12 +1,13 @@
 "use client";
 import CenterModal from "@/components/modals/academic/Center.modal";
 import StatusBadge2 from "@/components/academic/common/StatusBadge2";
-import { updateCenter } from "@/lib/network";
+import { getCenterClient, updateCenterClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
-import { Center, Manager } from "@/types/academic/center.interface";
+import { Center, Manager, CenterNote } from "@/types/academic/center.interface";
 import { CreateCenter, UpdateCenter } from "@/types/requests/center.interface";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Bank } from "@/types/finance/bank.interface";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
@@ -16,9 +17,18 @@ interface CenterDetailsProps {
   managers: Manager[];
 }
 
-const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
+const CenterDetails = ({ center: initialCenter, managers }: CenterDetailsProps) => {
   const queryClient = useQueryClient();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Fetch center data with React Query to enable refetching after updates
+  const { data: center = initialCenter } = useQuery({
+    queryKey: ["center", initialCenter.id],
+    queryFn: () => getCenterClient(initialCenter.id),
+    initialData: initialCenter,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
   // Get banks from center object (provided by backend API)
   const banks = center.banks || [];
@@ -34,10 +44,10 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
         ...payload,
         id: center.id,
       };
-      await updateCenter(center.id, updatePayload);
+      await updateCenterClient(center.id, updatePayload);
       showSuccess("Center updated successfully");
-      queryClient.invalidateQueries(["centers"]);
-      queryClient.invalidateQueries(["center", center.id]);
+      queryClient.invalidateQueries({ queryKey: ["centers"] });
+      queryClient.invalidateQueries({ queryKey: ["center", center.id] });
       setIsEditModalOpen(false);
     } catch (error: any) {
       showError("Failed to update center");
@@ -172,7 +182,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                   </h3>
                   {banks && banks.length > 0 ? (
                     <div className="space-y-4">
-                      {banks.map((bank, index) => (
+                      {banks.map((bank: Bank, index: number) => (
                         <div
                           key={bank.id || index}
                           className="bank-card border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -238,7 +248,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
                 </h3>
                 <div className="space-y-2">
                   {center?.notes?.map(
-                    (note, index) =>
+                    (note: CenterNote, index: number) =>
                       note.note && (
                         <p key={index} className="text-sm text-gray-700 dark:text-gray-300">
                           <span className="font-semibold">
@@ -280,7 +290,7 @@ const CenterDetails = ({ center, managers }: CenterDetailsProps) => {
               | "SUSPENDED"
               | "CLOSED") || "",
           type: (center.type as "" | "OWNED" | "PARTNERED") || "",
-          banks: center.banks?.map((bank) => ({
+          banks: center.banks?.map((bank: Bank) => ({
             bankName: bank.bankName,
             accountNumber: bank.accountNumber,
             accountName: bank.accountName,

@@ -9,7 +9,6 @@ export interface CreateCenter {
   address: string;
   status: string;
   type: string;
-  document?: FileList | null;
   banks: IBank[]
 }
 
@@ -23,7 +22,6 @@ export interface UpdateCenter {
   address: string;
   status: string;
   type: string;
-  document?: FileList | null;
   banks: IBank[]
   updatedAt?: string;          
 }

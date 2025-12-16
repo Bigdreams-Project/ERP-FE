@@ -1128,97 +1128,99 @@ const DashboardOverview = ({
         </div>
 
         {/* Financial KPIs - Enhanced Layout */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200">
-              Financial Performance
-            </h3>
-            {!isAllCentersView && (
-              <span className="text-sm font-semibold text-indigo-700 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-1.5 rounded-full border-2 border-indigo-300 shadow-sm">
-                {selectedCenterName}
-              </span>
-            )}
-            {!isAllCompaniesView && (
-              <span className="text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-1.5 rounded-full border-2 border-purple-300 shadow-sm">
-                {selectedProviderName}
-              </span>
-            )}
+        {user?.role?.toUpperCase() !== "CENTER_MANAGER" && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Target className="text-indigo-600" size={20} />
+              <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200">
+                Financial Performance
+              </h3>
+              {!isAllCentersView && (
+                <span className="text-sm font-semibold text-indigo-700 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-1.5 rounded-full border-2 border-indigo-300 shadow-sm">
+                  {selectedCenterName}
+                </span>
+              )}
+              {!isAllCompaniesView && (
+                <span className="text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-1.5 rounded-full border-2 border-purple-300 shadow-sm">
+                  {selectedProviderName}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KPICard
+                title="Total Collection"
+                value={formatCurrency(dashboardData.metrics.totalRevenue)}
+                changeValue={dashboardData.metrics.revenueMoM}
+                changeValueYoY={dashboardData.metrics.revenueYoY}
+                direction={dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"}
+                directionYoY={
+                  dashboardData.metrics.revenueYoY >= 0 ? "up" : "down"
+                }
+                icon={DollarSign}
+                color="green"
+                formatValue={formatCurrency}
+                trendData={generateTrendData(
+                  dashboardData.metrics.totalRevenue,
+                  dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"
+                )}
+                sparklineType="line"
+                layout="simple"
+              />
+              <KPICard
+                title="Total Billing"
+                value={formatCurrency(dashboardData.metrics.totalBilling)}
+                changeValue={dashboardData.metrics.billingMoM}
+                changeValueYoY={dashboardData.metrics.billingYoY}
+                direction={dashboardData.metrics.billingMoM >= 0 ? "up" : "down"}
+                directionYoY={
+                  dashboardData.metrics.billingYoY >= 0 ? "up" : "down"
+                }
+                icon={TrendingUp}
+                color="blue"
+                formatValue={formatCurrency}
+                trendData={generateTrendData(
+                  dashboardData.metrics.totalBilling,
+                  dashboardData.metrics.billingMoM >= 0 ? "up" : "down"
+                )}
+                sparklineType="line"
+                layout="simple"
+              />
+              <KPICard
+                title="Pending Payments"
+                value={formatCurrency(dashboardData.metrics.totalPending)}
+                icon={AlertCircle}
+                color="amber"
+                formatValue={formatCurrency}
+                trendData={generateTrendData(
+                  dashboardData.metrics.totalPending,
+                  "neutral"
+                )}
+                sparklineType="line"
+                layout="simple"
+              />
+              <KPICard
+                title="Collection Rate"
+                value={`${dashboardData.metrics.paymentCollectionRate.toFixed(
+                  1
+                )}%`}
+                icon={DollarSign}
+                color={
+                  dashboardData.metrics.paymentCollectionRate >= 70
+                    ? "green"
+                    : "amber"
+                }
+                trendData={generateTrendData(
+                  dashboardData.metrics.paymentCollectionRate,
+                  dashboardData.metrics.paymentCollectionRate >= 70
+                    ? "up"
+                    : "neutral"
+                )}
+                sparklineType="line"
+                layout="simple"
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <KPICard
-              title="Total Collection"
-              value={formatCurrency(dashboardData.metrics.totalRevenue)}
-              changeValue={dashboardData.metrics.revenueMoM}
-              changeValueYoY={dashboardData.metrics.revenueYoY}
-              direction={dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"}
-              directionYoY={
-                dashboardData.metrics.revenueYoY >= 0 ? "up" : "down"
-              }
-              icon={DollarSign}
-              color="green"
-              formatValue={formatCurrency}
-              trendData={generateTrendData(
-                dashboardData.metrics.totalRevenue,
-                dashboardData.metrics.revenueMoM >= 0 ? "up" : "down"
-              )}
-              sparklineType="line"
-              layout="simple"
-            />
-            <KPICard
-              title="Total Billing"
-              value={formatCurrency(dashboardData.metrics.totalBilling)}
-              changeValue={dashboardData.metrics.billingMoM}
-              changeValueYoY={dashboardData.metrics.billingYoY}
-              direction={dashboardData.metrics.billingMoM >= 0 ? "up" : "down"}
-              directionYoY={
-                dashboardData.metrics.billingYoY >= 0 ? "up" : "down"
-              }
-              icon={TrendingUp}
-              color="blue"
-              formatValue={formatCurrency}
-              trendData={generateTrendData(
-                dashboardData.metrics.totalBilling,
-                dashboardData.metrics.billingMoM >= 0 ? "up" : "down"
-              )}
-              sparklineType="line"
-              layout="simple"
-            />
-            <KPICard
-              title="Pending Payments"
-              value={formatCurrency(dashboardData.metrics.totalPending)}
-              icon={AlertCircle}
-              color="amber"
-              formatValue={formatCurrency}
-              trendData={generateTrendData(
-                dashboardData.metrics.totalPending,
-                "neutral"
-              )}
-              sparklineType="line"
-              layout="simple"
-            />
-            <KPICard
-              title="Collection Rate"
-              value={`${dashboardData.metrics.paymentCollectionRate.toFixed(
-                1
-              )}%`}
-              icon={DollarSign}
-              color={
-                dashboardData.metrics.paymentCollectionRate >= 70
-                  ? "green"
-                  : "amber"
-              }
-              trendData={generateTrendData(
-                dashboardData.metrics.paymentCollectionRate,
-                dashboardData.metrics.paymentCollectionRate >= 70
-                  ? "up"
-                  : "neutral"
-              )}
-              sparklineType="line"
-              layout="simple"
-            />
-          </div>
-        </div>
+        )}
 
         {/* Academic KPIs */}
         <div className="mb-8">

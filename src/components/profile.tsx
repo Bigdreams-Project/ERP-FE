@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { AuthRoutes } from "@/constants/apiRoutes.constant";
 import { logoutUser } from "@/lib/auth/login";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getLoggedInUserClient } from "@/lib/client-network";
 import { User } from "@/types/auth/user.interface";
 import { MdOutlineModeNight } from "react-icons/md";
@@ -23,6 +23,7 @@ const Profile = () => {
   const router = useRouter();
   const iconSize = "20";
   const { theme, setTheme } = useTheme();
+  const queryClient = useQueryClient();
 
   // Fetch user data
   const { data: user } = useQuery<User>({
@@ -31,8 +32,10 @@ const Profile = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  const logout = () => {
-    logoutUser();
+  const logout = async () => {
+    // Clear React Query cache before logging out
+    queryClient.clear();
+    await logoutUser();
     router.push(AuthRoutes.LOGIN);
   };
 

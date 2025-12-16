@@ -300,9 +300,9 @@ export const getStudentsClient = async (centerId?: string | null) => {
       "Content-Type": "application/json",
     };
 
-    // Add X-Center-Id header ONLY if centerId is provided and not "all" or null
-    // When centerId is null or "all", we don't send the header to get all records
-    if (centerId && centerId !== "all" && centerId !== null) {
+    // Add X-Center-Id header ONLY if centerId is provided and not "all", null, or empty string
+    // When centerId is null, "all", or empty, we don't send the header to get all records
+    if (centerId && centerId !== "all" && centerId !== null && centerId.trim() !== "") {
       headers["X-Center-Id"] = centerId;
     }
 
@@ -313,7 +313,17 @@ export const getStudentsClient = async (centerId?: string | null) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch students: ${res.statusText}`);
+      // Try to extract error message from response body
+      let errorMessage = `Failed to fetch students: ${res.statusText}`;
+      try {
+        const errorData = await res.json();
+        if (errorData.error) {
+          errorMessage = `Failed to fetch students: ${errorData.error}`;
+        }
+      } catch {
+        // If JSON parsing fails, use the default error message
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await res.json();
