@@ -28,13 +28,16 @@ export interface Lead {
   address: string;
   birthDate: string;
   centerId: string;
+  center?: Center;
   courseId: string;
   course: Course;
   enquiryDate: string;
   source: string;
   status: string;
   nextFollowUpDate: string;
+  lastFollowUpDate?: string;
   studyType: string;
+  assignedTo?: string;
   guardians: Guardian[];
   notes: LeadNote[];
   documents: Document[];
@@ -47,7 +50,7 @@ export interface ILead {
   email: string;
   phone: string;
   address: string;
-  birthDate: string;
+  birthDate: string | null;
   guardianName: string;
   guardianPhone: string;
   guardianEmail: string | null;
@@ -55,11 +58,11 @@ export interface ILead {
   courseId: string;
   enquiryDate: string;
   source: string;
-  status: string;
-  assignedTo: string;
-  lastFollowUpDate: string;
-  nextFollowUpDate: string;
-  studyType: string;
+  status: string | null;
+  assignedTo: string | null;
+  lastFollowUpDate: string | null;
+  nextFollowUpDate: string | null;
+  studyType: string | null;
   note: string | null;
 }
 
@@ -75,6 +78,7 @@ export interface ILeadModalProps {
     phone?: string;
     email?: string;
     address?: string;
+    birthDate?: string;
     parentName?: string;
     parentPhone?: string;
     parentEmail?: string;
@@ -87,7 +91,7 @@ export interface ILeadModalProps {
     lastFollowUpDate?: string;
     nextFollowUpDate?: string;
     studyType?: string;
-    note: string;
+    note?: string;
   };
   mode: "add" | "edit";
 }

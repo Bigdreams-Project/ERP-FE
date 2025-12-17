@@ -1,9 +1,6 @@
-import { paymentPlan, statuses } from "@/data/view/student.data";
-import { getCourseClient } from "@/lib/client-network";
-import { Course } from "@/types/academic/course.interface";
+import { statuses } from "@/data/view/student.data";
 import {
   IEditStudent,
-  IStudent,
   IStudentEditModalProps
 } from "@/types/academic/student.interface";
 import { editStudentSchema } from "@/validations/academic/student.validation";
@@ -17,21 +14,16 @@ import { useForm } from "react-hook-form";
 const EditStudentModal: React.FC<IStudentEditModalProps> = ({
   isOpen,
   onClose,
-  initialData,
   onSave,
   student,
-  courses,
   centers,
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors, isValid },
-    getValues,
   } = useForm<IEditStudent>({
     resolver: yupResolver(editStudentSchema),
     mode: "onTouched",
@@ -47,10 +39,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
       guardianPhone: student.guardians[0]?.phone,
       guardianEmail: student.guardians[0]?.email,
       guardianAddress: student.guardians[0]?.address,
-      courseId: student.courses[0]?.id,
-      batchId: student.batches[0]?.id,
     },
   });
+
+  const [enrolledDate, setEnrolledDate] = useState<Date | null>(null);
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
 
   useEffect(() => {
     if (student) {
@@ -66,9 +59,6 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
         guardianPhone: student.guardians?.[0]?.phone || "",
         guardianEmail: student.guardians?.[0]?.email || "",
         guardianAddress: student.guardians?.[0]?.address || "",
-        courseId: student.courses?.[0]?.id || "",
-        batchId: student.batches?.[0]?.id || "",
-        paymentPlan: student.paymentPlan || "",
         status: student.status || "",
       });
 
@@ -79,92 +69,7 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
     }
   }, [student, reset, isOpen]);
 
-
-  const courseId = watch("courseId");
-  const paymentplan = watch("paymentPlan");
-
-  const [selectedCourse, setSelectedCourse] = useState<Course>();
-  const [showBaseFeeError, setShowBaseFeeError] = useState(false);
-  const [loadingCourse, setLoadingCourse] = useState(false);
-
-  const [plan, setPlan] = useState<string>("lumpsum");
-  const [maxInstallment, setMaxInstallment] = useState<number>(2);
-  const [lumpSum, setLumpSum] = useState<number>(0);
-
-  const [enrolledDate, setEnrolledDate] = useState<Date | null>(null);
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-
-  useEffect(() => {
-    if (plan === "lumpsum") {
-      setValue(
-        "lumpSumFee",
-        selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
-      );
-      setLumpSum(selectedCourse?.courseAssignments[0]?.lumpSumFee!);
-      setMaxInstallment(2);
-    } else {
-      setValue(
-        "lumpSumFee",
-        (
-          selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment!
-        ).toString()
-      );
-      setLumpSum(
-        selectedCourse?.courseAssignments[0]?.lumpSumFee! / maxInstallment
-      );
-    }
-
-    setValue(
-      "courseFee",
-      selectedCourse?.courseAssignments[0]?.lumpSumFee!.toString()!
-    );
-    setValue("numberOfInstallments", maxInstallment?.toString());
-  }, [plan, maxInstallment, selectedCourse?.courseAssignments]);
-
-  useEffect(() => {
-    if (initialData?.courseId) {
-      setValue("courseId", initialData.courseId);
-      setSelectedCourse(undefined);
-      return;
-    }
-
-    if (!courseId) {
-      setSelectedCourse(undefined);
-      return;
-    }
-
-    const fetchCourse = async () => {
-      try {
-        setLoadingCourse(true);
-        const course = await getCourseClient(courseId);
-        setSelectedCourse(course);
-      } catch (err) {
-      } finally {
-        setLoadingCourse(false);
-      }
-    };
-
-    fetchCourse();
-  }, [courseId]);
-
-  useEffect(() => {
-    if (initialData?.courseId) {
-      setValue("courseId", initialData.courseId);
-    }
-  }, [initialData, setValue]);
-
-  const handlePaymentPlan = (e: any) => {
-    setValue("paymentPlan", e.target.value);
-    setPlan(e.target.value);
-  };
-
-  const handleMaxInstallment = (e: any) => {
-    setValue("numberOfInstallments", e.target.value);
-    setMaxInstallment(e.target.value);
-  };
-
-  const onSubmit = (data: IStudent | any) => {
-    if (showBaseFeeError) return;
+  const onSubmit = (data: IEditStudent) => {
     onSave(data);
   };
 
@@ -190,6 +95,25 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
+          {/* Lead ID - Read only */}
+          {student.leadId && (
+            <div className="flex flex-col mb-4">
+              <label
+                htmlFor="leadId"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Lead ID
+              </label>
+              <input
+                type="text"
+                id="leadId"
+                value={student.leadId}
+                readOnly
+                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-300 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent cursor-not-allowed"
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             {/* Full Name */}
             <div className="flex flex-col sm:col-span-1">
@@ -328,9 +252,9 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
               </span>
-              {errors.courseId && (
+              {errors.centerId && (
                 <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.courseId.message}
+                  {errors.centerId.message}
                 </p>
               )}
             </div>
@@ -475,235 +399,6 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
               )}
             </div>
 
-            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200 dark:border-gray-700"></div>
-
-            {/* Course of Interest */}
-            <div className="flex flex-col relative">
-              <label
-                htmlFor="courseId"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Course of Interest
-              </label>
-              <select
-                id="courseId"
-                {...register("courseId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
-              >
-                <option value="">Select Course</option>
-                {courses.map((course) => {
-                  const courseType = course.type?.toLowerCase();
-                  let prefix = "";
-                  if (courseType === "tecterminal" || courseType === "tec_terminal") {
-                    prefix = "TT";
-                  } else if (courseType === "aptech") {
-                    prefix = "AP";
-                  } else if (courseType === "cpms") {
-                    prefix = "CP";
-                  }
-                  const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
-                  return (
-                    <option key={course.id} value={course.id}>
-                      {displayName}
-                    </option>
-                  );
-                })}
-              </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
-                <ChevronDown size={18} />
-              </span>
-              {errors.courseId && (
-                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.courseId.message}
-                </p>
-              )}
-            </div>
-
-            {/* Course Fee */}
-            <div className="flex flex-col">
-              <label
-                htmlFor="courseFee"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Course Fee
-              </label>
-              <input
-                type="text"
-                id="courseFee"
-                {...register("courseFee")}
-                value={
-                  selectedCourse
-                    ? `₦${selectedCourse.courseAssignments[0]?.lumpSumFee?.toLocaleString()}`
-                    : ""
-                }
-                readOnly
-                className="w-full h-10 px-4 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-transparent cursor-not-allowed"
-              />
-            </div>
-
-            {/* Batch */}
-            <div className="flex flex-col relative">
-              <label
-                htmlFor="batchId"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Batch
-              </label>
-              <select
-                id="batchId"
-                {...register("batchId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
-              >
-                <option value="">Select Batch</option>
-                {selectedCourse?.batches.map((batch) => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch?.faculty?.fullname} - {batch?.code}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
-                <ChevronDown size={18} />
-              </span>
-              {errors.batchId && (
-                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.batchId.message}
-                </p>
-              )}
-            </div>
-
-            {/* Payment Plan */}
-            <div className="flex flex-col relative">
-              <label
-                htmlFor="paymentPlan"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Payment Plan
-              </label>
-              <select
-                id="paymentPlan"
-                onChange={handlePaymentPlan}
-                disabled={!selectedCourse}
-                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
-              >
-                <option value="">Select Payment Plan</option>
-                {paymentPlan?.map((plan) => (
-                  <option key={plan.name} value={plan.value}>
-                    {plan.name}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
-                <ChevronDown size={18} />
-              </span>
-              {errors.paymentPlan && (
-                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.paymentPlan.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-6">
-            {/* Lump Sum */}
-            <div className="flex flex-col">
-              <label
-                htmlFor="lumpSum"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {paymentplan === "installment" ? "Installment Sum" : "Lump Sum"}
-              </label>
-              <input
-                type="text"
-                {...register("lumpSumFee")}
-                value={lumpSum ? `₦${lumpSum.toLocaleString()}` : ""}
-                readOnly
-                className={`w-full h-10 px-4 text-sm text-gray-600 rounded-lg bg-gray-100 border-2 border-transparent focus:border-white focus:outline-none transition-colors`}
-              />
-              {errors.lumpSumFee && (
-                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.lumpSumFee.message}
-                </p>
-              )}
-            </div>
-
-            {/* No. of Installments */}
-            {paymentplan === "installment" && (
-              <div className="flex flex-col relative">
-                <label
-                  htmlFor="numberOfInstallments"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  No. of Installments
-                </label>
-                <select
-                  id="numberOfInstallments"
-                  onChange={handleMaxInstallment}
-                  disabled={
-                    !selectedCourse?.courseAssignments[0]?.maxInstallments
-                  }
-                  className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent 
-             focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
-                >
-                  <option value="">Select Installments</option>
-                  {selectedCourse?.courseAssignments[0]?.maxInstallments &&
-                    Array.from(
-                      {
-                        length:
-                          selectedCourse.courseAssignments[0]?.maxInstallments,
-                      },
-                      (_, i) => i + 2
-                    ).map((num) => (
-                      <option key={num} value={num}>
-                        {num}
-                      </option>
-                    ))}
-                </select>
-                <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <ChevronDown size={18} />
-                </span>
-                {errors.numberOfInstallments && (
-                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                    {errors.numberOfInstallments.message}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
-            Required base fee is ₦
-            {selectedCourse?.courseAssignments[0]?.baseFee.toLocaleString()} for
-            enrollment
-          </p>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
-            Total Deposit Record: ₦
-          </p>
-
-          {showBaseFeeError && (
-            <p className="text-red-500 dark:text-red-400 text-sm mt-2 font-semibold">
-              Student does not meet base enrollment fee
-            </p>
-          )}
-
-          {/* Notes */}
-          <div className="flex flex-col sm:col-span-2 mt-4">
-            <label
-              htmlFor="notes"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Note
-            </label>
-            <textarea
-              id="notes"
-              {...register("notes")}
-              rows={3}
-              className="w-full p-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
-            ></textarea>
-            {errors.notes && (
-              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                {errors.notes.message}
-              </p>
-            )}
           </div>
 
           {/* Action Buttons */}
@@ -718,11 +413,11 @@ const EditStudentModal: React.FC<IStudentEditModalProps> = ({
             <button
               type="submit"
               className={`px-6 py-2 text-white font-medium rounded-lg transition-colors ${
-                isValid && !showBaseFeeError
+                isValid
                   ? "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600"
                   : "bg-blue-400 dark:bg-blue-600 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid || showBaseFeeError}
+              disabled={!isValid}
             >
               Save changes
             </button>

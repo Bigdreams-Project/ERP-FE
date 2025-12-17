@@ -1,5 +1,4 @@
 "use client";
-import { locations } from "@/data/view/center.data";
 import { ILead, ILeadModalProps } from "@/types/academic/lead.interface";
 import { leadSchema } from "@/validations/academic/lead.validations";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,9 +18,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { GiTeacher } from "react-icons/gi";
 import { ImSpinner2 } from "react-icons/im";
@@ -36,21 +33,11 @@ const LeadModal: React.FC<ILeadModalProps> = ({
   mode,
   isLoading = false,
 }) => {
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const [enquiryDate, setEnquiryDate] = useState<Date | null>(null);
-  const [nextFollowUpDate, setNextFollowUpDate] = useState<Date | null>(null);
-  const [lastFollowUpDate, setLastFollowUpDate] = useState<Date | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<{
-    name: string;
-  } | null>(null);
-
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isValid },
-    watch,
-    setValue,
   } = useForm<ILead>({
     resolver: yupResolver(leadSchema),
     mode: "onTouched",
@@ -62,61 +49,121 @@ const LeadModal: React.FC<ILeadModalProps> = ({
       guardianName: "",
       guardianPhone: "",
       guardianEmail: "",
+      centerId: "",
       courseId: "",
+      birthDate: "",
       enquiryDate: "",
       source: "",
       status: "",
       lastFollowUpDate: "",
+      nextFollowUpDate: "",
       studyType: "",
+      assignedTo: "",
+      note: "",
     },
   });
 
-  const selectedCourseName = watch("courseId");
-
-  useEffect(() => {
-    const found = courses.find((c) => c.name === selectedCourseName);
-    if (found) {
-      setSelectedCourse(found);
-    } else {
-      setSelectedCourse(null);
+  // Helper function to format date for HTML date input (YYYY-MM-DD)
+  const formatDateForInput = (dateString: string | undefined | null): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+      return date.toISOString().split("T")[0];
+    } catch {
+      return "";
     }
-  }, [selectedCourseName]);
+  };
 
+  // Helper function to normalize status to enum format
+  const normalizeStatus = (status: string | undefined | null): string => {
+    if (!status) return "";
+    const statusMap: Record<string, string> = {
+      "New": "NEW",
+      "new": "NEW",
+      "NEW": "NEW",
+      "In Progress": "IN_PROGRESS",
+      "in progress": "IN_PROGRESS",
+      "IN_PROGRESS": "IN_PROGRESS",
+      "Contacted": "CONTACTED",
+      "contacted": "CONTACTED",
+      "CONTACTED": "CONTACTED",
+      "Deposited": "DEPOSITED",
+      "deposited": "DEPOSITED",
+      "DEPOSITED": "DEPOSITED",
+      "Enrolled": "ENROLLED",
+      "enrolled": "ENROLLED",
+      "ENROLLED": "ENROLLED",
+    };
+    return statusMap[status] || status;
+  };
+
+  // Helper function to normalize studyType to enum format
+  const normalizeStudyType = (studyType: string | undefined | null): string => {
+    if (!studyType) return "";
+    const studyTypeMap: Record<string, string> = {
+      "Online": "ONLINE",
+      "online": "ONLINE",
+      "ONLINE": "ONLINE",
+      "On-site": "ON_SITE",
+      "on-site": "ON_SITE",
+      "Onsite": "ON_SITE",
+      "onsite": "ON_SITE",
+      "ON_SITE": "ON_SITE",
+      "ON-SITE": "ON_SITE",
+    };
+    return studyTypeMap[studyType] || studyType;
+  };
+
+  // Reset form when modal opens or initialData changes
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
         reset({
-          ...initialData,
+          fullName: initialData.fullName ?? "",
+          email: initialData.email ?? "",
+          phone: initialData.phone ?? "",
+          address: initialData.address ?? "",
+          guardianName: initialData.parentName ?? "",
+          guardianPhone: initialData.parentPhone ?? "",
+          guardianEmail: initialData.parentEmail ?? "",
           centerId: initialData.centerId ?? "",
           courseId: initialData.courseId ?? "",
-          enquiryDate: initialData.enquiryDate ?? "",
+          birthDate: formatDateForInput(initialData.birthDate),
+          enquiryDate: formatDateForInput(initialData.enquiryDate),
           source: initialData.source ?? "",
-          status: initialData.status ?? "",
+          status: normalizeStatus(initialData.status),
           assignedTo: initialData.assignedTo ?? "",
-          lastFollowUpDate: initialData.lastFollowUpDate ?? "",
-          nextFollowUpDate: initialData.nextFollowUpDate ?? "",
-          studyType: initialData.studyType ?? "",
+          lastFollowUpDate: formatDateForInput(initialData.lastFollowUpDate),
+          nextFollowUpDate: formatDateForInput(initialData.nextFollowUpDate),
+          studyType: normalizeStudyType(initialData.studyType),
+          note: initialData.note ?? "",
+        });
+      } else {
+        // Reset to empty form for add mode
+        reset({
+          fullName: "",
+          email: "",
+          phone: "",
+          address: "",
+          guardianName: "",
+          guardianPhone: "",
+          guardianEmail: "",
+          centerId: "",
+          courseId: "",
+          birthDate: "",
+          enquiryDate: "",
+          source: "",
+          status: "",
+          lastFollowUpDate: "",
+          nextFollowUpDate: "",
+          studyType: "",
+          assignedTo: "",
+          note: "",
         });
       }
     }
   }, [isOpen, initialData, reset]);
-
-  useEffect(() => {
-    if (initialData) {
-      reset({
-        ...initialData,
-        centerId: initialData.centerId ?? "",
-        courseId: initialData.courseId ?? "",
-        enquiryDate: initialData.enquiryDate ?? "",
-        source: initialData.source ?? "",
-        status: initialData.status ?? "",
-        assignedTo: initialData.assignedTo ?? "",
-        lastFollowUpDate: initialData.lastFollowUpDate ?? "",
-        nextFollowUpDate: initialData.nextFollowUpDate ?? "",
-        studyType: initialData.studyType ?? "",
-      });
-    }
-  }, [initialData, reset]);
 
   const onSubmit = (data: ILead | any) => {
     onSave(data);
@@ -383,17 +430,10 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <Calendar size={14} /> Birth Date
               </label>
-              <DatePicker
-                selected={birthDate}
-                onChange={(date) => {
-                  if (date) {
-                    setBirthDate(date);
-                    setValue("birthDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
+              <input
+                type="date"
+                id="birthDate"
+                {...register("birthDate")}
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.birthDate && (
@@ -411,17 +451,10 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <Calendar size={14} /> Enquiry Date
               </label>
-              <DatePicker
-                selected={enquiryDate}
-                onChange={(date) => {
-                  if (date) {
-                    setEnquiryDate(date);
-                    setValue("enquiryDate", date.toISOString().split("T")[0], {
-                      shouldValidate: true,
-                    });
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
+              <input
+                type="date"
+                id="enquiryDate"
+                {...register("enquiryDate")}
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.enquiryDate && (
@@ -473,10 +506,11 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Choose Status</option>
-                <option value="New">New</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Converted">Converted</option>
-                <option value="Lost">Lost</option>
+                <option value="NEW">New</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="CONTACTED">Contacted</option>
+                <option value="DEPOSITED">Deposited</option>
+                <option value="ENROLLED">Enrolled</option>
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />
@@ -496,21 +530,10 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <Clock size={14} /> Last Follow-up
               </label>
-              <DatePicker
-                selected={lastFollowUpDate}
-                onChange={(date) => {
-                  if (date) {
-                    setLastFollowUpDate(date);
-                    setValue(
-                      "lastFollowUpDate",
-                      date.toISOString().split("T")[0],
-                      {
-                        shouldValidate: true,
-                      }
-                    );
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
+              <input
+                type="date"
+                id="lastFollowUpDate"
+                {...register("lastFollowUpDate")}
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.lastFollowUpDate && (
@@ -528,21 +551,10 @@ const LeadModal: React.FC<ILeadModalProps> = ({
               >
                 <Clock size={14} /> Next Follow-up
               </label>
-              <DatePicker
-                selected={nextFollowUpDate}
-                onChange={(date) => {
-                  if (date) {
-                    setNextFollowUpDate(date);
-                    setValue(
-                      "nextFollowUpDate",
-                      date.toISOString().split("T")[0],
-                      {
-                        shouldValidate: true,
-                      }
-                    );
-                  }
-                }}
-                dateFormat="yyyy-MM-dd"
+              <input
+                type="date"
+                id="nextFollowUpDate"
+                {...register("nextFollowUpDate")}
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
               />
               {errors.nextFollowUpDate && (
@@ -566,8 +578,8 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Choose Type</option>
-                <option value="Online">Online</option>
-                <option value="On-site">On-site</option>
+                <option value="ONLINE">Online</option>
+                <option value="ON_SITE">On-site</option>
               </select>
               <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
                 <ChevronDown size={18} />

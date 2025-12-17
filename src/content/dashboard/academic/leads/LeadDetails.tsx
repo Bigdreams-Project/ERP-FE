@@ -8,8 +8,9 @@ import { formatDate, formatCourseType } from "@/lib/utils";
 import { Center } from "@/types/academic/center.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Lead } from "@/types/academic/lead.interface";
-import { CreateLead } from "@/types/requests/lead.interface";
+import { UpdateLead } from "@/types/requests/lead.interface";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CgAttachment } from "react-icons/cg";
 import { IoMdAdd } from "react-icons/io";
@@ -24,17 +25,61 @@ interface LeadDetailsProps {
 
 const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleSave = async (payload: CreateLead) => {
+  // Get center name from centers array
+  const centerName = centers.find(c => c.id === lead.centerId)?.name || "N/A";
+
+  // Get guardian details from the lead
+  const guardian = lead.guardians && lead.guardians.length > 0 ? lead.guardians[0] : null;
+
+  const handleSave = async (payload: any) => {
+    setIsUpdating(true);
     try {
-      await updateLeadClient(lead.id, payload);
+      // Transform payload to match backend expectations
+      // Don't include 'id' as it's already in the URL
+      const updatePayload: Partial<UpdateLead> = {
+        fullName: payload.fullName,
+        email: payload.email,
+        phone: payload.phone,
+        address: payload.address,
+        parentName: payload.guardianName,
+        parentPhone: payload.guardianPhone,
+        courseId: payload.courseId,
+        centerId: payload.centerId,
+        enquiryDate: payload.enquiryDate,
+        source: payload.source,
+      };
+
+      // Only include optional fields if they have values
+      if (payload.birthDate) updatePayload.birthDate = payload.birthDate;
+      if (payload.guardianEmail) updatePayload.parentEmail = payload.guardianEmail;
+      if (payload.status) updatePayload.status = payload.status;
+      if (payload.studyType) updatePayload.studyType = payload.studyType;
+      if (payload.nextFollowUpDate) updatePayload.nextFollowUpDate = payload.nextFollowUpDate;
+      if (payload.lastFollowUpDate) updatePayload.lastFollowUpDate = payload.lastFollowUpDate;
+      if (payload.assignedTo) updatePayload.assignedTo = payload.assignedTo;
+      if (payload.note) updatePayload.note = payload.note;
+
+      await updateLeadClient(lead.id, updatePayload as UpdateLead);
       showSuccess("Lead updated successfully");
-      queryClient.invalidateQueries(["leads"]);
-      queryClient.invalidateQueries(["lead", lead.id]);
+      
+      // Invalidate React Query cache
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead", lead.id] });
+      
+      // Close modal first
       setIsEditModalOpen(false);
+      
+      // Refresh the page to get updated data from server
+      router.refresh();
     } catch (error: any) {
-      showError("Failed to update lead");
+      console.error("Update lead error:", error);
+      showError(error?.response?.data?.message || "Failed to update lead");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -84,51 +129,61 @@ const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2">
           <div className="border-r-2 border-grey dark:border-gray-700">
             {/* Lead Details */}
-            <div className="h-80">
+            <div className="h-auto min-h-80">
               <h2 className="text-lg font-semibold py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 LEAD DETAILS
               </h2>
               <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
-                {Object.entries({
-                  fullName: "Name",
-                  status: "Status",
-                  nextFollowUpDate: "Next Follow-up",
-                  createdAt: "Created",
-                  source: "Source",
-                  email: "Email",
-                  phone: "Phone",
-                }).map(([key, label]) => (
-                  <div key={key} className="col-span-1">
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                      {label}:
-                    </p>
-                    <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
-                      {label === "Status" ? (
-                        <span
-                          className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                            lead.status === "New"
-                              ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                          }`}
-                        >
-                          {lead.status}
-                        </span>
-                      ) : key.includes("Date") || key === "createdAt" ? (
-                        formatDate(lead[key as keyof Lead] as any)
-                      ) : typeof lead[key as keyof Lead] === "object" ? (
-                        Array.isArray(lead[key as keyof Lead]) ? (
-                          `${
-                            (lead[key as keyof Lead] as any[]).length
-                          } items`
-                        ) : (
-                          (lead[key as keyof Lead] as any)?.name || "N/A"
-                        )
-                      ) : (
-                        (lead[key as keyof Lead] as string) || "N/A"
-                      )}
-                    </p>
-                  </div>
-                ))}
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Name:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{lead.fullName || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Status:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
+                    <span
+                      className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                        lead.status === "NEW"
+                          ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200"
+                          : lead.status === "IN_PROGRESS"
+                          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200"
+                          : lead.status === "CONTACTED"
+                          ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200"
+                          : lead.status === "DEPOSITED"
+                          ? "bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200"
+                          : lead.status === "ENROLLED"
+                          ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      }`}
+                    >
+                      {lead.status?.replace(/_/g, " ") || "N/A"}
+                    </span>
+                  </p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Center:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{centerName}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Next Follow-up:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{formatDate(lead.nextFollowUpDate)}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Created:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{lead.createdAt ? formatDate(lead.createdAt) : "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Source:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{lead.source || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Email:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{lead.email || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Phone:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{lead.phone || "N/A"}</p>
+                </div>
               </div>
             </div>
 
@@ -177,30 +232,35 @@ const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
 
           {/* Other Information */}
           <div>
-            <div className="h-80">
+            <div className="h-auto min-h-80">
               <h2 className="text-lg font-semibold px-2 py-1 text-gray-800 dark:text-gray-200 border-t-2 border-b-2 border-grey dark:border-gray-700">
                 OTHER INFORMATION
               </h2>
               <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
-                {Object.entries({
-                  address: "Home Address",
-                  courseType: "Course Type",
-                  guardianName: "Parent/Guardian Name",
-                  guardianEmail: "Parent/Guardian Email",
-                  guardianPhone: "Parent/Guardian Phone",
-                  guardianAddress: "Parent/Guardian Home Address",
-                }).map(([key, label]) => (
-                  <div key={key} className="col-span-1">
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                      {label}:
-                    </p>
-                    <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
-                      {key === "courseType" 
-                        ? formatCourseType((lead as any)[key] || lead.course?.type) || "N/A"
-                        : (lead as any)[key] || "N/A"}
-                    </p>
-                  </div>
-                ))}
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Home Address:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{lead.address || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Course Type:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{formatCourseType(lead.course?.type) || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Parent/Guardian Name:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{guardian?.fullname || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Parent/Guardian Email:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{guardian?.email || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Parent/Guardian Phone:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{guardian?.phone || "N/A"}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Parent/Guardian Home Address:</p>
+                  <p className="mt-1 font-semibold text-gray-900 dark:text-gray-100">{guardian?.address || "N/A"}</p>
+                </div>
               </div>
             </div>
 
@@ -261,24 +321,26 @@ const LeadDetails = ({ lead, courses, centers }: LeadDetailsProps) => {
         courses={courses}
         centers={centers}
         mode="edit"
+        isLoading={isUpdating}
         initialData={{
           fullName: lead.fullName,
           email: lead.email,
           phone: lead.phone,
           address: lead.address,
-          parentName: lead.guardians && lead.guardians.length > 0 ? lead.guardians[0].fullname : "",
-          parentPhone: lead.guardians && lead.guardians.length > 0 ? lead.guardians[0].phone : "",
-          parentEmail: lead.guardians && lead.guardians.length > 0 ? lead.guardians[0].email : "",
+          birthDate: lead.birthDate,
+          parentName: guardian?.fullname || "",
+          parentPhone: guardian?.phone || "",
+          parentEmail: guardian?.email || "",
           courseId: lead.courseId,
           centerId: lead.centerId,
           enquiryDate: lead.enquiryDate,
           nextFollowUpDate: lead.nextFollowUpDate,
-          lastFollowUpDate: lead.nextFollowUpDate, // Use nextFollowUpDate as fallback
+          lastFollowUpDate: lead.lastFollowUpDate || lead.nextFollowUpDate,
           note: lead.notes && lead.notes.length > 0 ? lead.notes[lead.notes.length - 1].note : "",
           source: lead.source,
           status: lead.status,
           studyType: lead.studyType,
-          assignedTo: "", // assignedTo doesn't exist on Lead interface
+          assignedTo: lead.assignedTo || "",
         }}
       />
     </div>

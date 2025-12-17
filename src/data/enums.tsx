@@ -12,9 +12,12 @@ export const AcademicStatus = {
   GRADUATED: "Graduated",
   DRAFT: "Draft",
   ONHOLD: "On Hold",
-  NEW: "New",
-  CONTACTED: "Contacted",
-  DEPOSITED: "Deposited",
+  // Lead statuses - using uppercase enum values
+  NEW: "NEW",
+  IN_PROGRESS: "IN_PROGRESS",
+  CONTACTED: "CONTACTED",
+  DEPOSITED: "DEPOSITED",
+  ENROLLED: "ENROLLED",
   NOT_INTERESTED: "Not Interested",
   HIGH: "High",
   LOW: "Low",
@@ -23,6 +26,7 @@ export const AcademicStatus = {
 
 export const ConversionSteps = [
   { id: "NEW", label: "New" },
+  { id: "IN_PROGRESS", label: "In Progress" },
   { id: "CONTACTED", label: "Contacted" },
   { id: "DEPOSITED", label: "Deposited" },
   { id: "ENROLLED", label: "Enrolled" },

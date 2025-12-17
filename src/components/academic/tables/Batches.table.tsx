@@ -1,16 +1,14 @@
 "use client";
 import BatchModal from "@/components/modals/academic/Batch.modal";
-import EntityDeleteModal from "@/components/modals/academic/EntityDeleteModal";
 import NotFoundComponent from "@/components/NotFoundComponent";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { useEntityDelete } from "@/hooks/useEntityDelete";
 // Removed unused mock data import to speed up compilation
-import { createBatch } from "@/lib/network";
+import { createBatchClient, updateBatchClient } from "@/lib/client-network";
+import { showSuccess, showError } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import { Batch, Faculty } from "@/types/academic/batch.interface";
 import { Course } from "@/types/academic/course.interface";
 import { Student } from "@/types/academic/student.interface";
-import { ChevronDown, Link2Icon, Eye, Trash2 } from "lucide-react";
+import { ChevronDown, Link2Icon, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -35,20 +33,13 @@ export default function BatchTable({
 }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
-  
-  // Use reusable delete hook
-  const { handleHardDelete: handleHardDeleteEntity } = useEntityDelete({
-    entityType: "batches",
-  });
   
   // Use filteredData prop directly (from React Query) - no local state needed
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+  const [editBatchData, setEditBatchData] = useState<any>(null);
   const itemsPerPage = 10;
 
   // All batches are active (no soft delete filtering)
@@ -70,44 +61,102 @@ export default function BatchTable({
     setOpenDropdown(openDropdown === id ? null : id);
   };
 
-  const handleSave = async (payload: any) => {
+  const handleSave = async (payload: any, isDraft: boolean = false) => {
     try {
-      await createBatch(payload);
+      // Format dates to MM/DD/YYYY format for the backend
+      const formatDateForBackend = (dateStr: string) => {
+        if (!dateStr) return dateStr;
+        // If already in YYYY-MM-DD format, convert to MM/DD/YYYY
+        if (dateStr.includes("-")) {
+          const [year, month, day] = dateStr.split("-");
+          return `${month}/${day}/${year}`;
+        }
+        return dateStr;
+      };
+
+      const formattedPayload = {
+        ...payload,
+        startDate: formatDateForBackend(payload.startDate),
+        endDate: formatDateForBackend(payload.endDate),
+      };
+
+      if (mode === "edit" && editBatchData?.id) {
+        // Update existing batch
+        await updateBatchClient(editBatchData.id, formattedPayload);
+        showSuccess("Batch updated successfully!");
+      } else {
+        // Create new batch
+        await createBatchClient(formattedPayload);
+        showSuccess("Batch created successfully!");
+      }
       setIsModalOpen(false);
+      setEditBatchData(null);
+      setMode("add");
       // Invalidate React Query cache to sync with server
       queryClient.invalidateQueries({ queryKey: ["batches"], refetchType: "active" });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || "An error occurred";
+      if (mode === "edit") {
+        showError(`Failed to update batch: ${errorMessage}`);
+      } else {
+        showError(`Failed to create batch: ${errorMessage}`);
+      }
     }
   };
 
-  const handleHardDelete = async (batchId: string) => {
-    setIsDeleteModalOpen(false);
-    setSelectedBatch(null);
-    await handleHardDeleteEntity(batchId);
+  // Helper function to convert any date format to YYYY-MM-DD for HTML date input
+  const formatDateForInput = (dateStr: string | undefined | null): string => {
+    if (!dateStr) return "";
+    
+    // If already in YYYY-MM-DD format (with or without time), extract the date part
+    if (dateStr.includes("-")) {
+      const datePart = dateStr.split("T")[0];
+      // Validate it's a proper YYYY-MM-DD format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        return datePart;
+      }
+    }
+    
+    // Handle MM/DD/YYYY format
+    if (dateStr.includes("/")) {
+      const parts = dateStr.split("/");
+      if (parts.length === 3) {
+        const [month, day, year] = parts;
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      }
+    }
+    
+    // Fallback: try to parse with Date object
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+    
+    return "";
   };
 
-  const handleActivate = (batchId: string) => {
+  const handleEdit = (batch: Batch) => {
     setOpenDropdown(null);
-  };
-
-  const handleView = (batchId: string) => {
-    setOpenDropdown(null);
-  };
-
-  const handleEdit = (batchId: string) => {
-    setOpenDropdown(null);
+    // Transform batch data for the modal form
+    const batchFormData = {
+      id: batch.id,
+      courseId: batch.course?.id || "",
+      centerId: batch.center?.id || "",
+      startDate: formatDateForInput(batch.startDate),
+      endDate: formatDateForInput(batch.endDate),
+      duration: batch.duration?.toString() || "",
+      status: batch.status || "ACTIVE",
+      schedules: batch.schedules || [],
+      facultyIds: batch.batchFaculties?.map((bf: any) => bf.facultyId || bf.faculty?.id).filter(Boolean) || 
+                  (batch.faculty?.id ? [batch.faculty.id] : []),
+      students: batch.students?.map((s: any) => s.id).filter(Boolean) || [],
+    };
+    setEditBatchData(batchFormData);
     setMode("edit");
     setIsModalOpen(true);
-  };
-
-  const handleExport = (batchId: string) => {
-    setOpenDropdown(null);
-  };
-
-  const handleDelete = (batch: Batch) => {
-    setOpenDropdown(null);
-    setSelectedBatch(batch);
-    setIsDeleteModalOpen(true);
   };
 
   return (
@@ -176,30 +225,28 @@ export default function BatchTable({
                         Action
                         <ChevronDown size={16} className="ml-2" />
                       </button>
-                      {openDropdown === batch.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
-                          <button
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/academic/batches/${batch.id}`
-                              )
-                            }
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <Eye size={16} />
-                            View
-                          </button>
-                          {isAdmin && !isAdminLoading && (
-                            <button
-                              onClick={() => handleDelete(batch)}
-                              className="hidden flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      )}
+{openDropdown === batch.id && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                                          <button
+                                            onClick={() =>
+                                              router.push(
+                                                `/dashboard/academic/batches/${batch.id}`
+                                              )
+                                            }
+                                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                          >
+                                            <Eye size={16} />
+                                            View
+                                          </button>
+                                          <button
+                                            onClick={() => handleEdit(batch)}
+                                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                          >
+                                            <Pencil size={16} />
+                                            Edit
+                                          </button>
+                                        </div>
+                                      )}
                     </td>
                   </tr>
                 ))}
@@ -217,29 +264,18 @@ export default function BatchTable({
 
         <BatchModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditBatchData(null);
+            setMode("add");
+          }}
           onSave={handleSave}
           courses={courses}
           students={students}
           faculties={faculties}
-          mode="add"
+          mode={mode}
+          initialData={editBatchData}
         />
-
-        {selectedBatch && selectedBatch.id && (
-          <EntityDeleteModal
-            entityType="Batch"
-            entity={{ ...selectedBatch, id: selectedBatch.id }}
-            isOpen={isDeleteModalOpen}
-            onClose={() => {
-              setIsDeleteModalOpen(false);
-              setSelectedBatch(null);
-            }}
-            onHardDelete={handleHardDelete}
-            hasRelatedData={{
-              students: selectedBatch.students?.length || 0,
-            }}
-          />
-        )}
       </div>
     </div>
   );

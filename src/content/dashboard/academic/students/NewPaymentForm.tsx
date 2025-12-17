@@ -145,9 +145,21 @@ const NewPaymentForm = ({ courses, studentId }: Props) => {
     try {
       await enrollStudentCourse(payload);
       showSuccess("Payment recorded successfully!");
-      queryClient.invalidateQueries(["students"]);
-      queryClient.invalidateQueries(["student", studentId]); 
+      
+      // Invalidate and refetch all related queries to update the page without refresh
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["students"] }),
+        queryClient.invalidateQueries({ queryKey: ["student", studentId] }),
+        queryClient.invalidateQueries({ queryKey: ["student-courses", studentId] }),
+        queryClient.invalidateQueries({ queryKey: ["student-payments", studentId] }),
+      ]);
+      
+      // Force refetch the student courses immediately
+      await queryClient.refetchQueries({ queryKey: ["student-courses", studentId] });
+      
       reset();
+      setSelectedCourse(undefined);
+      setCenterId("");
     } catch (error) {
       showError("Failed to record payment.");
     }

@@ -184,7 +184,7 @@ export default function StudentTable({
   return (
     <div className="font-inter text-gray-200">
       <div className="w-full bg-white dark:bg-gray-800 rounded-lg relative overflow-hidden">
-        <div className="w-full h-[60vh] custom-scroll overflow-x-auto">
+        <div className={`w-full custom-scroll overflow-x-auto ${activeStudents.length === 0 ? '' : 'h-[60vh]'}`}>
           {activeStudents.length === 0 ? (
             <NotFoundComponent text="Student" setIsModalOpen={setIsModalOpen} />
           ) : (

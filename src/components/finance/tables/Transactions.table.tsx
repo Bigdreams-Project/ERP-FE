@@ -3,6 +3,7 @@ import NotFoundComponent from "@/components/NotFoundComponent";
 import { Bank } from "@/types/finance/bank.interface";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useUser } from "@/context/UserContext";
 
 type Props = {
   banks: Bank[];
@@ -21,10 +22,14 @@ export default function BanksTable({
   filterOptions,
 }: Props) {
   const router = useRouter();
+  const { user } = useUser();
   const [data, setData] = useState(banks);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Check if user is a center manager (should not see balance)
+  const isCenterManager = user?.role?.toUpperCase() === "CENTER_MANAGER";
 
   // Update data when banks prop changes
   useEffect(() => {
@@ -56,9 +61,11 @@ export default function BanksTable({
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Account No.
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Balance
-                  </th>
+                  {!isCenterManager && (
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Balance
+                    </th>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
@@ -85,9 +92,11 @@ export default function BanksTable({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {bank.accountNumber}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-500 dark:text-gray-300">
-                      ₦{bank.balance.toLocaleString()}
-                    </td>
+                    {!isCenterManager && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-500 dark:text-gray-300">
+                        ₦{bank.balance.toLocaleString()}
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

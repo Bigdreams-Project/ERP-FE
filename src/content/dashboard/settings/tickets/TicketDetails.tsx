@@ -35,6 +35,8 @@ const TicketDetails = ({ ticketId }: TicketDetailsProps) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showResolutionModal, setShowResolutionModal] = useState(false);
+  const [resolutionText, setResolutionText] = useState("");
 
   // Fetch ticket
   const {
@@ -125,8 +127,23 @@ const TicketDetails = ({ ticketId }: TicketDetailsProps) => {
 
 
   const handleStatusChange = (newStatus: TicketStatus) => {
+    // If changing to RESOLVED, show modal for resolution message
+    if (newStatus === TicketStatus.RESOLVED) {
+      setShowResolutionModal(true);
+      return;
+    }
     setIsUpdating(true);
     updateTicketMutation.mutate({ status: newStatus });
+  };
+
+  const handleResolveWithMessage = () => {
+    setIsUpdating(true);
+    setShowResolutionModal(false);
+    updateTicketMutation.mutate({
+      status: TicketStatus.RESOLVED,
+      resolution: resolutionText || undefined,
+    });
+    setResolutionText("");
   };
 
   const handlePriorityChange = (newPriority: TicketPriority) => {
@@ -206,6 +223,7 @@ const TicketDetails = ({ ticketId }: TicketDetailsProps) => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
@@ -241,7 +259,7 @@ const TicketDetails = ({ ticketId }: TicketDetailsProps) => {
                   ticket.status
                 )}`}
               >
-                {ticket.status.replace("_", " ")}
+                {ticket.status.replace("_", " ").charAt(0) + ticket.status.replace("_", " ").slice(1).toLowerCase()}
               </span>
             </div>
           </div>
@@ -334,7 +352,7 @@ const TicketDetails = ({ ticketId }: TicketDetailsProps) => {
                     >
                       {Object.values(TicketStatus).map((status) => (
                         <option key={status} value={status}>
-                          {status.replace("_", " ")}
+                          {status.replace("_", " ").charAt(0) + status.replace("_", " ").slice(1).toLowerCase()}
                         </option>
                       ))}
                     </select>
@@ -359,7 +377,7 @@ const TicketDetails = ({ ticketId }: TicketDetailsProps) => {
                     >
                       {Object.values(TicketPriority).map((priority) => (
                         <option key={priority} value={priority}>
-                          {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                          {priority.charAt(0) + priority.slice(1).toLowerCase()}
                         </option>
                       ))}
                     </select>
@@ -453,6 +471,45 @@ const TicketDetails = ({ ticketId }: TicketDetailsProps) => {
         </div>
       </div>
     </div>
+
+    {/* Resolution Modal */}
+    {showResolutionModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Resolve Ticket
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Please provide a resolution message (optional):
+          </p>
+          <textarea
+            value={resolutionText}
+            onChange={(e) => setResolutionText(e.target.value)}
+            placeholder="Describe how the issue was resolved..."
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none"
+            rows={4}
+          />
+          <div className="flex justify-end gap-3 mt-4">
+            <button
+              onClick={() => {
+                setShowResolutionModal(false);
+                setResolutionText("");
+              }}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleResolveWithMessage}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Resolve Ticket
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

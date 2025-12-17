@@ -14,7 +14,7 @@ export const leadSchema = yup.object().shape({
       "Phone number must be 11 digits and start with 0 (e.g., 07033880063)"
     ),
   address: yup.string().required("Address is required"),
-  birthDate: yup.string().required("Birth date is required"),
+  birthDate: yup.string().optional().nullable().notRequired() as yup.StringSchema<string | null>,
   guardianName: yup.string().required("Guardian's name is required"),
   guardianPhone: yup
     .string()
@@ -32,11 +32,11 @@ export const leadSchema = yup.object().shape({
   courseId: yup.string().required("Course of interest is required"),
   enquiryDate: yup.string().required("Enquiry date is required"),
   source: yup.string().required("Source is required"),
-  status: yup.string().required("Status is required"),
-  assignedTo: yup.string().required("Assigned to is required"),
-  lastFollowUpDate: yup.string().required("Last follow-up date is required"),
-  nextFollowUpDate: yup.string().required("Next follow-up date is required"),
-  studyType: yup.string().required("Study type is required"),
+  status: yup.string().optional().nullable().notRequired() as yup.StringSchema<string | null>,
+  assignedTo: yup.string().optional().nullable().notRequired() as yup.StringSchema<string | null>,
+  lastFollowUpDate: yup.string().optional().nullable().notRequired() as yup.StringSchema<string | null>,
+  nextFollowUpDate: yup.string().optional().nullable().notRequired() as yup.StringSchema<string | null>,
+  studyType: yup.string().optional().nullable().notRequired() as yup.StringSchema<string | null>,
   note: yup.string().optional().nullable().notRequired() as yup.StringSchema<
     string | null
   >,

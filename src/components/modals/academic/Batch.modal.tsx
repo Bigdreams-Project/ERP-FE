@@ -156,29 +156,39 @@ const BatchModal: React.FC<IBatchModalProps> = ({
     }
   }, [courseId, setValue, courses, trigger]);
 
-  // Reset the form
+  // Reset the form when modal opens or initialData changes
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    } else {
-      reset({
-        courseId: "",
-        centerId: "",
-        startDate: "",
-        endDate: "",
-        schedules: [
-          {
-            day: "Monday",
-            startTime: "",
-            endTime: "",
-            duration: 2,
-          },
-        ],
-        facultyIds: [],
-        students: [],
-      });
+    if (isOpen) {
+      if (initialData) {
+        reset(initialData);
+        // Set selectedCourse for edit mode
+        if (initialData.courseId) {
+          const foundCourse = courses.find((course) => course.id === initialData.courseId);
+          if (foundCourse) {
+            setSelectedCourse(foundCourse);
+          }
+        }
+      } else {
+        reset({
+          courseId: "",
+          centerId: "",
+          startDate: "",
+          endDate: "",
+          schedules: [
+            {
+              day: "Monday",
+              startTime: "",
+              endTime: "",
+              duration: 2,
+            },
+          ],
+          facultyIds: [],
+          students: [],
+        });
+        setSelectedCourse(null);
+      }
     }
-  }, [initialData, reset]);
+  }, [isOpen, initialData, reset, courses]);
 
   const studentOptions = students.map((student) => ({
     value: student.id,
@@ -306,7 +316,7 @@ const BatchModal: React.FC<IBatchModalProps> = ({
         <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col">
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-              Create New Batch
+              {mode === "edit" ? "Edit Batch" : "Create New Batch"}
             </h2>
           </div>
           <button
@@ -751,7 +761,9 @@ const BatchModal: React.FC<IBatchModalProps> = ({
               {isLoading && (
                 <ImSpinner2 className="animate-spin h-4 w-4" />
               )}
-              {isLoading ? "Creating..." : "Create Batch"}
+              {isLoading 
+                ? (mode === "edit" ? "Updating..." : "Creating...") 
+                : (mode === "edit" ? "Update Batch" : "Create Batch")}
             </button>
           </div>
         </form>

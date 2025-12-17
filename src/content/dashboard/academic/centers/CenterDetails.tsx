@@ -125,9 +125,9 @@ const CenterDetails = ({ center: initialCenter, managers }: CenterDetailsProps) 
               <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid grid-cols-2 gap-4">
                 {Object.entries({
                   Name: center.name,
-                  Address: center.address,
+                  State: center.location?.state || "N/A",
                   Created: formatDate(center.createdAt),
-                  Location: center.address,
+                  Address: center.address || "N/A",
                   "Center Manager": center?.manager?.fullname || "N/A",
                   "Regional Manager": regionalManagerName,
                   "Student Count": center.studentCount !== undefined
@@ -277,7 +277,7 @@ const CenterDetails = ({ center: initialCenter, managers }: CenterDetailsProps) 
         mode="edit"
         initialData={{
           name: center.name,
-          location: center.address, // Use address as location
+          location: center.location?.state || "",
           address: center.address,
           managerId: center.manager?.id || "",
           phone: center.phone,

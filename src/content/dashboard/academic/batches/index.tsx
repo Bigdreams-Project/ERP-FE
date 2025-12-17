@@ -210,6 +210,16 @@ const BatchesContent = ({
   const handleClearAll = () => {
     setAppliedFilters({ status: [], courseType: [] });
     setDateFilterName("");
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setDisplayRange("");
+    setRange([
+      {
+        startDate: new Date(),
+        endDate: new Date(),
+        key: "selection",
+      },
+    ]);
   };
 
   const handleApplyFilter = () => {
@@ -222,21 +232,32 @@ const BatchesContent = ({
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       batch.code.toLowerCase().includes(query) ||
-      batch.faculty?.fullname?.toLowerCase().includes(query);
+      batch.faculty?.fullname?.toLowerCase().includes(query) ||
+      batch.course?.name?.toLowerCase().includes(query);
 
+    // Status comparison - normalize both values to lowercase for comparison
     const matchesStatus =
       appliedFilters.status.length === 0 ||
-      appliedFilters.status.includes(batch.status);
+      appliedFilters.status.some((status: string) => 
+        status.toLowerCase() === batch.status?.toLowerCase()
+      );
 
-    const matchesDateRange =
-      !startDate ||
-      !endDate ||
-      filterItems.some((item) => {
-        const fieldValue = (batch as any)[item.name];
-        if (!fieldValue) return false;
+    // Date range filter - only apply if a specific date field is selected and date range is set
+    let matchesDateRange = true;
+    if (dateFilterName && startDate && endDate) {
+      const fieldValue = (batch as any)[dateFilterName];
+      if (fieldValue) {
         const fieldDate = new Date(fieldValue);
-        return fieldDate >= startDate && fieldDate <= endDate;
-      });
+        // Reset time to midnight for accurate date comparison
+        const startDateMidnight = new Date(startDate);
+        startDateMidnight.setHours(0, 0, 0, 0);
+        const endDateMidnight = new Date(endDate);
+        endDateMidnight.setHours(23, 59, 59, 999);
+        matchesDateRange = fieldDate >= startDateMidnight && fieldDate <= endDateMidnight;
+      } else {
+        matchesDateRange = false;
+      }
+    }
 
     return matchesSearch && matchesStatus && matchesDateRange;
   });

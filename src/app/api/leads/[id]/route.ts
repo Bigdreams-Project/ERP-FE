@@ -4,15 +4,30 @@ import { NextRequest } from "next/server";
 import axios from "axios";
 
 /**
- * PATCH handler for soft delete (sets deletedAt timestamp)
+ * PATCH handler for updating leads or soft delete
  * Uses AdminProtectedRoute service for standardized auth and error handling
  */
 export const PATCH = createAdminProtectedRoute(
   async ({ session, id, body }) => {
-    // Soft delete: use dedicated soft-delete endpoint
+    // If body contains only deletedAt, it's a soft delete request
+    if (body?.deletedAt && Object.keys(body).length === 1) {
+      const response = await axios.patch(
+        `${AuthRoutes.BASE_URL}/leads/${id}/soft-delete`,
+        { deletedAt: body.deletedAt },
+        {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    }
+
+    // Otherwise, it's a regular update request
     const response = await axios.patch(
-      `${AuthRoutes.BASE_URL}/leads/${id}/soft-delete`,
-      { deletedAt: body?.deletedAt || new Date().toISOString() },
+      `${AuthRoutes.BASE_URL}/leads/${id}`,
+      body,
       {
         headers: {
           Authorization: `Bearer ${session.accessToken}`,

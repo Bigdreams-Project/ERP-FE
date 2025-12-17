@@ -2,13 +2,15 @@ import { AcademicStatus, ConversionSteps } from "@/data/enums";
 
 export const getStepBgColor = (step: string) => {
   switch (step) {
-    case ConversionSteps[0].id:
+    case "NEW":
       return "bg-amber-50 dark:bg-amber-900/30 text-amber-500 dark:text-amber-300 ring-amber-500/10 dark:ring-amber-500/20";
-    case ConversionSteps[1].id:
+    case "IN_PROGRESS":
       return "bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-300 ring-blue-500/10 dark:ring-blue-500/20";
-    case ConversionSteps[2].id:
+    case "CONTACTED":
+      return "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-500 dark:text-cyan-300 ring-cyan-500/10 dark:ring-cyan-500/20";
+    case "DEPOSITED":
       return "bg-green-50 dark:bg-green-900/30 text-green-500 dark:text-green-300 ring-green-500/10 dark:ring-green-500/20";
-    case ConversionSteps[3].id:
+    case "ENROLLED":
       return "bg-purple-50 dark:bg-purple-900/30 text-purple-500 dark:text-purple-300 ring-purple-500/10 dark:ring-purple-500/20";
     default:
       return "bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-300 ring-gray-500/10 dark:ring-gray-500/20";
@@ -29,12 +31,17 @@ export const getStatusBgColor = (status: string) => {
       return "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200";
     case AcademicStatus.ONHOLD:
       return "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200";
-    case AcademicStatus.NEW:
-      return "bg-amber-50 dark:bg-amber-900/30 text-amber-500 dark:text-amber-300 ring-amber-500/10 dark:ring-amber-500/20";
-    case AcademicStatus.CONTACTED:
-      return "bg-purple-200 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200";
-    case AcademicStatus.DEPOSITED:
-      return "bg-orange-200 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200";
+    // Lead statuses with uppercase enum values
+    case "NEW":
+      return "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200";
+    case "IN_PROGRESS":
+      return "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200";
+    case "CONTACTED":
+      return "bg-cyan-100 dark:bg-cyan-900/40 text-cyan-800 dark:text-cyan-200";
+    case "DEPOSITED":
+      return "bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200";
+    case "ENROLLED":
+      return "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200";
     case AcademicStatus.NOT_INTERESTED:
       return "bg-red-200 dark:bg-red-900/40 text-red-900 dark:text-red-200";
     case AcademicStatus.HIGH:

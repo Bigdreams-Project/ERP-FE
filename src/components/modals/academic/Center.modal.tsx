@@ -12,9 +12,18 @@ const CenterModal: React.FC<ICenterModalProps> = ({
   onClose,
   initialData,
   onSave,
-  managers, 
+  managers,
   mode,
 }) => {
+  // Filter managers to only show available ones (no center assigned)
+  // In edit mode, also include the current center's manager
+  const availableManagers = managers.filter((manager) => {
+    // Manager is available if they don't have a center assigned
+    const isAvailable = !manager.centerId || manager.centerId === "";
+    // In edit mode, also include the current manager of this center
+    const isCurrentManager = mode === "edit" && initialData?.managerId === manager.id;
+    return isAvailable || isCurrentManager;
+  });
   const defaultBank: IBank = { 
     bankName: "",
     accountNumber: "",
@@ -188,7 +197,7 @@ const CenterModal: React.FC<ICenterModalProps> = ({
                 className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
               >
                 <option value="">Select Manager</option>
-                {managers.map((manager) => (
+                {availableManagers.map((manager) => (
                   <option key={manager.id} value={manager.id}>
                     {manager.fullname}
                   </option>

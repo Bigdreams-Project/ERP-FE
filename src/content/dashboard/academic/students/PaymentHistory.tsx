@@ -78,15 +78,17 @@ const PaymentHistory = ({ data }: Props) => {
   const printReceiptContent = () => {
     const receiptElement = document.getElementById("receipt-content");
     if (!receiptElement) {
+      console.error("Receipt content element not found");
       return;
     }
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("", "_blank", "width=800,height=600");
     if (!printWindow) {
       alert("Please allow popups to print the receipt.");
       return;
     }
 
+    // Clone and prepare the content
     const clonedElement = receiptElement.cloneNode(true) as HTMLElement;
 
     // Hide action buttons in the clone
@@ -95,23 +97,8 @@ const PaymentHistory = ({ data }: Props) => {
       (btn as HTMLElement).style.display = "none";
     });
 
-    const htmlContent = clonedElement.innerHTML;
-
-    // Get all stylesheets from the current document
-    const stylesheets = Array.from(document.styleSheets);
-    let allStyles = "";
-
-    stylesheets.forEach((sheet) => {
-      try {
-        if (sheet.cssRules) {
-          Array.from(sheet.cssRules).forEach((rule) => {
-            allStyles += rule.cssText + "\n";
-          });
-        }
-      } catch (e) {
-        // CORS issue, skip
-      }
-    });
+    // Get computed styles for all elements to ensure proper rendering
+    const outerHTML = clonedElement.outerHTML;
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -119,13 +106,13 @@ const PaymentHistory = ({ data }: Props) => {
       <head>
         <title>Payment Receipt</title>
         <meta charset="utf-8">
-        <script src="https://cdn.tailwindcss.com"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"><\/script>
         <style>
-          ${allStyles}
-          
           @media print {
             @page {
               margin: 0.5in;
+              size: A4;
             }
             body {
               padding: 0;
@@ -135,8 +122,9 @@ const PaymentHistory = ({ data }: Props) => {
               display: none !important;
             }
             * {
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
             }
           }
           
@@ -144,6 +132,7 @@ const PaymentHistory = ({ data }: Props) => {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
             background: white;
+            margin: 0;
           }
           
           #receipt-content {
@@ -151,35 +140,29 @@ const PaymentHistory = ({ data }: Props) => {
             margin: 0 auto;
             background: white;
           }
+
+          /* Ensure text colors are visible */
+          .text-gray-900, .text-gray-800, .text-gray-700 { color: #1f2937 !important; }
+          .text-gray-600 { color: #4b5563 !important; }
+          .text-gray-500 { color: #6b7280 !important; }
+          .bg-gray-50, .bg-gray-100 { background-color: #f9fafb !important; }
+          .border-gray-200 { border-color: #e5e7eb !important; }
         </style>
       </head>
       <body>
-        ${htmlContent}
+        ${outerHTML}
+        <script>
+          // Wait for Tailwind to process, then print
+          setTimeout(function() {
+            window.focus();
+            window.print();
+          }, 500);
+        <\/script>
       </body>
       </html>
     `);
 
     printWindow.document.close();
-
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.onafterprint = () => {
-          printWindow.close();
-        };
-      }, 1000);
-    };
-
-    setTimeout(() => {
-      if (printWindow.document.readyState === "complete") {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.onafterprint = () => {
-          printWindow.close();
-        };
-      }
-    }, 1500);
   };
 
   const handleDownloadPDF = async (payment: Payment) => {

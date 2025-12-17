@@ -42,9 +42,13 @@ export default function FilterPopover({
       `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
     );
 
-    setStartDate(startDate.toLocaleDateString());
-    setEndDate(endDate.toLocaleDateString());
-    setFilters((prev) => ({ startDate, endDate }));
+    // Format dates as ISO strings for filtering
+    const formattedStartDate = startDate.toISOString().split("T")[0];
+    const formattedEndDate = endDate.toISOString().split("T")[0];
+    
+    setStartDate(startDate);
+    setEndDate(endDate);
+    setFilters({ startDate: formattedStartDate, endDate: formattedEndDate });
   };
 
   const handleApply = () => {

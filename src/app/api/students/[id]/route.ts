@@ -51,15 +51,31 @@ export async function GET(
 }
 
 /**
- * PATCH handler for soft delete (sets deletedAt timestamp)
+ * PATCH handler for updating student data or soft delete
  * Uses AdminProtectedRoute service for standardized auth and error handling
  */
 export const PATCH = createAdminProtectedRoute(
   async ({ session, id, body }) => {
-    // Soft delete: use dedicated soft-delete endpoint
+    // Check if this is a soft delete request (has deletedAt field only)
+    if (body?.deletedAt && Object.keys(body).length === 1) {
+      // Soft delete: use dedicated soft-delete endpoint
+      const response = await axios.patch(
+        `${AuthRoutes.BASE_URL}/students/${id}/soft-delete`,
+        { deletedAt: body.deletedAt },
+        {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    }
+
+    // General student update
     const response = await axios.patch(
-      `${AuthRoutes.BASE_URL}/students/${id}/soft-delete`,
-      { deletedAt: body?.deletedAt || new Date().toISOString() },
+      `${AuthRoutes.BASE_URL}/students/${id}`,
+      body,
       {
         headers: {
           Authorization: `Bearer ${session.accessToken}`,

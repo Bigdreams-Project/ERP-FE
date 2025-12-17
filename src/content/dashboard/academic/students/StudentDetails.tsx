@@ -42,9 +42,10 @@ import { useEffect, useState, useRef } from "react";
 import { BiMoney } from "react-icons/bi";
 import { IoMdAdd } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
-import { Trash2 } from "lucide-react";
+import { Trash2, GraduationCap } from "lucide-react";
 import AttendanceCalendar from "./AttendanceCalendar";
 import { uploadFileClient, getStudentFilesClient } from "@/lib/client-network";
+import { programTypeLabels } from "@/data/constants/program.constants";
 
 interface StudentDetailsProps {
   student: Student;
@@ -131,6 +132,7 @@ const StudentDetails = ({
   const handleSave = async (payload: CreateStudent | UpdateStudent) => {
     try {
       // Convert CreateStudent payload to UpdateStudent format
+      // Use existing student data for course/payment fields since they're not editable
       const updatePayload: UpdateStudent = {
         id: student.id,
         fullName: payload.fullName,
@@ -145,19 +147,24 @@ const StudentDetails = ({
         guardianPhone: payload.guardianPhone,
         guardianEmail: payload.guardianEmail,
         guardianAddress: payload.guardianAddress,
-        courseFee: payload.courseFee,
-        lumpSumFee: payload.lumpSumFee,
-        numberOfInstallments: payload.numberOfInstallments,
-        paymentPlan: payload.paymentPlan,
+        // Use existing student values for course/payment fields (not editable in edit mode)
+        courseFee: null,
+        lumpSumFee: student.lumpSum?.toString() || null,
+        numberOfInstallments: student.numberOfInstallments?.toString() || null,
+        paymentPlan: student.paymentPlan || "",
         notes: payload.notes || "",
-        courseId: payload.courseId,
-        batchId: payload.batchId,
+        courseId: student.courses?.[0]?.id || "",
+        batchId: student.batches?.[0]?.id || null,
       };
       
       await updateStudentClient(student.id, updatePayload);
       showSuccess("Student updated successfully!");
-      queryClient.invalidateQueries(["students"]);
-      queryClient.invalidateQueries(["student", student.id]);
+      
+      // Invalidate and refetch to update the UI
+      await queryClient.invalidateQueries({ queryKey: ["students"] });
+      await queryClient.invalidateQueries({ queryKey: ["student", student.id] });
+      await refetchStudent();
+      
       setIsModalOpen(false);
     } catch (error) {
       showError("Failed to update student.");
@@ -536,6 +543,27 @@ const StudentDetails = ({
                     <div className="font-semibold text-gray-800 dark:text-gray-200">Status</div>
                     <div className="w-full text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border-none focus:ring-0">
                       <span>{student.status}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg flex items-center">
+                  <div className="text-xl mr-3 text-gray-500">
+                    <GraduationCap size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-800 dark:text-gray-200">Program Type</div>
+                    <div className="w-full text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border-none focus:ring-0">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                        student.programType === "JPTP" 
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : student.programType === "INTERNSHIP"
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                          : student.programType === "NICTP"
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                          : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                      }`}>
+                        {programTypeLabels[student.programType as keyof typeof programTypeLabels] || "Regular Student"}
+                      </span>
                     </div>
                   </div>
                 </div>

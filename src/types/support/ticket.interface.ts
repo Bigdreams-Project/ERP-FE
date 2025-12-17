@@ -2,18 +2,18 @@ import { Payment } from "../finance/payment.interface";
 import { Student } from "../academic/student.interface";
 
 export enum TicketStatus {
-  OPEN = "open",
-  IN_PROGRESS = "in_progress",
-  RESOLVED = "resolved",
-  CLOSED = "closed",
-  CANCELLED = "cancelled",
+  OPEN = "OPEN",
+  IN_PROGRESS = "IN_PROGRESS",
+  RESOLVED = "RESOLVED",
+  CLOSED = "CLOSED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum TicketPriority {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-  URGENT = "urgent",
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
 }
 
 export enum TicketCategory {

@@ -33,12 +33,18 @@ export interface Manager {
   centerId: string;
 }
 
+export interface CenterLocation {
+  state: string;
+  capital: string;
+}
+
 export interface Center {
   id: string;
   name: string;
   email: string;
   code: string;
   phone: string;
+  location: CenterLocation | null;
   address: string;
   status: string;
   type: string;

@@ -31,6 +31,10 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
 }) => {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
+  
+  // Use enrollment schema for validation
+  const validationSchema = enrollmentSchema;
+  
   const {
     register,
     handleSubmit,
@@ -41,7 +45,7 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     getValues,
     trigger,
   } = useForm<IStudent>({
-    resolver: yupResolver(enrollmentSchema),
+    resolver: yupResolver(validationSchema),
     mode: "onChange",
     defaultValues: {
       fullName: "",
@@ -224,11 +228,34 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
     fetchCourse();
   }, [courseId, courses]);
 
+  // Set leadId from initialData and trigger form population
   useEffect(() => {
-    if (initialData?.leadId) {
-      setValue("leadId", initialData.leadId);
+    if (isOpen && initialData?.leadId) {
+      setValue("leadId", initialData.leadId, { shouldValidate: true });
+      
+      // Manually trigger lead data population
+      const lead = leads.find((l) => l.id === initialData.leadId);
+      if (lead) {
+        setValue("fullName", lead.fullName, { shouldValidate: true });
+        setValue("phone", lead.phone, { shouldValidate: true });
+        setValue("email", lead.email, { shouldValidate: true });
+        setValue("address", lead.address, { shouldValidate: true });
+        setValue("centerId", lead.centerId, { shouldValidate: true });
+        setValue("enrolledDate", lead.enquiryDate, { shouldValidate: true });
+        setValue("birthDate", lead.birthDate, { shouldValidate: true });
+        setValue("guardianName", lead.guardians[0]?.fullname || "", { shouldValidate: true });
+        setValue("guardianPhone", lead.guardians[0]?.phone || "", { shouldValidate: true });
+        setValue("guardianEmail", lead.guardians[0]?.email || "", { shouldValidate: true });
+        setValue("guardianAddress", lead.guardians[0]?.address || "", { shouldValidate: true });
+        setValue("courseId", lead.courseId, { shouldValidate: true });
+        
+        // Trigger validation for all fields after setting values
+        setTimeout(() => {
+          trigger();
+        }, 100);
+      }
     }
-  }, [initialData, setValue]);
+  }, [isOpen, initialData?.leadId, leads, setValue, trigger]);
 
   // Reset payment type when center changes to ensure correct price options
   useEffect(() => {
@@ -435,54 +462,56 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="mt-6 flex flex-col h-full overflow-y-auto pr-2 custom-scroll"
         >
-          {/* Lead ID */}
-          <div className="w-full flex flex-col relative mb-5">
-            <label
-              htmlFor="leadId"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Lead ID
-            </label>
-            <div className="relative">
-              <select
-                id="leadId"
-                {...register("leadId")}
-                className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors pr-10 appearance-none"
+          {/* Lead ID - Only show in enroll mode */}
+          {mode !== "edit" && (
+            <div className="w-full flex flex-col relative mb-5">
+              <label
+                htmlFor="leadId"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                <option value="">Search lead ID</option>
-                {leads.map((lead) => (
-                  <option
-                    key={lead.id}
-                    value={lead.id}
-                    className="placeholder:text-gray-400"
-                  >
-                    {lead.fullName} - {lead.phone}
-                  </option>
-                ))}
-              </select>
+                Lead ID
+              </label>
+              <div className="relative">
+                <select
+                  id="leadId"
+                  {...register("leadId")}
+                  className="w-full h-10 px-4 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors pr-10 appearance-none"
+                >
+                  <option value="">Search lead ID</option>
+                  {leads.map((lead) => (
+                    <option
+                      key={lead.id}
+                      value={lead.id}
+                      className="placeholder:text-gray-400"
+                    >
+                      {lead.fullName} - {lead.phone}
+                    </option>
+                  ))}
+                </select>
 
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                onClick={() => setShowTooltip(!showTooltip)}
-              >
-                <Info size={18} />
-              </button>
-            </div>
-            {errors.leadId && (
-              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                {errors.leadId.message}
-              </p>
-            )}
-            {/* Tooltip */}
-            {showTooltip && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white dark:before:border-b-gray-800">
-                <p className="text-gray-700 dark:text-gray-300">
-                  Use a Lead ID to auto-populate fields from an existing record.
-                </p>
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  onClick={() => setShowTooltip(!showTooltip)}
+                >
+                  <Info size={18} />
+                </button>
               </div>
-            )}
-          </div>
+              {errors.leadId && (
+                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                  {errors.leadId.message}
+                </p>
+              )}
+              {/* Tooltip */}
+              {showTooltip && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-fit p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-sm z-10 before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-8 before:border-transparent before:border-b-white dark:before:border-b-gray-800">
+                  <p className="text-gray-700 dark:text-gray-300">
+                    Use a Lead ID to auto-populate fields from an existing record.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             {/* Full Name */}
@@ -755,49 +784,52 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
               )}
             </div>
 
-            <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200 dark:border-gray-700"></div>
+            {/* Course and Payment fields - Only show in enroll mode */}
+            {mode !== "edit" && (
+              <>
+                <div className="sm:col-span-2 my-4 h-1 border-t border-gray-200 dark:border-gray-700"></div>
 
-            {/* Course of Interest */}
-            <div className="flex flex-col relative">
-              <label
-                htmlFor="courseId"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Course of Interest
-              </label>
-              <select
-                id="courseId"
-                {...register("courseId")}
-                className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
-              >
-                <option value="">Select Course</option>
-                {courses.map((course) => {
-                  const courseType = course.type?.toLowerCase();
-                  let prefix = "";
-                  if (courseType === "tecterminal" || courseType === "tec_terminal") {
-                    prefix = "TT";
-                  } else if (courseType === "aptech") {
-                    prefix = "AP";
-                  } else if (courseType === "cpms") {
-                    prefix = "CP";
-                  }
-                  const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
-                  return (
-                    <option key={course.id} value={course.id}>
-                      {displayName}
-                    </option>
-                  );
-                })}
-              </select>
-              <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
-                <ChevronDown size={18} />
-              </span>
-              {errors.courseId && (
-                <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                  {errors.courseId.message}
-                </p>
-              )}
-            </div>
+                {/* Course of Interest */}
+                <div className="flex flex-col relative">
+                  <label
+                    htmlFor="courseId"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Course of Interest
+                  </label>
+                  <select
+                    id="courseId"
+                    {...register("courseId")}
+                    className="w-full h-10 px-3 text-sm text-gray-600 dark:text-gray-200 rounded-lg bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors appearance-none"
+                  >
+                    <option value="">Select Course</option>
+                    {courses.map((course) => {
+                      const courseType = course.type?.toLowerCase();
+                      let prefix = "";
+                      if (courseType === "tecterminal" || courseType === "tec_terminal") {
+                        prefix = "TT";
+                      } else if (courseType === "aptech") {
+                        prefix = "AP";
+                      } else if (courseType === "cpms") {
+                        prefix = "CP";
+                      }
+                      const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
+                      return (
+                        <option key={course.id} value={course.id}>
+                          {displayName}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <span className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <ChevronDown size={18} />
+                  </span>
+                  {errors.courseId && (
+                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                      {errors.courseId.message}
+                    </p>
+                  )}
+                </div>
 
             {/* Price Type */}
             {selectedCourse && (
@@ -1141,21 +1173,28 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
                 )}
               </div>
             )}
+              </>
+            )}
           </div>
 
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
-            Required base fee is ₦
-            {(selectedCourse?.courseAssignments?.[0]?.baseFee || 0).toLocaleString()} for
-            enrollment
-          </p>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
-            Total Deposit: ₦{amount && !isNaN(parseFloat(amount)) ? parseFloat(amount).toLocaleString() : '0'}
-          </p>
+          {/* Base fee and deposit info - Only show in enroll mode */}
+          {mode !== "edit" && (
+            <>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6">
+                Required base fee is ₦
+                {(selectedCourse?.courseAssignments?.[0]?.baseFee || 0).toLocaleString()} for
+                enrollment
+              </p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
+                Total Deposit: ₦{amount && !isNaN(parseFloat(amount)) ? parseFloat(amount).toLocaleString() : '0'}
+              </p>
 
-          {showBaseFeeError && (
-            <p className="text-red-500 dark:text-red-400 text-sm mt-2 font-semibold">
-              Student does not meet base enrollment fee
-            </p>
+              {showBaseFeeError && (
+                <p className="text-red-500 dark:text-red-400 text-sm mt-2 font-semibold">
+                  Student does not meet base enrollment fee
+                </p>
+              )}
+            </>
           )}
 
           {/* Notes */}
@@ -1191,16 +1230,18 @@ const EnrollStudentModal: React.FC<IStudentModalProps> = ({
             <button
               type="submit"
               className={`px-6 py-2 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                isValid && !showBaseFeeError && !isLoading
+                isValid && (mode === "edit" || !showBaseFeeError) && !isLoading
                   ? "bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600"
                   : "bg-blue-400 dark:bg-blue-600 cursor-not-allowed opacity-70"
               }`}
-              disabled={!isValid || showBaseFeeError || isLoading}
+              disabled={!isValid || (mode !== "edit" && showBaseFeeError) || isLoading}
             >
               {isLoading && (
                 <ImSpinner2 className="animate-spin h-4 w-4" />
               )}
-              {isLoading ? "Enrolling..." : "Enroll"}
+              {isLoading 
+                ? (mode === "edit" ? "Saving..." : "Enrolling...") 
+                : (mode === "edit" ? "Save Changes" : "Enroll")}
             </button>
           </div>
         </form>

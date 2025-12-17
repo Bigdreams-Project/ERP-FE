@@ -8,6 +8,10 @@ import {
 } from "@/lib/network";
 import { Suspense } from "react";
 
+// Disable Next.js route caching to ensure fresh data on every request
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function Students() {
   // Fetch all data in parallel for maximum speed
   const [students, courses, centers, leads, user] = await Promise.all([

@@ -23,6 +23,17 @@ interface CoursesContentProps {
   courses: Course[];
 }
 
+// Helper function to normalize course type for comparison
+const normalizeCourseType = (type: string | undefined): string => {
+  if (!type) return "";
+  const upperType = type.toUpperCase().replace(/_/g, "");
+  // IMPORTANT: Check APTECH first because "APTECH" contains "TEC" as a substring
+  if (upperType.includes("APTECH") || upperType === "AP") return "ApTech";
+  if (upperType.includes("TEC") || upperType.includes("TERMINAL") || upperType === "TECTERMINAL") return "TecTerminal";
+  if (upperType.includes("CPMS") || upperType === "CP") return "CPMS";
+  return type; // Return original if no match
+};
+
 const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
   const queryClient = useQueryClient();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
@@ -113,12 +124,17 @@ const CoursesContent = ({ courses: initialCourses }: CoursesContentProps) => {
     const matchesSearch =
       course.name.toLowerCase().includes(query) ||
       course.code.toLowerCase().includes(query);
+    // Case-insensitive status comparison to handle different formats
     const matchesStatus =
       appliedFilters.status.length === 0 ||
-      appliedFilters.status.includes(course.status);
+      appliedFilters.status.some((filterStatus: string) => 
+        course.status?.toUpperCase() === filterStatus.toUpperCase()
+      );
+    // Normalize course type for comparison to handle different formats (TEC_TERMINAL, TecTerminal, etc.)
+    const normalizedCourseType = normalizeCourseType(course.type);
     const matchesCourseType =
       appliedFilters.courseType.length === 0 ||
-      appliedFilters.courseType.includes(course.type);
+      appliedFilters.courseType.includes(normalizedCourseType);
     return matchesSearch && matchesStatus && matchesCourseType;
   });
 

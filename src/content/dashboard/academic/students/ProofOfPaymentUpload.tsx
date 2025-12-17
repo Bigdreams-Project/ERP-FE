@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { uploadFileClient, getStudentFilesClient } from "@/lib/client-network";
+import { uploadFileClient, getStudentFilesClient, deleteFileClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { File as StudentFile } from "@/types/academic/file.interface";
 import { Student } from "@/types/academic/student.interface";
 import Card from "./Card";
 import { formatDate } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 
 interface ProofOfPaymentUploadProps {
   data: Student;
@@ -15,6 +16,7 @@ interface ProofOfPaymentUploadProps {
 const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -23,6 +25,29 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
     queryKey: ["student-files", data.id, "payment_receipt"],
     queryFn: () => getStudentFilesClient(data.id, "payment_receipt"),
   });
+
+  const handleDeleteFile = async (fileId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (deletingFileId) return; // Prevent multiple deletions at once
+    
+    if (!confirm("Are you sure you want to delete this receipt?")) {
+      return;
+    }
+    
+    setDeletingFileId(fileId);
+    try {
+      await deleteFileClient(fileId);
+      showSuccess("Receipt deleted successfully!");
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ["student-files"] });
+    } catch (error: any) {
+      showError(error.message || "Failed to delete receipt");
+    } finally {
+      setDeletingFileId(null);
+    }
+  };
 
   const CloudUpload = (props: any) => (
     <svg
@@ -175,15 +200,31 @@ const ProofOfPaymentUpload = ({ data }: ProofOfPaymentUploadProps) => {
             console.log(`File ${file.fileName} - presignedURL:`, file.presignedURL, "fileUrl:", file.fileUrl);
             
             return (
-              <a
+              <div
                 key={file.id}
-                href={fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                className="flex items-center justify-between gap-2 py-1"
               >
-                {file.fileName} - {formatDate(file.uploadedAt)}
-              </a>
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer truncate"
+                >
+                  {file.fileName} - {formatDate(file.uploadedAt)}
+                </a>
+                <button
+                  onClick={(e) => handleDeleteFile(file.id, e)}
+                  disabled={deletingFileId === file.id}
+                  className="p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  title="Delete receipt"
+                >
+                  {deletingFileId === file.id ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500 dark:border-red-400"></div>
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                </button>
+              </div>
             );
           })
         ) : (

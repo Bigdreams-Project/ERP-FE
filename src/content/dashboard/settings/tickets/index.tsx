@@ -346,7 +346,7 @@ const TicketsContent = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className={`flex items-center gap-1 text-sm font-medium ${getPriorityColor(ticket.priority)}`}>
                           {getPriorityIcon(ticket.priority)}
-                          <span className="capitalize">{ticket.priority}</span>
+                          <span>{ticket.priority.charAt(0) + ticket.priority.slice(1).toLowerCase()}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -355,7 +355,7 @@ const TicketsContent = () => {
                             ticket.status
                           )}`}
                         >
-                          {ticket.status.replace("_", " ")}
+                          {ticket.status.replace("_", " ").charAt(0) + ticket.status.replace("_", " ").slice(1).toLowerCase()}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

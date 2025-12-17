@@ -154,6 +154,7 @@ const BatchDetails = ({ batch }: BatchDetailsProps) => {
                 {Object.entries({
                   "Batch Id": batch.code,
                   "Course Name": batch.course?.name,
+                  "Center": batch.center?.name || "N/A",
                   "Start Date": formatDate(batch.startDate),
                   "End Date": formatDate(batch.endDate),
                   Status: batch.status,

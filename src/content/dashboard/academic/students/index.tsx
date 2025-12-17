@@ -53,6 +53,12 @@ const StudentContent = ({
       queryClient.setQueryData(["user"], initialUser);
     }
   }, [initialUser, queryClient]);
+
+  // Clear all student-related cache on mount to ensure fresh data
+  useLayoutEffect(() => {
+    queryClient.removeQueries({ queryKey: ["students"] });
+    queryClient.removeQueries({ queryKey: ["student"] });
+  }, [queryClient]);
   
   // Use React Query to fetch and cache students
   // Backend handles center filtering via X-Center-Id header, so we pass selectedCenter
@@ -106,22 +112,27 @@ const StudentContent = ({
   const [isBulkUploading, setIsBulkUploading] = useState(false);
   
   // Initialize filters from URL query params if present
-  // Normalize status from URL (DROPOUT/GRADUATED) to match studentStatus array format (Dropout/Graduated)
+  // Normalize status from URL (DROPOUT/GRADUATED/PENDING_APPROVAL) to match studentStatus array format (Dropout/Graduated/Pending Approval)
   const statusFromUrl = searchParams?.get("status");
-  const normalizeStatus = (status: string | null): string | null => {
+  const normalizeStatusFromUrl = (status: string | null): string | null => {
     if (!status) return null;
-    // Map uppercase status to the format used in studentStatus array
+    // Map uppercase/underscore status to the format used in studentStatus array
     const statusMap: Record<string, string> = {
       "DROPOUT": "Dropout",
       "GRADUATED": "Graduated",
       "ACTIVE": "Active",
+      "PENDING_APPROVAL": "Pending Approval",
       "PENDING APPROVAL": "Pending Approval",
+      "PENDINGAPPROVAL": "Pending Approval",
+      "ON_HOLD": "On Hold",
       "ON HOLD": "On Hold",
+      "ONHOLD": "On Hold",
     };
-    return statusMap[status.toUpperCase()] || status;
+    // Try exact match first, then try uppercase
+    return statusMap[status] || statusMap[status.toUpperCase()] || status;
   };
   
-  const normalizedStatusFromUrl = normalizeStatus(statusFromUrl);
+  const normalizedStatusFromUrl = normalizeStatusFromUrl(statusFromUrl);
   const [appliedFilters, setAppliedFilters] = useState<any>({
     status: normalizedStatusFromUrl ? [normalizedStatusFromUrl] : [],
     programType: [],
@@ -130,7 +141,7 @@ const StudentContent = ({
   // Update filters when URL changes
   useEffect(() => {
     const statusFromUrl = searchParams?.get("status");
-    const normalizedStatus = normalizeStatus(statusFromUrl);
+    const normalizedStatus = normalizeStatusFromUrl(statusFromUrl);
     if (normalizedStatus) {
       setAppliedFilters((prev: any) => ({
         ...prev,
@@ -183,14 +194,17 @@ const StudentContent = ({
       (student.fullName?.toLowerCase() || "").includes(query) ||
       (student.email?.toLowerCase() || "").includes(query);
     
-    // Match status - handle both "DROPOUT"/"GRADUATED" (from DB) and "Dropout"/"Graduated" (from filter)
+    // Match status - handle both "DROPOUT"/"GRADUATED"/"PENDING_APPROVAL" (from DB) 
+    // and "Dropout"/"Graduated"/"Pending Approval" (from filter)
+    // Normalize both values by removing spaces/underscores and comparing uppercase
     const matchesStatus =
       appliedFilters.status.length === 0 ||
       appliedFilters.status.some((filterStatus: string) => {
-        // Check if student status matches filter status (case-insensitive)
-        const studentStatusUpper = (student.status || "").toUpperCase();
-        const filterStatusUpper = filterStatus.toUpperCase();
-        return studentStatusUpper === filterStatusUpper;
+        // Normalize both values: remove spaces and underscores, then compare uppercase
+        const normalizeStatus = (s: string) => s.toUpperCase().replace(/[\s_-]/g, "");
+        const studentStatusNormalized = normalizeStatus(student.status || "");
+        const filterStatusNormalized = normalizeStatus(filterStatus);
+        return studentStatusNormalized === filterStatusNormalized;
       });
     
     const matchesProgramType =

@@ -52,41 +52,107 @@ const BulkUploadStudentsModal: React.FC<BulkUploadStudentsModalProps> = ({
   }, [isOpen]);
 
   /**
+   * Validate that a date falls within a reasonable range (1900-2099)
+   */
+  const isValidDateRange = (date: Date): boolean => {
+    const year = date.getFullYear();
+    return year >= 1900 && year <= 2099;
+  };
+
+  /**
+   * Convert Excel serial number to date string
+   * Valid Excel serial numbers: 1 (Jan 1, 1900) to 73050 (Dec 31, 2099)
+   */
+  const excelSerialToDate = (serial: number): string => {
+    if (serial < 1 || serial > 73050) return "";
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + serial * 86400000);
+    if (!isNaN(date.getTime()) && isValidDateRange(date)) {
+      return date.toISOString().split("T")[0];
+    }
+    return "";
+  };
+
+  /**
    * Format date from Excel - handles multiple formats:
-   * - "2011-08-22" (YYYY-MM-DD string)
-   * - Excel serial numbers
-   * - Other date formats
+   * - Excel serial numbers (numeric)
+   * - Excel serial numbers stored as strings (e.g., "39612")
+   * - "2011-08-22" (YYYY-MM-DD / ISO format)
+   * - "6/13/2008" or "06/13/2008" (American format)
+   * - "13/06/2008" (European format)
+   * - "Friday, June 13, 2008" (Long date)
+   * - "June 13, 2008" (Medium date)
    */
   const formatDate = (dateValue: any): string => {
     if (!dateValue) return "";
 
-    // Handle Excel date serial numbers
+    // Handle Excel date serial numbers (numeric)
     if (typeof dateValue === "number") {
-      const excelEpoch = new Date(1899, 11, 30);
-      const date = new Date(excelEpoch.getTime() + dateValue * 86400000);
-      return date.toISOString().split("T")[0];
+      return excelSerialToDate(dateValue);
     }
 
     // Handle string dates
     if (typeof dateValue === "string") {
       const trimmed = dateValue.trim();
+      if (!trimmed) return "";
 
-      // Handle YYYY-MM-DD format (e.g., "2011-08-22")
+      // Check if it's a pure numeric string (Excel serial stored as string in "General" format)
+      if (/^\d+$/.test(trimmed)) {
+        const serial = parseInt(trimmed, 10);
+        const result = excelSerialToDate(serial);
+        if (result) return result;
+      }
+
+      // Handle YYYY-MM-DD format (ISO format)
       if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
         const date = new Date(trimmed);
-        if (!isNaN(date.getTime())) {
+        if (!isNaN(date.getTime()) && isValidDateRange(date)) {
           return trimmed;
         }
       }
 
-      // Handle other date formats
+      // Handle M/D/YYYY or MM/DD/YYYY format (American format)
+      const americanMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (americanMatch) {
+        const [, month, day, year] = americanMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (!isNaN(date.getTime()) && isValidDateRange(date)) {
+          return date.toISOString().split("T")[0];
+        }
+      }
+
+      // Handle D/M/YYYY or DD/MM/YYYY format (European format) - try if American fails
+      const europeanMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (europeanMatch) {
+        const [, day, month, year] = europeanMatch;
+        const dayNum = parseInt(day);
+        const monthNum = parseInt(month);
+        // If day > 12, it's definitely European format
+        if (dayNum > 12) {
+          const date = new Date(parseInt(year), monthNum - 1, dayNum);
+          if (!isNaN(date.getTime()) && isValidDateRange(date)) {
+            return date.toISOString().split("T")[0];
+          }
+        }
+      }
+
+      // Handle other date formats (Long date, Medium date, etc.)
       const date = new Date(trimmed);
-      if (!isNaN(date.getTime())) {
+      if (!isNaN(date.getTime()) && isValidDateRange(date)) {
         return date.toISOString().split("T")[0];
       }
     }
 
     return "";
+  };
+
+  /**
+   * Validate email format
+   * Returns true if email is empty (optional) or has valid format
+   */
+  const isValidEmail = (email: string): boolean => {
+    if (!email) return true; // Empty is OK for optional fields
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,6 +201,11 @@ const BulkUploadStudentsModal: React.FC<BulkUploadStudentsModalProps> = ({
           if (payment.balance === undefined || payment.balance < 0)
             recordErrors.push(`Payment ${pIndex + 1} Balance must be >= 0`);
         });
+        // Email format validation
+        if (record.email && !isValidEmail(record.email))
+          recordErrors.push(`Invalid email format: "${record.email}"`);
+        if (record.guardianEmail && !isValidEmail(record.guardianEmail))
+          recordErrors.push(`Invalid guardian email format: "${record.guardianEmail}" (missing @?)`);
         if (recordErrors.length > 0) {
           errors.push({ row: index + 1, errors: recordErrors });
         }

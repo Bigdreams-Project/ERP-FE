@@ -115,13 +115,7 @@ export interface IEditStudent {
   guardianPhone: string;
   guardianEmail: string | null;
   guardianAddress: string;
-  courseFee: string | null;
-  lumpSumFee: string | null;
-  numberOfInstallments: string | null;
-  paymentPlan: string;
   notes: string;
-  courseId: string;
-  batchId: string | null;
 }
 
 export interface IStudentModalProps {
@@ -139,7 +133,7 @@ export interface IStudentModalProps {
 export interface IStudentEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (payload: UpdateStudent) => void;
+  onSave: (payload: IEditStudent) => void;
   student: Student;
   courses: Course[];
   centers: Center[];

@@ -43,6 +43,13 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Debug logging before sending to backend
+    console.log(`[Bulk Upload] Uploading ${payload.records?.length || 0} students to center ${payload.centerId}`);
+    if (payload.records?.length > 0) {
+      console.log("[Bulk Upload] First record:", JSON.stringify(payload.records[0], null, 2));
+    }
+
     const response = await axios.post(
       `${AuthRoutes.BASE_URL}/students/bulk-upload`,
       payload,
@@ -56,7 +63,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
+    // Log error details for debugging
+    console.error("[Bulk Upload] Error:", error.message);
     if (error.response) {
+      console.error("[Bulk Upload] Backend response:", JSON.stringify(error.response.data, null, 2));
       return NextResponse.json(
         {
           error:

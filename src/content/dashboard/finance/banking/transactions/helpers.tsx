@@ -104,6 +104,12 @@ export const PaymentSummary = ({ data }: Props) => {
       ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200"
       : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200";
 
+  // Check if transaction is approved
+  const isApproved =
+    !!data.approvedAt ||
+    data.status === "approved" ||
+    data.status === "APPROVED";
+
   return (
     <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-6">
       <h2 className="text-xl font-semibold mb-6 text-gray-700 dark:text-gray-200">
@@ -111,7 +117,7 @@ export const PaymentSummary = ({ data }: Props) => {
       </h2>
 
       {/* Amount and Status */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           ₦{data.amount.toLocaleString()}
         </span>
@@ -119,6 +125,29 @@ export const PaymentSummary = ({ data }: Props) => {
           className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColor}`}
         >
           {getStatus(parseFloat(data.paymentPlan.pending || "0"))}
+        </span>
+      </div>
+
+      {/* Approval Status */}
+      <div className="flex items-center justify-between mb-6 py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+        <div className="flex items-center gap-2">
+          {isApproved ? (
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+          ) : (
+            <Clock className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+          )}
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Approval Status
+          </span>
+        </div>
+        <span
+          className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${
+            isApproved
+              ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-200"
+              : "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-200"
+          }`}
+        >
+          {isApproved ? "Approved" : "Not Approved"}
         </span>
       </div>
 

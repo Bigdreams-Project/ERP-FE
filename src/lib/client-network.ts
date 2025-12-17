@@ -179,6 +179,15 @@ export const getCourseClient = async (id: string) => {
   }
 };
 
+export const getCourseUnassignedCentersClient = async (id: string) => {
+  try {
+    const res = await client.get(`/courses/${id}/unassigned-centers`);
+    return res.data;
+  } catch (err: any) {
+    return [];
+  }
+};
+
 export const createCourseClient = async (
   payload: CreateCourse,
   isDraft: boolean
@@ -426,8 +435,21 @@ export const updateStudentClient = async (
   payload: UpdateStudent
 ) => {
   try {
-    const res = await client.patch(`/students/${id}`, payload);
-    return res.data;
+    const res = await fetch(`/api/students/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to update student: ${res.statusText}`);
+    }
+
+    return await res.json();
   } catch (err: any) {
     throw err;
   }
@@ -599,8 +621,21 @@ export const createLeadClient = async (
 
 export const updateLeadClient = async (id: string, payload: UpdateLead) => {
   try {
-    const res = await client.patch(`/leads/${id}`, payload);
-    return res.data;
+    const res = await fetch(`/api/leads/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw { response: { data: errorData, status: res.status } };
+    }
+
+    return await res.json();
   } catch (err: any) {
     throw err;
   }
@@ -608,10 +643,20 @@ export const updateLeadClient = async (id: string, payload: UpdateLead) => {
 
 export const deleteLeadClient = async (id: string) => {
   try {
-    const res = await client.patch(`/leads/${id}`, {
-      deletedAt: new Date().toISOString(),
+    const res = await fetch(`/api/leads/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ deletedAt: new Date().toISOString() }),
     });
-    return res.data;
+
+    if (!res.ok) {
+      throw new Error(`Failed to delete lead: ${res.statusText}`);
+    }
+
+    return await res.json();
   } catch (err: any) {
     throw err;
   }
@@ -735,8 +780,24 @@ export const createBatchClient = async (
 
 export const updateBatchClient = async (id: string, payload: UpdateBatch) => {
   try {
-    const res = await client.patch(`/batches/${id}`, payload);
-    return res.data;
+    const res = await fetch(`/api/batches/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to update batch: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     throw err;
   }
@@ -2006,6 +2067,31 @@ export const getStudentFilesClient = async (
       // Debug logging removed
     }
     return Array.isArray(data) ? data : [];
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+// Delete File - Client-side function
+export const deleteFileClient = async (fileId: string) => {
+  try {
+    const res = await fetch(`/api/files/${fileId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to delete file: ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data;
   } catch (err: any) {
     throw err;
   }

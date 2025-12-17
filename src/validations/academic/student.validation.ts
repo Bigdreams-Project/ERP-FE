@@ -123,23 +123,6 @@ export const editStudentSchema = yup.object().shape({
     .nullable()
     .notRequired() as yup.StringSchema<string | null>,
   guardianAddress: yup.string().required("Guardian address is required"),
-  courseFee: yup.string().nullable().notRequired() as yup.StringSchema<
-    string | null
-  >,
-  lumpSumFee: yup.string().nullable().notRequired() as yup.StringSchema<
-    string | null
-  >,
-  numberOfInstallments: yup
-    .string()
-    .nullable()
-    .notRequired() as yup.StringSchema<string | null>,
-  courseId: yup.string().required("Course of interest is required"),
-  batchId: yup
-    .string()
-    .optional()
-    .nullable()
-    .notRequired() as yup.StringSchema<string | null>,
-  paymentPlan: yup.string().required("Payment plan is required"),
   notes: yup
     .string()
     .optional()

@@ -3,6 +3,7 @@ import CourseModal from "@/components/modals/academic/Course.modal";
 import CoursePricingModal from "@/components/modals/academic/CoursePricing.modal";
 import EditCoursePricing from "@/components/modals/academic/EditCoursePricing.modal";
 import { assignCenterFee, updateCenterFee, updateCourse } from "@/lib/network";
+import { getCourseClient, getCourseUnassignedCentersClient } from "@/lib/client-network";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatDate } from "@/lib/utils";
 import {
@@ -11,9 +12,11 @@ import {
   ICourseFeeAssignment,
   IEditCourseFeeAssignment,
 } from "@/types/academic/center.interface";
-import { Course } from "@/types/academic/course.interface";
+import { Batch } from "@/types/academic/batch.interface";
+import { Course, CourseAssignment } from "@/types/academic/course.interface";
+import { Document } from "@/types/academic/lead.interface";
 import { CreateCourse } from "@/types/requests/course.interface";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -25,8 +28,24 @@ interface CourseDetailsProps {
   centers: Center[];
 }
 
-const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
+const CourseDetails = ({ course: initialCourse, centers: initialCenters }: CourseDetailsProps) => {
   const queryClient = useQueryClient();
+
+  // Use React Query to fetch and cache course data for real-time updates
+  const { data: course = initialCourse } = useQuery({
+    queryKey: ["course", initialCourse.id],
+    queryFn: () => getCourseClient(initialCourse.id!),
+    initialData: initialCourse,
+    staleTime: 0, // Always refetch on invalidation
+  });
+
+  // Use React Query to fetch and cache unassigned centers for real-time updates
+  const { data: centers = initialCenters } = useQuery({
+    queryKey: ["courseUnassignedCenters", initialCourse.id],
+    queryFn: () => getCourseUnassignedCentersClient(initialCourse.id!),
+    initialData: initialCenters,
+    staleTime: 0, // Always refetch on invalidation
+  });
   const [selectedCourseAssignment, setSelectedCourseAssignment] =
     useState<CourseFeeAssignment>();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -35,10 +54,13 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
 
   const handleSave = async (payload: CreateCourse, isDraft: boolean) => {
     try {
-      await updateCourse(course.id!, payload);
+      await updateCourse(initialCourse.id!, payload);
       showSuccess("Course updated successfully");
-      queryClient.invalidateQueries(["courses"]);
-      queryClient.invalidateQueries(["course", course.id]);
+      // Refetch queries to update the UI immediately
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["courses"] }),
+        queryClient.refetchQueries({ queryKey: ["course", initialCourse.id] }),
+      ]);
       setIsEditModalOpen(false);
     } catch (error: any) {
       showError("Failed to update course");
@@ -49,10 +71,14 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
     mutationFn: async (assignmentData: ICourseFeeAssignment) => {
       return await assignCenterFee(course.id!, assignmentData);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       showSuccess("Center and Fee Structure assigned successfully!");
-      queryClient.invalidateQueries(["courses"]);
-      queryClient.invalidateQueries(["course", course.id]);
+      // Refetch queries to update the UI immediately
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["courses"] }),
+        queryClient.refetchQueries({ queryKey: ["course", initialCourse.id] }),
+        queryClient.refetchQueries({ queryKey: ["courseUnassignedCenters", initialCourse.id] }),
+      ]);
       setIsCenterModalOpen(false);
     },
     onError: (error: any) => {
@@ -65,10 +91,13 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
       mutationFn: async (assignmentData: IEditCourseFeeAssignment) => {
         return await updateCenterFee(assignmentData.id, assignmentData);
       },
-      onSuccess: () => {
+      onSuccess: async () => {
         showSuccess("Center and Fee Structure updated successfully!");
-        queryClient.invalidateQueries(["courses"]);
-        queryClient.invalidateQueries(["course", course.id]);
+        // Refetch queries to update the UI immediately
+        await Promise.all([
+          queryClient.refetchQueries({ queryKey: ["courses"] }),
+          queryClient.refetchQueries({ queryKey: ["course", initialCourse.id] }),
+        ]);
         setEditCenterModalOpen(false);
       },
       onError: (error: any) => {
@@ -214,7 +243,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                 BATCHES
               </h2>
               <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6 grid gap-4">
-                {course.batches?.map((batch, index) => (
+                {course.batches?.map((batch: Batch, index: number) => (
                   <div
                     key={index}
                     className="flex flex-col pb-3 border-b border-gray-300 dark:border-gray-700"
@@ -239,7 +268,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
                 PRICING BY CENTER
               </h2>
               <div className="bg-white dark:bg-gray-800 rounded-lg px-2 pt-4 grid gap-2">
-                {course.courseAssignments.map((item, index) => (
+                {course.courseAssignments.map((item: CourseAssignment, index: number) => (
                   <div key={index} className="pb-3 border-b border-gray-300 dark:border-gray-700">
                     <span className="text-gray-800 dark:text-gray-200 font-bold block mb-2">
                       {item.center?.name}
@@ -282,7 +311,7 @@ const CourseDetails = ({ course, centers }: CourseDetailsProps) => {
               </h2>
               <div className="bg-white dark:bg-gray-800 rounded-lg px-2 py-6">
                 <div className="space-y-4">
-                  {course.documents?.map((document, index) => (
+                  {course.documents?.map((document: Document, index: number) => (
                     <div
                       key={index}
                       className="flex items-center justify-between pb-1 pr-1 border-b border-gray-300 dark:border-gray-700"

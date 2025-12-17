@@ -5,6 +5,16 @@ interface Props {
   label: string;
 }
 
+// Helper function to format enum-style labels (IN_PROGRESS -> In Progress)
+const formatLabel = (label: string): string => {
+  if (!label) return "";
+  // Convert underscore format to title case with spaces
+  return label
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
 const StatusBadge = ({ step, label }: Props) => {
   const bgColorClass = getStepBgColor(step);
   const statusColorClass = getStatusBgColor(step);
@@ -13,7 +23,7 @@ const StatusBadge = ({ step, label }: Props) => {
     <span
       className={`py-1 px-2 rounded-full text-xs font-semibold ${statusColorClass}`}
     >
-      {label}
+      {formatLabel(label)}
     </span>
   );
 };
