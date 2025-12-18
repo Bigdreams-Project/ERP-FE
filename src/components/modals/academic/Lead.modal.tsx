@@ -406,7 +406,7 @@ const LeadModal: React.FC<ILeadModalProps> = ({
                   }
                   const displayName = prefix ? `${prefix} - ${course.name}` : course.name;
                   return (
-                    <option key={course.name} value={course.id}>
+                    <option key={course.id} value={course.id}>
                       {displayName}
                     </option>
                   );
