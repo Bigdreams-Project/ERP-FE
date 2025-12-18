@@ -33,12 +33,16 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
     Array<{ row: number; errors: string[] }>
   >([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [previewRows, setPreviewRows] = useState(10);
+  const [previewRows, setPreviewRows] = useState<number>(10);
   const [duplicateRecords, setDuplicateRecords] = useState<
-    Array<{ row: number; oldId?: string; title?: string }>
+    Array<{ row: number; oldId?: string; title?: string; course_type?: string }>
+  >([]);
+  const [skippedRecords, setSkippedRecords] = useState<
+    Array<{ row: number; reason: string; oldId?: string; title?: string; course_type?: string }>
   >([]);
   const [uploadResult, setUploadResult] = useState<any | null>(null);
   const [showFailedRecords, setShowFailedRecords] = useState(false);
+  const [showSkippedRecords, setShowSkippedRecords] = useState(false);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -61,6 +65,8 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
     setValidationErrors([]);
     setParsedData([]);
     setDuplicateRecords([]);
+    setSkippedRecords([]);
+    setPreviewRows(10); // Reset preview rows to default when loading new file
 
     try {
       const data = uploadType === "old" 
@@ -113,21 +119,27 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
           }
         });
 
-        // Detect duplicates based on title for new courses
-        const duplicates: Array<{ row: number; title: string }> = [];
-        const seenTitles = new Map<string, number>();
+        // Detect duplicates based on title AND course_type for new courses
+        // A course is only a duplicate if it has the same title AND the same course_type
+        const duplicates: Array<{ row: number; title: string; course_type: string }> = [];
+        const seenCombinations = new Map<string, number>();
 
         (data as BulkUploadRegularCourseRecord[]).forEach((record: BulkUploadRegularCourseRecord, index: number) => {
           const rowNum = index + 1;
-          if (record.title) {
+          if (record.title && record.course_type) {
+            // Create a composite key from title and course_type
             const titleLower = record.title.toLowerCase().trim();
-            if (seenTitles.has(titleLower)) {
+            const courseTypeLower = record.course_type.toLowerCase().trim();
+            const compositeKey = `${titleLower}::${courseTypeLower}`;
+            
+            if (seenCombinations.has(compositeKey)) {
               duplicates.push({
                 row: rowNum,
                 title: record.title,
+                course_type: record.course_type,
               });
             } else {
-              seenTitles.set(titleLower, rowNum);
+              seenCombinations.set(compositeKey, rowNum);
             }
           }
         });
@@ -230,52 +242,89 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
     }
 
     // Filter out records with validation errors AND duplicates
+    // Track skipped records with reasons
     let validRecords: any[] = [];
+    const skipped: Array<{ row: number; reason: string; oldId?: string; title?: string; course_type?: string }> = [];
     
     if (uploadType === "old") {
-      const seenIds = new Set<string>();
+      const seenIds = new Map<string, number>();
       validRecords = parsedData.filter((record: BulkUploadCourseRecord, index: number) => {
         const rowNum = index + 1;
 
         // Skip if has validation errors
         if (validationErrors.some((error) => error.row === rowNum)) {
+          skipped.push({
+            row: rowNum,
+            reason: "Validation errors",
+            oldId: record.oldId,
+            title: record.title,
+          });
           return false;
         }
 
         // Skip if duplicate (keep first occurrence only)
         if (record.oldId && seenIds.has(record.oldId)) {
+          const firstRow = seenIds.get(record.oldId);
+          skipped.push({
+            row: rowNum,
+            reason: `Duplicate Course ID: "${record.oldId}" (first occurrence at row ${firstRow})`,
+            oldId: record.oldId,
+            title: record.title,
+          });
           return false;
         }
 
         // Mark as seen
         if (record.oldId) {
-          seenIds.add(record.oldId);
+          seenIds.set(record.oldId, rowNum);
         }
 
         return true;
       });
     } else {
-      const seenTitles = new Set<string>();
+      const seenCombinations = new Map<string, number>();
       validRecords = parsedData.filter((record: BulkUploadRegularCourseRecord, index: number) => {
         const rowNum = index + 1;
 
         // Skip if has validation errors
         if (validationErrors.some((error) => error.row === rowNum)) {
+          skipped.push({
+            row: rowNum,
+            reason: "Validation errors",
+            title: record.title,
+            course_type: record.course_type,
+          });
           return false;
         }
 
         // Skip if duplicate (keep first occurrence only)
-        const titleLower = record.title.toLowerCase().trim();
-        if (seenTitles.has(titleLower)) {
-          return false;
-        }
+        // A course is only a duplicate if it has the same title AND the same course_type
+        if (record.title && record.course_type) {
+          const titleLower = record.title.toLowerCase().trim();
+          const courseTypeLower = record.course_type.toLowerCase().trim();
+          const compositeKey = `${titleLower}::${courseTypeLower}`;
+          
+          if (seenCombinations.has(compositeKey)) {
+            const firstRow = seenCombinations.get(compositeKey);
+            skipped.push({
+              row: rowNum,
+              reason: `Duplicate course: "${record.title}" with course type "${record.course_type}" (first occurrence at row ${firstRow})`,
+              title: record.title,
+              course_type: record.course_type,
+            });
+            return false;
+          }
 
-        // Mark as seen
-        seenTitles.add(titleLower);
+          // Mark as seen
+          seenCombinations.set(compositeKey, rowNum);
+        }
 
         return true;
       });
     }
+
+    // Update skipped records state
+    setSkippedRecords(skipped);
 
     if (validRecords.length === 0) {
       alert("No valid records to upload. Please fix the errors in your file.");
@@ -300,8 +349,10 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
     setParsedData([]);
     setValidationErrors([]);
     setDuplicateRecords([]);
+    setSkippedRecords([]);
     setUploadResult(null);
     setShowFailedRecords(false);
+    setShowSkippedRecords(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -312,56 +363,110 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
     handleReset();
   };
 
-  // Calculate valid records count using the same logic as handleUpload
+  // Calculate skipped records and valid records count using the same logic as handleUpload
   // IMPORTANT: This hook must be called before any conditional returns to follow Rules of Hooks
-  const validRecordsCount = useMemo(() => {
-    if (parsedData.length === 0 || !uploadType) return 0;
+  const { validRecordsCount, calculatedSkippedRecords } = useMemo(() => {
+    if (parsedData.length === 0 || !uploadType) {
+      return { validRecordsCount: 0, calculatedSkippedRecords: [] };
+    }
+    
+    const skipped: Array<{ row: number; reason: string; oldId?: string; title?: string; course_type?: string }> = [];
     
     if (uploadType === "old") {
-      const seenIds = new Set<string>();
-      return parsedData.filter((record: BulkUploadCourseRecord, index: number) => {
+      const seenIds = new Map<string, number>();
+      const validCount = parsedData.filter((record: BulkUploadCourseRecord, index: number) => {
         const rowNum = index + 1;
         
         // Skip if has validation errors
         if (validationErrors.some((error) => error.row === rowNum)) {
+          skipped.push({
+            row: rowNum,
+            reason: "Validation errors",
+            oldId: record.oldId,
+            title: record.title,
+          });
           return false;
         }
         
         // Skip if duplicate (keep first occurrence only)
         if (record.oldId && seenIds.has(record.oldId)) {
+          const firstRow = seenIds.get(record.oldId);
+          skipped.push({
+            row: rowNum,
+            reason: `Duplicate Course ID: "${record.oldId}" (first occurrence at row ${firstRow})`,
+            oldId: record.oldId,
+            title: record.title,
+          });
           return false;
         }
         
         // Mark as seen
         if (record.oldId) {
-          seenIds.add(record.oldId);
+          seenIds.set(record.oldId, rowNum);
         }
         
         return true;
       }).length;
+      
+      return { validRecordsCount: validCount, calculatedSkippedRecords: skipped };
     } else {
-      const seenTitles = new Set<string>();
-      return parsedData.filter((record: BulkUploadRegularCourseRecord, index: number) => {
+      const seenCombinations = new Map<string, number>();
+      const validCount = parsedData.filter((record: BulkUploadRegularCourseRecord, index: number) => {
         const rowNum = index + 1;
         
         // Skip if has validation errors
         if (validationErrors.some((error) => error.row === rowNum)) {
+          skipped.push({
+            row: rowNum,
+            reason: "Validation errors",
+            title: record.title,
+            course_type: record.course_type,
+          });
           return false;
         }
         
         // Skip if duplicate (keep first occurrence only)
-        const titleLower = record.title?.toLowerCase().trim();
-        if (!titleLower || seenTitles.has(titleLower)) {
+        // A course is only a duplicate if it has the same title AND the same course_type
+        if (record.title && record.course_type) {
+          const titleLower = record.title.toLowerCase().trim();
+          const courseTypeLower = record.course_type.toLowerCase().trim();
+          const compositeKey = `${titleLower}::${courseTypeLower}`;
+          
+          if (seenCombinations.has(compositeKey)) {
+            const firstRow = seenCombinations.get(compositeKey);
+            skipped.push({
+              row: rowNum,
+              reason: `Duplicate course: "${record.title}" with course type "${record.course_type}" (first occurrence at row ${firstRow})`,
+              title: record.title,
+              course_type: record.course_type,
+            });
+            return false;
+          }
+          
+          // Mark as seen
+          seenCombinations.set(compositeKey, rowNum);
+        } else {
+          // If title or course_type is missing, skip it (should be caught by validation)
+          skipped.push({
+            row: rowNum,
+            reason: "Missing required fields (title or course_type)",
+            title: record.title,
+            course_type: record.course_type,
+          });
           return false;
         }
         
-        // Mark as seen
-        seenTitles.add(titleLower);
-        
         return true;
       }).length;
+      
+      return { validRecordsCount: validCount, calculatedSkippedRecords: skipped };
     }
   }, [parsedData, validationErrors, uploadType]);
+
+  // Update skipped records state when calculated
+  useEffect(() => {
+    setSkippedRecords(calculatedSkippedRecords);
+  }, [calculatedSkippedRecords]);
   
   const errorRecordsCount = validationErrors.length;
   const canUpload = parsedData.length > 0 && validRecordsCount > 0;
@@ -506,6 +611,11 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
                       Duplicates: {duplicateRecords.length} record(s)
                     </span>
                   )}
+                  {skippedRecords.length > 0 && (
+                    <span className="text-orange-600 dark:text-orange-400">
+                      Skipped: {skippedRecords.length} record(s)
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -586,7 +696,7 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
               <div className="max-h-40 overflow-y-auto">
                 {duplicateRecords.slice(0, 10).map((dup, index) => (
                   <div key={index} className="text-sm text-amber-700 dark:text-amber-300 mb-1">
-                    Row {dup.row}: {uploadType === "old" ? `Course ID "${dup.oldId}"` : `Title "${dup.title}"`} (duplicate - will be ignored)
+                    Row {dup.row}: {uploadType === "old" ? `Course ID "${dup.oldId}"` : `Title "${dup.title}" (Course Type: ${dup.course_type})`} (duplicate - will be ignored)
                   </div>
                 ))}
                 {duplicateRecords.length > 10 && (
@@ -622,21 +732,106 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
             </div>
           )}
 
+          {/* Skipped Records */}
+          {skippedRecords.length > 0 && (
+            <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-md border border-orange-200 dark:border-orange-800">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="text-orange-600 dark:text-orange-400" size={18} />
+                  <h3 className="font-semibold text-orange-800 dark:text-orange-300">
+                    Skipped Records ({skippedRecords.length} row(s))
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowSkippedRecords(!showSkippedRecords)}
+                  className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline"
+                >
+                  {showSkippedRecords ? "Hide Details" : "Show Details"}
+                </button>
+              </div>
+              <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
+                The following records will be skipped and not uploaded:
+              </p>
+              {showSkippedRecords && (
+                <div className="max-h-60 overflow-y-auto border border-orange-200 dark:border-orange-800 rounded bg-white dark:bg-gray-800 mt-2">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-orange-100 dark:bg-orange-900/40 sticky top-0">
+                      <tr>
+                        <th className="p-2 text-left border border-orange-200 dark:border-orange-800 text-gray-700 dark:text-gray-300">Row #</th>
+                        <th className="p-2 text-left border border-orange-200 dark:border-orange-800 text-gray-700 dark:text-gray-300">
+                          {uploadType === "old" ? "Course ID" : "Title"}
+                        </th>
+                        {uploadType === "new" && (
+                          <th className="p-2 text-left border border-orange-200 dark:border-orange-800 text-gray-700 dark:text-gray-300">Course Type</th>
+                        )}
+                        <th className="p-2 text-left border border-orange-200 dark:border-orange-800 text-gray-700 dark:text-gray-300">Reason</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {skippedRecords.map((skipped, index) => (
+                        <tr key={index} className="hover:bg-orange-50 dark:hover:bg-orange-900/20">
+                          <td className="p-2 border border-orange-200 dark:border-orange-800 font-medium text-gray-700 dark:text-gray-300">
+                            {skipped.row}
+                          </td>
+                          <td className="p-2 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400">
+                            {uploadType === "old" ? skipped.oldId || "-" : skipped.title || "-"}
+                          </td>
+                          {uploadType === "new" && (
+                            <td className="p-2 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400">
+                              {skipped.course_type || "-"}
+                            </td>
+                          )}
+                          <td className="p-2 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400">
+                            {skipped.reason}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {!showSkippedRecords && (
+                <div className="max-h-40 overflow-y-auto">
+                  {skippedRecords.slice(0, 10).map((skipped, index) => (
+                    <div key={index} className="text-sm text-orange-700 dark:text-orange-300 mb-1">
+                      Row {skipped.row}: {skipped.reason}
+                    </div>
+                  ))}
+                  {skippedRecords.length > 10 && (
+                    <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
+                      ... and {skippedRecords.length - 10} more skipped record(s)
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Preview Table */}
           {parsedData.length > 0 && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-800 dark:text-gray-200">
-                  Preview (First {Math.min(previewRows, parsedData.length)} rows)
+                  Preview ({previewRows >= parsedData.length ? "All" : "First"} {Math.min(previewRows, parsedData.length)} {previewRows >= parsedData.length ? "" : "rows"})
                 </h3>
                 <select
-                  value={previewRows}
-                  onChange={(e) => setPreviewRows(Number(e.target.value))}
+                  value={previewRows >= parsedData.length ? parsedData.length : previewRows}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "all") {
+                      setPreviewRows(parsedData.length);
+                    } else {
+                      setPreviewRows(Number(value));
+                    }
+                  }}
                   className="text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
                 >
                   <option value={10}>10 rows</option>
                   <option value={20}>20 rows</option>
                   <option value={50}>50 rows</option>
+                  {parsedData.length > 50 && (
+                    <option value="all">Show All ({parsedData.length} rows)</option>
+                  )}
                 </select>
               </div>
               <div className="overflow-x-auto max-h-96 border border-gray-300 dark:border-gray-700 rounded">
@@ -666,6 +861,8 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
                   </thead>
                   <tbody>
                     {parsedData.slice(0, previewRows).map((record, index) => {
+                      // rowNum should be the actual row number in the file (1-based)
+                      // index is the position in the sliced array, so we add 1 to get the actual row number
                       const rowNum = index + 1;
                       const hasError = validationErrors.some(
                         (e) => e.row === rowNum
@@ -673,19 +870,35 @@ const BulkUploadCoursesModal: React.FC<BulkUploadCoursesModalProps> = ({
                       const isDuplicate = duplicateRecords.some(
                         (d) => d.row === rowNum
                       );
+                      const isSkipped = skippedRecords.some(
+                        (s) => s.row === rowNum
+                      );
+                      const skippedReason = skippedRecords.find(
+                        (s) => s.row === rowNum
+                      )?.reason;
+                      // Use a unique key based on the actual row number and record data to prevent React re-rendering issues
+                      const uniqueKey = uploadType === "old" 
+                        ? `row-${rowNum}-${(record as BulkUploadCourseRecord).oldId || index}`
+                        : `row-${rowNum}-${(record as BulkUploadRegularCourseRecord).title || index}-${(record as BulkUploadRegularCourseRecord).course_type || ''}`;
                       return (
                         <tr
-                          key={index}
+                          key={uniqueKey}
                           className={`${
                             hasError
                               ? "bg-red-50 dark:bg-red-900/20"
+                              : isSkipped
+                              ? "bg-orange-50 dark:bg-orange-900/20"
                               : isDuplicate
                               ? "bg-amber-50 dark:bg-amber-900/20"
                               : ""
                           }`}
+                          title={isSkipped ? `Skipped: ${skippedReason}` : undefined}
                         >
                           <td className="p-2 border border-gray-300 dark:border-gray-700 font-medium text-gray-600 dark:text-gray-300">
                             {rowNum}
+                            {isSkipped && (
+                              <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">(Skipped)</span>
+                            )}
                           </td>
                           {uploadType === "old" ? (
                             <>
